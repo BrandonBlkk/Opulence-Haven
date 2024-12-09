@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  scroll-behavior: smooth;
+}
+
+@media (min-width: 629px) {
+  .signinCon {
+    background-color: #f7f7f7;
+  }
+}
