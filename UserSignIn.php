@@ -1,5 +1,36 @@
 <?php
+include('config/dbConnection.php');
 
+$emailExists = '';
+$signinSuccess = false;
+
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
+    $email = trim($_POST['email']);
+    $password = trim($_POST['password']);
+
+    // Check if the email exists and fetch the hashed password
+    $checkEmailQuery = "SELECT UserPassword FROM usertb WHERE UserEmail = ?";
+    $stmt = mysqli_prepare($connect, $checkEmailQuery);
+    mysqli_stmt_bind_param($stmt, 's', $email);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_store_result($stmt);
+
+    if (mysqli_stmt_num_rows($stmt) > 0) {
+        // Bind the result to fetch the stored hashed password
+        mysqli_stmt_bind_result($stmt, $storedPasswordHash);
+        mysqli_stmt_fetch($stmt);
+
+        // Verify the password
+        if (password_verify($password, $storedPasswordHash)) {
+            $signinSuccess = true;
+        }
+    } else {
+        $emailExists = 'Email you signed in does not exist.';
+    }
+
+    // Close the statement
+    mysqli_stmt_close($stmt);
+}
 ?>
 
 <!DOCTYPE html>
@@ -8,7 +39,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Opulence Haven</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.css" integrity="sha512-HXXR0l2yMwHDrDyxJbrMD9eLvPe3z3qL3PPeozNTsiHJEENxx8DH2CxmV05iwG0dwoz5n4gQZQyYLUNt1Wdgfg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="CSS/output.css?v=<?php echo time(); ?>">
@@ -55,7 +86,8 @@
                 <!-- Password Input -->
                 <div class="flex flex-col relative">
                     <div class="flex items-center justify-between border rounded">
-                        <input id="passwordInput"
+                        <input
+                            id="passwordInput"
                             class="p-2 w-full rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="password"
                             name="password"
@@ -120,6 +152,7 @@
 
     <!-- Loader -->
     <?php
+    include('./includes/Alert.php');
     include('./includes/Loader.php');
     ?>
 
