@@ -1,3 +1,17 @@
+// Move Right Loader
+let moveRight = document.getElementById("move-right");
+
+window.addEventListener('scroll', () => {
+    let scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+    let scrollPercentage = (window.scrollY / scrollableHeight) * 100; 
+
+    if (scrollPercentage >= 100) {
+        moveRight.style.width = '100%';
+    } else {
+        moveRight.style.width = scrollPercentage + '%';
+    }
+});
+
 // Cookie Modal
 const cookieModal = document.getElementById('cookieModal');
 if (cookieModal) {
@@ -108,12 +122,18 @@ if (logoutBtn && confirmModal && cancelBtn && confirmLogoutBtn) {
         darkOverlay.classList.remove('flex');
         menubar.classList.remove('-rotate-90');
         loader.style.display = 'flex';
-
-        // Redirect after logout
-        setTimeout(() => {
-            window.location.href = 'UserSignIn.php';
-        }, 1000);
+    
+        // Notify the server to destroy the session
+        fetch('UserLogout.php', { method: 'POST' })
+            .then(() => {
+                // Redirect after logout
+                setTimeout(() => {
+                    window.location.href = 'UserSignIn.php';
+                }, 1000);
+            })
+            .catch((error) => console.error('Logout failed:', error));
     });
+    
 }
 
 // Get Year

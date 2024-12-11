@@ -1,5 +1,10 @@
 <?php
+session_start();
+include('./config/dbConnection.php');
 
+if (!$connect) {
+    die("Connection failed: " . mysqli_connect_error());
+}
 ?>
 
 <!DOCTYPE html>
@@ -22,7 +27,7 @@
 
     <main class="pb-4 px-4 max-w-[1310px] mx-auto">
         <!-- Info -->
-        <section class="flex items-center justify-center">
+        <section class="flex items-center justify-center <?php echo !empty($_SESSION['UserID']) ? 'hidden' : ''; ?>">
             <div class="flex gap-2 border border-t-0 p-3">
                 <i class="ri-heart-line text-2xl cursor-pointer bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center"></i>
                 <div>

@@ -1,4 +1,5 @@
 <?php
+session_start();
 include('config/dbConnection.php');
 
 $emailExists = '';
@@ -9,27 +10,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
     $password = trim($_POST['password']);
 
     // Check if the email exists and fetch the hashed password
-    $checkEmailQuery = "SELECT UserPassword FROM usertb WHERE UserEmail = ?";
-    $stmt = mysqli_prepare($connect, $checkEmailQuery);
-    mysqli_stmt_bind_param($stmt, 's', $email);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_store_result($stmt);
+    $checkAccQuery = "SELECT * FROM usertb 
+    WHERE UserEmail = '$email' AND UserPassword = '$password'";
+    $check_account_query = mysqli_query($connect, $checkAccQuery);
+    $rowCount = mysqli_num_rows($check_account_query);
 
-    if (mysqli_stmt_num_rows($stmt) > 0) {
-        // Bind the result to fetch the stored hashed password
-        mysqli_stmt_bind_result($stmt, $storedPasswordHash);
-        mysqli_stmt_fetch($stmt);
+    // Check customer account match with signup account
+    if ($rowCount > 0) {
+        $array = mysqli_fetch_array($check_account_query);
+        $user_id = $array["UserID"];
+        $user_username = $array["UserName"];
+        $user_email = $array["UserEmail"];
 
-        // Verify the password
-        if (password_verify($password, $storedPasswordHash)) {
-            $signinSuccess = true;
-        }
+        $_SESSION["UserID"] = $user_id;
+        $_SESSION["UserName"] = $user_username;
+        $_SESSION["UserEmail"] = $user_email;
+        $signinSuccess = true;
     } else {
-        $emailExists = 'Email you signed in does not exist.';
+        $emailExists = "You password is incorrect or account doesn't exist.";
     }
-
-    // Close the statement
-    mysqli_stmt_close($stmt);
 }
 ?>
 
@@ -103,30 +102,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
                     type="submit"
                     name="signin"
                     value="Sign In">
-
-                <div class="relative my-6">
-                    <div class="absolute inset-0 flex items-center">
-                        <div class="w-full border-t border-gray-200"></div>
-                    </div>
-                    <div class="relative flex justify-center text-sm">
-                        <span class="px-3 bg-white text-xs text-gray-500">or continue with?</span>
-                    </div>
-                </div>
-
-                <div class="flex flex-col sm:flex-row gap-2 items-center justify-evenly select-none">
-                    <a href="#" class="flex items-center gap-2 border w-full border-slate-300 py-2 px-3 rounded-md hover:border-slate-400 transition-colors duration-300">
-                        <img src="UserImages/search.png" class="w-6" alt="Logo">
-                        <p class="text-center w-full">Google</p>
-                    </a>
-                    <a href="#" class="flex items-center gap-2 border w-full border-slate-300 py-2 px-3 rounded-md hover:border-slate-400 transition-colors duration-300">
-                        <img src="UserImages/apple-logo.png" class="w-6" alt="Logo">
-                        <p class="text-center w-full">Apple</p>
-                    </a>
-                    <a href="#" class="flex items-center gap-2 border w-full border-slate-300 py-2 px-3 rounded-md hover:border-slate-400 transition-colors duration-300">
-                        <img src="UserImages/facebook (2).png" class="w-6" alt="Logo">
-                        <p class="text-center w-full">Facebook</p>
-                    </a>
-                </div>
 
                 <div class="relative my-6">
                     <div class="absolute inset-0 flex items-center">

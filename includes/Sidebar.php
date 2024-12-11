@@ -2,8 +2,10 @@
     <div class="flex justify-between pb-3">
         <div class="max-w-[300px]">
             <span class="text-2xl font-semibold">Hello,</span>
-            <span class="font-semibold">Brandon</span>
-            <p class="text-slate-400 text-xs">kyawzayartun0527@gmail.com</p>
+            <span class="font-semibold"><?php echo !empty($_SESSION['UserName']) ? $_SESSION['UserName'] : 'Guest'; ?></span>
+            <p class="text-slate-400 text-xs <?php echo empty($_SESSION['UserEmail']) ? 'hidden' : 'flex' ?>">
+                <?php echo $_SESSION['UserEmail'] ?>
+            </p>
         </div>
         <i id="closeBtn" class="ri-close-line text-2xl cursor-pointer rounded transition-colors duration-300"></i>
     </div>
@@ -54,7 +56,7 @@
                 </script>
             </div>
         </div>
-        <div id="logoutBtn" class="flex items-center gap-1 text-slate-600 hover:bg-gray-100 p-3 rounded-sm transition-colors duration-300 cursor-pointer select-none">
+        <div id="logoutBtn" class="flex items-center gap-1 text-slate-600 hover:bg-gray-100 p-3 rounded-sm transition-colors duration-300 cursor-pointer select-none <?php echo empty($_SESSION['UserID']) ? 'hidden' : '' ?>">
             <i class="ri-logout-box-r-line text-xl"></i>
             <p class="font-semibold text-sm">Logout</p>
         </div>
@@ -66,7 +68,9 @@
     <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center">
         <h2 class="text-xl font-semibold text-blue-900 mb-4">Confirm Logout</h2>
         <p class="text-slate-600 mb-2">You are currently signed in as:</p>
-        <p class="font-semibold text-gray-800 mb-4">Brandon (kyawzayartun0527@gmail.com)</p>
+        <p class="font-semibold text-gray-800 mb-4">
+            <?php echo $_SESSION['UserName'] . ' (' . $_SESSION['UserEmail'] . ')'; ?>
+        </p>
         <p class="text-sm text-gray-500 mb-6">
             Logging out will end your session and remove access to secure areas of your account. Ensure all changes are saved.
         </p>

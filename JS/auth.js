@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Add keyup event listeners for real-time validation
     document.getElementById("username").addEventListener("keyup", validateUsername);
     document.getElementById("email").addEventListener("keyup", validateEmail);
-    document.getElementById("passwordInput").addEventListener("keyup", validatePassword());
+    document.getElementById("passwordInput").addEventListener("keyup", validatePassword);
     document.getElementById("phone").addEventListener("keyup", validatePhone);
 
     const signupForm = document.getElementById("signupForm");
@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         setTimeout(() => {
             loader.style.display = 'none'; 
-            window.location.href = 'UserHome.php';
+            window.location.href = 'HomePage.php';
         }, 1000); 
     }
 

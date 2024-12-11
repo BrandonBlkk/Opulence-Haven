@@ -1,7 +1,11 @@
 <section id="sale-section" class="SVG2 p-2 text-center bg-blue-950 text-white">
     <p>Monsoon Sale. up to 40% off.</p>
 </section>
+
 <div class="sticky top-0 w-full bg-white shadow-md z-50">
+    <?php
+    include('./includes/MoveRightLoader.php');
+    ?>
     <nav class="flex items-center justify-between max-w-[1050px] mx-auto p-3">
         <a href="Homepage.php">
             <img src="UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-28 select-none" alt="Logo">

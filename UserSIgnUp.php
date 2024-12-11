@@ -6,44 +6,32 @@ $signupSuccess = false;
 $stmtInsert = null;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
-    $username = $_POST['username'];
-    $email = $_POST['email'];
-    $password = $_POST['password'];
-    $phone = $_POST['phone'];
-    $signupDate = $_POST['signupdate'];
+    $username = mysqli_real_escape_string($connect, $_POST['username']);
+    $email = mysqli_real_escape_string($connect, $_POST['email']);
+    $password = mysqli_real_escape_string($connect, $_POST['password']);
+    $phone = mysqli_real_escape_string($connect, $_POST['phone']);
+    $signupDate = mysqli_real_escape_string($connect, $_POST['signupdate']);
 
     // Check if the email already exists using prepared statement
-    $checkEmailQuery = "SELECT UserEmail FROM usertb WHERE UserEmail = ?";
-    $stmt = mysqli_prepare($connect, $checkEmailQuery);
-    mysqli_stmt_bind_param($stmt, 's', $email);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_store_result($stmt);
+    $checkEmailQuery = "SELECT UserEmail FROM usertb WHERE UserEmail = '$email'";
 
-    if (mysqli_stmt_num_rows($stmt) > 0) {
+    $checkEmailQuery = mysqli_query($connect, $checkEmailQuery);
+    $count = mysqli_num_rows($checkEmailQuery);
+
+    if ($count > 0) {
         $emailExists = 'Email you signed up with is already taken.';
     } else {
-        // Hash the password
-        $passwordHash = password_hash($password, PASSWORD_BCRYPT);
-
         // Insert the new user data using prepared statement
         $insertQuery = "INSERT INTO usertb (UserName, UserEmail, UserPassword, UserPhone, SignupDate) 
-                        VALUES (?, ?, ?, ?, ?)";
-        $stmtInsert = mysqli_prepare($connect, $insertQuery);
-        mysqli_stmt_bind_param($stmtInsert, 'sssss', $username, $email, $passwordHash, $phone, $signupDate);
+                        VALUES ('$username', '$email', '$password', '$phone', '$signupDate')";
+        $insert_Query = mysqli_query($connect, $insertQuery);
 
-        if (mysqli_stmt_execute($stmtInsert)) {
+        if ($insert_Query) {
             $signupSuccess = true;
         }
     }
-
-    // Close statements
-    mysqli_stmt_close($stmt);
-    if ($stmtInsert) {
-        mysqli_stmt_close($stmtInsert);
-    }
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">

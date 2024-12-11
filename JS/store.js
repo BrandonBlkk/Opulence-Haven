@@ -1,3 +1,17 @@
+// Move Right Loader
+let moveRight = document.getElementById("move-right");
+
+window.addEventListener('scroll', () => {
+    let scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+    let scrollPercentage = (window.scrollY / scrollableHeight) * 100; 
+
+    if (scrollPercentage >= 100) {
+        moveRight.style.width = '100%';
+    } else {
+        moveRight.style.width = scrollPercentage + '%';
+    }
+});
+
 const storeMenubar = document.getElementById('storeMenubar');
 const storeDarkOverlay = document.getElementById('storeDarkOverlay');
 

@@ -25,9 +25,12 @@
 <div id="storeDarkOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
 
 <div class="sticky top-0 w-full bg-white shadow-md z-30">
+    <?php
+    include('./includes/MoveRightLoader.php');
+    ?>
     <nav class="flex items-center justify-between max-w-[1050px] mx-auto p-3">
         <div class="flex items-end gap-1 select-none">
-            <a href="Homepage.php">
+            <a href="Store.php">
                 <img src="UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-28 select-none" alt="Logo">
             </a>
             <p class="text-amber-500 text-sm font-semibold">STORE</p>
