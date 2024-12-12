@@ -1,7 +1,7 @@
 <?php
 include('config/dbConnection.php');
 
-$emailExists = '';
+$alertMessage = '';
 $signupSuccess = false;
 $stmtInsert = null;
 
@@ -19,7 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     $count = mysqli_num_rows($checkEmailQuery);
 
     if ($count > 0) {
-        $emailExists = 'Email you signed up with is already taken.';
+        $alertMessage = 'Email you signed up with is already taken.';
     } else {
         // Insert the new user data using prepared statement
         $insertQuery = "INSERT INTO usertb (UserName, UserEmail, UserPassword, UserPhone, SignupDate) 

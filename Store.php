@@ -1,5 +1,10 @@
 <?php
+session_start();
+include('./config/dbConnection.php');
 
+if (!$connect) {
+    die("Connection failed: " . mysqli_connect_error());
+}
 ?>
 
 <!DOCTYPE html>

@@ -2,32 +2,65 @@
 session_start();
 include('config/dbConnection.php');
 
-$emailExists = '';
+$alertMessage = '';
 $signinSuccess = false;
+$isAccountLocked = false;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
     $email = trim($_POST['email']);
     $password = trim($_POST['password']);
 
-    // Check if the email exists and fetch the hashed password
-    $checkAccQuery = "SELECT * FROM usertb 
-    WHERE UserEmail = '$email' AND UserPassword = '$password'";
-    $check_account_query = mysqli_query($connect, $checkAccQuery);
-    $rowCount = mysqli_num_rows($check_account_query);
+    // Check if the email exists
+    $checkEmailQuery = "SELECT * FROM usertb 
+    WHERE UserEmail = '$email'";
+    $check_email_query = mysqli_query($connect, $checkEmailQuery);
+    $emailExist = mysqli_num_rows($check_email_query);
 
-    // Check customer account match with signup account
-    if ($rowCount > 0) {
-        $array = mysqli_fetch_array($check_account_query);
-        $user_id = $array["UserID"];
-        $user_username = $array["UserName"];
-        $user_email = $array["UserEmail"];
-
-        $_SESSION["UserID"] = $user_id;
-        $_SESSION["UserName"] = $user_username;
-        $_SESSION["UserEmail"] = $user_email;
-        $signinSuccess = true;
+    if (!$emailExist) {
+        $alertMessage = "No account found with the provided email. Please try again.";
     } else {
-        $emailExists = "You password is incorrect or account doesn't exist.";
+        // Check if the email exists and fetch data
+        $checkAccQuery = "SELECT * FROM usertb 
+        WHERE UserEmail = '$email' AND UserPassword = '$password';";
+        $check_account_query = mysqli_query($connect, $checkAccQuery);
+        $rowCount = mysqli_num_rows($check_account_query);
+
+        // Initialize or reset sign-in attempt counter based on email consistency
+        if (!isset($_SESSION['last_email']) || $_SESSION['last_email'] !== $email) {
+            $_SESSION['signin_attempts'] = 0;
+            $_SESSION['last_email'] = $email;
+        }
+
+        // Check customer account match with signup account
+        if ($rowCount > 0) {
+            $array = mysqli_fetch_array($check_account_query);
+            $user_id = $array["UserID"];
+            $user_username = $array["UserName"];
+            $user_email = $array["UserEmail"];
+
+            $_SESSION["UserID"] = $user_id;
+            $_SESSION["UserName"] = $user_username;
+            $_SESSION["UserEmail"] = $user_email;
+            // Reset sign-in attempts on successful sign-in
+            $_SESSION['signin_attempts'] = 0;
+            $_SESSION['last_email'] = null;
+            $signinSuccess = true;
+        } else {
+            // Increment sign-in attempt counter for the same email
+            $_SESSION['signin_attempts']++;
+
+            // Check if sign-in attempts exceed limit
+            if ($_SESSION['signin_attempts'] === 3) {
+                $alertMessage = "Your account locked due to failed attempts. Try again later.";
+                // Reset sign-in attempts
+                $_SESSION['signin_attempts'] = 0;
+                $isAccountLocked = true;
+            } else if ($_SESSION['signin_attempts'] === 2) {
+                $alertMessage = "Multiple failed attempts. One more may lock your account temporarily.";
+            } else {
+                $alertMessage = "The password you entered is incorrect. Please try again.";
+            }
+        }
     }
 }
 ?>

@@ -3,30 +3,43 @@ document.addEventListener("DOMContentLoaded", () => {
     const alertBox = document.getElementById('alertBox');
     const alertText = document.getElementById('alertText');
     const loader = document.getElementById('loader');
-    const emailExists = document.getElementById('emailExists').value;
+    const alertMessage = document.getElementById('alertMessage').value;
     const signupSuccess = document.getElementById('signupSuccess').value === 'true';
 
     if (signupSuccess) {
         loader.style.display = 'flex';
 
+        // Show Alert
         setTimeout(() => {
             loader.style.display = 'none';
             alertText.textContent = 'You have successfully created an account.';
-            alertBox.classList.remove('-bottom-full');
+            alertBox.classList.remove('-bottom-5');
+            alertBox.classList.remove('opacity-0');
+            alertBox.classList.add('opacity-100');
             alertBox.classList.add('bottom-3');
 
+            // Hide Alert
             setTimeout(() => {
-                alertBox.classList.add('-bottom-full');
+                alertBox.classList.add('-bottom-1');
+                alertBox.classList.add('opacity-0');
+                alertBox.classList.remove('opacity-100');
                 alertBox.classList.remove('bottom-3');
             }, 5000);
         }, 1000);
-    } else if (emailExists) {
-        alertText.textContent = emailExists;
-        alertBox.classList.remove('-bottom-full');
+    } else if (alertMessage) {
+
+        // Show Alert
+        alertText.textContent = alertMessage;
+        alertBox.classList.remove('-bottom-1');
+        alertBox.classList.remove('opacity-0');
+        alertBox.classList.add('opacity-100');
         alertBox.classList.add('bottom-3');
 
+        // Hide Alert
         setTimeout(() => {
-            alertBox.classList.add('-bottom-full');
+            alertBox.classList.add('-bottom-1');
+            alertBox.classList.add('opacity-0');
+            alertBox.classList.remove('opacity-100');
             alertBox.classList.remove('bottom-3');
         }, 5000);
     }
@@ -51,6 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener("DOMContentLoaded", () => {
     const loader = document.getElementById('loader');
     const signInSuccess = document.getElementById('signinSuccess').value === 'true';
+    const isAccountLocked = document.getElementById('isAccountLocked').value === 'true';
 
     if (signInSuccess) {
         loader.style.display = 'flex'; 
@@ -59,6 +73,10 @@ document.addEventListener("DOMContentLoaded", () => {
             loader.style.display = 'none'; 
             window.location.href = 'HomePage.php';
         }, 1000); 
+    } else if (isAccountLocked) {
+        setTimeout(() => {
+            window.location.href = 'WaitingRoom.php';
+        }, 5000); 
     }
 
     // Add keyup event listeners for real-time validation

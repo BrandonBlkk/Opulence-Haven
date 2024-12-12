@@ -128,7 +128,7 @@ if (logoutBtn && confirmModal && cancelBtn && confirmLogoutBtn) {
             .then(() => {
                 // Redirect after logout
                 setTimeout(() => {
-                    window.location.href = 'UserSignIn.php';
+                    window.location.href = 'HomePage.php';
                 }, 1000);
             })
             .catch((error) => console.error('Logout failed:', error));

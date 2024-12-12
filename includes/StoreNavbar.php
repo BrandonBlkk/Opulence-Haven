@@ -1,7 +1,7 @@
 <section class="bg-gray-100 px-3">
     <div class="flex items-center justify-end max-w-[1050px] mx-auto gap-5 select-none">
         <i id="search-icon" class="ri-search-line text-xl cursor-pointer"></i>
-        <a href="UserSignIn.php" class="font-semibold text-slate-500 hover:bg-gray-200 p-2 rounded-sm transition-colors duration-200">My account</a>
+        <a href="UserSignIn.php" class="font-semibold text-slate-500 hover:bg-gray-200 p-2 rounded-sm transition-colors duration-200"><?php echo !empty($_SESSION['UserName']) ? $_SESSION['UserName'] : 'My account'; ?></a>
         <div class="relative group">
             <div class="bg-blue-900 text-white py-1 px-3 cursor-pointer flex items-center gap-2">
                 <i class="ri-shopping-cart-2-line text-xl"></i>

@@ -12,7 +12,7 @@
     <div class="flex flex-col justify-between gap-3 h-full">
         <div>
             <div class="flex flex-col gap-3 py-2 pb-4 border-b">
-                <h1>Are you new?</h1>
+                <h1>Are you new here?</h1>
                 <a href="UserSignUp.php" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold text-center p-2 select-none transition-colors duration-300">Sign Up</a>
                 <a href="UserSignIn.php" class="border hover:bg-gray-100 font-semibold text-blue-900 text-center p-2 select-none transition-colors duration-300">Sign In</a>
             </div>
