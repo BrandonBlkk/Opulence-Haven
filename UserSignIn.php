@@ -7,8 +7,9 @@ $signinSuccess = false;
 $isAccountLocked = false;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
-    $email = trim($_POST['email']);
-    $password = trim($_POST['password']);
+    $email = mysqli_real_escape_string($connect, trim($_POST['email']));
+    $password = mysqli_real_escape_string($connect, trim($_POST['password']));
+    $lastSignIn = mysqli_real_escape_string($connect, $_POST['signindate']);
 
     // Check if the email exists
     $checkEmailQuery = "SELECT * FROM usertb 
@@ -41,6 +42,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
             $_SESSION["UserID"] = $user_id;
             $_SESSION["UserName"] = $user_username;
             $_SESSION["UserEmail"] = $user_email;
+
+            $updateSignInQuery = "UPDATE usertb SET LastSignIn = '$lastSignIn',
+            Status = 'active' WHERE UserID = '$user_id'";
+            mysqli_query($connect, $updateSignInQuery);
+
             // Reset sign-in attempts on successful sign-in
             $_SESSION['signin_attempts'] = 0;
             $_SESSION['last_email'] = null;
@@ -51,7 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
 
             // Check if sign-in attempts exceed limit
             if ($_SESSION['signin_attempts'] === 3) {
-                $alertMessage = "Your account locked due to failed attempts. Try again later.";
+                // $alertMessage = "Your account locked due to failed attempts. Try again later.";
                 // Reset sign-in attempts
                 $_SESSION['signin_attempts'] = 0;
                 $isAccountLocked = true;
@@ -87,12 +93,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
             <div class="px-0 sm:px-3">
                 <h1 class="text-xl font-bold mt-0 sm:mt-10">Get ready to:</h1>
                 <div class="flex items-center gap-2 mt-2">
-                    <i class="ri-check-line"></i>
-                    <p>Save even more with reward rates from our partner sites</p>
+                    <i class="ri-check-line font-semibold text-amber-500"></i>
+                    <p>Book your perfect room with access to exclusive offers</p>
                 </div>
                 <div class="flex items-center gap-2 mt-2">
-                    <i class="ri-check-line"></i>
-                    <p>Easily pick up your search again from any device</p>
+                    <i class="ri-check-line font-semibold text-amber-500"></i>
+                    <p>Access your booking from any device, anytime, anywhere</p>
                 </div>
             </div>
         </div>
@@ -119,15 +125,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
                 <div class="flex flex-col relative">
                     <div class="flex items-center justify-between border rounded">
                         <input
-                            id="passwordInput"
+                            id="passwordInput2"
                             class="p-2 w-full rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="password"
                             name="password"
                             placeholder="Enter your password">
-                        <i id="togglePassword" class="ri-eye-line p-2 cursor-pointer"></i>
+                        <i id="togglePassword2" class="ri-eye-line p-2 cursor-pointer"></i>
                     </div>
-                    <small id="passwordError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">Password is required.</small>
+                    <small id="passwordError2" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">Password is required.</small>
                 </div>
+
+                <a href="#" class="text-xs text-gray-400 hover:text-gray-500">Forget your password?</a>
+
+                <!-- Date Input -->
+                <input type="hidden" id="signindate" name="signindate" value="<?php echo date("Y-m-d h:i:s"); ?>">
+
 
                 <!-- Signin Button -->
                 <input

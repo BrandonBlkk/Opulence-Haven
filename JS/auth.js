@@ -74,14 +74,12 @@ document.addEventListener("DOMContentLoaded", () => {
             window.location.href = 'HomePage.php';
         }, 1000); 
     } else if (isAccountLocked) {
-        setTimeout(() => {
-            window.location.href = 'WaitingRoom.php';
-        }, 5000); 
+        window.location.href = 'WaitingRoom.php';
     }
 
     // Add keyup event listeners for real-time validation
     document.getElementById("email").addEventListener("keyup", validateEmail);
-    document.getElementById("passwordInput").addEventListener("keyup", validatePassword);
+    document.getElementById("passwordInput2").addEventListener("keyup", validatePasswordSignIn);
 
     const signinForm = document.getElementById("signinForm");
     if (signinForm) {
@@ -105,7 +103,7 @@ const validateSignUpForm = () => {
 
 const validateSignInForm = () => {
     const isEmailValid = validateEmail();
-    const isPasswordValid = validatePassword();
+    const isPasswordValid = validatePasswordSignIn();
 
     return isEmailValid && isPasswordValid;
 };
@@ -189,6 +187,22 @@ const validatePassword = () => {
     }
 };
 
+const validatePasswordSignIn = () => {
+    const password = document.getElementById("passwordInput2").value.trim();
+    const passwordError2 = document.getElementById("passwordError2");
+
+    if (!password) {
+        passwordError2.textContent = "Password is required.";
+        passwordError2.classList.remove("opacity-0");
+        passwordError2.classList.add("opacity-100");
+        return false;
+    } else {
+        passwordError2.classList.remove("opacity-100");
+        passwordError2.classList.add("opacity-0");
+        return true;
+    }
+};
+
 const validatePhone = () => {
     const phone = document.getElementById("phone").value.trim();
     const phoneError = document.getElementById("phoneError");
@@ -218,12 +232,25 @@ const validatePhone = () => {
 // Get the input and icon elements
 const passwordInput = document.getElementById('passwordInput');
 const togglePassword = document.getElementById('togglePassword');
+const passwordInput2 = document.getElementById('passwordInput2');
+const togglePassword2 = document.getElementById('togglePassword2');
 
-togglePassword.addEventListener('click', () => {
-    const type = passwordInput.type === 'password' ? 'text' : 'password';
-    passwordInput.type = type;
-
-    // Toggle the icon 
-    togglePassword.classList.toggle('ri-eye-line');
-    togglePassword.classList.toggle('ri-eye-off-line');
-});
+if (togglePassword) {
+    togglePassword.addEventListener('click', () => {
+        const type = passwordInput.type === 'password' ? 'text' : 'password';
+        passwordInput.type = type;
+    
+        // Toggle the icon 
+        togglePassword.classList.toggle('ri-eye-line');
+        togglePassword.classList.toggle('ri-eye-off-line');
+    });
+} else {
+    togglePassword2.addEventListener('click', () => {
+        const type = passwordInput2.type === 'password' ? 'text' : 'password';
+        passwordInput2.type = type;
+    
+        // Toggle the icon 
+        togglePassword2.classList.toggle('ri-eye-line');
+        togglePassword2.classList.toggle('ri-eye-off-line');
+    });
+}

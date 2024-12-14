@@ -12,7 +12,9 @@ $user = "CREATE TABLE usertb
     UserEmail varchar(30),
     UserPassword varchar(30),
     UserPhone varchar(30),
-    SignupDate varchar(30)
+    SignupDate varchar(30),
+    LastSignIn varchar(30),
+    Status varchar(10)
 )";
 
 try {

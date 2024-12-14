@@ -6,10 +6,10 @@ $signupSuccess = false;
 $stmtInsert = null;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
-    $username = mysqli_real_escape_string($connect, $_POST['username']);
-    $email = mysqli_real_escape_string($connect, $_POST['email']);
-    $password = mysqli_real_escape_string($connect, $_POST['password']);
-    $phone = mysqli_real_escape_string($connect, $_POST['phone']);
+    $username = mysqli_real_escape_string($connect, trim($_POST['username']));
+    $email = mysqli_real_escape_string($connect, trim($_POST['email']));
+    $password = mysqli_real_escape_string($connect, trim($_POST['password']));
+    $phone = mysqli_real_escape_string($connect, trim($_POST['phone']));
     $signupDate = mysqli_real_escape_string($connect, $_POST['signupdate']);
 
     // Check if the email already exists using prepared statement
@@ -22,8 +22,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
         $alertMessage = 'Email you signed up with is already taken.';
     } else {
         // Insert the new user data using prepared statement
-        $insertQuery = "INSERT INTO usertb (UserName, UserEmail, UserPassword, UserPhone, SignupDate) 
-                        VALUES ('$username', '$email', '$password', '$phone', '$signupDate')";
+        $insertQuery = "INSERT INTO usertb (UserName, UserEmail, UserPassword, UserPhone, SignupDate, Status) 
+                        VALUES ('$username', '$email', '$password', '$phone', '$signupDate', 'inactive')";
         $insert_Query = mysqli_query($connect, $insertQuery);
 
         if ($insert_Query) {
@@ -55,12 +55,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
             <div class="px-0 sm:px-3">
                 <h1 class="text-xl font-bold mt-0 sm:mt-10">Get ready to:</h1>
                 <div class="flex items-center gap-2 mt-2">
-                    <i class="ri-check-line"></i>
-                    <p>Save even more with reward rates from our partner sites</p>
+                    <i class="ri-check-line font-semibold text-amber-500"></i>
+                    <p>Book your perfect room with access to exclusive offers</p>
                 </div>
                 <div class="flex items-center gap-2 mt-2">
-                    <i class="ri-check-line"></i>
-                    <p>Easily pick up your search again from any device</p>
+                    <i class="ri-check-line font-semibold text-amber-500"></i>
+                    <p>Access your booking from any device, anytime, anywhere</p>
                 </div>
             </div>
         </div>

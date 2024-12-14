@@ -24,21 +24,29 @@
                 <div
                     x-ref="dropdown"
                     :style="{ height: expanded ? height + 'px' : '0px' }"
-                    class="overflow-hidden transition-all duration-300 pl-3 select-none">
-                    <a href="#" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
+                    class="overflow-hidden transition-all duration-300 select-none">
+                    <a href="ProfileEdit.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
                         <div class="flex items-center gap-1">
-                            <i class="ri-book-2-line text-xl"></i>
-                            <p class="font-semibold text-sm">My Booking</p>
+                            <i class="ri-user-settings-line text-xl"></i>
+                            <p class="font-semibold text-sm">Your Profile</p>
                         </div>
-                        <p class="px-2 text-white bg-blue-950 rounded-sm ml-5">1</p>
                     </a>
-                    <a href="#" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
-                        <div class="flex items-center gap-1">
-                            <i class="ri-file-list-3-line text-xl"></i>
-                            <p class="font-semibold text-sm">Purchase List</p>
-                        </div>
-                        <p class="px-2 text-white bg-blue-950 rounded-sm ml-5">3</p>
-                    </a>
+                    <div class="pl-3">
+                        <a href="#" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
+                            <div class="flex items-center gap-1">
+                                <i class="ri-calendar-event-line text-xl"></i>
+                                <p class="font-semibold text-sm">Upcoming Stays</p>
+                            </div>
+                            <p class="px-2 text-white bg-blue-950 rounded-sm ml-5">1</p>
+                        </a>
+                        <a href="#" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
+                            <div class="flex items-center gap-1">
+                                <i class="ri-file-list-3-line text-xl"></i>
+                                <p class="font-semibold text-sm">Purchase List</p>
+                            </div>
+                            <p class="px-2 text-white bg-blue-950 rounded-sm ml-5">3</p>
+                        </a>
+                    </div>
                 </div>
             </div>
             <div class="flex flex-col">
@@ -56,9 +64,15 @@
                 </script>
             </div>
         </div>
-        <div id="logoutBtn" class="flex items-center gap-1 text-slate-600 hover:bg-gray-100 p-3 rounded-sm transition-colors duration-300 cursor-pointer select-none <?php echo empty($_SESSION['UserID']) ? 'hidden' : '' ?>">
-            <i class="ri-logout-box-r-line text-xl"></i>
-            <p class="font-semibold text-sm">Logout</p>
+        <div class="space-y-2">
+            <p class="text-xs text-slate-600">
+                Contact our 24/7 support for any assistance with your bookings or inquiries.
+                <a href="mailto:support@opulenceHaven.com" class="text-amber-600 underline hover:underline-offset-2">support@opulenceHaven.com</a>
+            </p>
+            <div id="logoutBtn" class="flex items-center gap-1 text-slate-600 hover:bg-gray-100 p-3 rounded-sm transition-colors duration-300 cursor-pointer select-none <?php echo empty($_SESSION['UserID']) ? 'hidden' : '' ?>">
+                <i class="ri-logout-box-r-line text-xl"></i>
+                <p class="font-semibold text-sm">Logout</p>
+            </div>
         </div>
     </div>
 </aside>

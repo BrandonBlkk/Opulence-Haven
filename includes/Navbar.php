@@ -1,5 +1,5 @@
 <section id="sale-section" class="SVG2 p-2 text-center bg-blue-950 text-white">
-    <p>Monsoon Sale. up to 40% off.</p>
+    <p>Book your dream vacation now!</p>
 </section>
 
 <div class="sticky top-0 w-full bg-white shadow-md z-50">
