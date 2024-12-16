@@ -3,10 +3,10 @@
         <i id="search-icon" class="ri-search-line text-xl cursor-pointer"></i>
         <a href="UserSignIn.php" class="font-semibold text-slate-500 hover:bg-gray-200 p-2 rounded-sm transition-colors duration-200"><?php echo !empty($_SESSION['UserName']) ? $_SESSION['UserName'] : 'My account'; ?></a>
         <div class="relative group">
-            <div class="bg-blue-900 text-white py-1 px-3 cursor-pointer flex items-center gap-2">
+            <a href="AddToCart.php" class="bg-blue-900 text-white py-1 px-3 cursor-pointer flex items-center gap-2">
                 <i class="ri-shopping-cart-2-line text-xl"></i>
                 <span>0 item</span>
-            </div>
+            </a>
 
             <!-- Dropdown Cart -->
             <div class="absolute top-full right-0 bg-gray-100 p-3 z-40 w-96 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-300">

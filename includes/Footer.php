@@ -32,33 +32,51 @@
                 </script>
             </div>
             <div>
-                <h1 class="text-lg font-semibold text-black mb-3">Information</h1>
-                <ul class="text-sm flex flex-col gap-1 text-slate-700">
-                    <li>
-                        <a class="hover:underline" href="AboutUs.php">About us</a>
-                    </li>
-                    <li>
-                        <a class="hover:underline" href="Contact.php">Contact</a>
-                    </li>
-                </ul>
+                <div>
+                    <h1 class="text-lg font-semibold text-black mb-3">Information</h1>
+                    <ul class="text-sm flex flex-col gap-1 text-slate-700">
+                        <li>
+                            <a class="hover:underline" href="AboutUs.php">About Us</a>
+                        </li>
+                        <li>
+                            <a class="hover:underline" href="Contact.php">Contact</a>
+                        </li>
+                        <li>
+                            <a class="hover:underline" href="TermsAndConditions.php">Terms & Conditions</a>
+                        </li>
+                        <li>
+                            <a class="hover:underline" href="TermOfUse.php">Terms of Use</a>
+                        </li>
+                        <li>
+                            <a class="hover:underline" href="PrivacyPolicy.php">Privacy Policy</a>
+                        </li>
+                        <li>
+                            <a class="hover:underline" href="Support.php">Customer Support</a>
+                        </li>
+                    </ul>
+                </div>
+
             </div>
             <div>
                 <h1 class="text-lg font-semibold text-black mb-3">Discover</h1>
                 <ul class="text-sm flex flex-col gap-1 text-slate-700">
                     <li>
-                        <a class="hover:underline" href="Accessories.php">Accessories</a>
+                        <a class="hover:underline" href="Offers.php">Special Offers</a>
                     </li>
                     <li>
-                        <a class="hover:underline" href="Shirts.php">Shirts</a>
+                        <a class="hover:underline" href="Rooms.php">Luxury Rooms</a>
                     </li>
                     <li>
-                        <a class="hover:underline" href="Bottoms.php">Bottoms</a>
+                        <a class="hover:underline" href="NearbyAttractions.php">Nearby Attractions</a>
                     </li>
                     <li>
-                        <a class="hover:underline" href="JacketsAndCoats.php">Jackets & Coats</a>
+                        <a class="hover:underline" href="Accessories.php">Room Essentials</a>
                     </li>
                     <li>
-                        <a class="hover:underline" href="Shoes.php">Footwear</a>
+                        <a class="hover:underline" href="Shirts.php">Toiletries & Spa</a>
+                    </li>
+                    <li>
+                        <a class="hover:underline" href="FAQ.php">Frequently Asked Questions</a>
                     </li>
                 </ul>
             </div>

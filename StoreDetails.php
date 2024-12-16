@@ -21,7 +21,6 @@
     ?>
 
     <main class="max-w-[1310px] mx-auto px-4 py-5">
-        <!-- <section class="SVG flex justify-center p-4"> -->
         <form action="<?php $_SERVER["PHP_SELF"] ?>" method="post" enctype="multipart/form-data" class="flex flex-col md:flex-row justify-center">
 
             <!-- <input type="hidden" name="product_Id" value="<?php echo $product_id; ?>">
