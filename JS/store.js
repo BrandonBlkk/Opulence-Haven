@@ -27,6 +27,13 @@ storeDarkOverlay.addEventListener('click', () => {
     storeDarkOverlay.classList.toggle('hidden');
 });
 
+searchCloseBtn.addEventListener('click', () => {
+    const searchBar = document.getElementById('search-bar');
+    searchBar.classList.toggle('top-0');
+    storeDarkOverlay.classList.toggle('hidden');
+});
+
+
 const closeBtn = document.getElementById('closeBtn');
 const aside = document.getElementById('aside');
 const darkOverlay = document.getElementById('darkOverlay');
@@ -51,3 +58,15 @@ darkOverlay.addEventListener('click', () => {
     darkOverlay.classList.remove('flex');
     storeMenubar.classList.remove('-rotate-90');
 });
+
+// Purchase step
+const line = document.getElementById('line');
+const step = document.getElementById('step');
+
+if (line && step) {
+    line.classList.remove('bg-gray-200');
+    step.classList.remove('bg-gray-200');
+    step.classList.toggle('text-white');
+    line.classList.toggle('bg-amber-500');
+    step.classList.toggle('bg-amber-500');
+}

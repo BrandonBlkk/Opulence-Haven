@@ -25,7 +25,7 @@ if (!$connect) {
     include('./includes/StoreNavbar.php');
     ?>
 
-    <main class="max-w-[1310px] mx-auto px-4 py-5">
+    <main class="max-w-[1310px] mx-auto p-4">
         <section>
             <div class="flex items-center">
                 <!-- Step 1: Store -->
@@ -82,7 +82,7 @@ if (!$connect) {
                         </div>
                     </div>
                     <div class="text-right flex flex-row-reverse md:flex-col items-center">
-                        <div class="px-4 py-2 w-[90px]">
+                        <div class="px-4 py-2 w-[90px] select-none">
                             <button type="submit" name="updateBtn" class="text-blue-500 hover:text-blue-700 ml-2">
                                 <i class="ri-edit-circle-line text-lg"></i>
                             </button>
@@ -110,7 +110,7 @@ if (!$connect) {
                         </div>
                     </div>
                     <div class="text-right flex flex-row-reverse md:flex-col items-center">
-                        <div class="px-4 py-2 w-[90px]">
+                        <div class="px-4 py-2 w-[90px] select-none">
                             <button type="submit" name="updateBtn" class="text-blue-500 hover:text-blue-700 ml-2">
                                 <i class="ri-edit-circle-line text-lg"></i>
                             </button>
@@ -153,16 +153,16 @@ if (!$connect) {
                     <h1 class="text-xl font-semibold mb-1">Payment Methods:</h1>
                     <ul class="flex gap-2 select-none">
                         <li>
-                            <img class="w-9" src="Images/fashion-designer-cc-visa-icon.svg" alt="Icon">
+                            <img class="w-9" src="./UserImages/fashion-designer-cc-visa-icon.svg" alt="Icon">
                         </li>
                         <li>
-                            <img class="w-9" src="Images/fashion-designer-cc-mastercard-icon.svg" alt="Icon">
+                            <img class="w-9" src="./UserImages/fashion-designer-cc-mastercard-icon.svg" alt="Icon">
                         </li>
                         <li>
-                            <img class="w-9" src="Images/fashion-designer-cc-discover-icon.svg" alt="Icon">
+                            <img class="w-9" src="./UserImages/fashion-designer-cc-discover-icon.svg" alt="Icon">
                         </li>
                         <li>
-                            <img class="w-9" src="Images/fashion-designer-cc-apple-pay-icon.svg" alt="Icon">
+                            <img class="w-9" src="./UserImages/fashion-designer-cc-apple-pay-icon.svg" alt="Icon">
                         </li>
                     </ul>
                 </div>

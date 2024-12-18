@@ -83,7 +83,7 @@
                 </div>
 
                 <div class="flex items-center justify-between mb-4">
-                    <input type="submit" value="ADD TO BAG" name="addtobag" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold text-center p-2 select-none transition-colors duration-300">
+                    <input type="submit" value="ADD TO CART" name="addtobag" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold text-center p-2 select-none transition-colors duration-300">
                 </div>
 
                 <div class="flex gap-4 border p-4 mb-4">

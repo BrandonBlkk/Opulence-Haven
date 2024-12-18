@@ -1,6 +1,6 @@
 <footer class="bg-gray-100 text-gray-400 flex flex-col justify-center gap-10">
-    <div class="max-w-[1400px] mx-auto">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 pt-20 pb-10 px-5 sm:px-10">
+    <section class="max-w-[1400px] mx-auto">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 pt-20 px-5 sm:px-10">
             <div>
                 <h1 class="text-4xl text-indigo-400 font-semibold mb-5 select-none"><img src="UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-28" alt="Logo"></h1>
                 <p class="text-sm text-slate-700">Discover our commitment to providing exceptional stays, comfort, and unforgettable experiences.</p>
@@ -90,6 +90,32 @@
                 </ul>
             </div>
         </div>
+
+        <!-- Newsletter -->
+        <div class="flex justify-center px-5 md:px-8 py-14">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20">
+                <div class="flex gap-10">
+                    <div>
+                        <i class="ri-archive-line text-2xl text-amber-500 select-none"></i>
+                        <h1 class="font-semibold">60 DAYS RETURN</h1>
+                        <p class="text-sm">Return within 60 days, hassle-free.</p>
+                    </div>
+                    <div>
+                        <i class="ri-truck-line text-2xl text-amber-500 select-none"></i>
+                        <h1 class="font-semibold">FREE SHIPPING</h1>
+                        <p class="text-sm">Free shipping for loyal customers.</p>
+                    </div>
+                </div>
+                <div class="border-l-0 lg:border-l pl-0 lg:pl-16">
+                    <h1 class="text-2xl font-semibold mb-3">Newsletter Sign Up</h1>
+                    <form class="flex flex-col gap-6 sm:gap-0 sm:flex-row" action="">
+                        <input class="border w-full p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" type="text" placeholder="Your email please" required>
+                        <input class="bg-black py-2 px-5 text-white select-none cursor-pointer" type="submit" value="SUBSCRIBE">
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <div class="flex flex-col items-center border-t border-gray-200 gap-3 sm:gap-0 py-10 px-10">
             <p class="text-xs text-slate-700 mb-1">OpulenceHaven.com is part of Booking Holdings Inc., the world leader in online travel and related services.</p>
             <p class="text-xs text-slate-700">Copyright © <span id="year"></span> OpulenceHaven.com™. All rights reserved.</p>
@@ -108,5 +134,5 @@
                 </li>
             </ul>
         </div>
-    </div>
+    </section>
 </footer>

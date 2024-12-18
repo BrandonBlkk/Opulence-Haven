@@ -17,9 +17,27 @@
 </section>
 
 <!-- Search Bar -->
-<div id="search-bar" class="fixed -top-full w-full bg-white py-5 px-4 shadow-l transition-all duration-300 z-50">
-    <input type="text" placeholder="Search..." class="w-full py-2 px-4 border rounded-lg focus:outline-none">
+<div id="search-bar" class="fixed -top-full w-full bg-white py-5 px-4 shadow-lg transition-all duration-300 z-50">
+    <h1 class="text-xl font-semibold pb-4">Find Your Favorites</h1>
+    <div class="flex items-center bg-gray-100 rounded-lg p-2">
+        <!-- Search Icon -->
+        <i class="ri-search-line text-xl text-gray-500 mr-3"></i>
+
+        <!-- Search Input -->
+        <input
+            type="text"
+            placeholder="Search for products..."
+            class="w-full bg-transparent border-none focus:outline-none text-gray-800 text-sm placeholder-gray-500" />
+
+        <!-- Clear Button -->
+        <button id="searchCloseBtn" class="ml-2 text-gray-500 hover:text-gray-700 transition">
+            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
 </div>
+
 
 <!-- Overlay -->
 <div id="storeDarkOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
