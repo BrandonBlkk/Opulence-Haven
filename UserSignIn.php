@@ -57,7 +57,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
 
             // Check if sign-in attempts exceed limit
             if ($_SESSION['signin_attempts'] === 3) {
-                // $alertMessage = "Your account locked due to failed attempts. Try again later.";
                 // Reset sign-in attempts
                 $_SESSION['signin_attempts'] = 0;
                 $isAccountLocked = true;

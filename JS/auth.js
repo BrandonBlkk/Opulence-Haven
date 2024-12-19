@@ -229,28 +229,27 @@ const validatePhone = () => {
     }
 };
 
-// Get the input and icon elements
-const passwordInput = document.getElementById('passwordInput');
-const togglePassword = document.getElementById('togglePassword');
-const passwordInput2 = document.getElementById('passwordInput2');
-const togglePassword2 = document.getElementById('togglePassword2');
+// Toggle Password for Grouped Inputs
+const passwordInputs = [
+    { input: document.getElementById('passwordInput'), toggle: document.getElementById('togglePassword') },
+    { input: document.getElementById('passwordInput2'), toggle: document.getElementById('togglePassword2') },
+    { input: document.getElementById('resetpasswordInput'), toggle: document.getElementById('resettogglePassword') },
+    { input: document.getElementById('newpasswordInput'), toggle: document.getElementById('newtogglePassword') },
+    { input: document.getElementById('confirmpasswordInput'), toggle: document.getElementById('confirmtogglePassword') }
+];
+ 
+passwordInputs.forEach(({ input, toggle }) => {
+    if (input && toggle) {
+        toggle.addEventListener('click', () => {
+            const type = input.type === 'password' ? 'text' : 'password';
+            input.type = type;
 
-if (togglePassword) {
-    togglePassword.addEventListener('click', () => {
-        const type = passwordInput.type === 'password' ? 'text' : 'password';
-        passwordInput.type = type;
-    
-        // Toggle the icon 
-        togglePassword.classList.toggle('ri-eye-line');
-        togglePassword.classList.toggle('ri-eye-off-line');
-    });
-} else {
-    togglePassword2.addEventListener('click', () => {
-        const type = passwordInput2.type === 'password' ? 'text' : 'password';
-        passwordInput2.type = type;
-    
-        // Toggle the icon 
-        togglePassword2.classList.toggle('ri-eye-line');
-        togglePassword2.classList.toggle('ri-eye-off-line');
-    });
-}
+            // Toggle the icon
+            toggle.classList.toggle('ri-eye-line');
+            toggle.classList.toggle('ri-eye-off-line');
+        });
+    }
+});
+
+
+

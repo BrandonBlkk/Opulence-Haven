@@ -3,7 +3,6 @@ include('config/dbConnection.php');
 
 $alertMessage = '';
 $signupSuccess = false;
-$stmtInsert = null;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     $username = mysqli_real_escape_string($connect, trim($_POST['username']));

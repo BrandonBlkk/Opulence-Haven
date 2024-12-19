@@ -136,10 +136,10 @@ if (!$connect) {
                         <p class="flex justify-between font-semibold border-t"><span>Total:</span> <span>$50.00</span></p>
                     </div>
                     <div class="mt-6 select-none">
-                        <a href="StoreCheckout.php" class="block w-full text-center bg-blue-900 text-white py-2 hover:bg-blue-950 transition duration-300">Proceed to Checkout</a>
+                        <a href="StoreCheckout.php" class="block w-full text-center font-semibold bg-blue-900 text-white py-2 hover:bg-blue-950 transition duration-300">Proceed to Checkout</a>
                     </div>
                     <div class="mt-4 select-none">
-                        <a href="Store.php" class="block w-full border border-amber-500 p-2 text-center text-amber-500 select-none hover:text-amber-600 transition-all duration-300">Continue Shopping</a>
+                        <a href="Store.php" class="block w-full border border-amber-500 p-2 text-center font-semibold text-amber-500 select-none hover:text-amber-600 transition-all duration-300">Continue Shopping</a>
                     </div>
                     <div class="flex gap-4 border p-4 mt-4 mb-4">
                         <i class="ri-truck-line text-2xl"></i>

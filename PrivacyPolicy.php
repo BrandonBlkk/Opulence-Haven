@@ -120,6 +120,7 @@
     ?>
     <script src="//unpkg.com/alpinejs" defer></script>
     <script src="./JS/index.js"></script>
+    <script src="./JS/auth.js"></script>
 </body>
 
 </html>
