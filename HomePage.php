@@ -29,9 +29,10 @@ if (!$connect) {
     <main class="pb-4">
         <div class="select-none">
             <img src="UserImages/hotel-room-5858069_1280.jpg"
-                class="w-full h-full lg:max-h-[620px] object-cover object-bottom"
+                class="w-full h-full lg:max-h-[620px] object-cover object-bottom clip-custom"
                 alt="Image">
         </div>
+
         <div class="flex flex-col items-center justify-center py-16 px-3 text-center">
             <h1 class="text-2xl sm:text-4xl mb-5 text-blue-900 font-semibold">Get away at the best price</h1>
             <p class="text-slate-600 mb-3">Where, when, with anyone you want</p>

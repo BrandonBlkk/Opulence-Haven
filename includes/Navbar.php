@@ -2,7 +2,7 @@
     <p>Book your dream vacation now!</p>
 </section>
 
-<div class="sticky top-0 w-full bg-white shadow-md z-50">
+<div class="sticky top-0 w-full bg-white border-b z-50">
     <?php
     include('./includes/MoveRightLoader.php');
     ?>

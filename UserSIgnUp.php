@@ -164,7 +164,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     include('./includes/Loader.php');
     ?>
 
-    <script src="./JS/auth.js"></script>
+    <script type="module" src="./JS/auth.js"></script>
 </body>
 
 </html>

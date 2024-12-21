@@ -33,3 +33,15 @@
 ::-webkit-scrollbar-thumb:hover {
   background-color: #ea9814;
 }
+
+.clip-custom {
+  clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+}
+
+.clip-custom2 {
+  clip-path: polygon(0 0, 100% 0, 100% 95%, 0 100%);
+}
+
+.clip-custom3 {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 95%);
+}

@@ -1,5 +1,10 @@
 <?php
+session_start();
+include('./config/dbConnection.php');
 
+if (!$connect) {
+    die("Connection failed: " . mysqli_connect_error());
+}
 ?>
 
 <!DOCTYPE html>
@@ -173,7 +178,7 @@
     include('./includes/Footer.php');
     ?>
 
-    <script src="JS/index.js"></script>
+    <script src="./JS/store.js"></script>
 </body>
 
 </html>

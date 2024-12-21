@@ -1,3 +1,5 @@
+import { showError, hideError, showAlert } from './alertFunc.js';
+
 // Sign Up
 document.addEventListener("DOMContentLoaded", () => {
     const alertBox = document.getElementById('alertBox');
@@ -12,36 +14,11 @@ document.addEventListener("DOMContentLoaded", () => {
         // Show Alert
         setTimeout(() => {
             loader.style.display = 'none';
-            alertText.textContent = 'You have successfully created an account.';
-            alertBox.classList.remove('-bottom-5');
-            alertBox.classList.remove('opacity-0');
-            alertBox.classList.add('opacity-100');
-            alertBox.classList.add('bottom-3');
-
-            // Hide Alert
-            setTimeout(() => {
-                alertBox.classList.add('-bottom-1');
-                alertBox.classList.add('opacity-0');
-                alertBox.classList.remove('opacity-100');
-                alertBox.classList.remove('bottom-3');
-            }, 5000);
+            showAlert('You have successfully created an account.');
         }, 1000);
     } else if (alertMessage) {
-
         // Show Alert
-        alertText.textContent = alertMessage;
-        alertBox.classList.remove('-bottom-1');
-        alertBox.classList.remove('opacity-0');
-        alertBox.classList.add('opacity-100');
-        alertBox.classList.add('bottom-3');
-
-        // Hide Alert
-        setTimeout(() => {
-            alertBox.classList.add('-bottom-1');
-            alertBox.classList.add('opacity-0');
-            alertBox.classList.remove('opacity-100');
-            alertBox.classList.remove('bottom-3');
-        }, 5000);
+        showAlert(alertMessage);
     }
 
     // Add keyup event listeners for real-time validation
@@ -123,13 +100,10 @@ const validateUsername = () => {
 
     switch (true) {
         case errorMessage !== null:
-            usernameError.textContent = errorMessage;
-            usernameError.classList.remove("opacity-0");
-            usernameError.classList.add("opacity-100");
+            showError(usernameError, errorMessage);
             return false;
         default:
-            usernameError.classList.remove("opacity-100");
-            usernameError.classList.add("opacity-0");
+            hideError(usernameError);
             return true;
     }
 };
@@ -147,13 +121,10 @@ const validateEmail = () => {
 
     switch (true) {
         case errorMessage !== null:
-            emailError.textContent = errorMessage;
-            emailError.classList.remove("opacity-0");
-            emailError.classList.add("opacity-100");
+            showError(emailError, errorMessage);
             return false;
         default:
-            emailError.classList.remove("opacity-100");
-            emailError.classList.add("opacity-0");
+            hideError(emailError);
             return true;
     }
 };
@@ -176,13 +147,10 @@ const validatePassword = () => {
 
     switch (true) {
         case errorMessage !== null:
-            passwordError.textContent = errorMessage;
-            passwordError.classList.remove("opacity-0");
-            passwordError.classList.add("opacity-100");
+            showError(passwordError, errorMessage);
             return false;
         default:
-            passwordError.classList.remove("opacity-100");
-            passwordError.classList.add("opacity-0");
+            hideError(passwordError);
             return true;
     }
 };
@@ -192,13 +160,10 @@ const validatePasswordSignIn = () => {
     const passwordError2 = document.getElementById("passwordError2");
 
     if (!password) {
-        passwordError2.textContent = "Password is required.";
-        passwordError2.classList.remove("opacity-0");
-        passwordError2.classList.add("opacity-100");
+        showError(passwordError2, "Password is required.");
         return false;
     } else {
-        passwordError2.classList.remove("opacity-100");
-        passwordError2.classList.add("opacity-0");
+        hideError(passwordError2);
         return true;
     }
 };
@@ -218,13 +183,10 @@ const validatePhone = () => {
 
     switch (true) {
         case errorMessage !== null:
-            phoneError.textContent = errorMessage;
-            phoneError.classList.remove("opacity-0");
-            phoneError.classList.add("opacity-100");
+            showError(phoneError, errorMessage);
             return false;
         default:
-            phoneError.classList.remove("opacity-100");
-            phoneError.classList.add("opacity-0");
+            hideError(phoneError);
             return true;
     }
 };

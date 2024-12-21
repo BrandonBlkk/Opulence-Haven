@@ -52,7 +52,7 @@ if (!$connect) {
         <section class="space-y-3">
             <div class="flex flex-col gap-2 sm:flex-row items-center justify-between">
                 <div class="w-full sm:max-w-[770px] h-auto sm:h-[370px] select-none">
-                    <img src="UserImages/NOV-HP-02B.jpg" class="w-full h-full object-cover" alt="Image">
+                    <img src="UserImages/NOV-HP-02B.jpg" class="w-full h-full object-cover clip-custom2" alt="Image">
                 </div>
                 <div class="text-center flex flex-col justify-center items-center">
                     <h1 class="uppercase text-lg sm:text-xl text-blue-900 font-bold">Opulence hotel bed package</h1>
@@ -62,7 +62,7 @@ if (!$connect) {
             </div>
             <div class="flex flex-col gap-2 sm:flex-row-reverse items-center justify-between">
                 <div class="w-full sm:max-w-[770px] h-auto sm:h-[370px] select-none">
-                    <img src="UserImages/Hotel-Pillows-Richard-Haworth.png" class="w-full h-full object-cover" alt="Image">
+                    <img src="UserImages/Hotel-Pillows-Richard-Haworth.png" class="w-full h-full object-cover clip-custom3" alt="Image">
                 </div>
                 <div class="text-center flex flex-col justify-center items-center">
                     <h1 class="uppercase text-lg sm:text-xl text-blue-900 font-bold">Opulence hotel pillow</h1>
@@ -72,7 +72,7 @@ if (!$connect) {
             </div>
             <div class="flex flex-col gap-2 sm:flex-row items-center justify-between">
                 <div class="w-full sm:max-w-[770px] h-auto sm:h-[370px] select-none">
-                    <img src="UserImages/NOV-HP-02.jpg" class="w-full h-full object-cover" alt="Image">
+                    <img src="UserImages/NOV-HP-02.jpg" class="w-full h-full object-cover clip-custom2" alt="Image">
                 </div>
                 <div class="text-center flex flex-col justify-center items-center">
                     <h1 class="uppercase text-lg sm:text-xl text-blue-900 font-bold">Opulence hotel mattress</h1>
@@ -82,7 +82,7 @@ if (!$connect) {
             </div>
             <div class="flex flex-col gap-2 sm:flex-row-reverse items-center justify-between">
                 <div class="w-full sm:max-w-[770px] h-auto sm:h-[370px] select-none">
-                    <img src="UserImages/NOV-HP-03.jpg" class="w-full h-full object-cover" alt="Image">
+                    <img src="UserImages/NOV-HP-03.jpg" class="w-full h-full object-cover clip-custom3" alt="Image">
                 </div>
                 <div class="text-center flex flex-col justify-center items-center">
                     <h1 class="uppercase text-lg sm:text-xl text-blue-900 font-bold">Opulence hotel linen</h1>
