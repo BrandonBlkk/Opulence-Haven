@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('./config/dbConnection.php');
+include('../config/dbConnection.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -16,17 +16,25 @@ if (!$connect) {
     <title>Opulence Haven</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.css" integrity="sha512-HXXR0l2yMwHDrDyxJbrMD9eLvPe3z3qL3PPeozNTsiHJEENxx8DH2CxmV05iwG0dwoz5n4gQZQyYLUNt1Wdgfg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="CSS/output.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="CSS/input.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../CSS/output.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
 </head>
 
 <body>
     <?php
-    include('./includes/StoreNavbar.php');
+    include('../includes/StoreNavbar.php');
     ?>
 
     <main class="max-w-[1310px] mx-auto px-4 py-5">
-        <form action="<?php $_SERVER["PHP_SELF"] ?>" method="post" enctype="multipart/form-data" class="flex flex-col md:flex-row justify-center">
+        <div class="flex text-sm text-slate-600">
+            <a href="HomePage.php" class="underline">Home</a>
+            <span><i class="ri-arrow-right-s-fill"></i></span>
+            <a href="Store.php" class="underline">Store</a>
+            <span><i class="ri-arrow-right-s-fill"></i></span>
+            <a href="StoreDetails.php" class="underline">Store Details</a>
+        </div>
+
+        <form action="<?php $_SERVER["PHP_SELF"] ?>" method="post" enctype="multipart/form-data" class="flex flex-col md:flex-row justify-center mt-3">
 
             <!-- <input type="hidden" name="product_Id" value="<?php echo $product_id; ?>">
             <input type="hidden" name="product_size" value="<?php echo $product_size; ?>"> -->
@@ -34,18 +42,18 @@ if (!$connect) {
             <div class="flex flex-col-reverse sm:flex-row gap-3 select-none">
                 <div class="select-none cursor-pointer space-x-0 sm:space-y-2 flex gap-2 sm:block">
                     <div class="product-detail-img w-20 h-16">
-                        <img class="w-full h-full rounded object-cover hover:border-2 hover:border-indigo-300" src="./UserImages/hilton-bath-mat-HIL-312-NL-WH_xlrg.jpg" alt="Image">
+                        <img class="w-full h-full rounded object-cover hover:border-2 hover:border-indigo-300" src="../UserImages/hilton-bath-mat-HIL-312-NL-WH_xlrg.jpg" alt="Image">
                     </div>
                     <div class="product-detail-img w-20 h-16">
-                        <img class="w-full h-full rounded object-cover hover:border-2 hover:border-indigo-300" src="./UserImages/hilton-bath-mat-HIL-312-NL-WH_xlrg.jpg" alt="Image">
+                        <img class="w-full h-full rounded object-cover hover:border-2 hover:border-indigo-300" src="../UserImages/hilton-bath-mat-HIL-312-NL-WH_xlrg.jpg" alt="Image">
                     </div>
                     <div class="product-detail-img w-20 h-16">
-                        <img class="w-full h-full rounded object-cover hover:border-2 hover:border-indigo-300" src="./UserImages/hilton-bath-mat-HIL-312-NL-WH_xlrg.jpg" alt="Image">
+                        <img class="w-full h-full rounded object-cover hover:border-2 hover:border-indigo-300" src="../UserImages/hilton-bath-mat-HIL-312-NL-WH_xlrg.jpg" alt="Image">
                     </div>
                 </div>
                 <div class="relative">
                     <div class="w-full md:max-w-[750px]">
-                        <img id="mainImage" class="w-full h-full object-cover" src="./UserImages/hilton-bath-mat-HIL-312-NL-WH_xlrg.jpg" alt="Image">
+                        <img id="mainImage" class="w-full h-full object-cover" src="../UserImages/hilton-bath-mat-HIL-312-NL-WH_xlrg.jpg" alt="Image">
                     </div>
                 </div>
             </div>
@@ -95,7 +103,7 @@ if (!$connect) {
                     <i class="ri-truck-line text-2xl"></i>
                     <div>
                         <p>Free delivery on qualifying orders.</p>
-                        <a href="Delivery.php" class="text-xs underline text-gray-500 hover:text-gray-400 transition-colors duration-200">View our Delivery & Returns Policy</a>
+                        <a href="../Delivery.php" class="text-xs underline text-gray-500 hover:text-gray-400 transition-colors duration-200">View our Delivery & Returns Policy</a>
                     </div>
                 </div>
 
@@ -120,7 +128,7 @@ if (!$connect) {
             <!-- Card 1 -->
             <a href="#" class="block w-full sm:max-w-[300px] mx-auto group">
                 <div class="h-auto sm:h-[180px] select-none">
-                    <img src="UserImages/hotel-room-5858069_1280.jpg" class="w-full h-full object-cover rounded-sm" alt="Hotel Room">
+                    <img src="../UserImages/hotel-room-5858069_1280.jpg" class="w-full h-full object-cover rounded-sm" alt="Hotel Room">
                 </div>
                 <div>
                     <h1 class="text-slate-700 font-semibold mt-3">Black Friday Limited Offer</h1>
@@ -138,7 +146,7 @@ if (!$connect) {
             <!-- Card 2 -->
             <a href="#" class="block w-full sm:max-w-[300px] mx-auto group">
                 <div class="h-auto sm:h-[180px] select-none">
-                    <img src="UserImages/FORMAT-16-9E---1920-X-1080-PX (1)_3by2.webp" class="w-full h-full object-cover rounded-sm" alt="Hotel Room">
+                    <img src="../UserImages/FORMAT-16-9E---1920-X-1080-PX (1)_3by2.webp" class="w-full h-full object-cover rounded-sm" alt="Hotel Room">
                 </div>
                 <div>
                     <h1 class="text-slate-700 font-semibold mt-3">Life in balance: Breakfast at Opulence</h1>
@@ -156,7 +164,7 @@ if (!$connect) {
             <!-- Card 3 -->
             <a href="#" class="block w-full sm:max-w-[300px] mx-auto group">
                 <div class="h-auto sm:h-[180px] select-none">
-                    <img src="UserImages/hotel-room-5858069_1280.jpg" class="w-full h-full object-cover rounded-sm" alt="Hotel Room">
+                    <img src="../UserImages/hotel-room-5858069_1280.jpg" class="w-full h-full object-cover rounded-sm" alt="Hotel Room">
                 </div>
                 <div>
                     <h1 class="text-slate-700 font-semibold mt-3">Opulence Store - Black Friday</h1>
@@ -175,10 +183,10 @@ if (!$connect) {
 
     <!-- MoveUp Btn -->
     <?php
-    include('./includes/Footer.php');
+    include('../includes/Footer.php');
     ?>
 
-    <script src="./JS/store.js"></script>
+    <script src="../JS/store.js"></script>
 </body>
 
 </html>

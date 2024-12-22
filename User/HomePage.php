@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('./config/dbConnection.php');
+include('../config/dbConnection.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -16,19 +16,19 @@ if (!$connect) {
     <title>Opulence Haven</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.css" integrity="sha512-HXXR0l2yMwHDrDyxJbrMD9eLvPe3z3qL3PPeozNTsiHJEENxx8DH2CxmV05iwG0dwoz5n4gQZQyYLUNt1Wdgfg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="CSS/output.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="CSS/input.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../CSS/output.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
 </head>
 
 <body class="relative">
     <?php
-    include('./includes/Navbar.php');
-    include('./includes/Cookies.php');
+    include('../includes/Navbar.php');
+    include('../includes/Cookies.php');
     ?>
 
     <main class="pb-4">
         <div class="select-none">
-            <img src="UserImages/hotel-room-5858069_1280.jpg"
+            <img src="../UserImages/hotel-room-5858069_1280.jpg"
                 class="w-full h-full lg:max-h-[620px] object-cover object-bottom clip-custom"
                 alt="Image">
         </div>
@@ -45,7 +45,7 @@ if (!$connect) {
             <!-- Card 1 -->
             <a href="#" class="block w-full md:max-w-[450px] mx-auto group">
                 <div class="h-auto sm:h-[280px] select-none">
-                    <img src="UserImages/hotel-room-5858069_1280.jpg" class="w-full h-full object-cover rounded-sm" alt="Image">
+                    <img src="../UserImages/hotel-room-5858069_1280.jpg" class="w-full h-full object-cover rounded-sm" alt="Image">
                 </div>
                 <div>
                     <h1 class="text-slate-700 font-semibold mt-3">Black Friday Limited Offer</h1>
@@ -63,7 +63,7 @@ if (!$connect) {
             <!-- Card 2 -->
             <a href="#" class="block w-full md:max-w-[450px] mx-auto group">
                 <div class="h-auto sm:h-[280px] select-none">
-                    <img src="UserImages/FORMAT-16-9E---1920-X-1080-PX (1)_3by2.webp" class="w-full h-full object-cover rounded-sm" alt="Image">
+                    <img src="../UserImages/FORMAT-16-9E---1920-X-1080-PX (1)_3by2.webp" class="w-full h-full object-cover rounded-sm" alt="Image">
                 </div>
                 <div>
                     <h1 class="text-slate-700 font-semibold mt-3">Life in balance: Breakfast at Opulence</h1>
@@ -79,9 +79,9 @@ if (!$connect) {
             </a>
 
             <!-- Card 3 -->
-            <a href="Store.php" class="block w-full md:max-w-[450px] mx-auto group">
+            <a href="../Store/Store.php" class="block w-full md:max-w-[450px] mx-auto group">
                 <div class="h-auto sm:h-[280px] select-none">
-                    <img src="UserImages/Standard-Room-model.jpg" class="w-full h-full object-cover rounded-sm" alt="Image">
+                    <img src="../UserImages/Standard-Room-model.jpg" class="w-full h-full object-cover rounded-sm" alt="Image">
                 </div>
                 <div>
                     <h1 class="text-slate-700 font-semibold mt-3">Opulence Store - Black Friday</h1>
@@ -105,7 +105,7 @@ if (!$connect) {
             <!-- Card 1 -->
             <div class="block w-full md:max-w-[450px] mx-auto group">
                 <div class="h-auto sm:h-[280px] select-none">
-                    <img src="UserImages/family-6475821_1280.jpg" class="w-full h-full object-cover rounded-sm" alt="Image">
+                    <img src="../UserImages/family-6475821_1280.jpg" class="w-full h-full object-cover rounded-sm" alt="Image">
                 </div>
                 <div>
                     <h1 class="text-slate-700 font-semibold mt-3">Family</h1>
@@ -119,7 +119,7 @@ if (!$connect) {
             <!-- Card 2 -->
             <div class="block w-full md:max-w-[450px] mx-auto group">
                 <div class="h-auto sm:h-[280px] select-none">
-                    <img src="UserImages/hand-massage-7440712_1280.jpg" class="w-full h-full object-cover rounded-sm" alt="Image">
+                    <img src="../UserImages/hand-massage-7440712_1280.jpg" class="w-full h-full object-cover rounded-sm" alt="Image">
                 </div>
                 <div>
                     <h1 class="text-slate-700 font-semibold mt-3">Wellness</h1>
@@ -133,7 +133,7 @@ if (!$connect) {
             <!-- Card 3 -->
             <div class="block w-full md:max-w-[450px] mx-auto group">
                 <div class="h-auto sm:h-[280px] select-none">
-                    <img src="UserImages/business.webp" class="w-full h-full object-cover rounded-sm" alt="Image">
+                    <img src="../UserImages/business.webp" class="w-full h-full object-cover rounded-sm" alt="Image">
                 </div>
                 <div>
                     <h1 class="text-slate-700 font-semibold mt-3">Business</h1>
@@ -147,7 +147,7 @@ if (!$connect) {
 
         <section class="p-4 py-10 max-w-[1310px] mx-auto flex flex-col md:flex-row gap-5">
             <div class="flex-1 select-none">
-                <img src="./UserImages/modern-highrise-building.jpg" class="w-full h-full sm:h-[600px] object-cover rounded-sm" alt="Hotel Image">
+                <img src="../UserImages/modern-highrise-building.jpg" class="w-full h-full sm:h-[600px] object-cover rounded-sm" alt="Hotel Image">
             </div>
             <div class="flex-1 flex flex-col justify-between gap-3">
                 <div class="flex flex-col">
@@ -176,11 +176,11 @@ if (!$connect) {
 
     <!-- MoveUp Btn -->
     <?php
-    include('./includes/MoveUpBtn.php');
-    include('./includes/Footer.php');
+    include('../includes/MoveUpBtn.php');
+    include('../includes/Footer.php');
     ?>
     <script src="//unpkg.com/alpinejs" defer></script>
-    <script src="./JS/index.js"></script>
+    <script src="../JS/index.js"></script>
 </body>
 
 </html>

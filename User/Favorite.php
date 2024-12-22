@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('./config/dbConnection.php');
+include('../config/dbConnection.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -16,13 +16,13 @@ if (!$connect) {
     <title>Opulence Haven</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.css" integrity="sha512-HXXR0l2yMwHDrDyxJbrMD9eLvPe3z3qL3PPeozNTsiHJEENxx8DH2CxmV05iwG0dwoz5n4gQZQyYLUNt1Wdgfg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="CSS/output.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="CSS/input.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../CSS/output.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
 </head>
 
 <body class="relative">
     <?php
-    include('./includes/Navbar.php');
+    include('../includes/Navbar.php');
     ?>
 
     <main class="pb-4 px-4 max-w-[1310px] mx-auto">
@@ -43,10 +43,10 @@ if (!$connect) {
         ?>
             <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <!-- Card 1 -->
-                <a href="StoreDetails.php" class="block w-full group">
+                <a href="../Store/StoreDetails.php" class="block w-full group">
                     <div class="relative">
                         <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
-                            <img src="UserImages/white-comfortable-pillow-blanket-decoration-bed-interior-bedroom.jpg" class="w-full h-full object-cover rounded-sm" alt="Hotel Room">
+                            <img src="../UserImages/white-comfortable-pillow-blanket-decoration-bed-interior-bedroom.jpg" class="w-full h-full object-cover rounded-sm" alt="Hotel Room">
                         </div>
                         <div class="absolute bottom-0 bg-opacity-45 text-white p-3 w-full z-20 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all duration-300">
                             <h1 class="font-semibold mt-3">Black Friday Limited Offer</h1>
@@ -63,10 +63,10 @@ if (!$connect) {
                     </div>
                 </a>
 
-                <a href="StoreDetails.php" class="block w-full group">
+                <a href="../Store/StoreDetails.php" class="block w-full group">
                     <div class="relative">
                         <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
-                            <img src="UserImages/white-pillow.jpg" class="w-full h-full object-cover rounded-sm" alt="Hotel Room">
+                            <img src="../UserImages/white-pillow.jpg" class="w-full h-full object-cover rounded-sm" alt="Hotel Room">
                         </div>
                         <div class="absolute bottom-0 bg-opacity-45 text-white p-3 w-full z-20 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all duration-300">
                             <h1 class="font-semibold mt-3">Black Friday Limited Offer</h1>
@@ -83,10 +83,10 @@ if (!$connect) {
                     </div>
                 </a>
 
-                <a href="StoreDetails.php" class="block w-full group">
+                <a href="../Store/StoreDetails.php" class="block w-full group">
                     <div class="relative">
                         <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
-                            <img src="UserImages/novotel-pillow-protector-pair-nov_lrg.jpg" class="w-full h-full object-cover rounded-sm" alt="Hotel Room">
+                            <img src="../UserImages/novotel-pillow-protector-pair-nov_lrg.jpg" class="w-full h-full object-cover rounded-sm" alt="Hotel Room">
                         </div>
                         <div class="absolute bottom-0 bg-opacity-45 text-white p-3 w-full z-20 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all duration-300">
                             <h1 class="font-semibold mt-3">Black Friday Limited Offer</h1>
@@ -121,11 +121,11 @@ if (!$connect) {
     </main>
 
     <?php
-    include('./includes/Footer.php');
+    include('../includes/Footer.php');
     ?>
 
     <script src="//unpkg.com/alpinejs" defer></script>
-    <script src="./JS/index.js"></script>
+    <script src="../JS/index.js"></script>
 </body>
 
 </html>

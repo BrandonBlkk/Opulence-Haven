@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('config/dbConnection.php');
+include('../config/dbConnection.php');
 
 $alertMessage = '';
 $signinSuccess = false;
@@ -79,15 +79,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
     <title>Opulence Haven</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.css" integrity="sha512-HXXR0l2yMwHDrDyxJbrMD9eLvPe3z3qL3PPeozNTsiHJEENxx8DH2CxmV05iwG0dwoz5n4gQZQyYLUNt1Wdgfg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="CSS/output.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="CSS/input.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../CSS/output.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
 </head>
 
 <body class="flex justify-center items-center min-h-screen">
     <div class="flex flex-col-reverse md:flex-row justify-center gap-5 sm:gap-10 p-3">
         <div class="signinCon pb-0 sm:pb-5">
             <div class="max-w-[450px] hidden sm:block">
-                <img src="UserImages/Screenshot 2024-12-01 002052.png" class="w-full h-[400px] object-cover rounded-t-lg" alt="Image">
+                <img src="../UserImages/Screenshot 2024-12-01 002052.png" class="w-full h-[400px] object-cover rounded-t-lg" alt="Image">
             </div>
             <div class="px-0 sm:px-3">
                 <h1 class="text-xl font-bold mt-0 sm:mt-10">Get ready to:</h1>
@@ -102,8 +102,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
             </div>
         </div>
         <div>
-            <a href="Homepage.php">
-                <img src="UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-28 select-none" alt="Logo">
+            <a href="../Homepage.php">
+                <img src="../UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-28 select-none" alt="Logo">
             </a>
             <h1 class="text-2xl font-bold mt-10 sm:mt-20 max-w-96">Welcome back! access your account</h1>
             <form class="flex flex-col space-y-4 w-full mt-5" action="<?php $_SERVER["PHP_SELF"] ?>" method="post" id="signinForm">
@@ -171,11 +171,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
 
     <!-- Loader -->
     <?php
-    include('./includes/Alert.php');
-    include('./includes/Loader.php');
+    include('../includes/Alert.php');
+    include('../includes/Loader.php');
     ?>
 
-    <script type="module" src="./JS/auth.js"></script>
+    <script type="module" src="../JS/auth.js"></script>
 </body>
 
 </html>

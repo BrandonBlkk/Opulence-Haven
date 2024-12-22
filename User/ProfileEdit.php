@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('./config/dbConnection.php');
+include('../config/dbConnection.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -73,13 +73,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['resetPassword'])) {
     <title>Opulence Haven</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.css" integrity="sha512-HXXR0l2yMwHDrDyxJbrMD9eLvPe3z3qL3PPeozNTsiHJEENxx8DH2CxmV05iwG0dwoz5n4gQZQyYLUNt1Wdgfg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="CSS/output.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="CSS/input.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../CSS/output.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
 </head>
 
 <body class="relative">
     <?php
-    include('./includes/Navbar.php');
+    include('../includes/Navbar.php');
     ?>
 
     <section class="max-w-[1300px] mx-auto">
@@ -220,7 +220,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['resetPassword'])) {
                             <p class="text-gray-600">Your profile is displayed on your account and in communications, making it easy for others to recognize and connect with you.</p>
                         </div>
                         <div class="max-w-[500px] select-none">
-                            <img src="./UserImages/account-concept-illustration_114360-409.avif" alt="Illustration" class="w-full h-full object-cover">
+                            <img src="../UserImages/account-concept-illustration_114360-409.avif" alt="Illustration" class="w-full h-full object-cover">
                         </div>
                     </div>
                 </div>
@@ -258,14 +258,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['resetPassword'])) {
         </div>
     </div>
 
-
-
     <?php
-    include('./includes/Alert.php');
-    include('./includes/Footer.php');
+    include('../includes/Alert.php');
+    include('../includes/Footer.php');
     ?>
     <script src="//unpkg.com/alpinejs" defer></script>
-    <script src="./JS/index.js"></script>
+    <script type="module" src="../JS/index.js"></script>
 </body>
 
 </html>

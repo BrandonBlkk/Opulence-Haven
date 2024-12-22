@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('./config/dbConnection.php');
+include('../config/dbConnection.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -24,13 +24,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order'])) {
     <title>Opulence Haven</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.css" integrity="sha512-HXXR0l2yMwHDrDyxJbrMD9eLvPe3z3qL3PPeozNTsiHJEENxx8DH2CxmV05iwG0dwoz5n4gQZQyYLUNt1Wdgfg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="CSS/output.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="CSS/input.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../CSS/output.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
 </head>
 
 <body>
     <?php
-    include('./includes/StoreNavbar.php');
+    include('../includes/StoreNavbar.php');
     ?>
 
     <main class="max-w-[1310px] mx-auto p-4">
@@ -83,7 +83,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order'])) {
                     <input type="hidden" name="cart_id" value="1">
                     <div class="flex items-center">
                         <div class="w-36">
-                            <img class="w-full h-full object-cover select-none" src="./UserImages/white-pillow.jpg" alt="Product Image">
+                            <img class="w-full h-full object-cover select-none" src="../UserImages/white-pillow.jpg" alt="Product Image">
                         </div>
                         <div class="ml-4">
                             <h1 class="text-md sm:text-xl mb-1">Sample Product Title</h1>
@@ -103,7 +103,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order'])) {
                     <input type="hidden" name="cart_id" value="2">
                     <div class="flex items-center">
                         <div class="w-36">
-                            <img class="w-full h-full object-cover select-none" src="./UserImages/bed-945881_1280.jpg" alt="Product Image">
+                            <img class="w-full h-full object-cover select-none" src="../UserImages/bed-945881_1280.jpg" alt="Product Image">
                         </div>
                         <div class="ml-4">
                             <h1 class="text-md sm:text-xl mb-1">Another Sample Product</h1>
@@ -271,12 +271,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order'])) {
 
     <!-- MoveUp Btn -->
     <?php
-    include('./includes/Alert.php');
-    include('./includes/Footer.php');
+    include('../includes/Alert.php');
+    include('../includes/Footer.php');
     ?>
 
-    <script src="./JS/store.js"></script>
-    <script src="./JS/auth.js"></script>
+    <script src="../JS/store.js"></script>
 </body>
 
 </html>

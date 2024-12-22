@@ -2,8 +2,6 @@ import { showError, hideError, showAlert } from './alertFunc.js';
 
 // Sign Up
 document.addEventListener("DOMContentLoaded", () => {
-    const alertBox = document.getElementById('alertBox');
-    const alertText = document.getElementById('alertText');
     const loader = document.getElementById('loader');
     const alertMessage = document.getElementById('alertMessage').value;
     const signupSuccess = document.getElementById('signupSuccess').value === 'true';
@@ -48,10 +46,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         setTimeout(() => {
             loader.style.display = 'none'; 
-            window.location.href = 'HomePage.php';
+            window.location.href = '../User/HomePage.php';
         }, 1000); 
     } else if (isAccountLocked) {
-        window.location.href = 'WaitingRoom.php';
+        window.location.href = '../User/WaitingRoom.php';
     }
 
     // Add keyup event listeners for real-time validation

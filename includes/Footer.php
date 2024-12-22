@@ -2,7 +2,7 @@
     <section class="max-w-[1400px] mx-auto">
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 pt-20 px-5 sm:px-10">
             <div>
-                <h1 class="text-4xl text-indigo-400 font-semibold mb-5 select-none"><img src="UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-28" alt="Logo"></h1>
+                <h1 class="text-4xl text-indigo-400 font-semibold mb-5 select-none"><img src="../UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-28" alt="Logo"></h1>
                 <p class="text-sm text-slate-700">Discover our commitment to providing exceptional stays, comfort, and unforgettable experiences.</p>
                 <ul class="flex items-center gap-7 text-xl mt-3">
                     <li class="hover:text-rose-700 transition-colors duration-200">
