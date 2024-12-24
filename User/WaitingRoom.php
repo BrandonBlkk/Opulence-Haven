@@ -18,7 +18,7 @@
             <p class="text-sm sm:text-base text-gray-700">You are now placed in a virtual queue and will be redirected to our site shortly.</p>
         </div>
         <div class="waiting-img max-w-[650px] mb-8 select-none">
-            <img class="max-w-full h-auto" src="./UserImages/travelers-with-suitcases-semi-flat-color-character-editable-full-body-people-sitting-on-wooden-bench-and-waiting-on-white-simple-cartoon-spot-illustration-for-web-graphic-d.jpg" alt="Waiting Image">
+            <img class="max-w-full h-auto" src="../UserImages/travelers-with-suitcases-semi-flat-color-character-editable-full-body-people-sitting-on-wooden-bench-and-waiting-on-white-simple-cartoon-spot-illustration-for-web-graphic-d.jpg" alt="Waiting Image">
         </div>
         <p id="time" class="text-base sm:text-lg text-center">
             <span class="font-semibold">Your estimated waiting time is: </span>
