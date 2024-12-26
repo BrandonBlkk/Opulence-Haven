@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Add keyup event listeners for real-time validation
     document.getElementById("username").addEventListener("keyup", validateUsername);
-    document.getElementById("email").addEventListener("keyup", validateEmail);
+    document.getElementById("emailInput").addEventListener("keyup", validateEmail);
     document.getElementById("passwordInput").addEventListener("keyup", validatePassword);
     document.getElementById("phone").addEventListener("keyup", validatePhone);
 
@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Add keyup event listeners for real-time validation
-    document.getElementById("email").addEventListener("keyup", validateEmail);
+    document.getElementById("emailInput").addEventListener("keyup", validateEmail);
     document.getElementById("passwordInput2").addEventListener("keyup", validatePasswordSignIn);
 
     const signinForm = document.getElementById("signinForm");
@@ -107,7 +107,7 @@ const validateUsername = () => {
 };
 
 const validateEmail = () => {
-    const email = document.getElementById("email").value.trim();
+    const email = document.getElementById("emailInput").value.trim();
     const emailError = document.getElementById("emailError");
 
     const getEmailError = (email) => {

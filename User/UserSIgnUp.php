@@ -48,7 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
 <body class="flex justify-center items-center min-h-screen">
     <div class="flex flex-col-reverse md:flex-row justify-center gap-5 sm:gap-10 p-3">
         <div class="signinCon pb-0 sm:pb-5">
-            <div class="max-w-[450px] hidden sm:block">
+            <div class="max-w-[450px] hidden sm:block select-none">
                 <img src="../UserImages/Screenshot 2024-12-01 002052.png" class="w-full h-[400px] object-cover rounded-t-lg" alt="Image">
             </div>
             <div class="px-0 sm:px-3">
@@ -64,7 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
             </div>
         </div>
         <div>
-            <a href="../User/Homepage.php">
+            <a href="Homepage.php">
                 <img src="../UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-28 select-none" alt="Logo">
             </a>
             <h1 class="text-2xl font-bold mt-10 sm:mt-20 max-w-96">Unlock more savings as a member</h1>
@@ -78,19 +78,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                         type="text"
                         name="username"
                         placeholder="Enter your username">
-                    <small id="usernameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">Username is required.</small>
+                    <small id="usernameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
                     <!-- Email Input -->
                     <div class="relative">
                         <input
-                            id="email"
+                            id="emailInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="email"
                             name="email"
                             placeholder="Enter your email">
-                        <small id="emailError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">Email is required.</small>
+                        <small id="emailError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
 
                     <!-- Password Input -->
@@ -103,7 +103,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                                 placeholder="Enter your password">
                             <i id="togglePassword" class="ri-eye-line p-2 cursor-pointer"></i>
                         </div>
-                        <small id="passwordError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">Password is required.</small>
+                        <small id="passwordError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
                 </div>
 
@@ -115,7 +115,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                         type="tel"
                         name="phone"
                         placeholder="Enter your phone">
-                    <small id="phoneError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">Phone is required.</small>
+                    <small id="phoneError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                 </div>
 
                 <!-- Date Input -->

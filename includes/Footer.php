@@ -42,13 +42,16 @@
                             <a class="hover:underline" href="Contact.php">Contact</a>
                         </li>
                         <li>
-                            <a class="hover:underline" href="TermsAndConditions.php">Terms & Conditions</a>
+                            <a class="hover:underline" href="../Policies/TermsAndConditions.php">Terms & Conditions</a>
                         </li>
                         <li>
-                            <a class="hover:underline" href="TermOfUse.php">Terms of Use</a>
+                            <a class="hover:underline" href="../Policies/CookiePolicy.php">Cookies Policy</a>
                         </li>
                         <li>
-                            <a class="hover:underline" href="PrivacyPolicy.php">Privacy Policy</a>
+                            <a class="hover:underline" href="../Policies/TermOfUse.php">Terms of Use</a>
+                        </li>
+                        <li>
+                            <a class="hover:underline" href="../Policies/PrivacyPolicy.php">Privacy Policy</a>
                         </li>
                         <li>
                             <a class="hover:underline" href="Support.php">Customer Support</a>
@@ -70,10 +73,10 @@
                         <a class="hover:underline" href="NearbyAttractions.php">Nearby Attractions</a>
                     </li>
                     <li>
-                        <a class="hover:underline" href="Accessories.php">Room Essentials</a>
+                        <a class="hover:underline" href="../Store/RoomEssentials.php">Room Essentials</a>
                     </li>
                     <li>
-                        <a class="hover:underline" href="Shirts.php">Toiletries & Spa</a>
+                        <a class="hover:underline" href="../Store/Toiletries&Spa.php">Toiletries & Spa</a>
                     </li>
                     <li>
                         <a class="hover:underline" href="FAQ.php">Frequently Asked Questions</a>
