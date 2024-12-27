@@ -92,7 +92,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
             </a>
             <p class="text-amber-500 text-sm font-semibold">ADMIN</p>
         </div>
-        <h1 class="text-2xl font-bold mt-3 max-w-96">Welcome back! access your account</h1>
+        <h1 class="text-2xl font-bold mt-3 max-w-96">Welcome back! access your admin account</h1>
         <form class="flex flex-col space-y-4 w-full mt-5" action="<?php $_SERVER["PHP_SELF"] ?>" method="post" id="signinForm">
 
             <!-- Email Input -->
@@ -111,14 +111,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
             <div class="flex flex-col relative">
                 <div class="flex items-center justify-between border rounded">
                     <input
-                        id="passwordInput2"
+                        id="signinPassword"
                         class="p-2 w-full rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                         type="password"
                         name="password"
                         placeholder="Enter your password">
                     <i id="togglePassword2" class="ri-eye-line p-2 cursor-pointer"></i>
                 </div>
-                <small id="passwordError2" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                <small id="signinPasswordError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
             </div>
 
             <a href="ForgetPassword.php" class="text-xs text-gray-400 hover:text-gray-500">Forget your password?</a>
@@ -157,7 +157,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
     include('../includes/Loader.php');
     ?>
 
-    <script type="module" src="../JS/auth.js"></script>
+    <script type="module" src="../JS/adminAuth.js"></script>
 </body>
 
 </html>

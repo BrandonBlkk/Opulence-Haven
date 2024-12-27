@@ -1,4 +1,4 @@
-// alerts.js
+// Show Alert Function
 export const showAlert = (message) => {
     const alertBox = document.getElementById("alertBox");
     const alertText = document.getElementById("alertText");
@@ -13,12 +13,14 @@ export const showAlert = (message) => {
     }, 5000);
 };
 
+// Show Error Function
 export const showError = (element, message) => {
     element.textContent = message;
     element.classList.remove("opacity-0");
     element.classList.add("opacity-100");
 };
 
+// Hide Error Function
 export const hideError = (element) => {
     element.classList.remove("opacity-100");
     element.classList.add("opacity-0");

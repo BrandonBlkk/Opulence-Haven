@@ -11,7 +11,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     $email = mysqli_real_escape_string($connect, trim($_POST['email']));
     $password = mysqli_real_escape_string($connect, trim($_POST['password']));
     $phone = mysqli_real_escape_string($connect, trim($_POST['phone']));
-    $position = mysqli_real_escape_string($connect, $_POST['position']);
+    $position = $_POST['position'];
     $signupDate = mysqli_real_escape_string($connect, $_POST['signupdate']);
 
     // Admin image upload 
@@ -26,7 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     }
 
     // Check if the email already exists using prepared statement
-    $checkEmailQuery = "SELECT UserEmail FROM usertb WHERE UserEmail = '$email'";
+    $checkEmailQuery = "SELECT AdminEmail FROM admintb WHERE AdminEmail = '$email'";
 
     $checkEmailQuery = mysqli_query($connect, $checkEmailQuery);
     $count = mysqli_num_rows($checkEmailQuery);
@@ -35,8 +35,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
         $alertMessage = 'Email you signed up with is already taken.';
     } else {
         // Insert the new user data using prepared statement
-        $insertQuery = "INSERT INTO usertb (UserName, UserEmail, UserPassword, UserPhone, SignupDate, Status) 
-                        VALUES ('$username', '$email', '$password', '$phone', '$signupDate', 'inactive')";
+        $insertQuery = "INSERT INTO admintb (AdminProfile, FirstName, LastName, UserName, AdminEmail, AdminPassword, AdminPhone, Position, SignupDate, Status) 
+                        VALUES ('$fileName', '$firstname', '$lastname', '$username', '$email', '$password', '$phone', '$position', '$signupDate', 'inactive')";
         $insert_Query = mysqli_query($connect, $insertQuery);
 
         if ($insert_Query) {
@@ -85,16 +85,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                         <small id="firstnameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
                     <!-- Lastname Input -->
-                    <div class="flex flex-col relative w-full">
-                        <div class="flex items-center justify-between border rounded">
-                            <input
-                                id="lastnameInput"
-                                class="p-2 w-full rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                type="text"
-                                name="lastname"
-                                placeholder="Enter your lastname">
-                            <i id="togglePassword" class="ri-eye-line p-2 cursor-pointer"></i>
-                        </div>
+                    <div class="relative w-full">
+                        <input
+                            id="lastnameInput"
+                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            type="text"
+                            name="lastname"
+                            placeholder="Enter your lastname">
                         <small id="lastnameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
                 </div>
@@ -161,7 +158,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                 </div>
                 <!-- Position Input -->
                 <div class="flex flex-col space-y-1">
-                    <!-- <label class="text-xl font-semibold" for="position">Position</label> -->
                     <select name="position" id="position" class="p-2 border rounded">
                         <option value="" disabled selected>Select your position</option>
                         <option value='Administrator'>Administrator</option>
@@ -211,7 +207,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     include('../includes/Loader.php');
     ?>
 
-    <script type="module" src="../JS/auth.js"></script>
+    <script type="module" src="../JS/adminAuth.js"></script>
 </body>
 
 </html>
