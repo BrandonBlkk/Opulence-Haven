@@ -21,7 +21,7 @@
     ?>
 
     <script src="//unpkg.com/alpinejs" defer></script>
-    <script src="../JS/index.js"></script>
+    <script src="../JS/admin.js"></script>
 </body>
 
 </html>

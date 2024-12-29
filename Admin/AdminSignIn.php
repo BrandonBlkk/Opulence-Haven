@@ -12,8 +12,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
     $lastSignIn = mysqli_real_escape_string($connect, $_POST['signindate']);
 
     // Check if the email exists
-    $checkEmailQuery = "SELECT * FROM usertb 
-    WHERE UserEmail = '$email'";
+    $checkEmailQuery = "SELECT * FROM admintb 
+    WHERE AdminEmail = '$email'";
     $check_email_query = mysqli_query($connect, $checkEmailQuery);
     $emailExist = mysqli_num_rows($check_email_query);
 
@@ -21,8 +21,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
         $alertMessage = "No account found with the provided email. Please try again.";
     } else {
         // Check if the email exists and fetch data
-        $checkAccQuery = "SELECT * FROM usertb 
-        WHERE UserEmail = '$email' AND UserPassword = '$password';";
+        $checkAccQuery = "SELECT * FROM admintb 
+        WHERE AdminEmail = '$email' AND AdminPassword = '$password';";
         $check_account_query = mysqli_query($connect, $checkAccQuery);
         $rowCount = mysqli_num_rows($check_account_query);
 
@@ -35,16 +35,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
         // Check customer account match with signup account
         if ($rowCount > 0) {
             $array = mysqli_fetch_array($check_account_query);
-            $user_id = $array["UserID"];
-            $user_username = $array["UserName"];
-            $user_email = $array["UserEmail"];
+            $admin_id = $array["AdminID"];
+            $admin_adminname = $array["AdminName"];
+            $admin_email = $array["AdminEmail"];
 
-            $_SESSION["UserID"] = $user_id;
-            $_SESSION["UserName"] = $user_username;
-            $_SESSION["UserEmail"] = $user_email;
+            $_SESSION["AdminID"] = $admin_id;
+            $_SESSION["AdminName"] = $admin_username;
+            $_SESSION["AdminEmail"] = $admin_email;
 
-            $updateSignInQuery = "UPDATE usertb SET LastSignIn = '$lastSignIn',
-            Status = 'active' WHERE UserID = '$user_id'";
+            $updateSignInQuery = "UPDATE admintb SET LastSignIn = '$lastSignIn',
+            Status = 'active' WHERE AdminID = '$user_id'";
             mysqli_query($connect, $updateSignInQuery);
 
             // Reset sign-in attempts on successful sign-in
@@ -111,7 +111,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
             <div class="flex flex-col relative">
                 <div class="flex items-center justify-between border rounded">
                     <input
-                        id="signinPassword"
+                        id="signinPasswordInput"
                         class="p-2 w-full rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                         type="password"
                         name="password"

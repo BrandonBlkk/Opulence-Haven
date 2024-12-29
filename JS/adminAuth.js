@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("lastname").addEventListener("keyup", validateLastname);
     document.getElementById("username").addEventListener("keyup", validateUsername);
     document.getElementById("emailInput").addEventListener("keyup", validateEmail);
-    document.getElementById("passwordInput").addEventListener("keyup", validatePassword);
+    document.getElementById("signupPasswordInput").addEventListener("keyup", validatePassword);
     document.getElementById("phone").addEventListener("keyup", validatePhone);
 
     const signupForm = document.getElementById("signupForm");
@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Add keyup event listeners for real-time validation
     document.getElementById("emailInput").addEventListener("keyup", validateEmail);
-    document.getElementById("signinPassword").addEventListener("keyup", validatePasswordSignIn);
+    document.getElementById("signinPasswordInput").addEventListener("keyup", validatePasswordSignIn);
 
     const signinForm = document.getElementById("signinForm");
     if (signinForm) {
@@ -173,20 +173,20 @@ const validateEmail = () => {
 };
 
 const validatePassword = () => {
-    const signupPassword = document.getElementById("signinPassword").value.trim();
-    const signupPasswordError = document.getElementById("signinPasswordError");
+    const signupPasswordInput = document.getElementById("signupPasswordInput").value.trim();
+    const signupPasswordError = document.getElementById("signupPasswordError");
 
-    const getPasswordError = (signupPassword) => {
-        if (!signupPassword) return "Password is required.";
-        if (signupPassword.length < 8) return "Minimum 8 characters.";
-        if (!signupPassword.match(/\d/)) return "At least one number.";
-        if (!signupPassword.match(/[A-Z]/)) return "At least one uppercase letter.";
-        if (!signupPassword.match(/[a-z]/)) return "At least one lowercase letter.";
-        if (!signupPassword.match(/[^\w\s]/)) return "At least one special character.";
+    const getPasswordError = (signupPasswordInput) => {
+        if (!signupPasswordInput) return "Password is required.";
+        if (signupPasswordInput.length < 8) return "Minimum 8 characters.";
+        if (!signupPasswordInput.match(/\d/)) return "At least one number.";
+        if (!signupPasswordInput.match(/[A-Z]/)) return "At least one uppercase letter.";
+        if (!signupPasswordInput.match(/[a-z]/)) return "At least one lowercase letter.";
+        if (!signupPasswordInput.match(/[^\w\s]/)) return "At least one special character.";
         return null; 
     };
 
-    const errorMessage = getPasswordError(signupPassword);
+    const errorMessage = getPasswordError(signupPasswordInput);
 
     switch (true) {
         case errorMessage !== null:
@@ -199,10 +199,10 @@ const validatePassword = () => {
 };
 
 const validatePasswordSignIn = () => {
-    const signinPassword = document.getElementById("signinPassword").value.trim();
+    const signinPasswordInput = document.getElementById("signinPasswordInput").value.trim();
     const signinPasswordError = document.getElementById("signinPasswordError");
 
-    if (!signinPassword) {
+    if (!signinPasswordInput) {
         showError(signinPasswordError, "Password is required.");
         return false;
     } else {
@@ -236,11 +236,8 @@ const validatePhone = () => {
 
 // Toggle Password for Grouped Inputs
 const passwordInputs = [
-    { input: document.getElementById('passwordInput'), toggle: document.getElementById('togglePassword') },
-    { input: document.getElementById('passwordInput2'), toggle: document.getElementById('togglePassword2') },
-    { input: document.getElementById('resetpasswordInput'), toggle: document.getElementById('resettogglePassword') },
-    { input: document.getElementById('newpasswordInput'), toggle: document.getElementById('newtogglePassword') },
-    { input: document.getElementById('confirmpasswordInput'), toggle: document.getElementById('confirmtogglePassword') }
+    { input: document.getElementById('signupPasswordInput'), toggle: document.getElementById('togglePassword') },
+    { input: document.getElementById('signinPasswordInput'), toggle: document.getElementById('togglePassword2') },
 ];
  
 passwordInputs.forEach(({ input, toggle }) => {

@@ -60,7 +60,7 @@
     <div>
         <!-- Logo -->
         <div class="flex items-end gap-1 select-none">
-            <a href="../User/AdminDashboard.php">
+            <a href="../Admin/AdminDashboard.php">
                 <img src="../UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-28 select-none" alt="Logo">
             </a>
             <p class="text-amber-500 text-sm font-semibold">ADMIN</p>
@@ -69,9 +69,9 @@
             <div x-data="{ expanded: false, height: 0 }" class="flex flex-col">
                 <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex justify-between items-center p-1 rounded">
                     <div class="flex items-center gap-2">
-                        <div class="w-12 h-12 rounded-full my-3 relative select-none">
-                            <img class="w-full h-full object-cover rounded-full" src="<?php echo $adminprofile ?>" alt="Profile">
-                            <div class="w-3 h-3 bg-green-500 rounded-full absolute bottom-0 right-0"></div>
+                        <div class="w-14 h-14 rounded-full my-3 p-1 bg-slate-200 relative select-none">
+                            <img class="w-full h-full object-cover rounded-full" src="../Admin/AdminImages/MicrosoftTeams-image (23).png" alt="Profile">
+                            <div class="w-3 h-3 bg-green-500 rounded-full absolute bottom-1 right-1"></div>
                         </div>
                         <div class="text-start">
                             <p class="font-semibold">Brandon</p>
@@ -95,12 +95,12 @@
                 </div>
             </div>
             <div class="flex flex-col pt-2">
-                <a href="AdminDashboard.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300">
+                <a href="AdminDashboard.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none">
                     <i class="ri-dashboard-3-line text-xl"></i>
                     <span class="font-semibold text-sm">Dashboard</span>
                 </a>
                 <div x-data="{ expanded: false, height: 0 }" class="flex flex-col">
-                    <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300">
+                    <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none">
                         <div class="flex items-center gap-4">
                             <i class="ri-stock-line text-xl"></i>
                             <span class="font-semibold text-sm">Inventory</span>
@@ -112,21 +112,21 @@
                         :style="{ height: expanded ? height + 'px' : '0px' }"
                         class="overflow-hidden transition-all duration-300 select-none">
                         <div class="pl-3">
-                            <a href="#" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
+                            <a href="../Admin/AddSupplier.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none">
                                 <div class="flex items-center gap-1">
                                     <i class="ri-group-line text-xl"></i>
                                     <span class="font-semibold text-sm">Add supplier</span>
                                 </div>
                                 <p class="px-2 text-white bg-blue-950 rounded-sm ml-5">1</p>
                             </a>
-                            <a href="#" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
+                            <a href="../Admin/AddProduct.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none">
                                 <div class="flex items-center gap-1">
                                     <i class="ri-shirt-line text-xl"></i>
                                     <span class="font-semibold text-sm">Add product</span>
                                 </div>
                                 <p class="px-2 text-white bg-blue-950 rounded-sm ml-5">3</p>
                             </a>
-                            <a href="#" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
+                            <a href="../Admin/AddProductType.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none">
                                 <div class="flex items-center gap-1">
                                     <i class="ri-list-check-3 text-xl"></i>
                                     <span class="font-semibold text-sm">Add product type</span>
@@ -137,13 +137,13 @@
                     </div>
                 </div>
 
-                <a href="CusOrder.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300">
+                <a href="CusOrder.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none">
                     <i class="ri-shopping-bag-2-line text-xl relative">
                         <p class="bg-red-500 rounded-full text-sm text-white w-5 h-5 text-center absolute -top-1 -right-2 select-none <?php echo ($orderCount != 0) ? 'block' : 'hidden'; ?>"><?php echo $orderCount ?></p>
                     </i>
                     <span class="font-semibold text-sm">Orders</span>
                 </a>
-                <a href="UserContact.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300">
+                <a href="UserContact.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none">
                     <i class="ri-message-3-line text-xl relative">
                         <p class="bg-red-500 rounded-full text-sm text-white w-5 h-5 text-center absolute -top-1 -right-2 select-none <?php echo ($cuscontactCount != 0) ? 'block' : 'hidden'; ?>"><?php echo $cuscontactCount ?></p>
                     </i>
@@ -154,34 +154,34 @@
         <script src="//unpkg.com/alpinejs" defer></script>
     </div>
     <div>
-        <div class="flex items-center gap-4 p-1 rounded hover:bg-slate-100">
+        <div id="logoutBtn" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 select-none cursor-pointer">
             <i class="ri-logout-circle-line text-xl"></i>
-            <a href="AdminSignOut.php">Sign Out</a>
+            <p class="font-semibold text-sm">Logout</p>
         </div>
         <p class="text-xs text-gray-400">© <span id="year"></span> pulenceHaven.com™. All rights reserved.</p>
     </div>
 </nav>
 
+<!-- Confirmation Modal -->
+<div id="confirmModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+    <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center">
+        <h2 class="text-xl font-semibold text-blue-900 mb-4">Confirm Logout</h2>
+        <p class="text-slate-600 mb-2">You are currently signed in as:</p>
+        <p class="font-semibold text-gray-800 mb-4">
+            <?php echo $_SESSION['UserName'] . ' (' . $_SESSION['UserEmail'] . ')'; ?>
+        </p>
+        <p class="text-sm text-gray-500 mb-6">
+            Logging out will end your session and remove access to secure areas of your account. Ensure all changes are saved.
+        </p>
+        <div class="flex justify-end gap-4 select-none">
+            <button id="cancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300">
+                Cancel
+            </button>
+            <button id="confirmLogoutBtn" class="px-4 py-2 bg-red-600 text-white hover:bg-red-700">
+                Logout
+            </button>
+        </div>
+    </div>
+</div>
+
 <div id="overlay" class="fixed inset-0 bg-black opacity-50 hidden z-30"></div>
-
-<script>
-    document.getElementById('menu-toggle').addEventListener('click', function() {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-        if (sidebar.classList.contains('-translate-x-full')) {
-            sidebar.classList.remove('-translate-x-full');
-            sidebar.classList.add('translate-x-0');
-            overlay.classList.remove('hidden');
-        } else {
-            sidebar.classList.add('-translate-x-full');
-            sidebar.classList.remove('translate-x-0');
-            overlay.classList.add('hidden');
-        }
-    });
-
-    document.getElementById('overlay').addEventListener('click', function() {
-        document.getElementById('sidebar').classList.add('-translate-x-full');
-        document.getElementById('sidebar').classList.remove('translate-x-0');
-        this.classList.add('hidden');
-    });
-</script>

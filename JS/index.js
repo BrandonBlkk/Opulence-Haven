@@ -158,6 +158,7 @@ if (profileDeleteBtn && confirmDeleteModal && cancelDeleteBtn && confirmDeleteBt
         confirmDeleteModal.classList.remove("opacity-100", "translate-y-0");
         darkOverlay2.classList.add("opacity-0", "invisible");
         darkOverlay2.classList.remove("opacity-100");
+        deleteConfirmInput.value = "";
     });
 
     // Enable Delete Button only if input matches "DELETE"
