@@ -7,18 +7,17 @@ if (!$connect) {
 }
 
 $alertMessage = '';
-$addSuccess = false;
+$addProductTypeSuccess = false;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproducttype'])) {
     $producttype = mysqli_real_escape_string($connect, $_POST['producttype']);
     $description = mysqli_real_escape_string($connect, $_POST['description']);
-    $addeddate = mysqli_real_escape_string($connect, $_POST['addeddate']);
 
-    $addProductTypeQuery = "INSERT INTO producttypetb (ProductType, Description, DateAdded)
-    VALUES ('$producttype', '$description', '$addeddate')";
+    $addProductTypeQuery = "INSERT INTO producttypetb (ProductType, Description)
+    VALUES ('$producttype', '$description')";
 
     if (mysqli_query($connect, $addProductTypeQuery)) {
-        $addSuccess = true;
+        $addProductTypeSuccess = true;
     } else {
         $alertMessage = "Failed to add product type. Please try again.";
     }
@@ -42,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproducttype'])) {
     <?php include('../includes/AdminNavbar.php'); ?>
 
     <!-- Main Container -->
-    <div class="flex flex-col md:flex-row md:space-x-3 p-3 md:p-6 ml-0 md:ml-[250px]">
+    <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px]">
         <!-- Left Side Content -->
         <div class="w-full md:w-2/3 bg-white rounded-lg shadow p-4">
             <h2 class="text-xl font-bold mb-4">Add Product Type Overview</h2>
@@ -76,14 +75,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproducttype'])) {
                     <small id="descriptionError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                 </div>
 
-                <!-- Date Input -->
-                <input type="date" class="hidden" name="addeddate" value="<?php echo date("Y-m-d") ?>">
-
                 <!-- Submit Button -->
                 <button
                     type="submit"
                     name="addproducttype"
-                    class="bg-amber-500 text-white font-semibold px-4 py-2 rounded hover:bg-amber-600 transition-colors">
+                    class="bg-amber-500 text-white font-semibold px-4 py-2 rounded select-none hover:bg-amber-600 transition-colors">
                     Add Product Type
                 </button>
             </form>

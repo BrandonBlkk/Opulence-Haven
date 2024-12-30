@@ -5,67 +5,41 @@ if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-// $admin = "CREATE TABLE admintb
+// $role = "CREATE TABLE roletb
 // (
-//     AdminID int not null primary key auto_increment,
-//     AdminProfile varchar(30),
-//     FirstName varchar(30),
-//     LastName varchar(30),
-//     UserName varchar(30),
-//     AdminEmail varchar(30),
-//     AdminPassword varchar(30),
-//     AdminPhone varchar(30),
-//     Position varchar(30),
-//     SignupDate varchar(30),
-//     LastSignIn varchar(30),
-//     Status varchar(10)
+//     RoleID int not null primary key auto_increment,
+//     Role varchar(50),
+//     Description text
 // )";
 
 // try {
-//     $query = mysqli_query($connect, $admin);
+//     $query = mysqli_query($connect, $role);
 //     echo "Data Successfully saved";
 // } catch (mysqli_sql_exception) {
 //     echo "Data has been saved";
 // }
 
-// $producttype = "CREATE TABLE producttypetb
-// (
-//     ProductTypeID int NOT NULL Primary Key auto_increment,
-//     ProductType varchar(30),
-//     Description VARCHAR(255),
-//     DateAdded varchar(30),
-//     LastUpdate varchar(30)
-// )";
-
-// try {
-//     $query = mysqli_query($connect, $producttype);
-//     echo "Data Successfully saved";
-// } catch (mysqli_sql_exception) {
-//     echo "Data has been saved";
-// }
-
-$supplier = "CREATE TABLE suppliertb
+$admin = "CREATE TABLE admintb
 (
-    SupplierID int not null primary key auto_increment,
-    SupplierName varchar(30),
-    SupplierEmail varchar(30),
-    SupplierContact varchar(30),
-    SupplierCompany varchar(30),
-    Address varchar(50),
-    City varchar(30),
-    State varchar(30),
-    PostalCode varchar(15),
-    Country varchar(30),
-    DateAdded varchar(30),
-    LastUpdate varchar(30),
-    ProductTypeID int,
-    FOREIGN KEY (ProductTypeID) REFERENCES producttypetb (ProductTypeID) 
+    AdminID varchar(30) not null primary key ,
+    AdminProfile text,
+    FirstName varchar(30),
+    LastName varchar(30),
+    UserName varchar(30),
+    AdminEmail varchar(30),
+    AdminPassword varchar(30),
+    AdminPhone varchar(30),
+    RoleID int,
+    FOREIGN KEY (RoleID) REFERENCES roletb (RoleID) 
     ON DELETE CASCADE 
-    ON UPDATE CASCADE
+    ON UPDATE CASCADE,
+    SignupDate datetime default current_timestamp,
+    LastSignIn datetime default current_timestamp on update current_timestamp,
+    Status varchar(10) default 'inactive'
 )";
 
 try {
-    $query = mysqli_query($connect, $supplier);
+    $query = mysqli_query($connect, $admin);
     echo "Data Successfully saved";
 } catch (mysqli_sql_exception) {
     echo "Data has been saved";
@@ -78,13 +52,56 @@ try {
 //     UserEmail varchar(30),
 //     UserPassword varchar(30),
 //     UserPhone varchar(30),
-//     SignupDate varchar(30),
-//     LastSignIn varchar(30),
-//     Status varchar(10)
+//     SignupDate datetime default current_timestamp,
+//     LastSignIn datetime default current_timestamp on update current_timestamp,
+//     Status varchar(10) default 'inactive'
 // )";
 
 // try {
 //     $query = mysqli_query($connect, $user);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
+
+// $producttype = "CREATE TABLE producttypetb
+// (
+//     ProductTypeID int NOT NULL Primary Key auto_increment,
+//     ProductType varchar(30),
+//     Description text,
+//     DateAdded datetime default current_timestamp,
+//     LastUpdate datetime default current_timestamp on update current_timestamp
+// )";
+
+// try {
+//     $query = mysqli_query($connect, $producttype);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
+
+// $supplier = "CREATE TABLE suppliertb
+// (
+//     SupplierID int not null primary key auto_increment,
+//     SupplierName varchar(30),
+//     SupplierEmail varchar(30),
+//     SupplierContact varchar(30),
+//     SupplierCompany varchar(30),
+//     Address varchar(50),
+//     City varchar(30),
+//     State varchar(30),
+//     PostalCode varchar(15),
+//     Country varchar(30),
+//     DateAdded datetime default current_timestamp,
+//     LastUpdate datetime default current_timestamp on update current_timestamp,
+//     ProductTypeID int,
+//     FOREIGN KEY (ProductTypeID) REFERENCES producttypetb (ProductTypeID) 
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE
+// )";
+
+// try {
+//     $query = mysqli_query($connect, $supplier);
 //     echo "Data Successfully saved";
 // } catch (mysqli_sql_exception) {
 //     echo "Data has been saved";
@@ -100,18 +117,16 @@ try {
 //     Price decimal(10, 2),
 //     DiscountPrice decimal(10, 2),
 //     Color varchar(30),
-//     ProductDetail varchar(255),
+//     ProductDescription text,
 //     Brand varchar(30),
-//     ModelHeight varchar(30),
 //     ProductSize varchar(30),
-//     LookAfterMe varchar(255),
-//     AboutMe varchar(255)
-//     ExtendedSizing varchar(30),
-//     MoreColors varchar(30),
-//     SellingFast varchar(30),
-//     Stock int,
-//     AddedDate varchar(30),
-//     LastUpdate varchar(30),
+//     LookAfterMe text,
+//     AboutMe text,
+//     MoreColors boolean default false,
+//     SellingFast boolean default false,
+//     Stock int default 0,
+//     AddedDate datetime default current_timestamp,
+//     LastUpdate datetime default current_timestamp on update current_timestamp,
 //     ProductTypeID int,
 //     FOREIGN KEY (ProductTypeID) REFERENCES producttypetb (ProductTypeID)
 //     ON DELETE CASCADE 

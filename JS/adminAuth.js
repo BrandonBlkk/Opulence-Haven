@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         setTimeout(() => {
             loader.style.display = 'none'; 
-            window.location.href = '../User/HomePage.php';
+            window.location.href = '../Admin/AdminDashboard.php';
         }, 1000); 
     } else if (isAccountLocked) {
         window.location.href = '../User/WaitingRoom.php';

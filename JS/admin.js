@@ -83,9 +83,9 @@ if (logoutBtn && confirmModal && cancelBtn && confirmLogoutBtn && darkOverlay2) 
 document.addEventListener("DOMContentLoaded", () => {
     const loader = document.getElementById('loader');
     const alertMessage = document.getElementById('alertMessage').value;
-    const addSuccess = document.getElementById('addSuccess').value === 'true';
+    const addProductTypeSuccess = document.getElementById('addProductTypeSuccess').value === 'true';
 
-    if (addSuccess) {
+    if (addProductTypeSuccess) {
         loader.style.display = 'flex';
 
         // Show Alert
@@ -112,13 +112,46 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// Add Role Form
+document.addEventListener("DOMContentLoaded", () => {
+    const loader = document.getElementById('loader');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const addRoleSuccess = document.getElementById('addRoleSuccess').value === 'true';
+
+    if (addRoleSuccess) {
+        loader.style.display = 'flex';
+
+        // Show Alert
+        setTimeout(() => {
+            loader.style.display = 'none';
+            showAlert('You have successfully added the role.');
+        }, 1000);
+    } else if (alertMessage) {
+        // Show Alert
+        showAlert(alertMessage);
+    }
+
+    // Add keyup event listeners for real-time validation
+    document.getElementById("roleInput").addEventListener("keyup", validateRole);
+    document.getElementById("roleDescriptionInput").addEventListener("keyup", validateRoleDescription);
+
+    const roleForm = document.getElementById("roleForm");
+    if (roleForm) {
+        roleForm.addEventListener("submit", (e) => {
+            if (!validateRoleForm()) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+
 // Add Supplier Form
 document.addEventListener("DOMContentLoaded", () => {
     const loader = document.getElementById('loader');
     const alertMessage = document.getElementById('alertMessage').value;
-    const addSuccess = document.getElementById('addSuccess').value === 'true';
+    const addSupplierSuccess = document.getElementById('addSupplierSuccess').value === 'true';
 
-    if (addSuccess) {
+    if (addSupplierSuccess) {
         loader.style.display = 'flex';
 
         // Show Alert
@@ -174,6 +207,13 @@ const validateSupplierForm = () => {
     return isSupplierNameValid && isCompanyNameValid && isEmailValid && isContactNumberValid 
     && isAddressValid && isCityValid && isStateValid && isPostalCodeValid && isCountryValid;
 };
+
+const validateRoleForm = () => {
+    const isRoleValid = validateRole();
+    const isRoleDescriptionValid = validateRoleDescription();
+
+    return isRoleValid && isRoleDescriptionValid;
+}
 
 // Individual validation functions
 const validateProductType = () => {
@@ -403,6 +443,48 @@ const validateCountry = () => {
             return false;
         default:
             hideError(countryError);
+            return true;
+    }
+}
+
+const validateRole = () => {
+    const roleInput = document.getElementById("roleInput").value.trim();
+    const roleError = document.getElementById("roleError");
+
+    const getUserNameError = (roleInput) => {
+        if (!roleInput) return "Role is required.";
+        return null;
+    };
+
+    const errorMessage = getUserNameError(roleInput);
+
+    switch (true) {
+        case errorMessage !== null:
+            showError(roleError, errorMessage);
+            return false;
+        default:
+            hideError(roleError);
+            return true;
+    }
+}
+
+const validateRoleDescription = () => {
+    const roleDescriptionInput = document.getElementById("roleDescriptionInput").value.trim();
+    const roleDescriptionError = document.getElementById("roleDescriptionError");
+
+    const getEmailError = (roleDescriptionInput) => {
+        if (!roleDescriptionInput) return "Description is required.";
+        return null;
+    };
+
+    const errorMessage = getEmailError(roleDescriptionInput);
+
+    switch (true) {
+        case errorMessage !== null:
+            showError(roleDescriptionError, errorMessage);
+            return false;
+        default:
+            hideError(roleDescriptionError);
             return true;
     }
 }

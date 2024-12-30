@@ -2,6 +2,10 @@
 session_start();
 include('../config/dbConnection.php');
 
+if (!$connect) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+
 $alertMessage = '';
 $signinSuccess = false;
 $isAccountLocked = false;
@@ -9,7 +13,6 @@ $isAccountLocked = false;
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
     $email = mysqli_real_escape_string($connect, trim($_POST['email']));
     $password = mysqli_real_escape_string($connect, trim($_POST['password']));
-    $lastSignIn = mysqli_real_escape_string($connect, $_POST['signindate']);
 
     // Check if the email exists
     $checkEmailQuery = "SELECT * FROM admintb 
@@ -36,15 +39,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
         if ($rowCount > 0) {
             $array = mysqli_fetch_array($check_account_query);
             $admin_id = $array["AdminID"];
-            $admin_adminname = $array["AdminName"];
+            $admin_username = $array["UserName"];
             $admin_email = $array["AdminEmail"];
 
             $_SESSION["AdminID"] = $admin_id;
-            $_SESSION["AdminName"] = $admin_username;
+            $_SESSION["UserName"] = $admin_username;
             $_SESSION["AdminEmail"] = $admin_email;
 
-            $updateSignInQuery = "UPDATE admintb SET LastSignIn = '$lastSignIn',
-            Status = 'active' WHERE AdminID = '$user_id'";
+            $updateSignInQuery = "UPDATE admintb SET Status = 'active' 
+            WHERE AdminID = '$admin_id'";
             mysqli_query($connect, $updateSignInQuery);
 
             // Reset sign-in attempts on successful sign-in
@@ -122,10 +125,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
             </div>
 
             <a href="ForgetPassword.php" class="text-xs text-gray-400 hover:text-gray-500">Forget your password?</a>
-
-            <!-- Date Input -->
-            <input type="hidden" id="signindate" name="signindate" value="<?php echo date("Y-m-d h:i:s"); ?>">
-
 
             <!-- Signin Button -->
             <input

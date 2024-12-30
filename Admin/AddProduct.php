@@ -1,5 +1,10 @@
 <?php
+session_start();
+include('../config/dbConnection.php');
 
+if (!$connect) {
+    die("Connection failed: " . mysqli_connect_error());
+}
 ?>
 
 <!DOCTYPE html>
@@ -19,7 +24,7 @@
     <?php include('../includes/AdminNavbar.php'); ?>
 
     <!-- Main Container -->
-    <div class="flex flex-col md:flex-row md:space-x-3 p-3 md:p-6 ml-0 md:ml-[250px]">
+    <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px]">
         <!-- Left Side Content -->
         <div class="w-full md:w-2/3 bg-white rounded-lg shadow p-4">
             <h2 class="text-xl font-bold mb-4">Add Product Overview</h2>
@@ -49,8 +54,8 @@
                         class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                         type="text"
                         name="description"
-                        placeholder="Enter product type description"
-                        required></textarea>
+                        placeholder="Enter product type description"></textarea>
+                    <small id="productTitleError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none">Product type is required</small>
                 </div>
 
                 <!-- Date Input -->
@@ -60,7 +65,7 @@
                 <button
                     type="submit"
                     name="submit"
-                    class="bg-amber-500 text-white font-semibold px-4 py-2 rounded hover:bg-amber-600 transition-colors">
+                    class="bg-amber-500 text-white font-semibold px-4 py-2 rounded select-none hover:bg-amber-600 transition-colors">
                     Add Product
                 </button>
             </form>

@@ -9,7 +9,6 @@ $isAccountLocked = false;
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
     $email = mysqli_real_escape_string($connect, trim($_POST['email']));
     $password = mysqli_real_escape_string($connect, trim($_POST['password']));
-    $lastSignIn = mysqli_real_escape_string($connect, $_POST['signindate']);
 
     // Check if the email exists
     $checkEmailQuery = "SELECT * FROM usertb 
@@ -43,8 +42,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
             $_SESSION["UserName"] = $user_username;
             $_SESSION["UserEmail"] = $user_email;
 
-            $updateSignInQuery = "UPDATE usertb SET LastSignIn = '$lastSignIn',
-            Status = 'active' WHERE UserID = '$user_id'";
+            $updateSignInQuery = "UPDATE usertb SET Status = 'active' 
+            WHERE UserID = '$user_id'";
             mysqli_query($connect, $updateSignInQuery);
 
             // Reset sign-in attempts on successful sign-in
@@ -135,10 +134,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
                 </div>
 
                 <a href="ForgetPassword.php" class="text-xs text-gray-400 hover:text-gray-500">Forget your password?</a>
-
-                <!-- Date Input -->
-                <input type="hidden" id="signindate" name="signindate" value="<?php echo date("Y-m-d h:i:s"); ?>">
-
 
                 <!-- Signin Button -->
                 <input

@@ -9,7 +9,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     $email = mysqli_real_escape_string($connect, trim($_POST['email']));
     $password = mysqli_real_escape_string($connect, trim($_POST['password']));
     $phone = mysqli_real_escape_string($connect, trim($_POST['phone']));
-    $signupDate = mysqli_real_escape_string($connect, $_POST['signupdate']);
 
     // Check if the email already exists using prepared statement
     $checkEmailQuery = "SELECT UserEmail FROM usertb WHERE UserEmail = '$email'";
@@ -21,8 +20,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
         $alertMessage = 'Email you signed up with is already taken.';
     } else {
         // Insert the new user data using prepared statement
-        $insertQuery = "INSERT INTO usertb (UserName, UserEmail, UserPassword, UserPhone, SignupDate, Status) 
-                        VALUES ('$username', '$email', '$password', '$phone', '$signupDate', 'inactive')";
+        $insertQuery = "INSERT INTO usertb (UserName, UserEmail, UserPassword, UserPhone) 
+                        VALUES ('$username', '$email', '$password', '$phone')";
         $insert_Query = mysqli_query($connect, $insertQuery);
 
         if ($insert_Query) {
@@ -117,9 +116,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                         placeholder="Enter your phone">
                     <small id="phoneError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                 </div>
-
-                <!-- Date Input -->
-                <input type="date" class="hidden" id="signupdate" name="signupdate" value="<?php echo date("Y-m-d") ?>">
 
                 <!-- reCAPTCHA -->
                 <div class="flex justify-center">

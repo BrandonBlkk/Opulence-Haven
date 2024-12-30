@@ -7,7 +7,7 @@ if (!$connect) {
 }
 
 $alertMessage = '';
-$addSuccess = false;
+$addSupplierSuccess = false;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addsupplier'])) {
     $suppliername = mysqli_real_escape_string($connect, $_POST['suppliername']);
@@ -21,11 +21,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addsupplier'])) {
     $country = mysqli_real_escape_string($connect, $_POST['country']);
     $productType = mysqli_real_escape_string($connect, $_POST['productType']);
 
-    $addSupplierQuery = "INSERT INTO suppliertb (SupplierName, SupplierEmail, SupplierContact, SupplierCompany, Address, City, State, PostalCode, Country, DateAdded, LastUpdate, ProductTypeID)
-    VALUES ('$suppliername', '$email', '$contactNumber', '$companyName', '$address', '$city', '$state', '$postalCode', '$country', now(), now(), '$productType')";
+    $addSupplierQuery = "INSERT INTO suppliertb (SupplierName, SupplierEmail, SupplierContact, SupplierCompany, Address, City, State, PostalCode, Country, ProductTypeID)
+    VALUES ('$suppliername', '$email', '$contactNumber', '$companyName', '$address', '$city', '$state', '$postalCode', '$country', '$productType')";
 
     if (mysqli_query($connect, $addSupplierQuery)) {
-        $addSuccess = true;
+        $addSupplierSuccess = true;
     } else {
         $alertMessage = "Failed to add supplier. Please try again.";
     }
@@ -49,7 +49,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addsupplier'])) {
     <?php include('../includes/AdminNavbar.php'); ?>
 
     <!-- Main Container -->
-    <div class="flex flex-col md:flex-row md:space-x-3 p-3 md:p-6 ml-0 md:ml-[250px]">
+    <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px]">
         <!-- Left Side Content -->
         <div class="w-full md:w-2/3 bg-white rounded-lg shadow p-4">
             <h2 class="text-xl font-bold mb-4">Add Supplier Overview</h2>
@@ -191,7 +191,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addsupplier'])) {
                 <button
                     type="submit"
                     name="addsupplier"
-                    class="bg-amber-500 text-white font-semibold px-4 py-2 rounded hover:bg-amber-600 transition-colors">
+                    class="bg-amber-500 text-white font-semibold px-4 py-2 rounded select-none hover:bg-amber-600 transition-colors">
                     Add Supplier
                 </button>
             </form>

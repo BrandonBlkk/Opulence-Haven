@@ -1,8 +1,15 @@
 <?php
+session_start();
 include('../config/dbConnection.php');
+include('../includes/AutoIDFunc.php');
+
+if (!$connect) {
+    die("Connection failed: " . mysqli_connect_error());
+}
 
 $alertMessage = '';
 $signupSuccess = false;
+$adminID = AutoID('admintb', 'AdminID', 'AD-', 6);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     $firstname = mysqli_real_escape_string($connect, trim($_POST['firstname']));
@@ -11,8 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     $email = mysqli_real_escape_string($connect, trim($_POST['email']));
     $password = mysqli_real_escape_string($connect, trim($_POST['password']));
     $phone = mysqli_real_escape_string($connect, trim($_POST['phone']));
-    $position = $_POST['position'];
-    $signupDate = mysqli_real_escape_string($connect, $_POST['signupdate']);
+    $role = mysqli_real_escape_string($connect, $_POST['role']);
 
     // Admin image upload 
     $adminProfile = $_FILES["adminprofile"]["name"];
@@ -35,8 +41,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
         $alertMessage = 'Email you signed up with is already taken.';
     } else {
         // Insert the new user data using prepared statement
-        $insertQuery = "INSERT INTO admintb (AdminProfile, FirstName, LastName, UserName, AdminEmail, AdminPassword, AdminPhone, Position, SignupDate, Status) 
-                        VALUES ('$fileName', '$firstname', '$lastname', '$username', '$email', '$password', '$phone', '$position', '$signupDate', 'inactive')";
+        $insertQuery = "INSERT INTO admintb (AdminID ,AdminProfile, FirstName, LastName, UserName, AdminEmail, AdminPassword, AdminPhone, RoleID) 
+                        VALUES ('$adminID', '$fileName', '$firstname', '$lastname', '$username', '$email', '$password', '$phone', '$role')";
         $insert_Query = mysqli_query($connect, $insertQuery);
 
         if ($insert_Query) {
@@ -69,7 +75,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
             <p class="text-amber-500 text-sm font-semibold">ADMIN</p>
         </div>
         <h1 class="text-2xl font-bold mt-3 max-w-96">Create your admin account to manage operations</h1>
-        <form class="flex flex-col space-y-4 w-full mt-5" action="<?php $_SERVER["PHP_SELF"] ?>" method="post" id="signupForm">
+        <form class="flex flex-col space-y-4 w-full mt-5" action="<?php $_SERVER["PHP_SELF"] ?>" method="post" enctype="multipart/form-data" id="signupForm">
 
             <div class="flex flex-col">
                 <p class="font-semibold text-xs mb-1">Sign up with your email</p>
@@ -158,16 +164,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                 </div>
                 <!-- Position Input -->
                 <div class="flex flex-col space-y-1">
-                    <select name="position" id="position" class="p-2 border rounded">
-                        <option value="" disabled selected>Select your position</option>
-                        <option value='Administrator'>Administrator</option>
-                        <option value='Staff'>Staff</option>
+                    <select name="role" class="p-2 border rounded">
+                        <option value="" disabled selected>Select your role</option>
+                        <?php
+                        $select = "SELECT * FROM roletb";
+                        $query = mysqli_query($connect, $select);
+                        $count = mysqli_num_rows($query);
+
+                        if ($count) {
+                            for ($i = 0; $i < $count; $i++) {
+                                $row = mysqli_fetch_array($query);
+                                $role_id = $row['RoleID'];
+                                $role = $row['Role'];
+
+                                echo "<option value= '$role_id'>$role</option>";
+                            }
+                        } else {
+                            echo "<option value='' disabled>No data yet</option>";
+                        }
+                        ?>
                     </select>
                 </div>
             </div>
-
-            <!-- Date Input -->
-            <input type="date" class="hidden" id="signupdate" name="signupdate" value="<?php echo date("Y-m-d") ?>">
 
             <!-- reCAPTCHA -->
             <div class="flex justify-center">
