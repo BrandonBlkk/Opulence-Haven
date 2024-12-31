@@ -58,7 +58,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addsupplier'])) {
 
         <!-- Right Side Form -->
         <div class="w-full md:w-1/3 bg-white rounded-lg shadow p-4">
-            <h2 class="text-xl font-bold mb-4">Add Supplier Form</h2>
+            <h2 class="text-xl font-bold mb-4">Add New Supplier</h2>
             <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="supplierForm">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Supplier Information</label>

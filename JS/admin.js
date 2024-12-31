@@ -28,43 +28,36 @@ if (overlay) {
 }
 
 // Logout Modal
-const logoutBtn = document.getElementById('logoutBtn');
-const confirmModal = document.getElementById('confirmModal');
+const adminLogoutBtn = document.getElementById('adminLogoutBtn');
+const adminConfirmModal = document.getElementById('adminConfirmModal');
 const cancelBtn = document.getElementById('cancelBtn');
-const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+const adminConfirmLogoutBtn = document.getElementById('adminConfirmLogoutBtn');
 const darkOverlay2 = document.getElementById('darkOverlay2');
 
-if (logoutBtn && confirmModal && cancelBtn && confirmLogoutBtn && darkOverlay2) {
+if (adminLogoutBtn && adminConfirmModal && cancelBtn && adminConfirmLogoutBtn && darkOverlay2) {
     // Show Modal
-    logoutBtn.addEventListener('click', () => {
-        confirmModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-        confirmModal.classList.add('opacity-100', 'translate-y-0');
+    adminLogoutBtn.addEventListener('click', () => {
+        adminConfirmModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+        adminConfirmModal.classList.add('opacity-100', 'translate-y-0');
         darkOverlay2.classList.remove('opacity-0', 'invisible');
         darkOverlay2.classList.add('opacity-100');
     });
 
     // Close Modal on Cancel
     cancelBtn.addEventListener('click', () => {
-        confirmModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-        confirmModal.classList.remove('opacity-100', 'translate-y-0');
+        adminConfirmModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+        adminConfirmModal.classList.remove('opacity-100', 'translate-y-0');
         darkOverlay2.classList.add('opacity-0', 'invisible');
         darkOverlay2.classList.remove('opacity-100');
-        aside.style.right = '-100%';
-        darkOverlay.classList.add('hidden');
-        darkOverlay.classList.remove('flex');
         menubar.classList.remove('-rotate-90');
     });
 
     // Handle Logout Action
-    confirmLogoutBtn.addEventListener('click', () => {
-        confirmModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-        confirmModal.classList.remove('opacity-100', 'translate-y-0');
+    adminConfirmLogoutBtn.addEventListener('click', () => {
+        adminConfirmModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+        adminConfirmModal.classList.remove('opacity-100', 'translate-y-0');
         darkOverlay2.classList.add('opacity-0', 'invisible');
         darkOverlay2.classList.remove('opacity-100');
-        aside.style.right = '-100%';
-        darkOverlay.classList.add('hidden');
-        darkOverlay.classList.remove('flex');
-        menubar.classList.remove('-rotate-90');
         loader.style.display = 'flex';
     
         // Notify the server to destroy the session
@@ -72,7 +65,7 @@ if (logoutBtn && confirmModal && cancelBtn && confirmLogoutBtn && darkOverlay2) 
             .then(() => {
                 // Redirect after logout
                 setTimeout(() => {
-                    window.location.href = 'AdminDashboard.php';
+                    window.location.href = 'AdminSignin.php';
                 }, 1000);
             })
             .catch((error) => console.error('Logout failed:', error));

@@ -51,108 +51,122 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addrole'])) {
             <div class="overflow-x-auto mt-4">
                 <!-- Admin Search and Filter -->
                 <form method="GET" class="my-4 flex items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
-                    <h1 class="text-lg font-semibold">All Users <span class="text-gray-400 text-sm ml-2"><?php echo $adminCount ?></span></h1>
-                    <input type="text" name="product_search" class="p-2 border border-gray-300 rounded-md w-full md:w-1/2" placeholder="Search for admin account..." value="<?php echo isset($_GET['product_search']) ? htmlspecialchars($_GET['product_search']) : ''; ?>">
-                    <div class="flex items-center">
-                        <label for="sort" class="ml-4 mr-2 flex items-center cursor-pointer select-none">
-                            <i class="ri-filter-2-line text-xl"></i>
-                            <p>Filters</p>
-                        </label>
-                        <select name="sort" id="sort" class="border p-2 rounded text-sm" onchange="this.form.submit()">
-                            <option value="random">All Roles</option>
-                            <?php
-                            $select = "SELECT * FROM roletb";
-                            $query = mysqli_query($connect, $select);
-                            $count = mysqli_num_rows($query);
+                    <h1 class="text-lg font-semibold text-nowrap">All Users <span class="text-gray-400 text-sm ml-2"><?php echo $adminCount ?></span></h1>
+                    <div class="flex items-center w-full">
+                        <input type="text" name="acc_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full" placeholder="Search for admin account..." value="<?php echo isset($_GET['acc_search']) ? htmlspecialchars($_GET['acc_search']) : ''; ?>">
+                        <div class="flex items-center">
+                            <label for="sort" class="ml-4 mr-2 flex items-center cursor-pointer select-none">
+                                <i class="ri-filter-2-line text-xl"></i>
+                                <p>Filters</p>
+                            </label>
+                            <!-- Search and filter form -->
+                            <form method="GET" class="flex flex-col md:flex-row items-center gap-4 mb-4">
+                                <select name="sort" id="sort" class="border p-2 rounded text-sm" onchange="this.form.submit()">
+                                    <option value="random">All Roles</option>
+                                    <?php
+                                    $select = "SELECT * FROM roletb";
+                                    $query = mysqli_query($connect, $select);
+                                    $count = mysqli_num_rows($query);
 
-                            if ($count) {
-                                for ($i = 0; $i < $count; $i++) {
-                                    $row = mysqli_fetch_array($query);
-                                    $role_id = $row['RoleID'];
-                                    $role = $row['Role'];
+                                    if ($count) {
+                                        for ($i = 0; $i < $count; $i++) {
+                                            $row = mysqli_fetch_array($query);
+                                            $role_id = $row['RoleID'];
+                                            $role = $row['Role'];
+                                            $selected = ($filterRoleID == $role_id) ? 'selected' : '';
 
-                                    echo "<option value= '$role_id'>$role</option>";
-                                }
-                            } else {
-                                echo "<option value='' disabled>No data yet</option>";
-                            }
-                            ?>
-                        </select>
+                                            echo "<option value='$role_id' $selected>$role</option>";
+                                        }
+                                    } else {
+                                        echo "<option value='' disabled>No data yet</option>";
+                                    }
+                                    ?>
+                                </select>
+                            </form>
+                        </div>
                     </div>
                 </form>
-                <table class="min-w-full bg-white rounded-lg">
-                    <thead>
-                        <tr class="bg-gray-100 text-gray-600 text-sm">
-                            <th class="p-3 text-left">ID</th>
-                            <th class="p-3 text-left">Name</th>
-                            <th class="p-3 text-center">Role</th>
-                            <th class="p-3 text-center">Reset Password</th>
-                            <th class="p-3 text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-gray-600 text-sm">
-                        <!-- Example Row -->
-                        <?php foreach ($admins as $admin): ?>
-                            <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                <td class="p-3 text-left whitespace-nowrap">
-                                    <div class="flex items-center gap-2">
-                                        <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                        <span><?= htmlspecialchars($admin['AdminID']) ?></span>
-                                    </div>
-                                </td>
-                                <td class="p-3 text-left flex items-center gap-2">
-                                    <div class="w-10 h-10 rounded-full select-none">
-                                        <img class="w-full h-full object-cover rounded-full"
-                                            src="<?= htmlspecialchars($admin['AdminProfile']) ?>"
-                                            alt="Profile">
-                                    </div>
-                                    <div>
-                                        <p class="font-bold"><?= htmlspecialchars($admin['FirstName'] . ' ' . $admin['LastName']) ?></p>
-                                        <p><?= htmlspecialchars($admin['AdminEmail']) ?></p>
-                                    </div>
-                                </td>
-                                <td class="p-3 text-center">
-                                    <select class="border rounded p-2 bg-gray-50">
-                                        <?php
-                                        // Fetch roles for the dropdown
-                                        $rolesQuery = "SELECT * FROM roletb";
-                                        $rolesResult = mysqli_query($connect, $rolesQuery);
-
-                                        if (mysqli_num_rows($rolesResult) > 0) {
-                                            while ($roleRow = mysqli_fetch_assoc($rolesResult)) {
-                                                $selected = $roleRow['RoleID'] == $admin['RoleID'] ? 'selected' : '';
-                                                echo "<option value='{$roleRow['RoleID']}' $selected>{$roleRow['Role']}</option>";
-                                            }
-                                        } else {
-                                            echo "<option value='' disabled>No roles available</option>";
-                                        }
-                                        ?>
-                                    </select>
-                                </td>
-                                <td class="p-3 text-center space-x-1">
-                                    <button>
-                                        <span class="rounded-md border-2"><i class="ri-arrow-left-line text-md"></i></span>
-                                        <span>Reset Password</span>
-                                    </button>
-                                </td>
-                                <td class="p-3 text-center space-x-1 select-none">
-                                    <button class=" text-amber-500">
-                                        <i class="ri-edit-line text-xl"></i>
-                                    </button>
-                                    <button class=" text-red-500">
-                                        <i class="ri-delete-bin-7-line text-xl"></i>
-                                    </button>
-                                </td>
+                <div class="adminTable overflow-y-auto max-h-[510px]">
+                    <table class="min-w-full bg-white rounded-lg">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-600 text-sm">
+                                <th class="p-3 text-left">ID</th>
+                                <th class="p-3 text-left">Name</th>
+                                <th class="p-3 text-center">Role</th>
+                                <th class="p-3 text-center">Status</th>
+                                <th class="p-3 text-center">Reset Password</th>
+                                <th class="p-3 text-center">Actions</th>
                             </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="text-gray-600 text-sm">
+                            <!-- Example Row -->
+                            <?php foreach ($admins as $admin): ?>
+                                <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                    <td class="p-3 text-left whitespace-nowrap">
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                                            <span><?= htmlspecialchars($admin['AdminID']) ?></span>
+                                        </div>
+                                    </td>
+                                    <td class="p-3 text-left flex items-center gap-2">
+                                        <div class="w-10 h-10 rounded-full select-none">
+                                            <img class="w-full h-full object-cover rounded-full"
+                                                src="<?= htmlspecialchars($admin['AdminProfile']) ?>"
+                                                alt="Profile">
+                                        </div>
+                                        <div>
+                                            <p class="font-bold"><?= htmlspecialchars($admin['FirstName'] . ' ' . $admin['LastName']) ?></p>
+                                            <p><?= htmlspecialchars($admin['AdminEmail']) ?></p>
+                                        </div>
+                                    </td>
+                                    <td class="p-3 text-center">
+                                        <select class="border rounded p-2 bg-gray-50">
+                                            <?php
+                                            // Fetch roles for the dropdown
+                                            $rolesQuery = "SELECT * FROM roletb";
+                                            $rolesResult = mysqli_query($connect, $rolesQuery);
+
+                                            if (mysqli_num_rows($rolesResult) > 0) {
+                                                while ($roleRow = mysqli_fetch_assoc($rolesResult)) {
+                                                    $selected = $roleRow['RoleID'] == $admin['RoleID'] ? 'selected' : '';
+                                                    echo "<option value='{$roleRow['RoleID']}' $selected>{$roleRow['Role']}</option>";
+                                                }
+                                            } else {
+                                                echo "<option value='' disabled>No roles available</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </td>
+                                    <td class="p-3 text-center space-x-1 select-none">
+                                        <span class="p-1 rounded-md <?= $admin['Status'] === 'active' ? 'bg-green-100' : 'bg-red-100' ?>">
+                                            <?= htmlspecialchars($admin['Status']) ?>
+                                        </span>
+                                    </td>
+                                    <td class="p-3 text-center space-x-1">
+                                        <button>
+                                            <span class="rounded-md border-2"><i class="ri-arrow-left-line text-md"></i></span>
+                                            <span>Reset Password</span>
+                                        </button>
+                                    </td>
+                                    <td class="p-3 text-center space-x-1 select-none">
+                                        <button class=" text-amber-500">
+                                            <i class="ri-edit-line text-xl"></i>
+                                        </button>
+                                        <button class=" text-red-500">
+                                            <i class="ri-delete-bin-7-line text-xl"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
         <!-- Right Side Form -->
         <div class="w-full md:w-1/3 h-full bg-white rounded-lg shadow p-4 sticky top-0">
-            <h2 class="text-xl font-bold mb-4">Add Role Form</h2>
+            <h2 class="text-xl font-bold mb-4">Add New Role</h2>
             <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="roleForm">
                 <!-- Role Input -->
                 <div class="relative w-full">

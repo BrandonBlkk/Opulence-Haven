@@ -33,7 +33,7 @@ if (!$connect) {
 
         <!-- Right Side Form -->
         <div class="w-full md:w-1/3 bg-white rounded-lg shadow p-4">
-            <h2 class="text-xl font-bold mb-4">Add Product Form</h2>
+            <h2 class="text-xl font-bold mb-4">Add New Product</h2>
             <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" enctype="multipart/form-data" id="supplierForm">
                 <!-- Product Input -->
                 <div class="relative w-full">

@@ -5,6 +5,11 @@ include('../config/dbConnection.php');
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
+
+if (!isset($_SESSION["AdminEmail"])) {
+    echo "<script>window.alert('Login first! You cannot direct access the admin info.')</script>";
+    echo "<script>window.location = 'AdminSignIn.php'</script>";
+}
 ?>
 
 <!DOCTYPE html>
@@ -25,8 +30,13 @@ if (!$connect) {
     include('../includes/AdminNavbar.php');
     ?>
 
+    <!-- Loader -->
+    <?php
+    include('../includes/Loader.php');
+    ?>
+
     <script src="//unpkg.com/alpinejs" defer></script>
-    <script src="../JS/admin.js"></script>
+    <script type="module" src="../JS/admin.js"></script>
 </body>
 
 </html>

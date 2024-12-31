@@ -41,10 +41,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
             $admin_id = $array["AdminID"];
             $admin_username = $array["UserName"];
             $admin_email = $array["AdminEmail"];
+            $role = $array["RoleID"];
 
             $_SESSION["AdminID"] = $admin_id;
             $_SESSION["UserName"] = $admin_username;
             $_SESSION["AdminEmail"] = $admin_email;
+            $_SESSION["RoleID"] = $role;
 
             $updateSignInQuery = "UPDATE admintb SET Status = 'active' 
             WHERE AdminID = '$admin_id'";

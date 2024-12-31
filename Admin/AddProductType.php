@@ -50,7 +50,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproducttype'])) {
 
         <!-- Right Side Form -->
         <div class="w-full md:w-1/3 bg-white rounded-lg shadow p-4">
-            <h2 class="text-xl font-bold mb-4">Add Product Type Form</h2>
+            <h2 class="text-xl font-bold mb-4">Add New Product Type</h2>
             <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="productTypeForm">
                 <!-- Product Type Input -->
                 <div class="relative w-full">
