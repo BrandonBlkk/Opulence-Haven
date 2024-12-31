@@ -178,6 +178,123 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// Profile Delete Modal
+const adminProfileDeleteBtn = document.getElementById("adminProfileDeleteBtn");
+const confirmDeleteModal = document.getElementById("confirmDeleteModal");
+const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
+const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+const deleteConfirmInput = document.getElementById("deleteConfirmInput");
+
+if (adminProfileDeleteBtn && confirmDeleteModal && cancelDeleteBtn && confirmDeleteBtn && deleteConfirmInput) {
+    // Show Delete Modal
+    adminProfileDeleteBtn.addEventListener("click", () => {
+        confirmDeleteModal.classList.remove("opacity-0", "invisible", "-translate-y-5");
+        confirmDeleteModal.classList.add("opacity-100", "translate-y-0");
+        darkOverlay2.classList.remove("opacity-0", "invisible");
+        darkOverlay2.classList.add("opacity-100");
+    });
+
+    // Close Delete Modal on Cancel
+    cancelDeleteBtn.addEventListener("click", () => {
+        confirmDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+        confirmDeleteModal.classList.remove("opacity-100", "translate-y-0");
+        darkOverlay2.classList.add("opacity-0", "invisible");
+        darkOverlay2.classList.remove("opacity-100");
+        deleteConfirmInput.value = "";
+    });
+
+    // Enable Delete Button only if input matches "DELETE"
+    deleteConfirmInput.addEventListener("input", () => {
+        const isMatch = deleteConfirmInput.value.trim() === "DELETE";
+        confirmDeleteBtn.disabled = !isMatch;
+
+        // Toggle the 'cursor-not-allowed' class
+        if (isMatch) {
+            confirmDeleteBtn.classList.remove("cursor-not-allowed");
+        } else {
+            confirmDeleteBtn.classList.add("cursor-not-allowed");
+        }
+    });
+
+    // Handle Delete Action
+    confirmDeleteBtn.addEventListener("click", () => {                 
+        confirmDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+        confirmDeleteModal.classList.remove("opacity-100", "translate-y-0");
+        darkOverlay2.classList.add("opacity-0", "invisible");
+        darkOverlay2.classList.remove("opacity-100");
+        loader.style.display = "flex";
+
+        // Notify the server to delete the account
+        fetch("AdminAccountDelete.php", {
+            method: "POST",
+        })
+            .then(() => {
+                // Redirect after account deletion
+                setTimeout(() => {
+                    window.location.href = "AdminSignin.php";
+                }, 1000);
+            })
+            .catch((error) => console.error("Account deletion failed:", error));
+    });
+}
+
+// Reset Password and Profile Update Form Validation
+document.addEventListener("DOMContentLoaded", () => {
+    const alertBox = document.getElementById('alertBox');
+    const alertText = document.getElementById('alertText');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const profileUpdate = document.getElementById('profileUpdate').value === 'true';
+
+    if (profileUpdate)  {
+        // Show Alert
+        alertText.textContent = 'You have successfully changed a profile.';
+        alertBox.classList.remove('-bottom-5');
+        alertBox.classList.remove('opacity-0');
+        alertBox.classList.add('opacity-100');
+        alertBox.classList.add('bottom-3');
+
+        // Hide Alert
+        setTimeout(() => {
+            alertBox.classList.add('-bottom-1');
+            alertBox.classList.add('opacity-0');
+            alertBox.classList.remove('opacity-100');
+            alertBox.classList.remove('bottom-3');
+            // window.location.href = 'AdminProfileEdit.php';
+        }, 5000);
+    } else if (alertMessage) {
+        // Show Alert
+        alertText.textContent = alertMessage;
+        alertBox.classList.remove('-bottom-1');
+        alertBox.classList.remove('opacity-0');
+        alertBox.classList.add('opacity-100');
+        alertBox.classList.add('bottom-3');
+
+        // Hide Alert
+        setTimeout(() => {
+            alertBox.classList.add('-bottom-1');
+            alertBox.classList.add('opacity-0');
+            alertBox.classList.remove('opacity-100');
+            alertBox.classList.remove('bottom-3');
+        }, 5000);
+    }
+
+    document.getElementById("firstnameInput").addEventListener("keyup", validateFirstName);
+    document.getElementById("lastnameInput").addEventListener("keyup", validateLastName);
+    document.getElementById("usernameInput").addEventListener("keyup", validateUsername);
+    document.getElementById("emailInput").addEventListener("keyup", validateEmail);
+    document.getElementById("phoneInput").addEventListener("keyup", validatePhone);
+
+    // Add submit event listener for form validation
+    const updateAdminProfileForm = document.getElementById("updateAdminProfileForm");
+    if (updateAdminProfileForm) {
+        updateAdminProfileForm.addEventListener("submit", (e) => {
+            if (!validateProfileUpdateForm()) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+
 // Full form validation function
 const validateProductTypeForm = () => {
     const isTypeValid = validateProductType();
@@ -206,6 +323,16 @@ const validateRoleForm = () => {
     const isRoleDescriptionValid = validateRoleDescription();
 
     return isRoleValid && isRoleDescriptionValid;
+}
+
+const validateProfileUpdateForm = () => {
+    const isFirstnameValid = validateFirstName();
+    const isLastnameValid = validateLastName();
+    const isUsernameValid = validateUsername();
+    const isEmailValid = validateEmail();
+    const isPhoneValid = validatePhone();
+
+    return isFirstnameValid && isLastnameValid && isUsernameValid && isEmailValid && isPhoneValid;
 }
 
 // Individual validation functions
@@ -293,6 +420,69 @@ const validateCompanyName = () => {
     }
 }
 
+const validateFirstName = () => {
+    const firstnameInput = document.getElementById("firstnameInput").value.trim();
+    const firstnameError = document.getElementById("firstnameError");
+
+    const getUserNameError = (firstnameInput) => {
+        if (!firstnameInput) return "First name is required.";
+        return null;
+    };
+
+    const errorMessage = getUserNameError(firstnameInput);
+
+    switch (true) {
+        case errorMessage !== null:
+            showError(firstnameError, errorMessage);
+            return false;
+        default:
+            hideError(firstnameError);
+            return true;
+    }
+}
+
+const validateLastName = () => {
+    const lastnameInput = document.getElementById("lastnameInput").value.trim();
+    const lastnameError = document.getElementById("lastnameError");
+
+    const getUserNameError = (lastnameInput) => {
+        if (!lastnameInput) return "Last name is required.";
+        return null;
+    };
+
+    const errorMessage = getUserNameError(lastnameInput);
+
+    switch (true) {
+        case errorMessage !== null:
+            showError(lastnameError, errorMessage);
+            return false;
+        default:
+            hideError(lastnameError);
+            return true;
+    }
+}
+
+const validateUsername = () => {
+    const usernameInput = document.getElementById("usernameInput").value.trim();
+    const usernameError = document.getElementById("usernameError");
+
+    const getUserNameError = (usernameInput) => {
+        if (!usernameInput) return "Username is required.";
+        return null;
+    };
+
+    const errorMessage = getUserNameError(usernameInput);
+
+    switch (true) {
+        case errorMessage !== null:
+            showError(usernameError, errorMessage);
+            return false;
+        default:
+            hideError(usernameError);
+            return true;
+    }
+}
+
 const  validateEmail = () => {
     const emailInput = document.getElementById("emailInput").value.trim();
     const emailError = document.getElementById("emailError");
@@ -313,6 +503,27 @@ const  validateEmail = () => {
             return true;
     }
 } 
+
+const validatePhone = () => {
+    const phoneInput = document.getElementById("phoneInput").value.trim();
+    const phoneError = document.getElementById("phoneError");
+
+    const getUserNameError = (phoneInput) => {
+        if (!phoneInput) return "Phone number is required.";
+        return null;
+    };
+
+    const errorMessage = getUserNameError(phoneInput);
+
+    switch (true) {
+        case errorMessage !== null:
+            showError(phoneError, errorMessage);
+            return false;
+        default:
+            hideError(phoneError);
+            return true;
+    }
+}
 
 const validateContactNumber = () => {
     const contactNumberInput = document.getElementById("contactNumberInput").value.trim();

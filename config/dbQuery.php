@@ -19,31 +19,31 @@ if (!$connect) {
 //     echo "Data has been saved";
 // }
 
-$admin = "CREATE TABLE admintb
-(
-    AdminID varchar(30) not null primary key ,
-    AdminProfile text,
-    FirstName varchar(30),
-    LastName varchar(30),
-    UserName varchar(30),
-    AdminEmail varchar(30),
-    AdminPassword varchar(30),
-    AdminPhone varchar(30),
-    RoleID int,
-    FOREIGN KEY (RoleID) REFERENCES roletb (RoleID) 
-    ON DELETE CASCADE 
-    ON UPDATE CASCADE,
-    SignupDate datetime default current_timestamp,
-    LastSignIn datetime default current_timestamp on update current_timestamp,
-    Status varchar(10) default 'inactive'
-)";
+// $admin = "CREATE TABLE admintb
+// (
+//     AdminID varchar(30) not null primary key ,
+//     AdminProfile text,
+//     FirstName varchar(30),
+//     LastName varchar(30),
+//     UserName varchar(30),
+//     AdminEmail varchar(30),
+//     AdminPassword varchar(30),
+//     AdminPhone varchar(30),
+//     RoleID int,
+//     FOREIGN KEY (RoleID) REFERENCES roletb (RoleID) 
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE,
+//     SignupDate datetime default current_timestamp,
+//     LastSignIn datetime default current_timestamp on update current_timestamp,
+//     Status varchar(10) default 'inactive'
+// )";
 
-try {
-    $query = mysqli_query($connect, $admin);
-    echo "Data Successfully saved";
-} catch (mysqli_sql_exception) {
-    echo "Data has been saved";
-}
+// try {
+//     $query = mysqli_query($connect, $admin);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
 
 // $user = "CREATE TABLE usertb
 // (
@@ -63,6 +63,25 @@ try {
 // } catch (mysqli_sql_exception) {
 //     echo "Data has been saved";
 // }
+
+$contact = "CREATE TABLE cuscontacttb
+(
+    ContactID int not null primary key auto_increment,
+    ContactMessage text,
+    ContactDate datetime default current_timestamp,
+    Status varchar(30),
+    UserID int
+    FOREIGN KEY (UserID) REFERENCES usertb (UserID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+)";
+
+try {
+    $query = mysqli_query($connect, $contact);
+    echo "Data Successfully saved";
+} catch (mysqli_sql_exception) {
+    echo "Data has been saved";
+}
 
 // $producttype = "CREATE TABLE producttypetb
 // (

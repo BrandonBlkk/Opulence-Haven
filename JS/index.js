@@ -196,7 +196,7 @@ if (profileDeleteBtn && confirmDeleteModal && cancelDeleteBtn && confirmDeleteBt
     });
 }
 
-// Reset Password
+// Reset Password and Profile Update Form Validation
 document.addEventListener("DOMContentLoaded", () => {
     const alertBox = document.getElementById('alertBox');
     const alertText = document.getElementById('alertText');
