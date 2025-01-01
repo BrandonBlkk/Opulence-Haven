@@ -57,9 +57,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addsupplier'])) {
             <h2 class="text-xl font-bold mb-4">Add Supplier Overview</h2>
             <p>Add information about suppliers to keep track of inventory, orders, and supplier details for efficient management.</p>
 
-            <!-- Admin Table -->
+            <!-- Supplier Table -->
             <div class="overflow-x-auto mt-4">
-                <!-- Admin Search and Filter -->
+                <!-- Supplier Search and Filter -->
                 <form method="GET" class="my-4 flex items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
                     <h1 class="text-lg font-semibold text-nowrap">All Suppliers <span class="text-gray-400 text-sm ml-2"><?php echo $supplierCount ?></span></h1>
                     <div class="flex items-center w-full">
