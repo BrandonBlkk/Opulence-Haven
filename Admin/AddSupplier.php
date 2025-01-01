@@ -1,6 +1,7 @@
 <?php
 session_start();
 include('../config/dbConnection.php');
+include('../includes/AutoIDFunc.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -8,6 +9,7 @@ if (!$connect) {
 
 $alertMessage = '';
 $addSupplierSuccess = false;
+$supplierID = AutoID('suppliertb', 'SupplierID', 'SP-', 6);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addsupplier'])) {
     $suppliername = mysqli_real_escape_string($connect, $_POST['suppliername']);
@@ -21,8 +23,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addsupplier'])) {
     $country = mysqli_real_escape_string($connect, $_POST['country']);
     $productType = mysqli_real_escape_string($connect, $_POST['productType']);
 
-    $addSupplierQuery = "INSERT INTO suppliertb (SupplierName, SupplierEmail, SupplierContact, SupplierCompany, Address, City, State, PostalCode, Country, ProductTypeID)
-    VALUES ('$suppliername', '$email', '$contactNumber', '$companyName', '$address', '$city', '$state', '$postalCode', '$country', '$productType')";
+    $addSupplierQuery = "INSERT INTO suppliertb (SupplierID, SupplierName, SupplierEmail, SupplierContact, SupplierCompany, Address, City, State, PostalCode, Country, ProductTypeID)
+    VALUES ('$supplierID', '$suppliername', '$email', '$contactNumber', '$companyName', '$address', '$city', '$state', '$postalCode', '$country', '$productType')";
 
     if (mysqli_query($connect, $addSupplierQuery)) {
         $addSupplierSuccess = true;
@@ -51,9 +53,257 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addsupplier'])) {
     <!-- Main Container -->
     <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px]">
         <!-- Left Side Content -->
-        <div class="w-full md:w-2/3 bg-white rounded-lg shadow p-4">
+        <div class="w-full md:w-2/3 bg-white p-4">
             <h2 class="text-xl font-bold mb-4">Add Supplier Overview</h2>
             <p>Add information about suppliers to keep track of inventory, orders, and supplier details for efficient management.</p>
+
+            <!-- Admin Table -->
+            <div class="overflow-x-auto mt-4">
+                <!-- Admin Search and Filter -->
+                <form method="GET" class="my-4 flex items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
+                    <h1 class="text-lg font-semibold text-nowrap">All Suppliers <span class="text-gray-400 text-sm ml-2"><?php echo $supplierCount ?></span></h1>
+                    <div class="flex items-center w-full">
+                        <input type="text" name="supplier_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full" placeholder="Search for supplier..." value="<?php echo isset($_GET['supplier_search']) ? htmlspecialchars($_GET['supplier_search']) : ''; ?>">
+                        <div class="flex items-center">
+                            <label for="sort" class="ml-4 mr-2 flex items-center cursor-pointer select-none">
+                                <i class="ri-filter-2-line text-xl"></i>
+                                <p>Filters</p>
+                            </label>
+                            <!-- Search and filter form -->
+                            <form method="GET" class="flex flex-col md:flex-row items-center gap-4 mb-4">
+                                <select name="sort" id="sort" class="border p-2 rounded text-sm" onchange="this.form.submit()">
+                                    <option value="random">All Supplied Products</option>
+                                    <?php
+                                    $select = "SELECT * FROM producttypetb";
+                                    $query = mysqli_query($connect, $select);
+                                    $count = mysqli_num_rows($query);
+
+                                    if ($count) {
+                                        for ($i = 0; $i < $count; $i++) {
+                                            $row = mysqli_fetch_array($query);
+                                            $producttype_id = $row['ProductTypeID'];
+                                            $producttype = $row['ProductType'];
+                                            $selected = ($filterProductTypeID == $producttype_id) ? 'selected' : '';
+
+                                            echo "<option value='$producttype_id' $selected>$producttype</option>";
+                                        }
+                                    } else {
+                                        echo "<option value='' disabled>No data yet</option>";
+                                    }
+                                    ?>
+                                </select>
+                            </form>
+                        </div>
+                    </div>
+                </form>
+                <div class="adminTable overflow-y-auto max-h-[510px]">
+                    <table class="min-w-full bg-white rounded-lg">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-600 text-sm">
+                                <th class="p-3 text-left">ID</th>
+                                <th class="p-3 text-left">Name</th>
+                                <th class="p-3 text-center">Product Supplied</th>
+                                <th class="p-3 text-center">Contact</th>
+                                <th class="p-3 text-center">Company</th>
+                                <th class="p-3 text-center">Country</th>
+                                <th class="p-3 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-600 text-sm">
+                            <?php foreach ($suppliers as $supplier): ?>
+                                <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                    <td class="p-3 text-left whitespace-nowrap">
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                                            <span><?= htmlspecialchars($supplier['SupplierID']) ?></span>
+                                        </div>
+                                    </td>
+                                    <td class="p-3">
+                                        <p class="font-bold"><?= htmlspecialchars($supplier['SupplierName']) ?></p>
+                                        <p><?= htmlspecialchars($supplier['SupplierEmail']) ?></p>
+                                    </td>
+                                    <td class="p-3 text-center">
+                                        <?php
+                                        // Fetch the specific product type for the supplier
+                                        $productTypeID = $supplier['ProductTypeID'];
+                                        $productTypeQuery = "SELECT ProductType FROM producttypetb WHERE ProductTypeID = '$productTypeID'";
+                                        $productTypeResult = mysqli_query($connect, $productTypeQuery);
+
+                                        if ($productTypeResult && mysqli_num_rows($productTypeResult) > 0) {
+                                            $productTypeRow = mysqli_fetch_assoc($productTypeResult);
+                                            echo htmlspecialchars($productTypeRow['ProductType']);
+                                        }
+                                        ?>
+                                    </td>
+                                    <td class="p-3 text-center">
+                                        <?= htmlspecialchars($supplier['SupplierContact']) ?>
+                                    </td>
+                                    <td class="p-3 text-center">
+                                        <?= htmlspecialchars($supplier['SupplierCompany']) ?>
+                                    </td>
+                                    <td class="p-3 text-center">
+                                        <?= htmlspecialchars($supplier['Country']) ?>
+                                    </td>
+                                    <td class="p-3 text-center space-x-1 select-none">
+                                        <i id="detailsBtn" class="ri-eye-line text-lg cursor-pointer"></i>
+                                        <button class="text-red-500">
+                                            <i class="ri-delete-bin-7-line text-xl"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Supplier Details Modal -->
+        <div id="supplierModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+            <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center w-full sm:max-w-[500px]">
+                <h2 class="text-xl font-bold mb-4">Edit Supplier</h2>
+                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="supplierForm">
+                    <div>
+                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">Supplier Information</label>
+                        <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
+                            <!-- Supplier Name Input -->
+                            <div class="relative w-full">
+                                <input
+                                    id="supplierNameInput"
+                                    class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                    type="text"
+                                    name="suppliername"
+                                    placeholder="Enter supplier's name">
+                                <small id="supplierNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            </div>
+
+                            <!-- Company Name Input -->
+                            <div class="relative w-full">
+                                <input
+                                    id="companyNameInput"
+                                    class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                    type="text"
+                                    name="companyName"
+                                    placeholder="Enter company name">
+                                <small id="companyNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Email Input -->
+                    <div class="relative">
+                        <input
+                            id="emailInput"
+                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            type="email"
+                            name="email"
+                            placeholder="Enter supplier's email">
+                        <small id="emailError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                    </div>
+
+                    <!-- Contact Number Input -->
+                    <div class="relative">
+                        <input
+                            id="contactNumberInput"
+                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            type="tel"
+                            name="contactNumber"
+                            placeholder="Enter contact number">
+                        <small id="contactNumberError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                    </div>
+
+                    <!-- Address Input -->
+                    <div class="relative">
+                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">Address Details</label>
+                        <textarea
+                            id="addressInput"
+                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            type="text"
+                            name="address"
+                            placeholder="Enter address"></textarea>
+                        <small id="addressError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
+                        <!-- City Input -->
+                        <div class="relative">
+                            <input
+                                id="cityInput"
+                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                type="text"
+                                name="city"
+                                placeholder="Enter city">
+                            <small id="cityError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                        </div>
+                        <!-- State Input -->
+                        <div class="relative">
+                            <input
+                                id="stateInput"
+                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                type="text"
+                                name="state"
+                                placeholder="Enter state/region">
+                            <small id="stateError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                        </div>
+                    </div>
+                    <!-- Postal Code Input -->
+                    <div class="relative">
+                        <input
+                            id="postalCodeInput"
+                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            type="text"
+                            name="postalCode"
+                            placeholder="Enter postal code">
+                        <small id="postalCodeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                    </div>
+                    <!-- Country Input -->
+                    <div class="relative">
+                        <input
+                            id="countryInput"
+                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            type="text"
+                            name="country"
+                            placeholder="Enter country">
+                        <small id="countryError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                    </div>
+
+                    <!-- Product Type -->
+                    <div class="relative">
+                        <select name="productType" id="productType" class="p-2 w-full border rounded">
+                            <option value="" disabled selected>Select type of products supplied</option>
+                            <?php
+                            $select = "SELECT * FROM producttypetb";
+                            $query = mysqli_query($connect, $select);
+                            $count = mysqli_num_rows($query);
+
+                            if ($count) {
+                                for ($i = 0; $i < $count; $i++) {
+                                    $row = mysqli_fetch_array($query);
+                                    $product_type_id = $row['ProductTypeID'];
+                                    $product_type = $row['ProductType'];
+
+                                    echo "<option value= '$product_type_id'>$product_type</option>";
+                                }
+                            } else {
+                                echo "<option value='' disabled>No data yet</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex justify-end gap-4 select-none">
+                        <div id="supplierModalCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300">
+                            Cancel
+                        </div>
+                        <button
+                            type="submit"
+                            name="editsupplier"
+                            class="bg-amber-500 text-white px-4 py-2 select-none hover:bg-amber-600">
+                            Save
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
 
         <!-- Right Side Form -->

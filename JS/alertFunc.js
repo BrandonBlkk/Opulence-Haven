@@ -25,3 +25,18 @@ export const hideError = (element) => {
     element.classList.remove("opacity-100");
     element.classList.add("opacity-0");
 };
+
+// Validate Field Function
+export const validateField = (inputId, errorId, getErrorMessage) => {
+    const input = document.getElementById(inputId).value.trim();
+    const errorElement = document.getElementById(errorId);
+    const errorMessage = getErrorMessage(input);
+
+    if (errorMessage) {
+        showError(errorElement, errorMessage);
+        return false;
+    } else {
+        hideError(errorElement);
+        return true;
+    }
+};

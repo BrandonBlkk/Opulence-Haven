@@ -21,7 +21,7 @@ if (!$connect) {
 
 // $admin = "CREATE TABLE admintb
 // (
-//     AdminID varchar(30) not null primary key ,
+//     AdminID varchar(30) not null primary key,
 //     AdminProfile text,
 //     FirstName varchar(30),
 //     LastName varchar(30),
@@ -45,43 +45,43 @@ if (!$connect) {
 //     echo "Data has been saved";
 // }
 
-// $user = "CREATE TABLE usertb
-// (
-//     UserID int not null primary key auto_increment,
-//     UserName varchar(30),
-//     UserEmail varchar(30),
-//     UserPassword varchar(30),
-//     UserPhone varchar(30),
-//     SignupDate datetime default current_timestamp,
-//     LastSignIn datetime default current_timestamp on update current_timestamp,
-//     Status varchar(10) default 'inactive'
-// )";
-
-// try {
-//     $query = mysqli_query($connect, $user);
-//     echo "Data Successfully saved";
-// } catch (mysqli_sql_exception) {
-//     echo "Data has been saved";
-// }
-
-$contact = "CREATE TABLE cuscontacttb
+$user = "CREATE TABLE usertb
 (
-    ContactID int not null primary key auto_increment,
-    ContactMessage text,
-    ContactDate datetime default current_timestamp,
-    Status varchar(30),
-    UserID int
-    FOREIGN KEY (UserID) REFERENCES usertb (UserID)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE
+    UserID varchar(30) not null primary key,
+    UserName varchar(30),
+    UserEmail varchar(30),
+    UserPassword varchar(30),
+    UserPhone varchar(30),
+    SignupDate datetime default current_timestamp,
+    LastSignIn datetime default current_timestamp on update current_timestamp,
+    Status varchar(10) default 'inactive'
 )";
 
 try {
-    $query = mysqli_query($connect, $contact);
+    $query = mysqli_query($connect, $user);
     echo "Data Successfully saved";
 } catch (mysqli_sql_exception) {
     echo "Data has been saved";
 }
+
+// $contact = "CREATE TABLE cuscontacttb
+// (
+//     ContactID int not null primary key auto_increment,
+//     ContactMessage text,
+//     ContactDate datetime default current_timestamp,
+//     Status varchar(30),
+//     UserID int
+//     FOREIGN KEY (UserID) REFERENCES usertb (UserID)
+//     ON DELETE CASCADE
+//     ON UPDATE CASCADE
+// )";
+
+// try {
+//     $query = mysqli_query($connect, $contact);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
 
 // $producttype = "CREATE TABLE producttypetb
 // (
@@ -101,7 +101,7 @@ try {
 
 // $supplier = "CREATE TABLE suppliertb
 // (
-//     SupplierID int not null primary key auto_increment,
+//     SupplierID varchar(30) not null primary key,
 //     SupplierName varchar(30),
 //     SupplierEmail varchar(30),
 //     SupplierContact varchar(30),

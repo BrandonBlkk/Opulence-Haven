@@ -1,13 +1,13 @@
 <?php
 $adminID = $_SESSION['AdminID'];
 $username = $_SESSION['UserName'];
-$role = $_SESSION['RoleID'];
 
 // Fetch admin profile
-$adminProfileQuery = "SELECT AdminProfile FROM admintb WHERE AdminID = '$adminID'";
+$adminProfileQuery = "SELECT AdminProfile, RoleID FROM admintb WHERE AdminID = '$adminID'";
 $adminProfileResult = mysqli_query($connect, $adminProfileQuery);
 $adminProfileRow = mysqli_fetch_assoc($adminProfileResult);
 $adminprofile = $adminProfileRow['AdminProfile'];
+$role = $adminProfileRow['RoleID'];
 
 // Initialize search and filter variables
 $searchQuery = isset($_GET['acc_search']) ? mysqli_real_escape_string($connect, $_GET['acc_search']) : '';
@@ -33,6 +33,52 @@ if (mysqli_num_rows($adminSelectQuery) > 0) {
     }
 }
 
+$searchQuery = isset($_GET['supplier_search']) ? mysqli_real_escape_string($connect, $_GET['supplier_search']) : '';
+$filterProductTypeID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
+
+// Construct the supplier query based on search and role filter
+if ($filterProductTypeID !== 'random' && !empty($searchQuery)) {
+    $supplierSelect = "SELECT * FROM suppliertb WHERE ProductTypeID = '$filterProductTypeID' AND (SupplierName LIKE '%$searchQuery%' OR SupplierEmail LIKE '%$searchQuery%')";
+} elseif ($filterProductTypeID !== 'random') {
+    $supplierSelect = "SELECT * FROM suppliertb WHERE ProductTypeID = '$filterProductTypeID'";
+} elseif (!empty($searchQuery)) {
+    $supplierSelect = "SELECT * FROM suppliertb WHERE SupplierName LIKE '%$searchQuery%' OR SupplierEmail LIKE '%$searchQuery%'";
+} else {
+    $supplierSelect = "SELECT * FROM suppliertb";
+}
+
+$supplierSelectQuery = mysqli_query($connect, $supplierSelect);
+$suppliers = [];
+
+if (mysqli_num_rows($supplierSelectQuery) > 0) {
+    while ($row = mysqli_fetch_assoc($supplierSelectQuery)) {
+        $suppliers[] = $row;
+    }
+}
+
+$searchQuery = isset($_GET['producttype_search']) ? mysqli_real_escape_string($connect, $_GET['producttype_search']) : '';
+$filterProductTypeID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
+
+// Construct the supplier query based on search and role filter
+if ($filterProductTypeID !== 'random' && !empty($searchQuery)) {
+    $productTypeSelect = "SELECT * FROM producttypetb WHERE ProductTypeID = '$filterProductTypeID' AND (ProductType LIKE '%$searchQuery%' OR Description LIKE '%$searchQuery%')";
+} elseif ($filterProductTypeID !== 'random') {
+    $productTypeSelect = "SELECT * FROM producttypetb WHERE ProductTypeID = '$filterProductTypeID'";
+} elseif (!empty($searchQuery)) {
+    $productTypeSelect = "SELECT * FROM producttypetb WHERE ProductType LIKE '%$searchQuery%' OR Description LIKE '%$searchQuery%'";
+} else {
+    $productTypeSelect = "SELECT * FROM producttypetb";
+}
+
+$productTypeSelectQuery = mysqli_query($connect, $productTypeSelect);
+$productTypes = [];
+
+if (mysqli_num_rows($productTypeSelectQuery) > 0) {
+    while ($row = mysqli_fetch_assoc($productTypeSelectQuery)) {
+        $productTypes[] = $row;
+    }
+}
+
 // Construct the admin count query based on search and role filter
 if ($filterRoleID !== 'random' && !empty($searchQuery)) {
     $adminCountQuery = "SELECT COUNT(*) as count FROM admintb WHERE RoleID = '$filterRoleID' AND (FirstName LIKE '%$searchQuery%' OR LastName LIKE '%$searchQuery%' OR AdminEmail LIKE '%$searchQuery%')";
@@ -49,23 +95,53 @@ $adminCountResult = mysqli_query($connect, $adminCountQuery);
 $adminCountRow = mysqli_fetch_assoc($adminCountResult);
 $adminCount = $adminCountRow['count'];
 
-// Fetch supplier count
-$supplierCountQuery = "SELECT COUNT(*) as count FROM suppliertb";
+// Construct the supplier count query based on search and product type filter
+if ($filterRoleID !== 'random' && !empty($searchQuery)) {
+    $supplierCountQuery = "SELECT COUNT(*) as count FROM suppliertb WHERE ProductTypeID = '$filterRoleID' AND (SupplierName LIKE '%$searchQuery%' OR SupplierEmail LIKE '%$searchQuery%')";
+} elseif ($filterRoleID !== 'random') {
+    $supplierCountQuery = "SELECT COUNT(*) as count FROM suppliertb WHERE ProductTypeID = '$filterRoleID'";
+} elseif (!empty($searchQuery)) {
+    $supplierCountQuery = "SELECT COUNT(*) as count FROM suppliertb WHERE SupplierName LIKE '%$searchQuery%' OR SupplierEmail LIKE '%$searchQuery%'";
+} else {
+    $supplierCountQuery = "SELECT COUNT(*) as count FROM suppliertb";
+}
+
+// Execute the count query
 $supplierCountResult = mysqli_query($connect, $supplierCountQuery);
 $supplierCountRow = mysqli_fetch_assoc($supplierCountResult);
 $supplierCount = $supplierCountRow['count'];
+// Fetch all supplier count
+$supplierCountQuery = "SELECT COUNT(*) as count FROM suppliertb";
+$supplierCountResult = mysqli_query($connect, $supplierCountQuery);
+$supplierCountRow = mysqli_fetch_assoc($supplierCountResult);
+$allSupplierCount = $supplierCountRow['count'];
+
+// Construct the prooducttype count query based on search and product type filter
+if ($filterRoleID !== 'random' && !empty($searchQuery)) {
+    $prooducTypeQuery = "SELECT COUNT(*) as count FROM producttypetb WHERE ProductTypeID = '$filterRoleID' AND (ProductType LIKE '%$searchQuery%' OR Description LIKE '%$searchQuery%')";
+} elseif ($filterRoleID !== 'random') {
+    $prooducTypeQuery = "SELECT COUNT(*) as count FROM producttypetb WHERE ProductTypeID = '$filterRoleID'";
+} elseif (!empty($searchQuery)) {
+    $prooducTypeQuery = "SELECT COUNT(*) as count FROM producttypetb WHERE ProductType LIKE '%$searchQuery%' OR Description LIKE '%$searchQuery%'";
+} else {
+    $prooducTypeQuery = "SELECT COUNT(*) as count FROM producttypetb";
+}
+
+// Execute the count query
+$productTypeResult = mysqli_query($connect, $prooducTypeQuery);
+$productTypeRow = mysqli_fetch_assoc($productTypeResult);
+$productTypeCount = $productTypeRow['count'];
+// Fetch product type count
+$productTypeCountQuery = "SELECT COUNT(*) as count FROM producttypetb";
+$productTypeCountResult = mysqli_query($connect, $productTypeCountQuery);
+$productTypeCountRow = mysqli_fetch_assoc($productTypeCountResult);
+$allProductTypeCount = $productTypeCountRow['count'];
 
 // Fetch product count
 $productCountQuery = "SELECT COUNT(*) as count FROM producttb";
 $productCountResult = mysqli_query($connect, $productCountQuery);
 $productCountRow = mysqli_fetch_assoc($productCountResult);
 $productCount = $productCountRow['count'];
-
-// Fetch product type count
-$productTypeCountQuery = "SELECT COUNT(*) as count FROM producttypetb";
-$productTypeCountResult = mysqli_query($connect, $productTypeCountQuery);
-$productTypeCountRow = mysqli_fetch_assoc($productTypeCountResult);
-$productTypeCount = $productTypeCountRow['count'];
 
 $select = "
     SELECT admintb.*, roletb.Role 
@@ -85,12 +161,12 @@ if (mysqli_num_rows($query) > 0) {
 ?>
 
 <!-- Hamburger Menu Button -->
-<button id="menu-toggle" class="fixed top-4 right-4 z-50 md:hidden p-2 backdrop-blur-sm text-indigo-500 rounded shadow">
+<button id="menu-toggle" class="fixed top-4 right-4 z-50 md:hidden p-2 backdrop-blur-sm text-amber-500 rounded shadow">
     <i class="ri-menu-line text-2xl"></i>
 </button>
 
 <!-- Sidebar -->
-<nav id="sidebar" class="fixed top-0 left-0 h-full w-64 md:w-[250px] p-4 flex flex-col justify-between bg-white shadow-lg transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-40">
+<nav id="sidebar" class="fixed top-0 left-0 h-full w-full sm:w-64 md:w-[250px] p-4 flex flex-col justify-between bg-white shadow-lg transform -translate-x-full md:translate-x-0 transition-all duration-300 z-40">
     <div>
         <!-- Logo -->
         <div class="flex items-end gap-1 select-none">
@@ -158,7 +234,7 @@ if (mysqli_num_rows($query) > 0) {
                                     <i class="ri-group-line text-xl"></i>
                                     <span class="font-semibold text-sm">Add supplier</span>
                                 </div>
-                                <p class="px-1 text-white bg-blue-950 rounded-sm ml-5"><?= htmlspecialchars($supplierCount) ?></p>
+                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allSupplierCount ?></p>
                             </a>
                             <a href="../Admin/AddProduct.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">
@@ -172,7 +248,7 @@ if (mysqli_num_rows($query) > 0) {
                                     <i class="ri-list-check-3 text-xl"></i>
                                     <span class="font-semibold text-sm">Add product type</span>
                                 </div>
-                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $productTypeCount ?></p>
+                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allProductTypeCount ?></p>
                             </a>
                         </div>
                     </div>
@@ -195,7 +271,7 @@ if (mysqli_num_rows($query) > 0) {
                                     <i class="ri-truck-line text-xl"></i>
                                     <span class="font-semibold text-sm">Purchase Product</span>
                                 </div>
-                                <p class="px-1 text-white bg-blue-950 rounded-sm ml-5"><?= htmlspecialchars($supplierCount) ?></p>
+                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= htmlspecialchars($supplierCount) ?></p>
                             </a>
                             <a href="../Admin/AddProduct.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">
@@ -256,4 +332,5 @@ if (mysqli_num_rows($query) > 0) {
 </div>
 
 <!-- Dark Overlay -->
+<div id="overlay" class="fixed inset-0 bg-black opacity-50 hidden z-30"></div>
 <div id="darkOverlay2" class="fixed inset-0 bg-black bg-opacity-50 opacity-0 invisible  z-40 transition-opacity duration-300"></div>

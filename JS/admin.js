@@ -1,4 +1,4 @@
-import { showError, hideError, showAlert } from './alertFunc.js';
+import { showAlert, validateField } from './alertFunc.js';
 
 const menu_toggle = document.getElementById('menu-toggle');
 if (menu_toggle) {
@@ -178,6 +178,29 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// Supplier Details Modal
+const detailsBtn = document.getElementById('detailsBtn');
+const supplierModal = document.getElementById('supplierModal');
+const supplierModalCancelBtn = document.getElementById('supplierModalCancelBtn');
+
+if (detailsBtn && supplierModal && supplierModalCancelBtn) {
+    // Show modal when eye icon is clicked
+    detailsBtn.addEventListener('click', () => {
+        supplierModal.classList.remove("opacity-0", "invisible", "-translate-y-5");
+        supplierModal.classList.add("opacity-100", "visible", "translate-y-0");
+        darkOverlay2.classList.remove("opacity-0", "invisible");
+        darkOverlay2.classList.add("opacity-100");
+    });
+
+    // Close modal when "X" is clicked
+    supplierModalCancelBtn.addEventListener('click', () => {
+        supplierModal.classList.remove("opacity-100", "visible", "translate-y-0");
+        supplierModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+        darkOverlay2.classList.add("opacity-0", "invisible");
+        darkOverlay2.classList.remove("opacity-100");
+    });
+}
+
 // Profile Delete Modal
 const adminProfileDeleteBtn = document.getElementById("adminProfileDeleteBtn");
 const confirmDeleteModal = document.getElementById("confirmDeleteModal");
@@ -337,362 +360,140 @@ const validateProfileUpdateForm = () => {
 
 // Individual validation functions
 const validateProductType = () => {
-    const productTypeInput = document.getElementById("productTypeInput").value.trim();
-    const productTypeError = document.getElementById("productTypeError");
-
-    const getUserNameError = (productTypeInput) => {
-        if (!productTypeInput) return "Type is required.";
-        return null;
-    };
-
-    const errorMessage = getUserNameError(productTypeInput);
-
-    switch (true) {
-        case errorMessage !== null:
-            showError(productTypeError, errorMessage);
-            return false;
-        default:
-            hideError(productTypeError);
-            return true;
-    }
+    return validateField(
+        "productTypeInput",
+        "productTypeError",
+        (input) => (!input ? "Type is required." : null)
+    );
 };
 
 const validateDescription = () => {
-    const descriptionInput = document.getElementById("descriptionInput").value.trim();
-    const descriptionError = document.getElementById("descriptionError");
-
-    const getEmailError = (descriptionInput) => {
-        if (!descriptionInput) return "Description is required.";
-        return null;
-    };
-
-    const errorMessage = getEmailError(descriptionInput);
-
-    switch (true) {
-        case errorMessage !== null:
-            showError(descriptionError, errorMessage);
-            return false;
-        default:
-            hideError(descriptionError);
-            return true;
-    }
+    return validateField(
+        "descriptionInput",
+        "descriptionError",
+        (input) => (!input ? "Description is required." : null)
+    );
 };
 
 const validateSupplierName = () => {
-    const supplierNameInput = document.getElementById("supplierNameInput").value.trim();
-    const supplierNameError = document.getElementById("supplierNameError");
-
-    const getUserNameError = (supplierNameInput) => {
-        if (!supplierNameInput) return "Supplier name is required.";
-        return null;
-    };
-
-    const errorMessage = getUserNameError(supplierNameInput);
-
-    switch (true) {
-        case errorMessage !== null:
-            showError(supplierNameError, errorMessage);
-            return false;
-        default:
-            hideError(supplierNameError);
-            return true;
-    }
-}
+    return validateField(
+        "supplierNameInput",
+        "supplierNameError",
+        (input) => (!input ? "Supplier name is required." : null)
+    );
+} 
 
 const validateCompanyName = () => {
-    const companyNameInput = document.getElementById("companyNameInput").value.trim();
-    const companyNameError = document.getElementById("companyNameError");
-
-    const getUserNameError = (companyNameInput) => {
-        if (!companyNameInput) return "Company name is required.";
-        return null;
-    };
-
-    const errorMessage = getUserNameError(companyNameInput);
-
-    switch (true) {
-        case errorMessage !== null:
-            showError(companyNameError, errorMessage);
-            return false;
-        default:
-            hideError(companyNameError);
-            return true;
-    }
+    return validateField(
+        "companyNameInput",
+        "companyNameError",
+        (input) => (!input ? "Company name is required." : null)
+    );
 }
 
 const validateFirstName = () => {
-    const firstnameInput = document.getElementById("firstnameInput").value.trim();
-    const firstnameError = document.getElementById("firstnameError");
-
-    const getUserNameError = (firstnameInput) => {
-        if (!firstnameInput) return "First name is required.";
-        return null;
-    };
-
-    const errorMessage = getUserNameError(firstnameInput);
-
-    switch (true) {
-        case errorMessage !== null:
-            showError(firstnameError, errorMessage);
-            return false;
-        default:
-            hideError(firstnameError);
-            return true;
-    }
+    return validateField(
+        "firstnameInput",
+        "firstnameError",
+        (input) => (!input ? "First name is required." : null)
+    );
 }
 
 const validateLastName = () => {
-    const lastnameInput = document.getElementById("lastnameInput").value.trim();
-    const lastnameError = document.getElementById("lastnameError");
-
-    const getUserNameError = (lastnameInput) => {
-        if (!lastnameInput) return "Last name is required.";
-        return null;
-    };
-
-    const errorMessage = getUserNameError(lastnameInput);
-
-    switch (true) {
-        case errorMessage !== null:
-            showError(lastnameError, errorMessage);
-            return false;
-        default:
-            hideError(lastnameError);
-            return true;
-    }
+    return validateField(
+        "lastnameInput",
+        "lastnameError",
+        (input) => (!input ? "Last name is required." : null)
+    );
 }
 
 const validateUsername = () => {
-    const usernameInput = document.getElementById("usernameInput").value.trim();
-    const usernameError = document.getElementById("usernameError");
-
-    const getUserNameError = (usernameInput) => {
-        if (!usernameInput) return "Username is required.";
-        return null;
-    };
-
-    const errorMessage = getUserNameError(usernameInput);
-
-    switch (true) {
-        case errorMessage !== null:
-            showError(usernameError, errorMessage);
-            return false;
-        default:
-            hideError(usernameError);
-            return true;
-    }
+    return validateField(
+        "usernameInput",
+        "usernameError",
+        (input) => (!input ? "Username is required." : null)
+    );
 }
 
-const  validateEmail = () => {
-    const emailInput = document.getElementById("emailInput").value.trim();
-    const emailError = document.getElementById("emailError");
-
-    const getEmailError = (emailInput) => {
-        if (!emailInput) return "Email is required.";
-        return null;
-    };
-
-    const errorMessage = getEmailError(emailInput);
-
-    switch (true) {
-        case errorMessage !== null:
-            showError(emailError, errorMessage);
-            return false;
-        default:
-            hideError(emailError);
-            return true;
-    }
-} 
+const validateEmail = () => {
+    return validateField(
+        "emailInput",
+        "emailError",
+        (input) => (!input ? "Email is required." : null)
+    )
+}
 
 const validatePhone = () => {
-    const phoneInput = document.getElementById("phoneInput").value.trim();
-    const phoneError = document.getElementById("phoneError");
-
-    const getUserNameError = (phoneInput) => {
-        if (!phoneInput) return "Phone number is required.";
-        return null;
-    };
-
-    const errorMessage = getUserNameError(phoneInput);
-
-    switch (true) {
-        case errorMessage !== null:
-            showError(phoneError, errorMessage);
-            return false;
-        default:
-            hideError(phoneError);
-            return true;
-    }
+    return validateField(
+        "phoneInput",
+        "phoneError",
+        (input) => (!input ? "Phone number is required." : null)
+    )
 }
 
 const validateContactNumber = () => {
-    const contactNumberInput = document.getElementById("contactNumberInput").value.trim();
-    const contactNumberError = document.getElementById("contactNumberError");
-
-    const getUserNameError = (contactNumberInput) => {
-        if (!contactNumberInput) return "Contact number is required.";
-        return null;
-    };
-
-    const errorMessage = getUserNameError(contactNumberInput);
-
-    switch (true) {
-        case errorMessage !== null:
-            showError(contactNumberError, errorMessage);
-            return false;
-        default:
-            hideError(contactNumberError);
-            return true;
-    }
+    return validateField(
+        "contactNumberInput",
+        "contactNumberError",
+        (input) => (!input ? "Contact number is required." : null)
+    )
 }
 
 const validateAddress = () => {
-    const addressInput = document.getElementById("addressInput").value.trim();
-    const addressError = document.getElementById("addressError");
-
-    const getUserNameError = (addressInput) => {
-        if (!addressInput) return "Address is required.";
-        return null;
-    };
-
-    const errorMessage = getUserNameError(addressInput);
-
-    switch (true) {
-        case errorMessage !== null:
-            showError(addressError, errorMessage);
-            return false;
-        default:
-            hideError(addressError);
-            return true;
-    }
+    return validateField(
+        "addressInput",
+        "addressError",
+        (input) => (!input ? "Address is required." : null)
+    )
 }
 
 const validateCity = () => {
-    const cityInput = document.getElementById("cityInput").value.trim();
-    const cityError = document.getElementById("cityError");
-
-    const getUserNameError = (cityInput) => {
-        if (!cityInput) return "City is required.";
-        return null;
-    };
-
-    const errorMessage = getUserNameError(cityInput);
-
-    switch (true) {
-        case errorMessage !== null:
-            showError(cityError, errorMessage);
-            return false;
-        default:
-            hideError(cityError);
-            return true;
-    }
+    return validateField(
+        "cityInput",
+        "cityError",
+        (input) => (!input ? "City is required." : null)
+    )
 }
 
 const validateState = () => {
-    const stateInput = document.getElementById("stateInput").value.trim();
-    const stateError = document.getElementById("stateError");
-
-    const getUserNameError = (stateInput) => {
-        if (!stateInput) return "State is required.";
-        return null;
-    };
-
-    const errorMessage = getUserNameError(stateInput);
-
-    switch (true) {
-        case errorMessage !== null:
-            showError(stateError, errorMessage);
-            return false;
-        default:
-            hideError(stateError);
-            return true;
-    }
+    return validateField(
+        "stateInput",
+        "stateError",
+        (input) => (!input ? "State is required." : null)
+    )
 }
 
-const  validatePostalCode = () => {
-    const postalCodeInput = document.getElementById("postalCodeInput").value.trim();
-    const postalCodeError = document.getElementById("postalCodeError");
-
-    const getUserNameError = (postalCodeInput) => {
-        if (!postalCodeInput) return "Postal code is required.";
-        return null;
-    };
-
-    const errorMessage = getUserNameError(postalCodeInput);
-
-    switch (true) {
-        case errorMessage !== null:
-            showError(postalCodeError, errorMessage);
-            return false;
-        default:
-            hideError(postalCodeError);
-            return true;
-    }
-} 
+const validatePostalCode = () => {
+    return validateField(
+        "postalCodeInput",
+        "postalCodeError",
+        (input) => (!input ? "Postal code is required." : null)
+    )
+}
 
 const validateCountry = () => {
-    const countryInput = document.getElementById("countryInput").value.trim();
-    const countryError = document.getElementById("countryError");
-
-    const getUserNameError = (countryInput) => {
-        if (!countryInput) return "Country is required.";
-        return null;
-    };
-
-    const errorMessage = getUserNameError(countryInput);
-
-    switch (true) {
-        case errorMessage !== null:
-            showError(countryError, errorMessage);
-            return false;
-        default:
-            hideError(countryError);
-            return true;
-    }
+    return validateField(
+        "countryInput",
+        "countryError",
+        (input) => (!input ? "Country is required." : null)
+    )
 }
 
 const validateRole = () => {
-    const roleInput = document.getElementById("roleInput").value.trim();
-    const roleError = document.getElementById("roleError");
-
-    const getUserNameError = (roleInput) => {
-        if (!roleInput) return "Role is required.";
-        return null;
-    };
-
-    const errorMessage = getUserNameError(roleInput);
-
-    switch (true) {
-        case errorMessage !== null:
-            showError(roleError, errorMessage);
-            return false;
-        default:
-            hideError(roleError);
-            return true;
-    }
+    return validateField(
+        "roleInput",
+        "roleError",
+        (input) => (!input ? "Role is required." : null)
+    );
 }
 
 const validateRoleDescription = () => {
-    const roleDescriptionInput = document.getElementById("roleDescriptionInput").value.trim();
-    const roleDescriptionError = document.getElementById("roleDescriptionError");
-
-    const getEmailError = (roleDescriptionInput) => {
-        if (!roleDescriptionInput) return "Description is required.";
-        return null;
-    };
-
-    const errorMessage = getEmailError(roleDescriptionInput);
-
-    switch (true) {
-        case errorMessage !== null:
-            showError(roleDescriptionError, errorMessage);
-            return false;
-        default:
-            hideError(roleDescriptionError);
-            return true;
-    }
+    return validateField(
+        "roleDescriptionInput",
+        "roleDescriptionError",
+        (input) => (!input ? "Description is required." : null)
+    );
 }
-
 
 
 

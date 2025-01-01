@@ -29,6 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
     $username = mysqli_real_escape_string($connect, $_POST['username']);
     $email = mysqli_real_escape_string($connect, $_POST['email']);
     $phone = mysqli_real_escape_string($connect, $_POST['phone']);
+    $role = mysqli_real_escape_string($connect, $_POST['role']);
 
     // Current image from the database
     $currentProfile = $adminprofile;
@@ -45,7 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
     }
 
     $updateProfileQuery = "UPDATE admintb SET AdminProfile = '$adminProfile', FirstName = '$firstname', 
-    LastName = '$lastname', UserName = '$username', AdminEmail = '$email', AdminPhone ='$phone' 
+    LastName = '$lastname', UserName = '$username', AdminEmail = '$email', AdminPhone ='$phone',  RoleID = '$role' 
     WHERE AdminID = '$adminID'";
     $updateProfileQueryResult = mysqli_query($connect, $updateProfileQuery);
 
@@ -104,6 +105,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
                                         onclick="document.getElementById('AdminProfile').click()">
                                         <i class="ri-camera-line text-white text-3xl"></i>
                                     </div>
+                                    <!-- Alert Box -->
+                                    <div
+                                        id="unsavedAlert"
+                                        class="absolute -top-2 right-0 bg-yellow-500 text-black text-xs font-semibold py-1 px-3 rounded shadow-md opacity-0 pointer-events-none transition-opacity duration-300">
+                                        Profile unsaved
+                                    </div>
                                     <!-- Hidden File Input -->
                                     <input
                                         type="file"
@@ -112,22 +119,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
                                         class="hidden"
                                         onchange="previewProfileImage(event)">
                                 </div>
-
-                                <script>
-                                    const previewProfileImage = (event) => {
-                                        const file = event.target.files[0];
-                                        if (file) {
-                                            const reader = new FileReader();
-                                            reader.onload = (e) => {
-                                                const previewImg = document.getElementById('profilePreview');
-                                                if (previewImg) {
-                                                    previewImg.src = e.target.result;
-                                                }
-                                            };
-                                            reader.readAsDataURL(file);
-                                        }
-                                    }
-                                </script>
                                 <div>
                                     <div id="adminProfileDeleteBtn" class="flex items-center justify-start gap-2 cursor-pointer select-none">
                                         <i class="ri-delete-bin-line text-xl text-red-500"></i>
@@ -137,6 +128,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
                                 </div>
                             </div>
 
+                            <script>
+                                const previewProfileImage = (event) => {
+                                    const file = event.target.files[0];
+                                    if (file) {
+                                        const reader = new FileReader();
+                                        reader.onload = (e) => {
+                                            const previewImg = document.getElementById('profilePreview');
+                                            if (previewImg) {
+                                                previewImg.src = e.target.result;
+                                            }
+                                            // Show alert with transition
+                                            const alertBox = document.getElementById('unsavedAlert');
+                                            if (alertBox) {
+                                                alertBox.classList.remove('opacity-0', 'pointer-events-none');
+                                            }
+                                        };
+                                        reader.readAsDataURL(file);
+                                    }
+                                };
+                            </script>
 
                             <div class="space-y-4">
                                 <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
@@ -205,17 +216,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
                                         </div>
                                     </div>
                                 </div>
-                                <!-- Phone Input -->
-                                <div class="relative">
-                                    <label for="phoneInput" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                                    <input
-                                        id="phoneInput"
-                                        class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                        type="tel"
-                                        name="phone"
-                                        value="<?php echo $adminRow['AdminPhone'] ?>"
-                                        placeholder="Enter your phone">
-                                    <small id="phoneError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                                <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
+                                    <!-- Phone Input -->
+                                    <div class="relative flex-1">
+                                        <label for="phoneInput" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                                        <input
+                                            id="phoneInput"
+                                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                            type="tel"
+                                            name="phone"
+                                            value="<?php echo $adminRow['AdminPhone'] ?>"
+                                            placeholder="Enter your phone">
+                                        <small id="phoneError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex flex-col relative">
+                                            <label for="roleSelect" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                                            <select name="role" class="border rounded p-2 bg-gray-50">
+                                                <?php
+                                                // Fetch roles for the dropdown
+                                                $rolesQuery = "SELECT * FROM roletb";
+                                                $rolesResult = mysqli_query($connect, $rolesQuery);
+
+                                                if (mysqli_num_rows($rolesResult) > 0) {
+                                                    // Get the admin's role
+                                                    $adminRoleID = $adminRow['RoleID'];
+
+                                                    while ($roleRow = mysqli_fetch_assoc($rolesResult)) {
+                                                        $selected = $roleRow['RoleID'] == $adminRoleID ? 'selected' : '';
+                                                        echo "<option value='{$roleRow['RoleID']}' $selected>{$roleRow['Role']}</option>";
+                                                    }
+                                                } else {
+                                                    echo "<option value='' disabled>No roles available</option>";
+                                                }
+                                                ?>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="flex items-center justify-end gap-3 select-none">
                                     <button type="submit" name="modify" class="bg-amber-500 text-white font-semibold px-6 py-2 rounded-sm hover:bg-amber-600 focus:outline-non transition duration-300 ease-in-out">Update Profile</button>

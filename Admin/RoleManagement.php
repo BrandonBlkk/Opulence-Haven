@@ -115,7 +115,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addrole'])) {
                                                 alt="Profile">
                                         </div>
                                         <div>
-                                            <p class="font-bold"><?= htmlspecialchars($admin['FirstName'] . ' ' . $admin['LastName']) ?></p>
+                                            <p class="font-bold"><?= htmlspecialchars($admin['FirstName'] . ' ' . $admin['LastName']) ?>
+                                                <?php
+                                                // Check if the admin ID matches the logged-in admin's ID
+                                                if ($adminID == $admin['AdminID']) {
+                                                    echo "<span class='text-sm text-green-500 font-semibold'> (You)</span>";
+                                                }
+                                                ?>
+                                            </p>
                                             <p><?= htmlspecialchars($admin['AdminEmail']) ?></p>
                                         </div>
                                     </td>

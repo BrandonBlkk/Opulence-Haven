@@ -43,9 +43,85 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproducttype'])) {
     <!-- Main Container -->
     <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px]">
         <!-- Left Side Content -->
-        <div class="w-full md:w-2/3 bg-white rounded-lg shadow p-4">
+        <div class="w-full md:w-2/3 bg-white p-4">
             <h2 class="text-xl font-bold mb-4">Add Product Type Overview</h2>
             <p>Add information about suppliers to keep track of inventory, orders, and supplier details for efficient management.</p>
+            <!-- Supplier Table -->
+            <div class="overflow-x-auto mt-4">
+                <!-- Supplier Search and Filter -->
+                <form method="GET" class="my-4 flex items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
+                    <h1 class="text-lg font-semibold text-nowrap">All Product Type <span class="text-gray-400 text-sm ml-2"><?php echo $productTypeCount ?></span></h1>
+                    <div class="flex items-center w-full">
+                        <input type="text" name="producttype_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full" placeholder="Search for product type..." value="<?php echo isset($_GET['producttype_search']) ? htmlspecialchars($_GET['producttype_search']) : ''; ?>">
+                        <div class="flex items-center">
+                            <label for="sort" class="ml-4 mr-2 flex items-center cursor-pointer select-none">
+                                <i class="ri-filter-2-line text-xl"></i>
+                                <p>Filters</p>
+                            </label>
+                            <!-- Search and filter form -->
+                            <form method="GET" class="flex flex-col md:flex-row items-center gap-4 mb-4">
+                                <select name="sort" id="sort" class="border p-2 rounded text-sm" onchange="this.form.submit()">
+                                    <option value="random">All Types</option>
+                                    <?php
+                                    $select = "SELECT * FROM producttypetb";
+                                    $query = mysqli_query($connect, $select);
+                                    $count = mysqli_num_rows($query);
+
+                                    if ($count) {
+                                        for ($i = 0; $i < $count; $i++) {
+                                            $row = mysqli_fetch_array($query);
+                                            $producttype_id = $row['ProductTypeID'];
+                                            $producttype = $row['ProductType'];
+                                            $selected = ($filterProductTypeID == $producttype_id) ? 'selected' : '';
+
+                                            echo "<option value='$producttype_id' $selected>$producttype</option>";
+                                        }
+                                    } else {
+                                        echo "<option value='' disabled>No data yet</option>";
+                                    }
+                                    ?>
+                                </select>
+                            </form>
+                        </div>
+                    </div>
+                </form>
+                <div class="adminTable overflow-y-auto max-h-[510px]">
+                    <table class="min-w-full bg-white rounded-lg">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-600 text-sm">
+                                <th class="p-3 text-left">ID</th>
+                                <th class="p-3 text-left">Type</th>
+                                <th class="p-3 text-center">Description</th>
+                                <th class="p-3 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-600 text-sm">
+                            <?php foreach ($productTypes as $productType): ?>
+                                <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                    <td class="p-3 text-left whitespace-nowrap">
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                                            <span><?= htmlspecialchars($productType['ProductTypeID']) ?></span>
+                                        </div>
+                                    </td>
+                                    <td class="p-3 text-center">
+                                        <?= htmlspecialchars($productType['ProductType']) ?>
+                                    </td>
+                                    <td class="p-3 text-center">
+                                        <?= htmlspecialchars($productType['Description']) ?>
+                                    </td>
+                                    <td class="p-3 text-center space-x-1 select-none">
+                                        <i id="detailsBtn" class="ri-eye-line text-lg cursor-pointer"></i>
+                                        <button class="text-red-500">
+                                            <i class="ri-delete-bin-7-line text-xl"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <!-- Right Side Form -->

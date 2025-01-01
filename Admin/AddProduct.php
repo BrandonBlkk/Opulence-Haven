@@ -26,7 +26,7 @@ if (!$connect) {
     <!-- Main Container -->
     <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px]">
         <!-- Left Side Content -->
-        <div class="w-full md:w-2/3 bg-white rounded-lg shadow p-4">
+        <div class="w-full md:w-2/3 bg-white p-4">
             <h2 class="text-xl font-bold mb-4">Add Product Overview</h2>
             <p>Add information about suppliers to keep track of inventory, orders, and supplier details for efficient management.</p>
         </div>

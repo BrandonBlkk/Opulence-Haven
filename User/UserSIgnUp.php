@@ -1,8 +1,10 @@
 <?php
 include('../config/dbConnection.php');
+include('../includes/AutoIDFunc.php');
 
 $alertMessage = '';
 $signupSuccess = false;
+$userID = AutoID('usertb', 'UserID', 'USR-', 6);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     $username = mysqli_real_escape_string($connect, trim($_POST['username']));
@@ -20,8 +22,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
         $alertMessage = 'Email you signed up with is already taken.';
     } else {
         // Insert the new user data using prepared statement
-        $insertQuery = "INSERT INTO usertb (UserName, UserEmail, UserPassword, UserPhone) 
-                        VALUES ('$username', '$email', '$password', '$phone')";
+        $insertQuery = "INSERT INTO usertb (UserID, UserName, UserEmail, UserPassword, UserPhone) 
+                        VALUES ('$userID', '$username', '$email', '$password', '$phone')";
         $insert_Query = mysqli_query($connect, $insertQuery);
 
         if ($insert_Query) {
