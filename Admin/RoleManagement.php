@@ -127,7 +127,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addrole'])) {
                                         </div>
                                     </td>
                                     <td class="p-3 text-center">
-                                        <select class="border rounded p-2 bg-gray-50">
+                                        <select name="updateRole" class="border rounded p-2 bg-gray-50">
                                             <?php
                                             // Fetch roles for the dropdown
                                             $rolesQuery = "SELECT * FROM roletb";

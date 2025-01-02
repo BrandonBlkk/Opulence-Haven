@@ -107,8 +107,6 @@ if (logoutBtn && confirmModal && cancelBtn && confirmLogoutBtn && darkOverlay2) 
         darkOverlay2.classList.add('opacity-0', 'invisible');
         darkOverlay2.classList.remove('opacity-100');
         aside.style.right = '-100%';
-        darkOverlay.classList.add('hidden');
-        darkOverlay.classList.remove('flex');
         menubar.classList.remove('-rotate-90');
     });
 
@@ -119,8 +117,6 @@ if (logoutBtn && confirmModal && cancelBtn && confirmLogoutBtn && darkOverlay2) 
         darkOverlay2.classList.add('opacity-0', 'invisible');
         darkOverlay2.classList.remove('opacity-100');
         aside.style.right = '-100%';
-        darkOverlay.classList.add('hidden');
-        darkOverlay.classList.remove('flex');
         menubar.classList.remove('-rotate-90');
         loader.style.display = 'flex';
     

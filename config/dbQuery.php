@@ -45,24 +45,24 @@ if (!$connect) {
 //     echo "Data has been saved";
 // }
 
-$user = "CREATE TABLE usertb
-(
-    UserID varchar(30) not null primary key,
-    UserName varchar(30),
-    UserEmail varchar(30),
-    UserPassword varchar(30),
-    UserPhone varchar(30),
-    SignupDate datetime default current_timestamp,
-    LastSignIn datetime default current_timestamp on update current_timestamp,
-    Status varchar(10) default 'inactive'
-)";
+// $user = "CREATE TABLE usertb
+// (
+//     UserID varchar(30) not null primary key,
+//     UserName varchar(30),
+//     UserEmail varchar(30),
+//     UserPassword varchar(30),
+//     UserPhone varchar(30),
+//     SignupDate datetime default current_timestamp,
+//     LastSignIn datetime default current_timestamp on update current_timestamp,
+//     Status varchar(10) default 'inactive'
+// )";
 
-try {
-    $query = mysqli_query($connect, $user);
-    echo "Data Successfully saved";
-} catch (mysqli_sql_exception) {
-    echo "Data has been saved";
-}
+// try {
+//     $query = mysqli_query($connect, $user);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
 
 // $contact = "CREATE TABLE cuscontacttb
 // (
@@ -85,7 +85,7 @@ try {
 
 // $producttype = "CREATE TABLE producttypetb
 // (
-//     ProductTypeID int NOT NULL Primary Key auto_increment,
+//     ProductTypeID varchar(30) not null primary key,
 //     ProductType varchar(30),
 //     Description text,
 //     DateAdded datetime default current_timestamp,
@@ -113,7 +113,7 @@ try {
 //     Country varchar(30),
 //     DateAdded datetime default current_timestamp,
 //     LastUpdate datetime default current_timestamp on update current_timestamp,
-//     ProductTypeID int,
+//     ProductTypeID varchar(30),
 //     FOREIGN KEY (ProductTypeID) REFERENCES producttypetb (ProductTypeID) 
 //     ON DELETE CASCADE 
 //     ON UPDATE CASCADE
@@ -146,7 +146,7 @@ try {
 //     Stock int default 0,
 //     AddedDate datetime default current_timestamp,
 //     LastUpdate datetime default current_timestamp on update current_timestamp,
-//     ProductTypeID int,
+//     ProductTypeID varchar(30),
 //     FOREIGN KEY (ProductTypeID) REFERENCES producttypetb (ProductTypeID)
 //     ON DELETE CASCADE 
 //     ON UPDATE CASCADE

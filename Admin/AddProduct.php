@@ -28,7 +28,7 @@ if (!$connect) {
         <!-- Left Side Content -->
         <div class="w-full md:w-2/3 bg-white p-4">
             <h2 class="text-xl font-bold mb-4">Add Product Overview</h2>
-            <p>Add information about suppliers to keep track of inventory, orders, and supplier details for efficient management.</p>
+            <p>Add product information to monitor inventory, track orders, and manage product details for efficient operations.</p>
         </div>
 
         <!-- Right Side Form -->

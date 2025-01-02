@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Show Alert
         setTimeout(() => {
             loader.style.display = 'none';
-            showAlert('You have successfully added the product type.');
+            showAlert('You have successfully added a new product type.');
         }, 1000);
     } else if (alertMessage) {
         // Show Alert
@@ -117,7 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Show Alert
         setTimeout(() => {
             loader.style.display = 'none';
-            showAlert('You have successfully added the role.');
+            showAlert('You have successfully added a new role.');
         }, 1000);
     } else if (alertMessage) {
         // Show Alert
@@ -150,7 +150,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Show Alert
         setTimeout(() => {
             loader.style.display = 'none';
-            showAlert('You have successfully added the supplier.');
+            showAlert('You have successfully added a new supplier.');
         }, 1000);
     } else if (alertMessage) {
         // Show Alert
@@ -179,27 +179,158 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Supplier Details Modal
-const detailsBtn = document.getElementById('detailsBtn');
-const supplierModal = document.getElementById('supplierModal');
-const supplierModalCancelBtn = document.getElementById('supplierModalCancelBtn');
+document.addEventListener('DOMContentLoaded', function() {
+    const supplierModal = document.getElementById('supplierModal');
+    const modalCancelBtn = document.getElementById('supplierModalCancelBtn');
 
-if (detailsBtn && supplierModal && supplierModalCancelBtn) {
-    // Show modal when eye icon is clicked
-    detailsBtn.addEventListener('click', () => {
-        supplierModal.classList.remove("opacity-0", "invisible", "-translate-y-5");
-        supplierModal.classList.add("opacity-100", "visible", "translate-y-0");
-        darkOverlay2.classList.remove("opacity-0", "invisible");
-        darkOverlay2.classList.add("opacity-100");
-    });
+    // Get all details buttons
+    const detailsBtns = document.querySelectorAll('.details-btn');
 
-    // Close modal when "X" is clicked
-    supplierModalCancelBtn.addEventListener('click', () => {
-        supplierModal.classList.remove("opacity-100", "visible", "translate-y-0");
-        supplierModal.classList.add("opacity-0", "invisible", "-translate-y-5");
-        darkOverlay2.classList.add("opacity-0", "invisible");
-        darkOverlay2.classList.remove("opacity-100");
-    });
-}
+    if (supplierModal && modalCancelBtn && detailsBtns) {
+        // Add click event to each button
+        detailsBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const supplierId = this.getAttribute('data-supplier-id');
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+
+                // Fetch supplier details
+                fetch(`../Admin/AddSupplier.php?action=getSupplierDetails&id=${supplierId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Fill the modal form with supplier data
+                            document.querySelector('[name="updatesuppliername"]').value = data.supplier.SupplierName;
+                            document.querySelector('[name="updatecompanyName"]').value = data.supplier.SupplierCompany;
+                            document.querySelector('[name="updateemail"]').value = data.supplier.SupplierEmail;
+                            document.querySelector('[name="updatecontactNumber"]').value = data.supplier.SupplierContact;
+                            document.querySelector('[name="updateaddress"]').value = data.supplier.Address;
+                            document.querySelector('[name="updatecity"]').value = data.supplier.City;
+                            document.querySelector('[name="updatestate"]').value = data.supplier.State;
+                            document.querySelector('[name="updatepostalCode"]').value = data.supplier.PostalCode;
+                            document.querySelector('[name="updatecountry"]').value = data.supplier.Country;
+                            document.querySelector('[name="updateproductType"]').value = data.supplier.ProductTypeID;
+
+                            // Show the modal
+                            supplierModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        } else {
+                            console.error('Failed to load supplier details');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            });
+        });
+        // Close modal when cancel button is clicked
+        modalCancelBtn.addEventListener('click', function() {
+            supplierModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+    }
+});
+
+// Product Type Details Modal
+document.addEventListener('DOMContentLoaded', function() {
+    const productTypeModal = document.getElementById('productTypeModal');
+    const productTypeModalCancelBtn = document.getElementById('productTypeModalCancelBtn');
+
+    // Get all details buttons
+    const detailsBtns = document.querySelectorAll('.details-btn');
+
+    if (productTypeModal && productTypeModalCancelBtn && detailsBtns) {
+        // Add click event to each button
+        detailsBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const productTypeId = this.getAttribute('data-producttype-id');
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+
+                fetch(`../Admin/AddProductType.php?action=getProductTypeDetails&id=${productTypeId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Fill the modal form with product type data
+                            document.querySelector('[name="updateproducttype"]').value = data.producttype.ProductType;
+                            document.querySelector('[name="updatedescription"]').value = data.producttype.Description;
+
+                            // Show the modal
+                            productTypeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        } else {
+                            console.error('Failed to load product type details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+            });
+        });
+
+        productTypeModalCancelBtn.addEventListener('click', function() {
+            productTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+    }
+});
+
+// Product Type Delete Modal
+document.addEventListener('DOMContentLoaded', function () {
+    const productTypeDeleteModal = document.getElementById('productTypeConfirmDeleteModal');
+    const productTypeDeleteModalCancelBtn = document.getElementById('productTypeCancelDeleteBtn');
+    const productTypeConfirmDeleteBtn = document.getElementById('productTypeConfirmDeleteBtn');
+
+    // Get all delete buttons
+    const deleteBtns = document.querySelectorAll('.delete-btn');
+
+    if (productTypeDeleteModal && productTypeDeleteModalCancelBtn && deleteBtns) {
+        // Add click event to each delete button
+        deleteBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const productTypeId = this.getAttribute('data-producttype-id');
+                console.log('Deleting Product Type ID:', productTypeId); // Debugging log
+
+                // Fetch product type name
+                fetch(`../Admin/AddProductType.php?action=getProductTypeDetails&id=${productTypeId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('productTypeDeleteName').textContent = data.producttype.ProductType;
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+
+                // Show modal
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+                productTypeDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+            });
+        });
+
+        // Cancel button functionality
+        productTypeDeleteModalCancelBtn.addEventListener('click', function () {
+            productTypeDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        // Confirm delete button logic (you can handle the delete action here)
+        productTypeConfirmDeleteBtn.addEventListener('click', function () {
+            productTypeDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+            loader.style.display = "flex";
+
+            fetch(`../Admin/AddProductType.php?action=deleteProductType&id=${selectedProductTypeId}`, {
+                method: 'GET'
+            })
+                .then(() => {
+                    // Redirect after account deletion
+                    setTimeout(() => {
+                        loader.style.display = "none";
+                    }, 1000);
+                })
+                .catch((error) => console.error("Account deletion failed:", error));
+        });
+    }
+});
 
 // Profile Delete Modal
 const adminProfileDeleteBtn = document.getElementById("adminProfileDeleteBtn");

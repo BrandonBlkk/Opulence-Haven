@@ -32,6 +32,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addsupplier'])) {
         $alertMessage = "Failed to add supplier. Please try again.";
     }
 }
+
+// Get Supplier Details
+if (isset($_GET['action']) && $_GET['action'] === 'getSupplierDetails') {
+    $id = mysqli_real_escape_string($connect, $_GET['id']);
+    $query = "SELECT * FROM suppliertb WHERE SupplierID = '$id'";
+    $result = mysqli_query($connect, $query);
+    if ($result && mysqli_num_rows($result) > 0) {
+        $supplier = mysqli_fetch_assoc($result);
+        echo json_encode(['success' => true, 'supplier' => $supplier]);
+    } else {
+        echo json_encode(['success' => false]);
+    }
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -105,7 +119,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addsupplier'])) {
                                 <th class="p-3 text-center">Product Supplied</th>
                                 <th class="p-3 text-center">Contact</th>
                                 <th class="p-3 text-center">Company</th>
-                                <th class="p-3 text-center">Country</th>
+                                <th class="p-3 text-center">Address</th>
                                 <th class="p-3 text-center">Actions</th>
                             </tr>
                         </thead>
@@ -142,10 +156,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addsupplier'])) {
                                         <?= htmlspecialchars($supplier['SupplierCompany']) ?>
                                     </td>
                                     <td class="p-3 text-center">
-                                        <?= htmlspecialchars($supplier['Country']) ?>
+                                        <p>
+                                            <?= htmlspecialchars($supplier['Address']) ?>,
+                                            <?= htmlspecialchars($supplier['City']) ?>,
+                                            <?= htmlspecialchars($supplier['Country']) ?>
+                                        </p>
                                     </td>
                                     <td class="p-3 text-center space-x-1 select-none">
-                                        <i id="detailsBtn" class="ri-eye-line text-lg cursor-pointer"></i>
+                                        <i class="details-btn ri-eye-line text-lg cursor-pointer"
+                                            data-supplier-id="<?= htmlspecialchars($supplier['SupplierID']) ?>"></i>
                                         <button class="text-red-500">
                                             <i class="ri-delete-bin-7-line text-xl"></i>
                                         </button>
@@ -162,113 +181,110 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addsupplier'])) {
         <div id="supplierModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center w-full sm:max-w-[500px]">
                 <h2 class="text-xl font-bold mb-4">Edit Supplier</h2>
-                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="supplierForm">
+                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="updateSupplierForm">
                     <div>
                         <label class="block text-sm text-start font-medium text-gray-700 mb-1">Supplier Information</label>
                         <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
                             <!-- Supplier Name Input -->
                             <div class="relative w-full">
                                 <input
-                                    id="supplierNameInput"
+                                    id="updateSupplierNameInput"
                                     class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                     type="text"
-                                    name="suppliername"
+                                    name="updatesuppliername"
                                     placeholder="Enter supplier's name">
-                                <small id="supplierNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                                <small id="updateSupplierNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                             </div>
-
                             <!-- Company Name Input -->
                             <div class="relative w-full">
                                 <input
-                                    id="companyNameInput"
+                                    id="updateCompanyNameInput"
                                     class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                     type="text"
-                                    name="companyName"
+                                    name="updatecompanyName"
                                     placeholder="Enter company name">
-                                <small id="companyNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                                <small id="updateCompanyNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                             </div>
                         </div>
                     </div>
-
                     <!-- Email Input -->
                     <div class="relative">
                         <input
-                            id="emailInput"
+                            id="updateEmailInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="email"
-                            name="email"
+                            name="updateemail"
                             placeholder="Enter supplier's email">
-                        <small id="emailError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                        <small id="updateEmailError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
-
                     <!-- Contact Number Input -->
                     <div class="relative">
                         <input
-                            id="contactNumberInput"
+                            id="updateContactNumberInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="tel"
-                            name="contactNumber"
+                            name="updatecontactNumber"
                             placeholder="Enter contact number">
-                        <small id="contactNumberError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                        <small id="updateContactNumberError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
-
                     <!-- Address Input -->
                     <div class="relative">
                         <label class="block text-sm text-start font-medium text-gray-700 mb-1">Address Details</label>
                         <textarea
-                            id="addressInput"
+                            id="updateAddressInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="text"
-                            name="address"
+                            name="updateaddress"
                             placeholder="Enter address"></textarea>
-                        <small id="addressError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                        <small id="updateAddressError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
                         <!-- City Input -->
-                        <div class="relative">
+                        <div class="relative flex-1">
                             <input
-                                id="cityInput"
+                                id="updateCityInput"
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 type="text"
-                                name="city"
+                                name="updatecity"
                                 placeholder="Enter city">
-                            <small id="cityError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            <small id="updateCityError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                         </div>
                         <!-- State Input -->
-                        <div class="relative">
+                        <div class="relative flex-1">
                             <input
-                                id="stateInput"
+                                id="updateStateInput"
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 type="text"
-                                name="state"
+                                name="updatestate"
                                 placeholder="Enter state/region">
-                            <small id="stateError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            <small id="updateStateError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                         </div>
                     </div>
                     <!-- Postal Code Input -->
                     <div class="relative">
                         <input
-                            id="postalCodeInput"
+                            id="updatePostalCodeInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="text"
-                            name="postalCode"
+                            name="updatepostalCode"
                             placeholder="Enter postal code">
-                        <small id="postalCodeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                        <small id="updatePostalCodeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
                     <!-- Country Input -->
                     <div class="relative">
                         <input
-                            id="countryInput"
+                            id="updateCountryInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="text"
-                            name="country"
+                            name="updatecountry"
                             placeholder="Enter country">
-                        <small id="countryError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                        <small id="updateCountryError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
 
                     <!-- Product Type -->
                     <div class="relative">
-                        <select name="productType" id="productType" class="p-2 w-full border rounded">
+                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">Product Supplied</label>
+                        <select id="updateProductType" name="updateproductType" class="p-2 w-full border rounded">
                             <option value="" disabled selected>Select type of products supplied</option>
                             <?php
                             $select = "SELECT * FROM producttypetb";
@@ -456,6 +472,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addsupplier'])) {
 
     <script src="//unpkg.com/alpinejs" defer></script>
     <script type="module" src="../JS/admin.js"></script>
+
+    <script>
+
+    </script>
 </body>
 
 </html>
