@@ -128,7 +128,7 @@ if (!$connect) {
 
 // $product = "CREATE TABLE producttb
 // (
-//     ProductID int not null primary key auto_increment,
+//     ProductID varchar(30) not null primary key,
 //     Title varchar(255),
 //     img1 varchar(255),
 //     img2 varchar(255),

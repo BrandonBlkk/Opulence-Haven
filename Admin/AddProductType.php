@@ -8,8 +8,11 @@ if (!$connect) {
 
 $alertMessage = '';
 $addProductTypeSuccess = false;
+$updateProductTypeSuccess = false;
+$deleteProductTypeSuccess = false;
 $productTypeID = AutoID('producttypetb', 'ProductTypeID', 'PT-', 6);
 
+// Add Product Type
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproducttype'])) {
     $producttype = mysqli_real_escape_string($connect, $_POST['producttype']);
     $description = mysqli_real_escape_string($connect, $_POST['description']);
@@ -47,27 +50,34 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     exit;
 }
 
+// Update Product Type
+if (isset($_POST['editproducttype'])) {
+    $productTypeId = mysqli_real_escape_string($connect, $_POST['producttypeid']);
+    $updatedProductType = mysqli_real_escape_string($connect, $_POST['updateproducttype']);
+    $updatedDescription = mysqli_real_escape_string($connect, $_POST['updatedescription']);
+
+    // Update query
+    $updateQuery = "UPDATE producttypetb SET ProductType = '$updatedProductType', Description = '$updatedDescription' WHERE ProductTypeID = '$productTypeId'";
+
+    if (mysqli_query($connect, $updateQuery)) {
+        $updateProductTypeSuccess = true;
+    } else {
+        $alertMessage = "Failed to update product type. Please try again.";
+    }
+}
+
 // Delete Product Type
-if (isset($_GET['action']) && isset($_GET['id'])) {
-    $id = mysqli_real_escape_string($connect, $_GET['id']);
-    $action = $_GET['action'];
+if (isset($_POST['deleteproducttype'])) {
+    $productTypeId = mysqli_real_escape_string($connect, $_POST['producttypeid']);
 
     // Build query based on action
-    $query = match ($action) {
-        'deleteProductType' => "DELETE FROM producttypetb WHERE ProductTypeID = '$id'",
-        default => null
-    };
-    if ($query) {
-        $result = mysqli_query($connect, $query);
-        $producttype = mysqli_fetch_assoc($result);
+    $deleteQuery = "DELETE FROM producttypetb WHERE ProductTypeID = '$productTypeId'";
 
-        if ($producttype) {
-            echo json_encode(['success' => true, 'producttype' => $producttype]);
-        } else {
-            echo json_encode(['success' => false]);
-        }
+    if (mysqli_query($connect, $deleteQuery)) {
+        $deleteProductTypeSuccess = true;
+    } else {
+        $alertMessage = "Failed to delete product type. Please try again.";
     }
-    exit;
 }
 ?>
 
@@ -144,10 +154,11 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         </div>
 
         <!-- Product Type Details Modal -->
-        <div id="productTypeModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+        <div id="updateProductTypeModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center w-full sm:max-w-[500px]">
                 <h2 class="text-xl font-bold mb-4">Edit Product Type</h2>
                 <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="updateProductTypeForm">
+                    <input type="hidden" name="producttypeid" id="updateProductTypeID">
                     <!-- Product Type Input -->
                     <div class="relative w-full">
                         <label class="block text-sm text-start font-medium text-gray-700 mb-1">Product Type Information</label>
@@ -171,7 +182,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
                     </div>
                     <!-- Submit Button -->
                     <div class="flex justify-end gap-4 select-none">
-                        <div id="productTypeModalCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300">
+                        <div id="updateProductTypeModalCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300">
                             Cancel
                         </div>
                         <button
@@ -187,26 +198,29 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
 
         <!-- Product Type Delete Modal -->
         <div id="productTypeConfirmDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
-            <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center">
+            <form class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="productTypeDeleteForm">
                 <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Product Type Deletion</h2>
                 <p class="text-slate-600 mb-2">You are about to delete the following Product Type: <span id="productTypeDeleteName" class="font-semibold"></span></p>
                 <p class="text-sm text-gray-500 mb-4">
                     Deleting this Product Type will permanently remove it from the system, including all associated data.
                 </p>
+                <input type="hidden" name="producttypeid" id="deleteProductTypeID">
                 <div class="flex justify-end gap-4 select-none">
-                    <button id="productTypeCancelDeleteBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300">
+                    <div id="productTypeCancelDeleteBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300">
                         Cancel
-                    </button>
-                    <button id="productTypeConfirmDeleteBtn" class="px-4 py-2 bg-red-600 text-white hover:bg-red-700"
-                        data-producttype-id="<?= htmlspecialchars($productType['ProductTypeID']) ?>">
+                    </div>
+                    <button
+                        type="submit"
+                        name="deleteproducttype"
+                        class="px-4 py-2 bg-red-600 text-white hover:bg-red-700">
                         Delete
                     </button>
                 </div>
-            </div>
+            </form>
         </div>
 
         <!-- Right Side Form -->
-        <div class="w-full md:w-1/3 bg-white rounded-lg shadow p-4">
+        <div class="w-full md:w-1/3 h-full bg-white rounded-lg shadow p-4">
             <h2 class="text-xl font-bold mb-4">Add New Product Type</h2>
             <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="productTypeForm">
                 <!-- Product Type Input -->

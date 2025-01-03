@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Show Alert
         setTimeout(() => {
             loader.style.display = 'none';
-            showAlert('You have successfully added a new product type.');
+            showAlert('A new product type has been successfully added.');
         }, 1000);
     } else if (alertMessage) {
         // Show Alert
@@ -117,7 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Show Alert
         setTimeout(() => {
             loader.style.display = 'none';
-            showAlert('You have successfully added a new role.');
+            showAlert('A new role has been successfully added.');
         }, 1000);
     } else if (alertMessage) {
         // Show Alert
@@ -150,7 +150,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Show Alert
         setTimeout(() => {
             loader.style.display = 'none';
-            showAlert('You have successfully added a new supplier.');
+            showAlert('A new supplier has been successfully added.');
         }, 1000);
     } else if (alertMessage) {
         // Show Alert
@@ -179,7 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Supplier Details Modal
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
     const supplierModal = document.getElementById('supplierModal');
     const modalCancelBtn = document.getElementById('supplierModalCancelBtn');
 
@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
         // Close modal when cancel button is clicked
-        modalCancelBtn.addEventListener('click', function() {
+        modalCancelBtn.addEventListener('click', () => {
             supplierModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
@@ -230,14 +230,16 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Product Type Details Modal
-document.addEventListener('DOMContentLoaded', function() {
-    const productTypeModal = document.getElementById('productTypeModal');
-    const productTypeModalCancelBtn = document.getElementById('productTypeModalCancelBtn');
+document.addEventListener('DOMContentLoaded', () => {
+    const updateProductTypeModal = document.getElementById('updateProductTypeModal');
+    const updateProductTypeModalCancelBtn = document.getElementById('updateProductTypeModalCancelBtn');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const updateProductTypeSuccess = document.getElementById('updateProductTypeSuccess').value === 'true';
 
     // Get all details buttons
     const detailsBtns = document.querySelectorAll('.details-btn');
 
-    if (productTypeModal && productTypeModalCancelBtn && detailsBtns) {
+    if (updateProductTypeModal && updateProductTypeModalCancelBtn && detailsBtns) {
         // Add click event to each button
         detailsBtns.forEach(btn => {
             btn.addEventListener('click', function() {
@@ -245,16 +247,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
+                // Fetch product type details
                 fetch(`../Admin/AddProductType.php?action=getProductTypeDetails&id=${productTypeId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
                             // Fill the modal form with product type data
+                            document.getElementById('updateProductTypeID').value = productTypeId;
                             document.querySelector('[name="updateproducttype"]').value = data.producttype.ProductType;
                             document.querySelector('[name="updatedescription"]').value = data.producttype.Description;
-
                             // Show the modal
-                            productTypeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                            updateProductTypeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
                         } else {
                             console.error('Failed to load product type details');
                         }
@@ -263,19 +266,101 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        productTypeModalCancelBtn.addEventListener('click', function() {
-            productTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+        updateProductTypeModalCancelBtn.addEventListener('click', () => {
+            updateProductTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
         });
+
+        if (updateProductTypeSuccess) {
+            // Show Alert
+            setTimeout(() => {
+                showAlert('The product type has been successfully updated.');
+            }, 500);
+        } else if (alertMessage) {
+            // Show Alert
+            showAlert(alertMessage);
+        }
+        // Add keyup event listeners for real-time validation
+        document.getElementById("updateProductTypeInput").addEventListener("keyup", validateUpdateProductTypeInput);
+        document.getElementById("updateProductTypeDescription").addEventListener("keyup", validateUpdateDescription);
+
+        const updateProductTypeForm = document.getElementById("updateProductTypeForm");
+        if (updateProductTypeForm) {
+            updateProductTypeForm.addEventListener("submit", (e) => {
+                if (!validateUpdateProductType()) {
+                    e.preventDefault();
+                }
+            });
+        }
     }
 });
 
 // Product Type Delete Modal
-document.addEventListener('DOMContentLoaded', function () {
+// document.addEventListener('DOMContentLoaded', function () {
+//     const productTypeDeleteModal = document.getElementById('productTypeConfirmDeleteModal');
+//     const productTypeDeleteModalCancelBtn = document.getElementById('productTypeCancelDeleteBtn');
+//     const productTypeConfirmDeleteBtn = document.getElementById('productTypeConfirmDeleteBtn');
+//     const alertMessage = document.getElementById('alertMessage').value;
+//     const deleteProductTypeSuccess = document.getElementById('deleteProductTypeSuccess').value === 'true';
+
+//     // Get all delete buttons
+//     const deleteBtns = document.querySelectorAll('.delete-btn');
+
+//     if (productTypeDeleteModal && productTypeDeleteModalCancelBtn && deleteBtns) {
+//         // Add click event to each delete button
+//         deleteBtns.forEach(btn => {
+//             btn.addEventListener('click', function () {
+//                 const productTypeId = this.getAttribute('data-producttype-id');
+
+//                 // Fetch product type name
+//                 fetch(`../Admin/AddProductType.php?action=getProductTypeDetails&id=${productTypeId}`)
+//                     .then(response => response.json())
+//                     .then(data => {
+//                         if (data.success) {
+//                             document.getElementById('deleteProductTypeID').value = productTypeId;
+//                             document.getElementById('productTypeDeleteName').textContent = data.producttype.ProductType;
+//                         }
+//                     })
+//                     .catch(error => console.error('Fetch error:', error));
+
+//                 // Show modal
+//                 darkOverlay2.classList.remove('opacity-0', 'invisible');
+//                 darkOverlay2.classList.add('opacity-100');
+//                 productTypeDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+//             });
+//         });
+
+//         // Cancel button functionality
+//         productTypeDeleteModalCancelBtn.addEventListener('click', function () {
+//             productTypeDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+//             darkOverlay2.classList.add('opacity-0', 'invisible');
+//             darkOverlay2.classList.remove('opacity-100');
+//         });
+
+//         // Confirm delete button logic (you can handle the delete action here)
+//         productTypeConfirmDeleteBtn.addEventListener('click', function () {
+//             productTypeDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+//             darkOverlay2.classList.add('opacity-0', 'invisible');
+//             darkOverlay2.classList.remove('opacity-100');
+//         });
+
+//         if (deleteProductTypeSuccess) {
+//             // Show Alert
+//             setTimeout(() => {
+//                 showAlert('The product type has been successfully deleted.');
+//             }, 500);
+//         } else if (alertMessage) {
+//             // Show Alert
+//             showAlert(alertMessage);
+//         }
+//     }
+// });
+document.addEventListener('DOMContentLoaded', () => {
     const productTypeDeleteModal = document.getElementById('productTypeConfirmDeleteModal');
     const productTypeDeleteModalCancelBtn = document.getElementById('productTypeCancelDeleteBtn');
-    const productTypeConfirmDeleteBtn = document.getElementById('productTypeConfirmDeleteBtn');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const deleteProductTypeSuccess = document.getElementById('deleteProductTypeSuccess').value === 'true';
 
     // Get all delete buttons
     const deleteBtns = document.querySelectorAll('.delete-btn');
@@ -285,14 +370,16 @@ document.addEventListener('DOMContentLoaded', function () {
         deleteBtns.forEach(btn => {
             btn.addEventListener('click', function () {
                 const productTypeId = this.getAttribute('data-producttype-id');
-                console.log('Deleting Product Type ID:', productTypeId); // Debugging log
 
-                // Fetch product type name
+                // Fetch product type details
                 fetch(`../Admin/AddProductType.php?action=getProductTypeDetails&id=${productTypeId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
+                            document.getElementById('deleteProductTypeID').value = productTypeId;
                             document.getElementById('productTypeDeleteName').textContent = data.producttype.ProductType;
+                        } else {
+                            console.error('Failed to load product type details');
                         }
                     })
                     .catch(error => console.error('Fetch error:', error));
@@ -311,24 +398,13 @@ document.addEventListener('DOMContentLoaded', function () {
             darkOverlay2.classList.remove('opacity-100');
         });
 
-        // Confirm delete button logic (you can handle the delete action here)
-        productTypeConfirmDeleteBtn.addEventListener('click', function () {
-            productTypeDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-            darkOverlay2.classList.add('opacity-0', 'invisible');
-            darkOverlay2.classList.remove('opacity-100');
-            loader.style.display = "flex";
-
-            fetch(`../Admin/AddProductType.php?action=deleteProductType&id=${selectedProductTypeId}`, {
-                method: 'GET'
-            })
-                .then(() => {
-                    // Redirect after account deletion
-                    setTimeout(() => {
-                        loader.style.display = "none";
-                    }, 1000);
-                })
-                .catch((error) => console.error("Account deletion failed:", error));
-        });
+        if (deleteProductTypeSuccess) {
+            // Show Alert
+            showAlert('The product type has been successfully deleted.');
+        } else if (alertMessage) {
+            // Show Alert
+            showAlert(alertMessage);
+        }
     }
 });
 
@@ -457,6 +533,13 @@ const validateProductTypeForm = () => {
     return isTypeValid && isDescriptionValid;
 };
 
+const validateUpdateProductType = () => {
+    const isTypeValid = validateUpdateProductTypeInput();
+    const isDescriptionValid = validateUpdateDescription();
+
+    return isTypeValid && isDescriptionValid;
+};
+
 const validateSupplierForm = () => {
     const isSupplierNameValid = validateSupplierName();
     const isCompanyNameValid = validateCompanyName();
@@ -498,10 +581,26 @@ const validateProductType = () => {
     );
 };
 
+const validateUpdateProductTypeInput = () => {
+    return validateField(
+        "updateProductTypeInput",
+        "updateProductTypeError",
+        (input) => (!input ? "Type is required." : null)
+    );
+};
+
 const validateDescription = () => {
     return validateField(
         "descriptionInput",
         "descriptionError",
+        (input) => (!input ? "Description is required." : null)
+    );
+};
+
+const validateUpdateDescription = () => {
+    return validateField(
+        "updateProductTypeDescription",
+        "updateProductTypeDescriptionError",
         (input) => (!input ? "Description is required." : null)
     );
 };

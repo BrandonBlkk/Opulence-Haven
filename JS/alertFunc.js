@@ -7,6 +7,7 @@ export const showAlert = (message) => {
     alertBox.classList.remove("-bottom-1", "opacity-0");
     alertBox.classList.add("opacity-100", "bottom-3");
 
+    // Hide Alert
     setTimeout(() => {
         alertBox.classList.add("-bottom-1", "opacity-0");
         alertBox.classList.remove("opacity-100", "bottom-3");
