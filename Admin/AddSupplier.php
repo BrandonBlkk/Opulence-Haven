@@ -9,6 +9,8 @@ if (!$connect) {
 
 $alertMessage = '';
 $addSupplierSuccess = false;
+$updateSupplierSuccess = false;
+$deleteSupplierSuccess = false;
 $supplierID = AutoID('suppliertb', 'SupplierID', 'SP-', 6);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addsupplier'])) {
@@ -34,17 +36,67 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addsupplier'])) {
 }
 
 // Get Supplier Details
-if (isset($_GET['action']) && $_GET['action'] === 'getSupplierDetails') {
+if (isset($_GET['action']) && isset($_GET['id'])) {
     $id = mysqli_real_escape_string($connect, $_GET['id']);
-    $query = "SELECT * FROM suppliertb WHERE SupplierID = '$id'";
-    $result = mysqli_query($connect, $query);
-    if ($result && mysqli_num_rows($result) > 0) {
+    $action = $_GET['action'];
+
+    // Build query based on action
+    $query = match ($action) {
+        'getSupplierDetails' => "SELECT * FROM suppliertb WHERE SupplierID = '$id'",
+        default => null
+    };
+    if ($query) {
+        $result = mysqli_query($connect, $query);
         $supplier = mysqli_fetch_assoc($result);
-        echo json_encode(['success' => true, 'supplier' => $supplier]);
-    } else {
-        echo json_encode(['success' => false]);
+
+        if ($supplier) {
+            echo json_encode(['success' => true, 'supplier' => $supplier]);
+        } else {
+            echo json_encode(['success' => false]);
+        }
     }
     exit;
+}
+
+// Update Spplier
+if (isset($_POST['editsupplier'])) {
+    $supplierId = mysqli_real_escape_string($connect, $_POST['supplierid']);
+    $supplierName = mysqli_real_escape_string($connect, $_POST['updatesuppliername']);
+    $supplierEmail = mysqli_real_escape_string($connect, $_POST['updateemail']);
+    $supplierContact = mysqli_real_escape_string($connect, $_POST['updatecontactNumber']);
+    $supplierCompany = mysqli_real_escape_string($connect, $_POST['updatecompanyName']);
+    $supplierAddress = mysqli_real_escape_string($connect, $_POST['updateaddress']);
+    $supplierCity = mysqli_real_escape_string($connect, $_POST['updatecity']);
+    $supplierState = mysqli_real_escape_string($connect, $_POST['updatestate']);
+    $supplierPostalCode = mysqli_real_escape_string($connect, $_POST['updatepostalCode']);
+    $supplierCountry = mysqli_real_escape_string($connect, $_POST['updatecountry']);
+    $supplierProductType = mysqli_real_escape_string($connect, $_POST['updateproductType']);
+
+    // Update query
+    $updateQuery = "UPDATE suppliertb SET SupplierName = '$supplierName', SupplierEmail = '$supplierEmail', SupplierContact = '$supplierContact', 
+    SupplierCompany = '$supplierCompany', Address = '$supplierAddress', City = '$supplierCity', State = '$supplierState', PostalCode = '$supplierPostalCode', 
+    Country = '$supplierCountry', ProductTypeID = '$supplierProductType' 
+    WHERE SupplierID = '$supplierId'";
+
+    if (mysqli_query($connect, $updateQuery)) {
+        $updateSupplierSuccess = true;
+    } else {
+        $alertMessage = "Failed to update supplier. Please try again.";
+    }
+}
+
+// Delete Supplier
+if (isset($_POST['deletesupplier'])) {
+    $supplierId = mysqli_real_escape_string($connect, $_POST['supplierid']);
+
+    // Build query based on action
+    $deleteQuery = "DELETE FROM suppliertb WHERE SupplierID = '$supplierId'";
+
+    if (mysqli_query($connect, $deleteQuery)) {
+        $deleteSupplierSuccess = true;
+    } else {
+        $alertMessage = "Failed to delete supplier. Please try again.";
+    }
 }
 ?>
 
@@ -166,7 +218,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'getSupplierDetails') {
                                         <i class="details-btn ri-eye-line text-lg cursor-pointer"
                                             data-supplier-id="<?= htmlspecialchars($supplier['SupplierID']) ?>"></i>
                                         <button class="text-red-500">
-                                            <i class="ri-delete-bin-7-line text-xl"></i>
+                                            <i class="delete-btn ri-delete-bin-7-line text-xl"
+                                                data-supplier-id="<?= htmlspecialchars($supplier['SupplierID']) ?>"></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -178,13 +231,14 @@ if (isset($_GET['action']) && $_GET['action'] === 'getSupplierDetails') {
         </div>
 
         <!-- Supplier Details Modal -->
-        <div id="supplierModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+        <div id="updateSupplierModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center w-full sm:max-w-[500px]">
                 <h2 class="text-xl font-bold mb-4">Edit Supplier</h2>
                 <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="updateSupplierForm">
                     <div>
                         <label class="block text-sm text-start font-medium text-gray-700 mb-1">Supplier Information</label>
                         <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
+                            <input type="hidden" name="supplierid" id="updateSupplierID">
                             <!-- Supplier Name Input -->
                             <div class="relative w-full">
                                 <input
@@ -320,6 +374,29 @@ if (isset($_GET['action']) && $_GET['action'] === 'getSupplierDetails') {
                     </div>
                 </form>
             </div>
+        </div>
+
+        <!-- Supplier Delete Modal -->
+        <div id="supplierConfirmDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+            <form class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="supplierDeleteForm">
+                <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Supplier Deletion</h2>
+                <p class="text-slate-600 mb-2">You are about to delete the following Supplier: <span id="supplierDeleteName" class="font-semibold"></span></p>
+                <p class="text-sm text-gray-500 mb-4">
+                    Deleting this supplier will permanently remove it from the system, including all associated data.
+                </p>
+                <input type="hidden" name="supplierid" id="deleteSupplierID">
+                <div class="flex justify-end gap-4 select-none">
+                    <div id="supplierCancelDeleteBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300">
+                        Cancel
+                    </div>
+                    <button
+                        type="submit"
+                        name="deletesupplier"
+                        class="px-4 py-2 bg-red-600 text-white hover:bg-red-700">
+                        Delete
+                    </button>
+                </div>
+            </form>
         </div>
 
         <!-- Right Side Form -->

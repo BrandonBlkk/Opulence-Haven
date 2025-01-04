@@ -180,13 +180,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Supplier Details Modal
 document.addEventListener('DOMContentLoaded', () => {
-    const supplierModal = document.getElementById('supplierModal');
+    const updateSupplierModal = document.getElementById('updateSupplierModal');
     const modalCancelBtn = document.getElementById('supplierModalCancelBtn');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const updateSupplierSuccess = document.getElementById('updateSupplierSuccess').value === 'true';
 
     // Get all details buttons
     const detailsBtns = document.querySelectorAll('.details-btn');
 
-    if (supplierModal && modalCancelBtn && detailsBtns) {
+    if (updateSupplierModal && modalCancelBtn && detailsBtns) {
         // Add click event to each button
         detailsBtns.forEach(btn => {
             btn.addEventListener('click', function() {
@@ -200,6 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     .then(data => {
                         if (data.success) {
                             // Fill the modal form with supplier data
+                            document.getElementById('updateSupplierID').value = supplierId;
                             document.querySelector('[name="updatesuppliername"]').value = data.supplier.SupplierName;
                             document.querySelector('[name="updatecompanyName"]').value = data.supplier.SupplierCompany;
                             document.querySelector('[name="updateemail"]').value = data.supplier.SupplierEmail;
@@ -212,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             document.querySelector('[name="updateproductType"]').value = data.supplier.ProductTypeID;
 
                             // Show the modal
-                            supplierModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                            updateSupplierModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
                         } else {
                             console.error('Failed to load supplier details');
                         }
@@ -222,10 +225,93 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         // Close modal when cancel button is clicked
         modalCancelBtn.addEventListener('click', () => {
-            supplierModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            updateSupplierModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
         });
+
+        if (updateSupplierSuccess) {
+            // Show Alert
+            setTimeout(() => {
+                showAlert('The supplier has been successfully updated.');
+            }, 500);
+        } else if (alertMessage) {
+            // Show Alert
+            showAlert(alertMessage);
+        }
+
+        // Add keyup event listeners for real-time validation
+        document.getElementById("updateSupplierNameInput").addEventListener("keyup", validateUpdateSupplierName);
+        document.getElementById("updateCompanyNameInput").addEventListener("keyup", validateUpdateCompanyName);
+        document.getElementById("updateEmailInput").addEventListener("keyup", validateUpdateEmail);
+        document.getElementById("updateContactNumberInput").addEventListener("keyup", validateUpdateContactNumber);
+        document.getElementById("updateAddressInput").addEventListener("keyup", validateUpdateAddress);
+        document.getElementById("updateCityInput").addEventListener("keyup", validateUpdateCity);
+        document.getElementById("updateStateInput").addEventListener("keyup", validateUpdateState);
+        document.getElementById("updatePostalCodeInput").addEventListener("keyup", validateUpdatePostalCode);
+        document.getElementById("updateCountryInput").addEventListener("keyup", validateUpdateCountry);
+
+        const updateSupplierForm = document.getElementById("updateSupplierForm");
+        if (updateSupplierForm) {
+            updateSupplierForm.addEventListener("submit", (e) => {
+                if (!validateUpdateSupplier()) {
+                    e.preventDefault();
+                }
+            });
+        }
+    }
+});
+
+// Supplier Delete Modal
+document.addEventListener('DOMContentLoaded', () => {
+    const supplierConfirmDeleteModal = document.getElementById('supplierConfirmDeleteModal');
+    const supplierCancelDeleteBtn = document.getElementById('supplierCancelDeleteBtn');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const deleteSupplierSuccess = document.getElementById('deleteSupplierSuccess').value === 'true';
+
+    // Get all delete buttons
+    const deleteBtns = document.querySelectorAll('.delete-btn');
+
+    if (supplierConfirmDeleteModal && supplierCancelDeleteBtn && deleteBtns) {
+        // Add click event to each delete button
+        deleteBtns.forEach(btn => { 
+            btn.addEventListener('click', function () {
+                const supplierId = this.getAttribute('data-supplier-id');
+
+                // Fetch supplierr details
+                fetch(`../Admin/AddSupplier.php?action=getSupplierDetails&id=${supplierId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('deleteSupplierID').value = supplierId;
+                            document.getElementById('supplierDeleteName').textContent = data.supplier.SupplierName;
+                        } else {
+                            console.error('Failed to load product type details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+
+                // Show modal
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+                supplierConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+            });
+        });
+
+        // Cancel button functionality
+        supplierCancelDeleteBtn.addEventListener('click', () => {
+            supplierConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        if (deleteSupplierSuccess) {
+            // Show Alert
+            showAlert('The supplier has been successfully deleted.');
+        } else if (alertMessage) {
+            // Show Alert
+            showAlert(alertMessage);
+        }
     }
 });
 
@@ -297,65 +383,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Product Type Delete Modal
-// document.addEventListener('DOMContentLoaded', function () {
-//     const productTypeDeleteModal = document.getElementById('productTypeConfirmDeleteModal');
-//     const productTypeDeleteModalCancelBtn = document.getElementById('productTypeCancelDeleteBtn');
-//     const productTypeConfirmDeleteBtn = document.getElementById('productTypeConfirmDeleteBtn');
-//     const alertMessage = document.getElementById('alertMessage').value;
-//     const deleteProductTypeSuccess = document.getElementById('deleteProductTypeSuccess').value === 'true';
-
-//     // Get all delete buttons
-//     const deleteBtns = document.querySelectorAll('.delete-btn');
-
-//     if (productTypeDeleteModal && productTypeDeleteModalCancelBtn && deleteBtns) {
-//         // Add click event to each delete button
-//         deleteBtns.forEach(btn => {
-//             btn.addEventListener('click', function () {
-//                 const productTypeId = this.getAttribute('data-producttype-id');
-
-//                 // Fetch product type name
-//                 fetch(`../Admin/AddProductType.php?action=getProductTypeDetails&id=${productTypeId}`)
-//                     .then(response => response.json())
-//                     .then(data => {
-//                         if (data.success) {
-//                             document.getElementById('deleteProductTypeID').value = productTypeId;
-//                             document.getElementById('productTypeDeleteName').textContent = data.producttype.ProductType;
-//                         }
-//                     })
-//                     .catch(error => console.error('Fetch error:', error));
-
-//                 // Show modal
-//                 darkOverlay2.classList.remove('opacity-0', 'invisible');
-//                 darkOverlay2.classList.add('opacity-100');
-//                 productTypeDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-//             });
-//         });
-
-//         // Cancel button functionality
-//         productTypeDeleteModalCancelBtn.addEventListener('click', function () {
-//             productTypeDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//             darkOverlay2.classList.add('opacity-0', 'invisible');
-//             darkOverlay2.classList.remove('opacity-100');
-//         });
-
-//         // Confirm delete button logic (you can handle the delete action here)
-//         productTypeConfirmDeleteBtn.addEventListener('click', function () {
-//             productTypeDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//             darkOverlay2.classList.add('opacity-0', 'invisible');
-//             darkOverlay2.classList.remove('opacity-100');
-//         });
-
-//         if (deleteProductTypeSuccess) {
-//             // Show Alert
-//             setTimeout(() => {
-//                 showAlert('The product type has been successfully deleted.');
-//             }, 500);
-//         } else if (alertMessage) {
-//             // Show Alert
-//             showAlert(alertMessage);
-//         }
-//     }
-// });
 document.addEventListener('DOMContentLoaded', () => {
     const productTypeDeleteModal = document.getElementById('productTypeConfirmDeleteModal');
     const productTypeDeleteModalCancelBtn = document.getElementById('productTypeCancelDeleteBtn');
@@ -392,7 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Cancel button functionality
-        productTypeDeleteModalCancelBtn.addEventListener('click', function () {
+        productTypeDeleteModalCancelBtn.addEventListener('click', () => {
             productTypeDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
@@ -401,6 +428,76 @@ document.addEventListener('DOMContentLoaded', () => {
         if (deleteProductTypeSuccess) {
             // Show Alert
             showAlert('The product type has been successfully deleted.');
+        } else if (alertMessage) {
+            // Show Alert
+            showAlert(alertMessage);
+        }
+    }
+});
+
+// Admin Delete Modal
+document.addEventListener('DOMContentLoaded', () => {
+    const adminConfirmDeleteModal = document.getElementById('adminConfirmDeleteModal');
+    const adminCancelDeleteBtn = document.getElementById('adminCancelDeleteBtn');
+    const deleteAdminConfirmInput = document.getElementById('deleteAdminConfirmInput');
+    const confirmAdminDeleteBtn = document.getElementById('confirmAdminDeleteBtn');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const deleteAdminSuccess = document.getElementById('deleteAdminSuccess').value === 'true';
+
+    // Get all delete buttons
+    const deleteBtns = document.querySelectorAll('.delete-btn');
+
+    if (adminConfirmDeleteModal && adminCancelDeleteBtn && deleteBtns) {
+        // Add click event to each delete button
+        deleteBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const adminId = this.getAttribute('data-admin-id');
+
+                // Fetch product type details
+                fetch(`../Admin/RoleManagement.php?action=getAdminDetails&id=${adminId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('deleteAdminID').value = adminId;
+                            document.getElementById('adminDeleteEmail').textContent = data.admin.AdminEmail;
+                            document.getElementById('adminDeleteUsername').textContent = data.admin.UserName;
+                            document.getElementById('adminDeleteProfile').src = data.admin.AdminProfile;
+                        } else {
+                            console.error('Failed to load admin details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+
+                // Show modal
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+                adminConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+            });
+        });
+
+        // Cancel button functionality
+        adminCancelDeleteBtn.addEventListener('click', () => {
+            adminConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        // Enable Delete Button only if input matches "DELETE"
+        deleteAdminConfirmInput.addEventListener("input", () => {
+            const isMatch = deleteAdminConfirmInput.value.trim() === "DELETE";
+            confirmAdminDeleteBtn.disabled = !isMatch;
+
+            // Toggle the 'cursor-not-allowed' class
+            if (isMatch) {
+                confirmAdminDeleteBtn.classList.remove("cursor-not-allowed");
+            } else {
+                confirmAdminDeleteBtn.classList.add("cursor-not-allowed");
+            }
+        });
+
+        if (deleteAdminSuccess) {
+            // Show Alert
+            showAlert('The admin accouont has been successfully deleted.');
         } else if (alertMessage) {
             // Show Alert
             showAlert(alertMessage);
@@ -555,6 +652,21 @@ const validateSupplierForm = () => {
     && isAddressValid && isCityValid && isStateValid && isPostalCodeValid && isCountryValid;
 };
 
+const validateUpdateSupplier = () => {
+    const isSupplierNameValid = validateUpdateSupplierName();
+    const isCompanyNameValid = validateUpdateCompanyName();
+    const isEmailValid = validateUpdateEmail();
+    const isContactNumberValid = validateUpdateContactNumber();
+    const isAddressValid = validateUpdateAddress();
+    const isCityValid = validateUpdateCity();
+    const isStateValid = validateUpdateState();
+    const isPostalCodeValid = validateUpdatePostalCode();
+    const isCountryValid = validateUpdateCountry();
+
+    return isSupplierNameValid && isCompanyNameValid && isEmailValid && isContactNumberValid 
+    && isAddressValid && isCityValid && isStateValid && isPostalCodeValid && isCountryValid;
+};
+
 const validateRoleForm = () => {
     const isRoleValid = validateRole();
     const isRoleDescriptionValid = validateRoleDescription();
@@ -613,10 +725,26 @@ const validateSupplierName = () => {
     );
 } 
 
+const validateUpdateSupplierName = () => {
+    return validateField(
+        "updateSupplierNameInput",
+        "updateSupplierNameError",
+        (input) => (!input ? "Supplier name is required." : null)
+    );
+}
+
 const validateCompanyName = () => {
     return validateField(
         "companyNameInput",
         "companyNameError",
+        (input) => (!input ? "Company name is required." : null)
+    );
+}
+
+const validateUpdateCompanyName = () => {
+    return validateField(
+        "updateCompanyNameInput",
+        "updateCompanyNameError",
         (input) => (!input ? "Company name is required." : null)
     );
 }
@@ -653,6 +781,14 @@ const validateEmail = () => {
     )
 }
 
+const validateUpdateEmail = () => {
+    return validateField(
+        "updateEmailInput",
+        "updateEmailError",
+        (input) => (!input ? "Email is required." : null)
+    );
+}
+
 const validatePhone = () => {
     return validateField(
         "phoneInput",
@@ -667,6 +803,14 @@ const validateContactNumber = () => {
         "contactNumberError",
         (input) => (!input ? "Contact number is required." : null)
     )
+} 
+
+const validateUpdateContactNumber = () => {
+    return validateField(
+        "updateContactNumberInput",
+        "updateContactNumberError",
+        (input) => (!input ? "Contact number is required." : null)
+    );
 }
 
 const validateAddress = () => {
@@ -677,12 +821,28 @@ const validateAddress = () => {
     )
 }
 
+const validateUpdateAddress = () => {
+    return validateField(
+        "updateAddressInput",
+        "updateAddressError",
+        (input) => (!input ? "Address is required." : null)
+    );
+}
+
 const validateCity = () => {
     return validateField(
         "cityInput",
         "cityError",
         (input) => (!input ? "City is required." : null)
     )
+}
+
+const validateUpdateCity = () => {
+    return validateField(
+        "updateCityInput",
+        "updateCityError",
+        (input) => (!input ? "City is required." : null)
+    );
 }
 
 const validateState = () => {
@@ -693,12 +853,28 @@ const validateState = () => {
     )
 }
 
+const validateUpdateState = () => {
+    return validateField(
+        "updateStateInput",
+        "updateStateError",
+        (input) => (!input ? "State is required." : null)
+    );
+}
+
 const validatePostalCode = () => {
     return validateField(
         "postalCodeInput",
         "postalCodeError",
         (input) => (!input ? "Postal code is required." : null)
     )
+}
+
+const validateUpdatePostalCode = () => {
+    return validateField(
+        "updatePostalCodeInput",
+        "updatePostalCodeError",
+        (input) => (!input ? "Postal code is required." : null)
+    );
 }
 
 const validateCountry = () => {
@@ -709,13 +885,21 @@ const validateCountry = () => {
     )
 }
 
+const validateUpdateCountry = () => {
+    return validateField(
+        "updateCountryInput",
+        "updateCountryError",
+        (input) => (!input ? "Country is required." : null)
+    );
+}
+
 const validateRole = () => {
     return validateField(
         "roleInput",
         "roleError",
         (input) => (!input ? "Role is required." : null)
     );
-}
+} 
 
 const validateRoleDescription = () => {
     return validateField(

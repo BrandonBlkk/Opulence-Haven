@@ -8,6 +8,7 @@ if (!$connect) {
 
 $alertMessage = '';
 $addRoleSuccess = false;
+$deleteAdminSuccess = false;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addrole'])) {
     $role = mysqli_real_escape_string($connect, $_POST['role']);
@@ -20,6 +21,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addrole'])) {
         $addRoleSuccess = true;
     } else {
         $alertMessage = "Failed to add product type. Please try again.";
+    }
+}
+
+// Get Admin Details
+if (isset($_GET['action']) && isset($_GET['id'])) {
+    $id = mysqli_real_escape_string($connect, $_GET['id']);
+    $action = $_GET['action'];
+
+    // Build query based on action
+    $query = match ($action) {
+        'getAdminDetails' => "SELECT * FROM admintb WHERE AdminID = '$id'",
+        default => null
+    };
+    if ($query) {
+        $result = mysqli_query($connect, $query);
+        $admin = mysqli_fetch_assoc($result);
+    }
+
+    if ($admin) {
+        echo json_encode(['success' => true, 'admin' => $admin]);
+    } else {
+        echo json_encode(['success' => false]);
+    }
+    exit;
+}
+
+// Delete Admin
+if (isset($_POST['deleteadmin'])) {
+    $adminId = mysqli_real_escape_string($connect, $_POST['adminid']);
+
+    // Build query based on action
+    $deleteQuery = "DELETE FROM admintb WHERE AdminID = '$adminId'";
+
+    if (mysqli_query($connect, $deleteQuery)) {
+        $deleteAdminSuccess = true;
+    } else {
+        $alertMessage = "Failed to delete admin. Please try again.";
     }
 }
 ?>
@@ -99,7 +137,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addrole'])) {
                             </tr>
                         </thead>
                         <tbody class="text-gray-600 text-sm">
-                            <!-- Example Row -->
                             <?php foreach ($admins as $admin): ?>
                                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                                     <td class="p-3 text-left whitespace-nowrap">
@@ -152,7 +189,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addrole'])) {
                                     <td class="p-3 text-center space-x-1">
                                         <button>
                                             <span class="rounded-md border-2"><i class="ri-arrow-left-line text-md"></i></span>
-                                            <span>Reset Password</span>
+                                            <span>Reset</span>
                                         </button>
                                     </td>
                                     <td class="p-3 text-center space-x-1 select-none">
@@ -160,7 +197,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addrole'])) {
                                             <i class="ri-edit-line text-xl"></i>
                                         </button>
                                         <button class=" text-red-500">
-                                            <i class="ri-delete-bin-7-line text-xl"></i>
+                                            <i class="delete-btn ri-delete-bin-7-line text-xl"
+                                                data-admin-id="<?= htmlspecialchars($admin['AdminID']) ?>"></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -169,6 +207,48 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addrole'])) {
                     </table>
                 </div>
             </div>
+        </div>
+
+        <!-- Admin Delete Modal -->
+        <div id="adminConfirmDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+            <form class="bg-white max-w-lg p-6 rounded-md shadow-md text-center" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="adminDeleteForm">
+                <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Admin Deletion</h2>
+                <p class="text-slate-600 mb-2">You are about to delete the following Admin:</p>
+                <div class="flex justify-center items-center gap-2 mb-2">
+                    <div class="relative">
+                        <div class="w-16 h-16 rounded-full select-none">
+                            <img id="adminDeleteProfile" src="" alt="Admin Profile" class="w-full h-full object-cover rounded-full mx-auto">
+                        </div>
+                        <i class="ri-alert-line bg-slate-200 bg-opacity-55 text-red-500 text-lg absolute -bottom-1 -right-1 rounded-full flex items-center justify-center w-6 h-6 p-1"></i>
+                    </div>
+                    <div class="text-left text-gray-600 text-sm">
+                        <p id="adminDeleteUsername" class="font-bold text-base"></p>
+                        <p id="adminDeleteEmail"></p>
+                        <p id="adminDeleteRole"></p>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-500 mb-4">
+                    Deleting this admin will permanently remove them from the system, including all associated data. This action cannot be undone.
+                </p>
+                <input type="hidden" name="adminid" id="deleteAdminID">
+                <input
+                    id="deleteAdminConfirmInput"
+                    type="text"
+                    placeholder='Type "DELETE" here'
+                    class="w-full p-2 mb-4 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-red-300" />
+                <div class="flex justify-end gap-4 select-none">
+                    <div id="adminCancelDeleteBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300">
+                        Cancel
+                    </div>
+                    <button
+                        type="submit"
+                        id="confirmAdminDeleteBtn"
+                        name="deleteadmin"
+                        class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 cursor-not-allowed" disabled>
+                        Delete
+                    </button>
+                </div>
+            </form>
         </div>
 
         <!-- Right Side Form -->
