@@ -58,9 +58,6 @@ if (!$connect) {
                     <small id="productTitleError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none">Product type is required</small>
                 </div>
 
-                <!-- Date Input -->
-                <input type="date" class="hidden" id="signupdate" name="signupdate" value="<?php echo date("Y-m-d") ?>">
-
                 <!-- Submit Button -->
                 <button
                     type="submit"

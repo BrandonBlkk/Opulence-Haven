@@ -1,6 +1,5 @@
 <?php
 $adminID = $_SESSION['AdminID'];
-$username = $_SESSION['UserName'];
 
 // Fetch admin profile
 $adminProfileQuery = "SELECT AdminProfile, RoleID FROM admintb WHERE AdminID = '$adminID'";
@@ -138,13 +137,13 @@ $productCount = $productCountRow['count'];
 $select = "SELECT admintb.*, roletb.Role 
     FROM admintb 
     INNER JOIN roletb ON admintb.RoleID = roletb.RoleID 
-    WHERE admintb.RoleID = '$role'
-";
+    WHERE admintb.RoleID = '$role' AND admintb.AdminID = '$adminID'";
 $query = mysqli_query($connect, $select);
 
 if (mysqli_num_rows($query) > 0) {
     while ($row = mysqli_fetch_assoc($query)) {
         $admin_id = $row['AdminID'];
+        $admin_username = $row['UserName'];
         $role_id = $row['RoleID'];
         $admin_role = $row['Role'];
     }
@@ -175,7 +174,7 @@ if (mysqli_num_rows($query) > 0) {
                             <div class="w-3 h-3 bg-green-500 rounded-full absolute bottom-1 right-1"></div>
                         </div>
                         <div class="text-start">
-                            <p class="font-semibold"><?php echo $username ?></p>
+                            <p class="font-semibold"><?php echo $admin_username ?></p>
                             <p class="text-xs text-gray-400">Welcome</p>
                             <p class="text-xs text-gray-700">(<?php echo $admin_role ?>)</p>
                         </div>
@@ -275,6 +274,12 @@ if (mysqli_num_rows($query) > 0) {
                     </div>
                 </div>
 
+                <a href="CusBooking.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '2') ? 'flex' : 'hidden'; ?>">
+                    <i class="ri-booklet-line text-xl relative">
+                        <p class="bg-red-500 rounded-full text-sm text-white w-5 h-5 text-center absolute -top-1 -right-2 select-none <?php echo ($orderCount != 0) ? 'block' : 'hidden'; ?>"><?php echo $orderCount ?></p>
+                    </i>
+                    <span class="font-semibold text-sm">Booking</span>
+                </a>
                 <a href="CusOrder.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
                     <i class="ri-shopping-bag-2-line text-xl relative">
                         <p class="bg-red-500 rounded-full text-sm text-white w-5 h-5 text-center absolute -top-1 -right-2 select-none <?php echo ($orderCount != 0) ? 'block' : 'hidden'; ?>"><?php echo $orderCount ?></p>

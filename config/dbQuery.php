@@ -128,11 +128,11 @@ if (!$connect) {
 
 // $product = "CREATE TABLE producttb
 // (
-//     ProductID varchar(30) not null primary key,
-//     Title varchar(255),
-//     img1 varchar(255),
-//     img2 varchar(255),
-//     img3 varchar(255),
+//     ProductID varchar(20) not null primary key,
+//     Title text,
+//     img1 text,
+//     img2 text,
+//     img3 text,
 //     Price decimal(10, 2),
 //     DiscountPrice decimal(10, 2),
 //     Color varchar(30),
@@ -154,6 +154,221 @@ if (!$connect) {
 
 // try {
 //     $query = mysqli_query($connect, $product);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
+
+// $rule = "CREATE TABLE ruletb
+// (
+//     RuleID varchar(20) not null primary key,
+//     Rule text,
+//     RuleIcon varchar(30),
+//     AddedDate datetime default current_timestamp,
+//     LastUpdate datetime default current_timestamp on update current_timestamp,
+// )";
+
+// try {
+//     $query = mysqli_query($connect, $rule);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
+
+// $facility = "CREATE TABLE facilitytb
+// (
+//     FacilityID varchar(20) not null primary key,
+//     Facility text,
+//     FacilityIcon varchar(30),
+//     AddedDate datetime default current_timestamp,
+//     LastUpdate datetime default current_timestamp on update current_timestamp,
+// )";
+
+// try {
+//     $query = mysqli_query($connect, $facility);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
+
+// $amenity = "CREATE TABLE amenitytb
+// (
+//     AmenityID varchar(20) not null primary key,
+//     Amenity text,
+//     AmenityIcon varchar(30),
+//     AddedDate datetime default current_timestamp,
+//     LastUpdate datetime default current_timestamp on update current_timestamp,
+// )";
+
+// try {
+//     $query = mysqli_query($connect, $amenity);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
+
+// $roomtype = "CREATE TABLE roomtypetb
+// (
+//     RoomTypeID varchar(20) not null primary key,
+//     RoomType varchar(30),
+//     RoomDescription text,
+//     RoomCapacity int,
+//     AddedDate datetime default current_timestamp,
+//     LastUpdate datetime default current_timestamp on update current_timestamp,
+// )";
+
+// try {
+//     $query = mysqli_query($connect, $roomtype);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
+
+// $room = "CREATE TABLE roomtb
+// (
+//     RoomID varchar(20) not null primary key,
+//     RoomName varchar(50),
+//     RoomDescription text,
+//     RoomPrice decimal(10, 2),
+//     RoomStatus varchar(15) default 'available',
+//     RoomImage1 text,
+//     RoomImage2 text,
+//     RoomImage3 text,
+//     RoomImage4 text,
+//     RoomImage5 text,
+//     RoomImage6 text,
+//     RoomImage7 text,
+//     RoomImage8 text,
+//     RoomImage9 text,
+//     RoomImage10 text,
+//     RoomTypeID varchar(20),
+//     FOREIGN KEY (RoomTypeID) REFERENCES roomtypetb (RoomTypeID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE
+// )";
+
+// try {
+//     $query = mysqli_query($connect, $room);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
+
+// $schedule = "CREATE TABLE scheduletb
+// (
+//     ScheduleID varchar(20) not null primary key,
+//     ScheduleDate date,
+//     ScheduleStartTime time,
+//     ScheduleEndTime time,
+//     ScheduleStatus varchar(20) DEFAULT 'available',
+//     AdminID varchar(30),
+//     RoomID varchar(20),
+//     FOREIGN KEY (AdminID) REFERENCES admintb (AdminID)
+//     ON DELETE CASCADE
+//     ON UPDATE CASCADE,
+//     FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
+//     ON DELETE CASCADE
+//     ON UPDATE CASCADE
+// )";
+
+// try {
+//     $query = mysqli_query($connect, $schedule);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
+
+// $scheduledetail = "CREATE TABLE scheduledetailtb
+// (
+//     ScheduleID varchar(20) not null primary key,
+//     RoomID varchar(20),
+//     FOREIGN KEY (ScheduleID) REFERENCES scheduletb (ScheduleID)
+//     ON DELETE CASCADE
+//     ON UPDATE CASCADE,
+//     FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
+//     ON DELETE CASCADE
+//     ON UPDATE CASCADE
+// )";
+
+// try {
+//     $query = mysqli_query($connect, $scheduledetail);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
+
+// $favorite = "CREATE TABLE favoritetb
+// (
+//     FavoriteID int not null primary key auto_increment,
+//     UserID varchar(30),
+//     RoomID varchar(20),
+//     FOREIGN KEY (UserID) REFERENCES usertb (UserID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE,
+//     FOREIGN KEY (RoomID) REFERENCES producttb (RoomID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE 
+// )";
+
+// try {
+//     $query = mysqli_query($connect, $favorite);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
+
+// $roomrule = "CREATE TABLE roomruletb
+// (
+//     RoomID varchar(20),
+//     RuleID varchar(20),
+//     FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE,
+//     FOREIGN KEY (RuleID) REFERENCES ruletb (RuleID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE 
+// )";
+
+// try {
+//     $query = mysqli_query($connect, $roomrule);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
+
+// $roomfacility = "CREATE TABLE roomfacilitytb
+// (
+//     RoomID varchar(20),
+//     FacilityID varchar(20),
+//     FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE,
+//     FOREIGN KEY (FacilityID) REFERENCES facilitytb (FacilityID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE 
+// )";
+
+// try {
+//     $query = mysqli_query($connect, $roomfacility);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
+
+// $roomamenity = "CREATE TABLE roomamenitytb
+// (
+//     RoomID varchar(20),
+//     AmenityID varchar(20),
+//     FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE,
+//     FOREIGN KEY (AmenityID) REFERENCES amenitytb (AmenityID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE 
+// )";
+
+// try {
+//     $query = mysqli_query($connect, $roomamenity);
 //     echo "Data Successfully saved";
 // } catch (mysqli_sql_exception) {
 //     echo "Data has been saved";

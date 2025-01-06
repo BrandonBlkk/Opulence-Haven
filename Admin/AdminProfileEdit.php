@@ -280,9 +280,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
         <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center">
             <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Account Delete</h2>
             <p class="text-slate-600 mb-2">You are currently signed in as:</p>
-            <p class="font-semibold text-gray-800 mb-4">
-                <?php echo $_SESSION['UserName'] . ' (' . $_SESSION['AdminEmail'] . ')'; ?>
-            </p>
+            <div class="flex justify-center items-center gap-2 mb-2">
+                <div class="relative">
+                    <div class="w-16 h-16 rounded-full select-none">
+                        <img src="<?php echo htmlspecialchars($adminRow['AdminProfile']); ?>" alt="Admin Profile" class="w-full h-full object-cover rounded-full mx-auto">
+                    </div>
+                    <i class="ri-alert-line bg-slate-200 bg-opacity-55 text-red-500 text-lg absolute -bottom-1 -right-1 rounded-full flex items-center justify-center w-6 h-6 p-1"></i>
+                </div>
+                <div class="text-left text-gray-600 text-sm">
+                    <p class="text-gray-800 font-bold text-base">
+                        <?php echo $adminRow['UserName']; ?>
+                    </p>
+                    <p><?php echo $adminRow['AdminEmail']; ?></p>
+                    <p class="text-xs"><?php echo $admin_role; ?></p>
+                </div>
+            </div>
             <p class="text-sm text-gray-500">
                 Deleting your account will permanently remove all your personal data, and preferences from our system.
             </p>
