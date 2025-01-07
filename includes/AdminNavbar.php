@@ -273,19 +273,67 @@ if (mysqli_num_rows($query) > 0) {
                         </div>
                     </div>
                 </div>
+                <div x-data="{ expanded: false, height: 0 }" class="flex flex-col">
+                    <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
+                        <div class="flex items-center gap-4">
+                            <i class="ri-calendar-2-line text-xl"></i>
+                            <span class="font-semibold text-sm">Schedule Menu</span>
+                        </div>
+                        <i :class="expanded ? 'rotate-180' : 'rotate-0'" class="ri-arrow-up-s-line text-xl transition-transform duration-300"></i>
+                    </button>
+                    <div
+                        x-ref="dropdown"
+                        :style="{ height: expanded ? height + 'px' : '0px' }"
+                        class="overflow-hidden transition-all duration-300 select-none">
+                        <div class="pl-3">
+                            <a href="../Admin/AddSupplier.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
+                                <div class="flex items-center gap-1">
+                                    <i class="ri-hotel-bed-line text-xl"></i>
+                                    <span class="font-semibold text-sm">Schedule Room</span>
+                                </div>
+                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= htmlspecialchars($supplierCount) ?></p>
+                            </a>
+                            <a href="../Admin/AddProduct.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
+                                <div class="flex items-center gap-1">
+                                    <i class="ri-history-line purchase-history-icon text-xl"></i>
+                                    <span class="font-semibold text-sm">Purchase History</span>
+                                </div>
+                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $productCount ?></p>
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
-                <a href="CusBooking.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '2') ? 'flex' : 'hidden'; ?>">
-                    <i class="ri-booklet-line text-xl relative">
-                        <p class="bg-red-500 rounded-full text-sm text-white w-5 h-5 text-center absolute -top-1 -right-2 select-none <?php echo ($orderCount != 0) ? 'block' : 'hidden'; ?>"><?php echo $orderCount ?></p>
-                    </i>
-                    <span class="font-semibold text-sm">Booking</span>
-                </a>
-                <a href="CusOrder.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
-                    <i class="ri-shopping-bag-2-line text-xl relative">
-                        <p class="bg-red-500 rounded-full text-sm text-white w-5 h-5 text-center absolute -top-1 -right-2 select-none <?php echo ($orderCount != 0) ? 'block' : 'hidden'; ?>"><?php echo $orderCount ?></p>
-                    </i>
-                    <span class="font-semibold text-sm">Orders</span>
-                </a>
+                <div x-data="{ expanded: false, height: 0 }" class="flex flex-col">
+                    <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
+                        <div class="flex items-center gap-4">
+                            <i class="ri-archive-drawer-line text-xl"></i>
+                            <span class="font-semibold text-sm">Bookings & Orders</span>
+                        </div>
+                        <i :class="expanded ? 'rotate-180' : 'rotate-0'" class="ri-arrow-up-s-line text-xl transition-transform duration-300"></i>
+                    </button>
+                    <div
+                        x-ref="dropdown"
+                        :style="{ height: expanded ? height + 'px' : '0px' }"
+                        class="overflow-hidden transition-all duration-300 select-none">
+                        <div class="pl-3">
+                            <a href="../Admin/AddSupplier.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '2') ? 'flex' : 'hidden'; ?>">
+                                <div class="flex items-center gap-1">
+                                    <i class="ri-booklet-line text-xl"></i>
+                                    <span class="font-semibold text-sm">Booking</span>
+                                </div>
+                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= htmlspecialchars($supplierCount) ?></p>
+                            </a>
+                            <a href="../Admin/AddProduct.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
+                                <div class="flex items-center gap-1">
+                                    <i class="ri-shopping-bag-2-line text-xl"></i>
+                                    <span class="font-semibold text-sm">Order</span>
+                                </div>
+                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $productCount ?></p>
+                            </a>
+                        </div>
+                    </div>
+                </div>
                 <a href="UserContact.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none">
                     <i class="ri-message-3-line text-xl relative">
                         <p class="bg-red-500 rounded-full text-sm text-white w-5 h-5 text-center absolute -top-1 -right-2 select-none <?php echo ($cuscontactCount != 0) ? 'block' : 'hidden'; ?>"><?php echo $cuscontactCount ?></p>
