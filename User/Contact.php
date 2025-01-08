@@ -70,6 +70,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
         <!-- Contact Form -->
         <section class="flex flex-col sm:flex-row justify-center gap-10 p-3">
             <div>
+                <div class="flex text-sm text-slate-600">
+                    <a href="HomePage.php" class="underline">Home</a>
+                    <span><i class="ri-arrow-right-s-fill"></i></span>
+                    <a href="Contact.php" class="underline">Contact</a>
+                </div>
                 <h1 class="text-2xl font-semibold text-black mb-3">Locate Us</h1>
                 <ul class="text-lg flex flex-col gap-1 text-slate-700">
                     <li>459 Pyay Road, Kamayut Township , 11041</li>
@@ -78,24 +83,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                     <li>mail@opulence.com</li>
                 </ul>
             </div>
-            <div>
+            <div class="w-full max-w-2xl">
                 <form class="flex flex-col space-y-4 w-full" action="<?php $_SERVER["PHP_SELF"] ?>" method="post" id="signinForm">
                     <!-- User id -->
                     <input type="hidden" name="userid" value="<?php echo $userID; ?>">
                     <label class="block text-sm text-start font-medium text-gray-700 mb-1">User Information</label>
                     <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
                         <!-- Username Input -->
-                        <div class="relative">
+                        <div class="flex-1">
                             <input
                                 id="contactFullNameInput"
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 type="text"
                                 name="fullname"
                                 placeholder="Enter your fullname">
-                            <small id="contactFullNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                         </div>
                         <!-- Email Input -->
-                        <div class="relative">
+                        <div class="relative flex-1">
                             <input
                                 id="contactEmailInput"
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
@@ -128,7 +132,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                         <script>
                             const dropdown = document.getElementById('countryDropdown');
 
-                            async function fetchCountries() {
+                            const fetchCountries = async () => {
                                 try {
                                     const response = await fetch('https://restcountries.com/v3.1/all');
                                     if (!response.ok) {
@@ -142,7 +146,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                                 }
                             }
 
-                            function populateDropdown(countries) {
+                            const populateDropdown = (countries) => {
                                 dropdown.innerHTML = '<option value="">Select a country</option>';
                                 countries.sort((a, b) => a.name.common.localeCompare(b.name.common)); // Sort by country name
                                 countries.forEach(country => {
@@ -169,20 +173,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                         <small id="contactMessageError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
 
+                    <!-- reCAPTCHA -->
+                    <div class="flex justify-center">
+                        <div
+                            class="g-recaptcha transform scale-75 md:scale-100"
+                            data-sitekey="6LcE3G0pAAAAAE1GU9UXBq0POWnQ_1AMwyldy8lX">
+                        </div>
+                    </div>
+
+                    <!-- Include reCAPTCHA Script -->
+                    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+
                     <!-- Signin Button -->
                     <input
                         class=" bg-amber-500 font-semibold text-white px-4 py-2 rounded-md hover:bg-amber-600 cursor-pointer transition-colors duration-200"
                         type="submit"
                         name="submit"
                         value="Submit">
-
-                    <!-- reCAPTCHA -->
-                    <div class="flex justify-center">
-                        <div class="g-recaptcha" data-sitekey="6LcE3G0pAAAAAE1GU9UXBq0POWnQ_1AMwyldy8lX"></div>
-                    </div>
-
-                    <!-- Include reCAPTCHA Script -->
-                    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
                 </form>
             </div>
         </section>
@@ -190,7 +198,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
             <p class="text-slate-600 mb-3">YOUR OPULENCE</p>
             <h1 class="text-2xl sm:text-4xl mb-5 text-blue-900 font-semibold">Follow Us</h1>
             <p class="text-slate-600 mb-3">Stay in touch and connected to all the news and happenings.</p>
-            <ul class="flex items-center gap-7 text-xl mt-3">
+            <ul class="flex flex-wrap items-center justify-center gap-5 sm:gap-7 text-xl mt-3">
                 <li class="bg-rose-600 p-2 rounded-full w-12 h-12 text-white hover:bg-rose-500 transition-colors duration-200">
                     <a href="#"><i class="ri-instagram-line text-3xl"></i></a>
                 </li>

@@ -505,6 +505,67 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Contact Details Modal
+document.addEventListener('DOMContentLoaded', () => {
+    const confirmContactModal = document.getElementById('confirmContactModal');
+    const confirmContactModalCancelBtn = document.getElementById('confirmContactModalCancelBtn');
+    const alertMessage = document.getElementById('alertMessage')?.value || '';
+    const confirmContactSuccess = document.getElementById('confirmContactSuccess')?.value === 'true';
+
+    // Get all details buttons
+    const detailsBtns = document.querySelectorAll('.details-btn');
+
+    if (confirmContactModal && confirmContactModalCancelBtn && detailsBtns) {
+        // Add click event to each button
+        detailsBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const contactId = this.getAttribute('data-contact-id');
+                const darkOverlay2 = document.getElementById('darkOverlay2');
+
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+
+                // Fetch contact details
+                fetch(`../Admin/UserContact.php?action=getContactDetails&id=${contactId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Fill the modal form with contact data
+                            document.getElementById('confirmContactID').value = contactId;
+                            // document.getElementById('updateProductTypeInput').value = data.contact.ProductType || '';
+                            // document.getElementById('updateProductTypeDescription').value = data.contact.Description || '';
+                            document.querySelector('[name="contactMessage"]').value = data.contact.ContactMessage;
+                            document.getElementById('username').textContent = data.contact.FullName;
+                            document.getElementById('useremail').textContent = data.contact.UserEmail;
+
+                            // Show the modal
+                            confirmContactModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        } else {
+                            console.error('Failed to load contact details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+            });
+        });
+
+        confirmContactModalCancelBtn.addEventListener('click', () => {
+            confirmContactModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            document.getElementById('darkOverlay2').classList.add('opacity-0', 'invisible');
+            document.getElementById('darkOverlay2').classList.remove('opacity-100');
+        });
+
+        if (confirmContactSuccess) {
+            // Show Alert
+            setTimeout(() => {
+                showAlert('The contact has been successfully responded.');
+            }, 500);
+        } else if (alertMessage) {
+            // Show Alert
+            showAlert(alertMessage);
+        }
+    }
+});
+
 // Profile Delete Modal
 const adminProfileDeleteBtn = document.getElementById("adminProfileDeleteBtn");
 const confirmDeleteModal = document.getElementById("confirmDeleteModal");

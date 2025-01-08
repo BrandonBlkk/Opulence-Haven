@@ -121,7 +121,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
 
                 <!-- reCAPTCHA -->
                 <div class="flex justify-center">
-                    <div class="g-recaptcha" data-sitekey="6LcE3G0pAAAAAE1GU9UXBq0POWnQ_1AMwyldy8lX"></div>
+                    <div class="g-recaptcha transform scale-75 md:scale-100" data-sitekey="6LcE3G0pAAAAAE1GU9UXBq0POWnQ_1AMwyldy8lX"></div>
                 </div>
 
                 <!-- Signup Button -->

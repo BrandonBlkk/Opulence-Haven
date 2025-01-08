@@ -66,7 +66,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
 </head>
 
 <body class="flex justify-center items-center min-h-screen">
-    <div>
+    <div class="p-3">
         <!-- Logo -->
         <div class="flex items-end gap-1 select-none">
             <a href="../User/AdminDashboard.php">
@@ -189,7 +189,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
 
             <!-- reCAPTCHA -->
             <div class="flex justify-center">
-                <div class="g-recaptcha" data-sitekey="6LcE3G0pAAAAAE1GU9UXBq0POWnQ_1AMwyldy8lX"></div>
+                <div class="g-recaptcha transform scale-75 md:scale-100" data-sitekey="6LcE3G0pAAAAAE1GU9UXBq0POWnQ_1AMwyldy8lX"></div>
             </div>
 
             <!-- Signup Button -->

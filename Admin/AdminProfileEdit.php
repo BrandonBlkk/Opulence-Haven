@@ -232,7 +232,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
                                     <div class="flex-1">
                                         <div class="flex flex-col relative">
                                             <label for="roleSelect" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                                            <select name="role" class="border rounded p-2 bg-gray-50">
+                                            <select name="role" class="border rounded p-2 bg-gray-50" <?= ($role !== '1') ? 'disabled' : ''; ?>>
                                                 <?php
                                                 // Fetch roles for the dropdown
                                                 $rolesQuery = "SELECT * FROM roletb";

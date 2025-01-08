@@ -74,6 +74,29 @@ if (mysqli_num_rows($productTypeSelectQuery) > 0) {
     }
 }
 
+$searchContactQuery = isset($_GET['contact_search']) ? mysqli_real_escape_string($connect, $_GET['contact_search']) : '';
+$filterStatus = isset($_GET['sort']) ? $_GET['sort'] : 'random';
+
+// Construct the contact query based on search and status filter
+if ($filterStatus !== 'random' && !empty($searchContactQuery)) {
+    $contactSelect = "SELECT * FROM contacttb WHERE Status = '$filterStatus' AND (FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%')";
+} elseif ($filterStatus !== 'random') {
+    $contactSelect = "SELECT * FROM contacttb WHERE Status = '$filterStatus'";
+} elseif (!empty($searchContactQuery)) {
+    $contactSelect = "SELECT * FROM contacttb WHERE FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%'";
+} else {
+    $contactSelect = "SELECT * FROM contacttb";
+}
+
+$contactSelectQuery = mysqli_query($connect, $contactSelect);
+$contacts = [];
+
+if (mysqli_num_rows($contactSelectQuery) > 0) {
+    while ($row = mysqli_fetch_assoc($contactSelectQuery)) {
+        $contacts[] = $row;
+    }
+}
+
 // Construct the admin count query based on search and role filter
 if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {
     $adminCountQuery = "SELECT COUNT(*) as count FROM admintb WHERE RoleID = '$filterRoleID' AND (FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%')";
@@ -128,6 +151,27 @@ $productTypeCountResult = mysqli_query($connect, $productTypeCountQuery);
 $productTypeCountRow = mysqli_fetch_assoc($productTypeCountResult);
 $allProductTypeCount = $productTypeCountRow['count'];
 
+// Construct the contact query based on search and status filter
+if ($filterStatus !== 'random' && !empty($searchContactQuery)) {
+    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE Status = '$filterStatus' AND (FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%')";
+} elseif ($filterStatus !== 'random') {
+    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE Status = '$filterStatus'";
+} elseif (!empty($searchContactQuery)) {
+    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%'";
+} else {
+    $contactQuery = "SELECT COUNT(*) as count FROM contacttb";
+}
+
+// Execute the count query
+$contactResult = mysqli_query($connect, $contactQuery);
+$contactRow = mysqli_fetch_assoc($contactResult);
+$contactCount = $contactRow['count'];
+// Fetch contact count
+$contactCountQuery = "SELECT COUNT(*) as count FROM contacttb";
+$contactCountResult = mysqli_query($connect, $contactCountQuery);
+$contactCountRow = mysqli_fetch_assoc($contactCountResult);
+$allContactCount = $contactCountRow['count'];
+
 // Fetch product count
 $productCountQuery = "SELECT COUNT(*) as count FROM producttb";
 $productCountResult = mysqli_query($connect, $productCountQuery);
@@ -165,6 +209,8 @@ if (mysqli_num_rows($query) > 0) {
             </a>
             <p class="text-amber-500 text-sm font-semibold">ADMIN</p>
         </div>
+
+        <!-- Profile Menu -->
         <div class="divide-y-2 divide-slate-100">
             <div x-data="{ expanded: false, height: 0 }" class="flex flex-col">
                 <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex justify-between items-center p-1 rounded">
@@ -206,6 +252,8 @@ if (mysqli_num_rows($query) > 0) {
                     </i>
                     <span class="font-semibold text-sm">Role Management</span>
                 </a>
+
+                <!-- Inventory Menu -->
                 <div x-data="{ expanded: false, height: 0 }" class="flex flex-col">
                     <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '3') ? 'hidden' : 'flex'; ?>">
                         <div class="flex items-center gap-4">
@@ -243,6 +291,8 @@ if (mysqli_num_rows($query) > 0) {
                         </div>
                     </div>
                 </div>
+
+                <!-- Purchase Menu -->
                 <div x-data="{ expanded: false, height: 0 }" class="flex flex-col">
                     <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
                         <div class="flex items-center gap-4">
@@ -273,6 +323,8 @@ if (mysqli_num_rows($query) > 0) {
                         </div>
                     </div>
                 </div>
+
+                <!-- Schedule Menu -->
                 <div x-data="{ expanded: false, height: 0 }" class="flex flex-col">
                     <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
                         <div class="flex items-center gap-4">
@@ -293,17 +345,11 @@ if (mysqli_num_rows($query) > 0) {
                                 </div>
                                 <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= htmlspecialchars($supplierCount) ?></p>
                             </a>
-                            <a href="../Admin/AddProduct.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
-                                <div class="flex items-center gap-1">
-                                    <i class="ri-history-line purchase-history-icon text-xl"></i>
-                                    <span class="font-semibold text-sm">Purchase History</span>
-                                </div>
-                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $productCount ?></p>
-                            </a>
                         </div>
                     </div>
                 </div>
 
+                <!-- Bookings & Orders Menu -->
                 <div x-data="{ expanded: false, height: 0 }" class="flex flex-col">
                     <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
                         <div class="flex items-center gap-4">
@@ -336,7 +382,7 @@ if (mysqli_num_rows($query) > 0) {
                 </div>
                 <a href="UserContact.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none">
                     <i class="ri-message-3-line text-xl relative">
-                        <p class="bg-red-500 rounded-full text-sm text-white w-5 h-5 text-center absolute -top-1 -right-2 select-none <?php echo ($cuscontactCount != 0) ? 'block' : 'hidden'; ?>"><?php echo $cuscontactCount ?></p>
+                        <p class="bg-red-500 rounded-full text-sm text-white w-5 h-5 text-center absolute -top-1 -right-2 select-none <?php echo ($allContactCount != 0) ? 'block' : 'hidden'; ?>"><?php echo $allContactCount ?></p>
                     </i>
                     <span class="font-semibold text-sm">User Contacts</span>
                 </a>

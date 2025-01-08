@@ -89,7 +89,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
 </head>
 
 <body class="flex justify-center items-center min-h-screen">
-    <div>
+    <div class="p-3">
         <!-- Logo -->
         <div class="flex items-end gap-1 select-none">
             <a href="../User/AdminDashboard.php">

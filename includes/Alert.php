@@ -12,6 +12,7 @@
 <input type="hidden" id="deleteSupplierSuccess" value="<?php echo $deleteSupplierSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="addRoleSuccess" value="<?php echo $addRoleSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="deleteAdminSuccess" value="<?php echo $deleteAdminSuccess ? 'true' : 'false'; ?>">
+<input type="hidden" id="confirmContactSuccess" value="<?php echo $confirmContactSuccess ? 'true' : 'false'; ?>">
 
 <div id="alertBox" class="fixed -bottom-1 opacity-0 right-3 items-center rounded-md shadow-lg border z-40 p-3 transition-all duration-200 <?php echo $alertMessage ? 'border-red-300 bg-red-50' : 'border-green-300 bg-green-50'; ?>">
     <div class="flex items-center justify-center gap-2">
