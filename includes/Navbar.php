@@ -1,5 +1,5 @@
 <section id="sale-section" class="SVG2 p-2 text-center bg-blue-950 text-white">
-    <p>Book your dream vacation now!</p>
+    <p>Book your dream room now!</p>
 </section>
 
 <div class="sticky top-0 w-full bg-white border-b z-50">

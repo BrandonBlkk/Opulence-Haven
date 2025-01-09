@@ -119,7 +119,7 @@ if (isset($_POST['respondcontact'])) {
                                 <th class="p-3 text-center">Message</th>
                                 <th class="p-3 text-center">Status</th>
                                 <th class="p-3 text-center">Date</th>
-                                <th class="p-3 text-center">Actions</th>
+                                <th class="p-3 text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody class="text-gray-600 text-sm">
@@ -173,10 +173,11 @@ if (isset($_POST['respondcontact'])) {
         <!-- Contact Details Modal -->
         <div id="confirmContactModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center w-full sm:max-w-[500px]">
-                <h2 class="text-xl font-bold mb-4">Contact Details</h2>
+                <h2 class="text-xl font-bold">User Contact</h2>
                 <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="confirmContactForm">
                     <input type="hidden" name="contactid" id="confirmContactID">
-                    <div class="flex flex-col">
+                    <div class="text-gray-600 text-sm text-left">
+                        <h1 class="font-medium text-gray-700 text-lg">Form</h1>
                         <p class="font-bold" id="username"></p>
                         <p id="useremail"></p>
                     </div>

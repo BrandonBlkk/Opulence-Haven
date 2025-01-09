@@ -89,6 +89,7 @@ const logoutBtn = document.getElementById('logoutBtn');
 const confirmModal = document.getElementById('confirmModal');
 const cancelBtn = document.getElementById('cancelBtn');
 const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+const darkOverlay = document.getElementById('darkOverlay');
 const darkOverlay2 = document.getElementById('darkOverlay2');
 
 if (logoutBtn && confirmModal && cancelBtn && confirmLogoutBtn && darkOverlay2) {
@@ -104,6 +105,8 @@ if (logoutBtn && confirmModal && cancelBtn && confirmLogoutBtn && darkOverlay2) 
     cancelBtn.addEventListener('click', () => {
         confirmModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
         confirmModal.classList.remove('opacity-100', 'translate-y-0');
+        darkOverlay.classList.add('hidden');
+        darkOverlay.classList.remove('flex');
         darkOverlay2.classList.add('opacity-0', 'invisible');
         darkOverlay2.classList.remove('opacity-100');
         aside.style.right = '-100%';

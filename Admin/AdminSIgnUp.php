@@ -151,9 +151,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                 <small id="phoneError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
             </div>
 
-            <div class="flex items-end gap-1">
+            <div class="flex flex-col sm:flex-row items-end gap-3 sm:gap-1">
                 <!-- Profile -->
-                <div class="relative">
+                <div class="relative w-full">
                     <label for="adminprofile" class="block text-sm font-medium text-gray-700 mb-1">Profile Picture</label>
                     <input
                         type="file"
@@ -163,7 +163,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                     <small id="profileError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                 </div>
                 <!-- Position Input -->
-                <div class="flex flex-col space-y-1">
+                <div class="flex flex-col space-y-1 w-full">
                     <select name="role" class="p-2 border rounded">
                         <option value="" disabled selected>Select your role</option>
                         <?php

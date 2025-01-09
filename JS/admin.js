@@ -532,8 +532,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (data.success) {
                             // Fill the modal form with contact data
                             document.getElementById('confirmContactID').value = contactId;
-                            // document.getElementById('updateProductTypeInput').value = data.contact.ProductType || '';
-                            // document.getElementById('updateProductTypeDescription').value = data.contact.Description || '';
                             document.querySelector('[name="contactMessage"]').value = data.contact.ContactMessage;
                             document.getElementById('username').textContent = data.contact.FullName;
                             document.getElementById('useremail').textContent = data.contact.UserEmail;
@@ -558,6 +556,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show Alert
             setTimeout(() => {
                 showAlert('The contact has been successfully responded.');
+                setTimeout(() => {
+                    window.location.href = 'UserContact.php';
+                }, 5000);
             }, 500);
         } else if (alertMessage) {
             // Show Alert
