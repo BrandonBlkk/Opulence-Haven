@@ -64,28 +64,28 @@ if (!$connect) {
 //     echo "Data has been saved";
 // }
 
-$contact = "CREATE TABLE contacttb
-(
-    ContactID varchar(20) not null primary key,
-    UserID varchar(30),
-    FullName varchar(50),
-    UserEmail varchar(30),
-    UserPhone varchar(15),
-    Country varchar(15),
-    ContactMessage text,
-    ContactDate datetime default current_timestamp,
-    Status varchar(15) default 'pending',
-    FOREIGN KEY (UserID) REFERENCES usertb (UserID)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE
-)";
+// $contact = "CREATE TABLE contacttb
+// (
+//     ContactID varchar(20) not null primary key,
+//     UserID varchar(30),
+//     FullName varchar(50),
+//     UserEmail varchar(30),
+//     UserPhone varchar(15),
+//     Country varchar(15),
+//     ContactMessage text,
+//     ContactDate datetime default current_timestamp,
+//     Status varchar(15) default 'pending',
+//     FOREIGN KEY (UserID) REFERENCES usertb (UserID)
+//     ON DELETE CASCADE
+//     ON UPDATE CASCADE
+// )";
 
-try {
-    $query = mysqli_query($connect, $contact);
-    echo "Data Successfully saved";
-} catch (mysqli_sql_exception) {
-    echo "Data has been saved";
-}
+// try {
+//     $query = mysqli_query($connect, $contact);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
 
 // $producttype = "CREATE TABLE producttypetb
 // (
@@ -130,38 +130,37 @@ try {
 //     echo "Data has been saved";
 // }
 
-// $product = "CREATE TABLE producttb
-// (
-//     ProductID varchar(20) not null primary key,
-//     Title text,
-//     img1 text,
-//     img2 text,
-//     img3 text,
-//     Price decimal(10, 2),
-//     DiscountPrice decimal(10, 2),
-//     Color varchar(30),
-//     ProductDescription text,
-//     Brand varchar(30),
-//     ProductSize varchar(30),
-//     LookAfterMe text,
-//     AboutMe text,
-//     MoreColors boolean default false,
-//     SellingFast boolean default false,
-//     Stock int default 0,
-//     AddedDate datetime default current_timestamp,
-//     LastUpdate datetime default current_timestamp on update current_timestamp,
-//     ProductTypeID varchar(30),
-//     FOREIGN KEY (ProductTypeID) REFERENCES producttypetb (ProductTypeID)
-//     ON DELETE CASCADE 
-//     ON UPDATE CASCADE
-// )";
+$product = "CREATE TABLE producttb
+(
+    ProductID varchar(20) not null primary key,
+    Title text,
+    img1 text,
+    img2 text,
+    img3 text,
+    Price decimal(10, 2),
+    DiscountPrice decimal(10, 2),
+    Description text,
+    Specification text,
+    Information text,
+    DeliveryInfo text,
+    Brand varchar(30),
+    ProductSize varchar(30),
+    SellingFast boolean default false,
+    Stock int default 0,
+    AddedDate datetime default current_timestamp,
+    LastUpdate datetime default current_timestamp on update current_timestamp,
+    ProductTypeID varchar(30),
+    FOREIGN KEY (ProductTypeID) REFERENCES producttypetb (ProductTypeID)
+    ON DELETE CASCADE 
+    ON UPDATE CASCADE
+)";
 
-// try {
-//     $query = mysqli_query($connect, $product);
-//     echo "Data Successfully saved";
-// } catch (mysqli_sql_exception) {
-//     echo "Data has been saved";
-// }
+try {
+    $query = mysqli_query($connect, $product);
+    echo "Data Successfully saved";
+} catch (mysqli_sql_exception) {
+    echo "Data has been saved";
+}
 
 // $rule = "CREATE TABLE ruletb
 // (
@@ -264,7 +263,7 @@ try {
 //     ScheduleDate date,
 //     ScheduleStartTime time,
 //     ScheduleEndTime time,
-//     ScheduleStatus varchar(20) DEFAULT 'available',
+//     ScheduleStatus varchar(15) DEFAULT 'available',
 //     AdminID varchar(30),
 //     RoomID varchar(20),
 //     FOREIGN KEY (AdminID) REFERENCES admintb (AdminID)

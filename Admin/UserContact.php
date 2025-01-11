@@ -80,12 +80,12 @@ if (isset($_POST['respondcontact'])) {
     <!-- Main Container -->
     <div class="p-3 ml-0 md:ml-[250px] relative">
         <!-- Left Side Content -->
-        <div class="w-full bg-white p-4">
+        <div class="w-full bg-white p-2">
             <h2 class="text-xl font-bold mb-4">Manage User Contacts</h2>
             <p>View the list of user contacts and manage them.</p>
 
             <!-- User Contact Table -->
-            <div class="overflow-x-auto mt-4">
+            <div class="overflow-x-auto">
                 <!-- User Contact Search and Filter -->
                 <form method="GET" class="my-4 flex items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
                     <h1 class="text-lg font-semibold text-nowrap">All Contacts<span class="text-gray-400 text-sm ml-2"><?php echo $contactCount ?></span></h1>
@@ -126,7 +126,7 @@ if (isset($_POST['respondcontact'])) {
                             <?php foreach ($contacts as $contact): ?>
                                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                                     <td class="p-3 text-left whitespace-nowrap">
-                                        <div class="flex items-center gap-2">
+                                        <div class="flex items-center gap-2 font-medium text-gray-500">
                                             <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
                                             <span><?= htmlspecialchars($contact['ContactID']) ?></span>
                                         </div>
@@ -147,7 +147,9 @@ if (isset($_POST['respondcontact'])) {
                                         <p><?= htmlspecialchars($contact['Country']) ?></p>
                                     </td>
                                     <td class="p-3 text-center space-x-1">
-                                        <p><?= htmlspecialchars($contact['ContactMessage']) ?></p>
+                                        <p>
+                                            <?= htmlspecialchars(mb_strimwidth($contact['ContactMessage'], 0, 50)) ?>
+                                        </p>
                                     </td>
                                     <td class="p-3 text-center space-x-1 select-none">
                                         <span class="p-1 rounded-md <?= $contact['Status'] === 'responded' ? 'bg-green-100' : 'bg-red-100' ?>">
@@ -184,10 +186,7 @@ if (isset($_POST['respondcontact'])) {
                     <!-- Message Input -->
                     <div class="w-full">
                         <label class="block text-sm text-start font-medium text-gray-700 mb-1">Message</label>
-                        <textarea
-                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                            name="contactMessage"
-                            placeholder="Enter your message" disabled></textarea>
+                        <p id="contactMessage" class="text-start"></p>
                     </div>
                     <!-- Submit Button -->
                     <div class="flex justify-end gap-4 select-none">

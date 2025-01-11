@@ -85,6 +85,9 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => {
             loader.style.display = 'none';
             showAlert('A new product type has been successfully added.');
+            setTimeout(() => {
+                window.location.href = 'AddProductType.php';
+            }, 5000);
         }, 1000);
     } else if (alertMessage) {
         // Show Alert
@@ -118,6 +121,9 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => {
             loader.style.display = 'none';
             showAlert('A new role has been successfully added.');
+            setTimeout(() => {
+                window.location.href = 'RoleManagement.php';
+            }, 5000);
         }, 1000);
     } else if (alertMessage) {
         // Show Alert
@@ -151,6 +157,9 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => {
             loader.style.display = 'none';
             showAlert('A new supplier has been successfully added.');
+            setTimeout(() => {
+                window.location.href = 'AddSupplier.php';
+            }, 5000);
         }, 1000);
     } else if (alertMessage) {
         // Show Alert
@@ -234,6 +243,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show Alert
             setTimeout(() => {
                 showAlert('The supplier has been successfully updated.');
+                setTimeout(() => {
+                    window.location.href = 'AddSupplier.php';
+                }, 5000);
             }, 500);
         } else if (alertMessage) {
             // Show Alert
@@ -308,6 +320,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (deleteSupplierSuccess) {
             // Show Alert
             showAlert('The supplier has been successfully deleted.');
+            setTimeout(() => {
+                window.location.href = 'AddSupplier.php';
+            }, 5000);
         } else if (alertMessage) {
             // Show Alert
             showAlert(alertMessage);
@@ -428,6 +443,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (deleteProductTypeSuccess) {
             // Show Alert
             showAlert('The product type has been successfully deleted.');
+            setTimeout(() => {
+                window.location.href = 'AddProductType.php';
+            }, 5000);
         } else if (alertMessage) {
             // Show Alert
             showAlert(alertMessage);
@@ -498,6 +516,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (deleteAdminSuccess) {
             // Show Alert
             showAlert('The admin accouont has been successfully deleted.');
+            setTimeout(() => {
+                window.location.href = 'RoleManagement.php';
+            }, 5000);
         } else if (alertMessage) {
             // Show Alert
             showAlert(alertMessage);
@@ -532,7 +553,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (data.success) {
                             // Fill the modal form with contact data
                             document.getElementById('confirmContactID').value = contactId;
-                            document.querySelector('[name="contactMessage"]').value = data.contact.ContactMessage;
+                            document.getElementById('contactMessage').textContent = data.contact.ContactMessage;
                             document.getElementById('username').textContent = data.contact.FullName;
                             document.getElementById('useremail').textContent = data.contact.UserEmail;
 

@@ -8,21 +8,55 @@ $adminProfileRow = mysqli_fetch_assoc($adminProfileResult);
 $adminprofile = $adminProfileRow['AdminProfile'];
 $role = $adminProfileRow['RoleID'];
 
+// // Initialize search and filter variables
+// $searchAdminQuery = isset($_GET['acc_search']) ? mysqli_real_escape_string($connect, $_GET['acc_search']) : '';
+// $filterRoleID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
+
+// // Construct the admin query based on search and role filter
+// if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {
+//     $adminSelect = "SELECT * FROM admintb WHERE RoleID = '$filterRoleID' AND (FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%')";
+// } elseif ($filterRoleID !== 'random') {
+//     $adminSelect = "SELECT * FROM admintb WHERE RoleID = '$filterRoleID'";
+// } elseif (!empty($searchAdminQuery)) {
+//     $adminSelect = "SELECT * FROM admintb WHERE FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%'";
+// } else {
+//     $adminSelect = "SELECT * FROM admintb";
+// }
+
+// $adminSelectQuery = mysqli_query($connect, $adminSelect);
+// $admins = [];
+
+// if (mysqli_num_rows($adminSelectQuery) > 0) {
+//     while ($row = mysqli_fetch_assoc($adminSelectQuery)) {
+//         $admins[] = $row;
+//     }
+// }
+
+// Set the number of rows per page
+$rowsPerPage = 10;
+
+// Get the current page number from the URL or default to 1
+$currentPage = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+
+// Calculate the offset for the query
+$offset = ($currentPage - 1) * $rowsPerPage;
+
 // Initialize search and filter variables
 $searchAdminQuery = isset($_GET['acc_search']) ? mysqli_real_escape_string($connect, $_GET['acc_search']) : '';
 $filterRoleID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 
-// Construct the admin query based on search and role filter
+// Construct the admin query based on search and role filter with LIMIT and OFFSET
 if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {
-    $adminSelect = "SELECT * FROM admintb WHERE RoleID = '$filterRoleID' AND (FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%')";
+    $adminSelect = "SELECT * FROM admintb WHERE RoleID = '$filterRoleID' AND (FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%') LIMIT $rowsPerPage OFFSET $offset";
 } elseif ($filterRoleID !== 'random') {
-    $adminSelect = "SELECT * FROM admintb WHERE RoleID = '$filterRoleID'";
+    $adminSelect = "SELECT * FROM admintb WHERE RoleID = '$filterRoleID' LIMIT $rowsPerPage OFFSET $offset";
 } elseif (!empty($searchAdminQuery)) {
-    $adminSelect = "SELECT * FROM admintb WHERE FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%'";
+    $adminSelect = "SELECT * FROM admintb WHERE FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%' LIMIT $rowsPerPage OFFSET $offset";
 } else {
-    $adminSelect = "SELECT * FROM admintb";
+    $adminSelect = "SELECT * FROM admintb LIMIT $rowsPerPage OFFSET $offset";
 }
 
+// Execute the query to fetch admins
 $adminSelectQuery = mysqli_query($connect, $adminSelect);
 $admins = [];
 
@@ -31,6 +65,21 @@ if (mysqli_num_rows($adminSelectQuery) > 0) {
         $admins[] = $row;
     }
 }
+
+// Fetch total number of rows for pagination calculation
+$totalRowsQuery = "SELECT COUNT(*) as total FROM admintb";
+if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {
+    $totalRowsQuery = "SELECT COUNT(*) as total FROM admintb WHERE RoleID = '$filterRoleID' AND (FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%')";
+} elseif ($filterRoleID !== 'random') {
+    $totalRowsQuery = "SELECT COUNT(*) as total FROM admintb WHERE RoleID = '$filterRoleID'";
+} elseif (!empty($searchAdminQuery)) {
+    $totalRowsQuery = "SELECT COUNT(*) as total FROM admintb WHERE FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%'";
+}
+$totalRowsResult = mysqli_query($connect, $totalRowsQuery);
+$totalRows = mysqli_fetch_assoc($totalRowsResult)['total'];
+
+// Calculate the total number of pages
+$totalPages = ceil($totalRows / $rowsPerPage);
 
 $searchSupplierQuery = isset($_GET['supplier_search']) ? mysqli_real_escape_string($connect, $_GET['supplier_search']) : '';
 $filterSupplierID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
@@ -242,10 +291,13 @@ if (mysqli_num_rows($query) > 0) {
                 </div>
             </div>
             <div class="flex flex-col pt-2">
-                <a href="AdminDashboard.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none">
-                    <i class="ri-dashboard-3-line text-xl"></i>
-                    <span class="font-semibold text-sm">Dashboard</span>
-                </a>
+                <div class="mb-2">
+                    <h1 class="text-xs font-semibold text-gray-500">MAIN HOME</h1>
+                    <a href="AdminDashboard.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none">
+                        <i class="ri-dashboard-3-line text-xl"></i>
+                        <span class="font-semibold text-sm">Dashboard</span>
+                    </a>
+                </div>
                 <a href="RoleManagement.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1') ? 'flex' : 'hidden'; ?>">
                     <i class="ri-settings-3-line text-xl relative">
                         <p class="bg-red-500 rounded-full text-sm text-white w-5 h-5 text-center absolute -top-1 -right-2 select-none <?php echo ($orderCount != 0) ? 'block' : 'hidden'; ?>"><?php echo $orderCount ?></p>

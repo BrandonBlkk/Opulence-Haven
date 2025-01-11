@@ -81,12 +81,12 @@ if (isset($_POST['deleteadmin'])) {
     <!-- Main Container -->
     <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px] relative">
         <!-- Left Side Content -->
-        <div class="w-full md:w-2/3 bg-white p-4">
+        <div class="w-full md:w-2/3 bg-white p-2">
             <h2 class="text-xl font-bold mb-4">Manage Admin Roles and Accounts</h2>
             <p>View the list of admins and assign roles for efficient role-based access control.</p>
 
             <!-- Admin Table -->
-            <div class="overflow-x-auto mt-4">
+            <div class="overflow-x-auto">
                 <!-- Admin Search and Filter -->
                 <form method="GET" class="my-4 flex items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
                     <h1 class="text-lg font-semibold text-nowrap">All Users <span class="text-gray-400 text-sm ml-2"><?php echo $adminCount ?></span></h1>
@@ -132,7 +132,7 @@ if (isset($_POST['deleteadmin'])) {
                                 <th class="p-3 text-left">Name</th>
                                 <th class="p-3 text-center">Role</th>
                                 <th class="p-3 text-center">Status</th>
-                                <th class="p-3 text-center">Reset Password</th>
+                                <th class="p-3 text-center text-nowrap">Reset Password</th>
                                 <th class="p-3 text-center">Actions</th>
                             </tr>
                         </thead>
@@ -140,7 +140,7 @@ if (isset($_POST['deleteadmin'])) {
                             <?php foreach ($admins as $admin): ?>
                                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                                     <td class="p-3 text-left whitespace-nowrap">
-                                        <div class="flex items-center gap-2">
+                                        <div class="flex items-center gap-2 font-medium text-gray-500">
                                             <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
                                             <span><?= htmlspecialchars($admin['AdminID']) ?></span>
                                         </div>
@@ -206,6 +206,16 @@ if (isset($_POST['deleteadmin'])) {
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Pagination Controls -->
+                <div class="flex justify-center items-center mt-1">
+                    <?php for ($page = 1; $page <= $totalPages; $page++): ?>
+                        <a href="?page=<?= $page ?>&sort=<?= htmlspecialchars($filterRoleID) ?>&acc_search=<?= htmlspecialchars($searchAdminQuery) ?>"
+                            class="px-3 py-1 mx-1 border rounded <?= $page == $currentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                            <?= $page ?>
+                        </a>
+                    <?php endfor; ?>
+                </div>
             </div>
         </div>
 
@@ -252,7 +262,7 @@ if (isset($_POST['deleteadmin'])) {
         </div>
 
         <!-- Right Side Form -->
-        <div class="w-full md:w-1/3 h-full bg-white rounded-lg shadow p-4 sticky top-0">
+        <div class="w-full md:w-1/3 h-full bg-white rounded-lg shadow p-2 sticky top-0">
             <h2 class="text-xl font-bold mb-4">Add New Role</h2>
             <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="roleForm">
                 <!-- Role Input -->

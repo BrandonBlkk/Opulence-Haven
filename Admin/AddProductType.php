@@ -100,11 +100,11 @@ if (isset($_POST['deleteproducttype'])) {
     <!-- Main Container -->
     <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px]">
         <!-- Left Side Content -->
-        <div class="w-full md:w-2/3 bg-white p-4">
+        <div class="w-full md:w-2/3 bg-white p-2">
             <h2 class="text-xl font-bold mb-4">Add Product Type Overview</h2>
             <p>Add information about product types to categorize items, track stock levels, and manage product details for efficient organization.</p>
             <!-- Supplier Table -->
-            <div class="overflow-x-auto mt-4">
+            <div class="overflow-x-auto">
                 <!-- Supplier Search and Filter -->
                 <form method="GET" class="my-4 flex items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
                     <h1 class="text-lg font-semibold text-nowrap">All Product Type <span class="text-gray-400 text-sm ml-2"><?php echo $productTypeCount ?></span></h1>
@@ -126,7 +126,7 @@ if (isset($_POST['deleteproducttype'])) {
                             <?php foreach ($productTypes as $productType): ?>
                                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                                     <td class="p-3 text-left whitespace-nowrap">
-                                        <div class="flex items-center gap-2">
+                                        <div class="flex items-center gap-2 font-medium text-gray-500">
                                             <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
                                             <span><?= htmlspecialchars($productType['ProductTypeID']) ?></span>
                                         </div>
@@ -220,7 +220,7 @@ if (isset($_POST['deleteproducttype'])) {
         </div>
 
         <!-- Right Side Form -->
-        <div class="w-full md:w-1/3 h-full bg-white rounded-lg shadow p-4">
+        <div class="w-full md:w-1/3 h-full bg-white rounded-lg shadow p-2">
             <h2 class="text-xl font-bold mb-4">Add New Product Type</h2>
             <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="productTypeForm">
                 <!-- Product Type Input -->
