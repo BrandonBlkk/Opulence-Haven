@@ -148,7 +148,7 @@ if (isset($_POST['respondcontact'])) {
                                     </td>
                                     <td class="p-3 text-center space-x-1">
                                         <p>
-                                            <?= htmlspecialchars(mb_strimwidth($contact['ContactMessage'], 0, 50)) ?>
+                                            <?= htmlspecialchars(mb_strimwidth($contact['ContactMessage'], 0, 50, '...')) ?>
                                         </p>
                                     </td>
                                     <td class="p-3 text-center space-x-1 select-none">

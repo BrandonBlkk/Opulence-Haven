@@ -7,6 +7,9 @@
 <input type="hidden" id="addProductTypeSuccess" value="<?php echo $addProductTypeSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="updateProductTypeSuccess" value="<?php echo $updateProductTypeSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="deleteProductTypeSuccess" value="<?php echo $deleteProductTypeSuccess ? 'true' : 'false'; ?>">
+<input type="hidden" id="addProductSuccess" value="<?php echo $addProductSuccess ? 'true' : 'false'; ?>">
+<input type="hidden" id="updateProductSuccess" value="<?php echo $updateProductSuccess ? 'true' : 'false'; ?>">
+<input type="hidden" id="deleteProductSuccess" value="<?php echo $deleteProductSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="addSupplierSuccess" value="<?php echo $addSupplierSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="updateSupplierSuccess" value="<?php echo $updateSupplierSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="deleteSupplierSuccess" value="<?php echo $deleteSupplierSuccess ? 'true' : 'false'; ?>">

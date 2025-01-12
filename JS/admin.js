@@ -377,6 +377,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show Alert
             setTimeout(() => {
                 showAlert('The product type has been successfully updated.');
+                setTimeout(() => {
+                    window.location.href = 'AddProductType.php';
+                }, 5000);
             }, 500);
         } else if (alertMessage) {
             // Show Alert
@@ -445,6 +448,143 @@ document.addEventListener('DOMContentLoaded', () => {
             showAlert('The product type has been successfully deleted.');
             setTimeout(() => {
                 window.location.href = 'AddProductType.php';
+            }, 5000);
+        } else if (alertMessage) {
+            // Show Alert
+            showAlert(alertMessage);
+        }
+    }
+});
+
+// Product Details Modal
+document.addEventListener('DOMContentLoaded', () => {
+    const updateProductModal = document.getElementById('updateProductModal');
+    const updateProductModalCancelBtn = document.getElementById('updateProductModalCancelBtn');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const updateProductSuccess = document.getElementById('updateProductSuccess').value === 'true';
+
+    // Get all details buttons
+    const detailsBtns = document.querySelectorAll('.details-btn');
+
+    if (updateProductModal && updateProductModalCancelBtn && detailsBtns) {
+        // Add click event to each button
+        detailsBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const productId = this.getAttribute('data-product-id');
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+
+                // Fetch product type details
+                fetch(`../Admin/AddProduct.php?action=getProductDetails&id=${productId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Fill the modal form with product type data
+                            document.getElementById('updateProductID').value = productId;
+                            document.querySelector('[name="updateproductTitle"]').value = data.product.Title;
+                            document.querySelector('[name="updatebrand"]').value = data.product.Brand;
+                            document.querySelector('[name="updatedescription"]').value = data.product.Description;
+                            document.querySelector('[name="updatespecification"]').value = data.product.Specification;
+                            document.querySelector('[name="updateinformation"]').value = data.product.Information;
+                            document.querySelector('[name="updatedelivery"]').value = data.product.DeliveryInfo;
+                            document.querySelector('[name="updateprice"]').value = data.product.Price;
+                            document.querySelector('[name="updatediscountPrice"]').value = data.product.DiscountPrice;
+                            document.querySelector('[name="updateproductsize"]').value = data.product.ProductSize;
+                            document.querySelector('[name="updatestock"]').value = data.product.Stock;
+                            document.querySelector('[name="updatesellingfast"]').value = data.product.SellingFast;
+                            document.querySelector('[name="updateproductType"]').value = data.product.ProductTypeID;
+                            
+                            // Show the modal
+                            updateProductModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        } else {
+                            console.error('Failed to load product type details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+            });
+        });
+
+        updateProductModalCancelBtn.addEventListener('click', () => {
+            updateProductModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        if (updateProductSuccess) {
+            // Show Alert
+            setTimeout(() => {
+                showAlert('The product has been successfully updated.');
+                setTimeout(() => {
+                    window.location.href = 'AddProduct.php';
+                }, 5000);
+            }, 500);
+        } else if (alertMessage) {
+            // Show Alert
+            showAlert(alertMessage);
+        }
+        // Add keyup event listeners for real-time validation
+        // document.getElementById("updateProductTypeInput").addEventListener("keyup", validateUpdateProductTypeInput);
+        // document.getElementById("updateProductTypeDescription").addEventListener("keyup", validateUpdateDescription);
+
+        // const updateProductTypeForm = document.getElementById("updateProductTypeForm");
+        // if (updateProductTypeForm) {
+        //     updateProductTypeForm.addEventListener("submit", (e) => {
+        //         if (!validateUpdateProductType()) {
+        //             e.preventDefault();
+        //         }
+        //     });
+        // }
+    }
+});
+
+// Product Delete Modal
+document.addEventListener('DOMContentLoaded', () => {
+    const productDeleteModal = document.getElementById('productConfirmDeleteModal');
+    const productDeleteModalCancelBtn = document.getElementById('productCancelDeleteBtn');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const deleteProductSuccess = document.getElementById('deleteProductSuccess').value === 'true';
+
+    // Get all delete buttons
+    const deleteBtns = document.querySelectorAll('.delete-btn');
+
+    if (productDeleteModal && productDeleteModalCancelBtn && deleteBtns) {
+        // Add click event to each delete button
+        deleteBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const productId = this.getAttribute('data-product-id');
+
+                // Fetch product type details
+                fetch(`../Admin/AddProduct.php?action=getProductDetails&id=${productId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('deleteProductID').value = productId;
+                            document.getElementById('productDeleteName').textContent = data.product.Title;
+                        } else {
+                            console.error('Failed to load product details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+
+                // Show modal
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+                productDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+            });
+        });
+
+        // Cancel button functionality
+        productDeleteModalCancelBtn.addEventListener('click', () => {
+            productDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        if (deleteProductSuccess) {
+            // Show Alert
+            showAlert('The product has been successfully deleted.');
+            setTimeout(() => {
+                window.location.href = 'AddProduct.php';
             }, 5000);
         } else if (alertMessage) {
             // Show Alert

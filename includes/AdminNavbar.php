@@ -81,6 +81,22 @@ $totalRows = mysqli_fetch_assoc($totalRowsResult)['total'];
 // Calculate the total number of pages
 $totalPages = ceil($totalRows / $rowsPerPage);
 
+// Construct the admin count query based on search and role filter
+if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {
+    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb WHERE RoleID = '$filterRoleID' AND (FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%')";
+} elseif ($filterRoleID !== 'random') {
+    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb WHERE RoleID = '$filterRoleID'";
+} elseif (!empty($searchAdminQuery)) {
+    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb WHERE FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%'";
+} else {
+    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb";
+}
+
+// Execute the count query
+$adminCountResult = mysqli_query($connect, $adminCountQuery);
+$adminCountRow = mysqli_fetch_assoc($adminCountResult);
+$adminCount = $adminCountRow['count'];
+
 $searchSupplierQuery = isset($_GET['supplier_search']) ? mysqli_real_escape_string($connect, $_GET['supplier_search']) : '';
 $filterSupplierID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 
@@ -104,10 +120,31 @@ if (mysqli_num_rows($supplierSelectQuery) > 0) {
     }
 }
 
+// Construct the supplier count query based on search and product type filter
+if ($filterSupplierID !== 'random' && !empty($searchSupplierQuery)) {
+    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb WHERE ProductTypeID = '$filterSupplierID' AND (SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%')";
+} elseif ($filterSupplierID !== 'random') {
+    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb WHERE ProductTypeID = '$filterSupplierID'";
+} elseif (!empty($searchSupplierQuery)) {
+    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb WHERE SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%'";
+} else {
+    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb";
+}
+
+// Execute the count query
+$supplierResult = mysqli_query($connect, $supplierQuery);
+$supplierRow = mysqli_fetch_assoc($supplierResult);
+$supplierCount = $supplierRow['count'];
+// Fetch all supplier count
+$supplierCountQuery = "SELECT COUNT(*) as count FROM suppliertb";
+$supplierCountResult = mysqli_query($connect, $supplierCountQuery);
+$supplierCountRow = mysqli_fetch_assoc($supplierCountResult);
+$allSupplierCount = $supplierCountRow['count'];
+
 $searchProductTypeQuery = isset($_GET['producttype_search']) ? mysqli_real_escape_string($connect, $_GET['producttype_search']) : '';
 $filterProductTypeID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 
-// Construct the supplier query based on search and role filter
+// Construct the product type query based on search
 if (!empty($searchProductTypeQuery)) {
     $productTypeSelect = "SELECT * FROM producttypetb WHERE ProductType LIKE '%$searchProductTypeQuery%' OR Description LIKE '%$searchProductTypeQuery%'";
 } else {
@@ -122,6 +159,67 @@ if (mysqli_num_rows($productTypeSelectQuery) > 0) {
         $productTypes[] = $row;
     }
 }
+
+// Construct the prooducttype count query based on search
+if (!empty($searchProductTypeQuery)) {
+    $productTypeQuery = "SELECT COUNT(*) as count FROM producttypetb WHERE ProductType LIKE '%$searchProductTypeQuery%' OR Description LIKE '%$searchProductTypeQuery%'";
+} else {
+    $productTypeQuery = "SELECT COUNT(*) as count FROM producttypetb";
+}
+
+// Execute the count query
+$productTypeResult = mysqli_query($connect, $productTypeQuery);
+$productTypeRow = mysqli_fetch_assoc($productTypeResult);
+$productTypeCount = $productTypeRow['count'];
+// Fetch product type count
+$productTypeCountQuery = "SELECT COUNT(*) as count FROM producttypetb";
+$productTypeCountResult = mysqli_query($connect, $productTypeCountQuery);
+$productTypeCountRow = mysqli_fetch_assoc($productTypeCountResult);
+$allProductTypeCount = $productTypeCountRow['count'];
+
+$searchProductQuery = isset($_GET['product_search']) ? mysqli_real_escape_string($connect, $_GET['product_search']) : '';
+$filterProductID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
+
+// Construct the product query based on search and product type filter
+if ($filterProductID !== 'random' && !empty($searchProductQuery)) {
+    $productSelect = "SELECT * FROM producttb WHERE ProductTypeID = '$filterProductID' AND (Title LIKE '%$searchProductQuery%' OR Description LIKE '%$searchProductQuery%' OR Specification LIKE '%$searchProductQuery%' OR Information LIKE '%$searchProductQuery%' OR Brand LIKE '%$searchProductQuery%')";
+} elseif ($filterProductID !== 'random') {
+    $productSelect = "SELECT * FROM producttb WHERE ProductTypeID = '$filterProductID'";
+} elseif (!empty($searchProductQuery)) {
+    $productSelect = "SELECT * FROM producttb WHERE Title LIKE '%$searchProductQuery%' OR Description LIKE '%$searchProductQuery%' OR Specification LIKE '%$searchProductQuery%' OR Information LIKE '%$searchProductQuery%' OR Brand LIKE '%$searchProductQuery%'";
+} else {
+    $productSelect = "SELECT * FROM producttb";
+}
+
+$productSelectQuery = mysqli_query($connect, $productSelect);
+$products = [];
+
+if (mysqli_num_rows($productSelectQuery) > 0) {
+    while ($row = mysqli_fetch_assoc($productSelectQuery)) {
+        $products[] = $row;
+    }
+}
+
+// Construct the product count query based on search and product type filter
+if ($filterProductID !== 'random' && !empty($searchProductQuery)) {
+    $productQuery = "SELECT COUNT(*) as count FROM producttb WHERE ProductTypeID = '$filterProductID' AND (Title LIKE '%$searchProductQuery%' OR Description LIKE '%$searchProductQuery%' OR Specification LIKE '%$searchProductQuery%' OR Information LIKE '%$searchProductQuery%' OR Brand LIKE '%$searchProductQuery%')";
+} elseif ($filterProductID !== 'random') {
+    $productQuery = "SELECT COUNT(*) as count FROM producttb WHERE ProductTypeID = '$filterProductID'";
+} elseif (!empty($searchProductQuery)) {
+    $productQuery = "SELECT COUNT(*) as count FROM producttb WHERE Title LIKE '%$searchProductQuery%' OR Description LIKE '%$searchProductQuery%' OR Specification LIKE '%$searchProductQuery%' OR Information LIKE '%$searchProductQuery%' OR Brand LIKE '%$searchProductQuery%'";
+} else {
+    $productQuery = "SELECT COUNT(*) as count FROM producttb";
+}
+
+// Execute the count query
+$productResult = mysqli_query($connect, $productQuery);
+$productRow = mysqli_fetch_assoc($productResult);
+$productCount = $productRow['count'];
+// Fetch product type count
+$productCountQuery = "SELECT COUNT(*) as count FROM producttb";
+$productCountResult = mysqli_query($connect, $productCountQuery);
+$productCountRow = mysqli_fetch_assoc($productCountResult);
+$allProductCount = $productCountRow['count'];
 
 $searchContactQuery = isset($_GET['contact_search']) ? mysqli_real_escape_string($connect, $_GET['contact_search']) : '';
 $filterStatus = isset($_GET['sort']) ? $_GET['sort'] : 'random';
@@ -146,59 +244,16 @@ if (mysqli_num_rows($contactSelectQuery) > 0) {
     }
 }
 
-// Construct the admin count query based on search and role filter
-if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {
-    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb WHERE RoleID = '$filterRoleID' AND (FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%')";
-} elseif ($filterRoleID !== 'random') {
-    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb WHERE RoleID = '$filterRoleID'";
-} elseif (!empty($searchAdminQuery)) {
-    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb WHERE FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%'";
+// Construct the contact query based on search and status filter
+if ($filterStatus !== 'random' && !empty($searchContactQuery)) {
+    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE Status = '$filterStatus' AND (FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%')";
+} elseif ($filterStatus !== 'random') {
+    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE Status = '$filterStatus'";
+} elseif (!empty($searchContactQuery)) {
+    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%'";
 } else {
-    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb";
+    $contactQuery = "SELECT COUNT(*) as count FROM contacttb";
 }
-
-// Execute the count query
-$adminCountResult = mysqli_query($connect, $adminCountQuery);
-$adminCountRow = mysqli_fetch_assoc($adminCountResult);
-$adminCount = $adminCountRow['count'];
-
-// Construct the supplier count query based on search and product type filter
-if ($filterSupplierID !== 'random' && !empty($searchSupplierQuery)) {
-    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb WHERE ProductTypeID = '$filterSupplierID' AND (SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%')";
-} elseif ($filterSupplierID !== 'random') {
-    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb WHERE ProductTypeID = '$filterSupplierID'";
-} elseif (!empty($searchSupplierQuery)) {
-    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb WHERE SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%'";
-} else {
-    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb";
-}
-
-// Execute the count query
-$supplierResult = mysqli_query($connect, $supplierQuery);
-$supplierRow = mysqli_fetch_assoc($supplierResult);
-$supplierCount = $supplierRow['count'];
-// Fetch all supplier count
-$supplierCountQuery = "SELECT COUNT(*) as count FROM suppliertb";
-$supplierCountResult = mysqli_query($connect, $supplierCountQuery);
-$supplierCountRow = mysqli_fetch_assoc($supplierCountResult);
-$allSupplierCount = $supplierCountRow['count'];
-
-// Construct the prooducttype count query based on search and product type filter
-if (!empty($searchProductTypeQuery)) {
-    $prooducTypeQuery = "SELECT COUNT(*) as count FROM producttypetb WHERE ProductType LIKE '%$searchProductTypeQuery%' OR Description LIKE '%$searchProductTypeQuery%'";
-} else {
-    $prooducTypeQuery = "SELECT COUNT(*) as count FROM producttypetb";
-}
-
-// Execute the count query
-$productTypeResult = mysqli_query($connect, $prooducTypeQuery);
-$productTypeRow = mysqli_fetch_assoc($productTypeResult);
-$productTypeCount = $productTypeRow['count'];
-// Fetch product type count
-$productTypeCountQuery = "SELECT COUNT(*) as count FROM producttypetb";
-$productTypeCountResult = mysqli_query($connect, $productTypeCountQuery);
-$productTypeCountRow = mysqli_fetch_assoc($productTypeCountResult);
-$allProductTypeCount = $productTypeCountRow['count'];
 
 // Construct the contact query based on search and status filter
 if ($filterStatus !== 'random' && !empty($searchContactQuery)) {
@@ -220,12 +275,6 @@ $contactCountQuery = "SELECT COUNT(*) as count FROM contacttb";
 $contactCountResult = mysqli_query($connect, $contactCountQuery);
 $contactCountRow = mysqli_fetch_assoc($contactCountResult);
 $allContactCount = $contactCountRow['count'];
-
-// Fetch product count
-$productCountQuery = "SELECT COUNT(*) as count FROM producttb";
-$productCountResult = mysqli_query($connect, $productCountQuery);
-$productCountRow = mysqli_fetch_assoc($productCountResult);
-$productCount = $productCountRow['count'];
 
 $select = "SELECT admintb.*, roletb.Role 
     FROM admintb 
@@ -331,7 +380,7 @@ if (mysqli_num_rows($query) > 0) {
                                     <i class="ri-shirt-line text-xl"></i>
                                     <span class="font-semibold text-sm">Add product</span>
                                 </div>
-                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $productCount ?></p>
+                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allProductCount ?></p>
                             </a>
                             <a href="../Admin/AddProductType.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">

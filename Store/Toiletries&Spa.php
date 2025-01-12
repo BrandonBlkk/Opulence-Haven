@@ -5,6 +5,35 @@ include('../config/dbConnection.php');
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
+
+// Toiletries
+$productSelect = "SELECT p.*, pt.ProductType FROM producttb p
+INNER JOIN producttypetb pt 
+ON p.ProductTypeID = pt.ProductTypeID
+WHERE pt.ProductType = 'Toiletries'";
+$productSelectQuery = mysqli_query($connect, $productSelect);
+$toiletriesProducts = [];
+
+if (mysqli_num_rows($productSelectQuery) > 0) {
+    while ($row = mysqli_fetch_assoc($productSelectQuery)) {
+        $toiletriesProducts[] = $row;
+    }
+}
+
+// Spa
+$productSelect = "SELECT p.*, pt.ProductType FROM producttb p
+INNER JOIN producttypetb pt 
+ON p.ProductTypeID = pt.ProductTypeID
+WHERE pt.ProductType = 'Spa'";
+$productSelectQuery = mysqli_query($connect, $productSelect);
+$spaProducts = [];
+
+if (mysqli_num_rows($productSelectQuery) > 0) {
+    while ($row = mysqli_fetch_assoc($productSelectQuery)) {
+        $spaProducts[] = $row;
+    }
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -36,6 +65,54 @@ if (!$connect) {
 
         <section class="mt-3">
             <h1 class="text-center uppercase text-xl sm:text-2xl text-blue-900 font-semibold bg-gray-100 py-5 mb-5">Black Friday | save 25% on everything</h1>
+        </section>
+
+        <!-- Toiletries -->
+        <section class="<?php if (empty($toiletriesProducts)): ?>hidden<?php endif; ?>">
+            <h1 class="uppercase text-xl sm:text-2xl text-blue-900 font-semibold my-5">Toiletries</h1>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 border-t pt-5">
+                <?php foreach ($toiletriesProducts as $product): ?>
+                    <a href="StoreDetails.php" class="block w-full group">
+                        <div class="relative">
+                            <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
+                                <img src="<?= htmlspecialchars($product['UserImg1']) ?>" class="w-full h-full object-cover rounded-sm" alt="Store Image">
+                            </div>
+                            <div class="absolute bottom-0 bg-opacity-45 text-white p-3 w-full z-20 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all duration-300">
+                                <h1 class="font-semibold mt-3"><?= htmlspecialchars($product['Title']) ?></h1>
+                                <div class="flex items-center text-amber-500 group mt-1">
+                                    <span class="select-none">Order now</span>
+                                    <i class="ri-arrow-right-line text-xl group-hover:translate-x-2 transition-all duration-200"></i>
+                                </div>
+                            </div>
+                            <div class="absolute bottom-0 left-0 right-0 h-44 bg-gradient-to-t from-blue-950/75 lg:from-amber-900/65 via-blue-950/65 lg:via-amber-900/45 to-transparent z-10 group-hover:h-48 transition-all duration-300"></div>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </section>
+
+        <!-- Spa -->
+        <section class="<?php if (empty($spaProducts)): ?>hidden<?php endif; ?>">
+            <h1 class="uppercase text-xl sm:text-2xl text-blue-900 font-semibold my-5">Toiletries</h1>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 border-t pt-5">
+                <?php foreach ($spaProducts as $product): ?>
+                    <a href="StoreDetails.php" class="block w-full group">
+                        <div class="relative">
+                            <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
+                                <img src="<?= htmlspecialchars($product['UserImg1']) ?>" class="w-full h-full object-cover rounded-sm" alt="Store Image">
+                            </div>
+                            <div class="absolute bottom-0 bg-opacity-45 text-white p-3 w-full z-20 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all duration-300">
+                                <h1 class="font-semibold mt-3"><?= htmlspecialchars($product['Title']) ?></h1>
+                                <div class="flex items-center text-amber-500 group mt-1">
+                                    <span class="select-none">Order now</span>
+                                    <i class="ri-arrow-right-line text-xl group-hover:translate-x-2 transition-all duration-200"></i>
+                                </div>
+                            </div>
+                            <div class="absolute bottom-0 left-0 right-0 h-44 bg-gradient-to-t from-blue-950/75 lg:from-amber-900/65 via-blue-950/65 lg:via-amber-900/45 to-transparent z-10 group-hover:h-48 transition-all duration-300"></div>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
+            </div>
         </section>
 
         <section>

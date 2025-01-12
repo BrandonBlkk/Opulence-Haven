@@ -2,6 +2,7 @@
 session_start();
 include('../config/dbConnection.php');
 include('../includes/AutoIDFunc.php');
+
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
@@ -103,6 +104,7 @@ if (isset($_POST['deleteproducttype'])) {
         <div class="w-full md:w-2/3 bg-white p-2">
             <h2 class="text-xl font-bold mb-4">Add Product Type Overview</h2>
             <p>Add information about product types to categorize items, track stock levels, and manage product details for efficient organization.</p>
+
             <!-- Supplier Table -->
             <div class="overflow-x-auto">
                 <!-- Supplier Search and Filter -->
@@ -112,7 +114,7 @@ if (isset($_POST['deleteproducttype'])) {
                         <input type="text" name="producttype_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full" placeholder="Search for product type..." value="<?php echo isset($_GET['producttype_search']) ? htmlspecialchars($_GET['producttype_search']) : ''; ?>">
                     </div>
                 </form>
-                <div class="adminTable overflow-y-auto max-h-[510px]">
+                <div class="overflow-y-auto max-h-[510px]">
                     <table class="min-w-full bg-white rounded-lg">
                         <thead>
                             <tr class="bg-gray-100 text-gray-600 text-sm">
