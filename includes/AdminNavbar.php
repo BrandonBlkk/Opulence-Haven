@@ -271,7 +271,7 @@ $contactResult = mysqli_query($connect, $contactQuery);
 $contactRow = mysqli_fetch_assoc($contactResult);
 $contactCount = $contactRow['count'];
 // Fetch contact count
-$contactCountQuery = "SELECT COUNT(*) as count FROM contacttb";
+$contactCountQuery = "SELECT COUNT(*) as count FROM contacttb WHERE Status = 'pending'";
 $contactCountResult = mysqli_query($connect, $contactCountQuery);
 $contactCountRow = mysqli_fetch_assoc($contactCountResult);
 $allContactCount = $contactCountRow['count'];

@@ -86,13 +86,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproduct'])) {
         exit();
     }
 
-    $addProductQuery = "INSERT INTO producttb (ProductID, Title, AdminImg1, AdminImg2, AdminImg3, UserImg1, UserImg2, UserImg3, Price, DiscountPrice, Description, Specification, Information, DeliveryInfo, Brand, ProductSize, SellingFast, Stock, ProductTypeID)
-    VALUES ('$productID', '$productTitle', '$fileName1', '$fileName2', '$fileName3', '$userFileName1', '$userFileName2', '$userFileName3', '$price', '$discountPrice', '$description', '$specification', '$information', '$delivery', '$brand', '$productSize', '$sellingFast', '$stock', '$productType')";
+    // Check if the product already exists using prepared statement
+    $checkQuery = "SELECT Title FROM producttb WHERE Title = '$productTitle'";
 
-    if (mysqli_query($connect, $addProductQuery)) {
-        $addProductSuccess = true;
+    $checkQuery = mysqli_query($connect, $checkQuery);
+    $count = mysqli_num_rows($checkQuery);
+
+    if ($count > 0) {
+        $alertMessage = 'Product you added is already existed.';
     } else {
-        $alertMessage = "Failed to add product. Please try again.";
+        $addProductQuery = "INSERT INTO producttb (ProductID, Title, AdminImg1, AdminImg2, AdminImg3, UserImg1, UserImg2, UserImg3, Price, DiscountPrice, Description, Specification, Information, DeliveryInfo, Brand, ProductSize, SellingFast, Stock, ProductTypeID)
+        VALUES ('$productID', '$productTitle', '$fileName1', '$fileName2', '$fileName3', '$userFileName1', '$userFileName2', '$userFileName3', '$price', '$discountPrice', '$description', '$specification', '$information', '$delivery', '$brand', '$productSize', '$sellingFast', '$stock', '$productType')";
+
+        if (mysqli_query($connect, $addProductQuery)) {
+            $addProductSuccess = true;
+        } else {
+            $alertMessage = "Failed to add product. Please try again.";
+        }
     }
 }
 
@@ -356,9 +366,24 @@ if (isset($_POST['deleteproduct'])) {
                     <div class="relative">
                         <label class="block text-sm text-start font-medium text-gray-700 mb-1">Product Images</label>
                         <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
-                            <input type="file" name="updateimg1" class="mb-2">
-                            <input type="file" name="updateimg2" class="mb-2">
-                            <input type="file" name="updateimg3">
+                            <div>
+                                <div class="w-20 h-20">
+                                    <img id="updateimg1" src="" alt="Current Image 1" class="w-full h-full object-cover">
+                                </div>
+                                <input type="file" name="updateimg1" class="mb-2">
+                            </div>
+                            <div>
+                                <div class="w-20 h-20">
+                                    <img id="updateimg2" src="" alt="Current Image 2" class="w-full h-full object-cover">
+                                </div>
+                                <input type="file" name="updateimg2" class="mb-2">
+                            </div>
+                            <div>
+                                <div class="w-20 h-20">
+                                    <img id="updateimg3" src="" alt="Current Image 3" class="w-full h-full object-cover">
+                                </div>
+                                <input type="file" name="updateimg3">
+                            </div>
                         </div>
                     </div>
 
@@ -413,9 +438,9 @@ if (isset($_POST['deleteproduct'])) {
                         <!-- Selling Fast -->
                         <div class="relative flex-1">
                             <select name="updatesellingfast" id="updatesellingfast" class="p-2 w-full border rounded">
-                                <option value="" disabled selected>Selling Fast</option>
-                                <option value="true">True</option>
-                                <option value="false">False</option>
+                                <option value="">Selling Fast</option>
+                                <option value="true" <?php echo $product['SellingFast'] == 'true' ? 'selected' : ''; ?>>True</option>
+                                <option value="false" <?php echo $product['SellingFast'] == 'false' ? 'selected' : ''; ?>>False</option>
                             </select>
                         </div>
                         <!-- Product Type -->
@@ -484,7 +509,7 @@ if (isset($_POST['deleteproduct'])) {
         <!-- Right Side Form -->
         <div class="w-full md:w-1/3 bg-white rounded-lg shadow p-2">
             <h2 class="text-xl font-bold mb-4">Add New Product</h2>
-            <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" enctype="multipart/form-data" id="supplierForm">
+            <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" enctype="multipart/form-data" id="productForm">
                 <!-- Product Title Input -->
                 <div class="relative w-full">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Product Information</label>
@@ -508,11 +533,11 @@ if (isset($_POST['deleteproduct'])) {
                 <!-- Description -->
                 <div class="relative">
                     <textarea
-                        id="descriptionInput"
+                        id="productDescriptionInput"
                         class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                         name="description"
                         placeholder="Enter product description"></textarea>
-                    <small id="descriptionError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                    <small id="productDescriptionError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                 </div>
                 <!-- Specification -->
                 <div class="relative">
@@ -544,9 +569,9 @@ if (isset($_POST['deleteproduct'])) {
                 <!-- Image Uploads -->
                 <div class="relative">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Product Images</label>
-                    <input type="file" name="img1" class="mb-2">
-                    <input type="file" name="img2" class="mb-2">
-                    <input type="file" name="img3">
+                    <input type="file" name="img1" class="mb-2" required>
+                    <input type="file" name="img2" class="mb-2 required">
+                    <input type="file" name="img3" required>
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
@@ -571,27 +596,32 @@ if (isset($_POST['deleteproduct'])) {
                             name="discountPrice"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             placeholder="Enter discount price">
+                        <small id="discountPriceError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                     </div>
                 </div>
                 <!-- Product Size -->
                 <div class="relative w-full">
                     <input
+                        id="productSizeInput"
                         type="text"
                         name="productSize"
                         class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                         placeholder="Enter product size">
+                    <small id="productSizeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                 </div>
                 <!-- Stock -->
                 <div class="relative w-full">
                     <input
+                        id="stockInput"
                         type="number"
                         name="stock"
                         class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                         placeholder="Enter stock quantity">
+                    <small id="stockError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                 </div>
                 <!-- Selling Fast -->
                 <div class="relative">
-                    <select name="sellingfast" id="sellingfast" class="p-2 w-full border rounded">
+                    <select name="sellingfast" id="sellingfast" class="p-2 w-full border rounded" required>
                         <option value="" disabled selected>Selling Fast</option>
                         <option value="true">True</option>
                         <option value="false">False</option>
@@ -599,7 +629,7 @@ if (isset($_POST['deleteproduct'])) {
                 </div>
                 <!-- Product Type -->
                 <div class="relative">
-                    <select name="productType" id="productType" class="p-2 w-full border rounded">
+                    <select name="productType" id="productType" class="p-2 w-full border rounded" required>
                         <option value="" disabled selected>Select type of products</option>
                         <?php
                         $select = "SELECT * FROM producttypetb";

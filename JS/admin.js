@@ -72,42 +72,6 @@ if (adminLogoutBtn && adminConfirmModal && cancelBtn && adminConfirmLogoutBtn &&
     });
 }
 
-// Add Product Type Form
-document.addEventListener("DOMContentLoaded", () => {
-    const loader = document.getElementById('loader');
-    const alertMessage = document.getElementById('alertMessage').value;
-    const addProductTypeSuccess = document.getElementById('addProductTypeSuccess').value === 'true';
-
-    if (addProductTypeSuccess) {
-        loader.style.display = 'flex';
-
-        // Show Alert
-        setTimeout(() => {
-            loader.style.display = 'none';
-            showAlert('A new product type has been successfully added.');
-            setTimeout(() => {
-                window.location.href = 'AddProductType.php';
-            }, 5000);
-        }, 1000);
-    } else if (alertMessage) {
-        // Show Alert
-        showAlert(alertMessage);
-    }
-
-    // Add keyup event listeners for real-time validation
-    document.getElementById("productTypeInput").addEventListener("keyup", validateProductType);
-    document.getElementById("descriptionInput").addEventListener("keyup", validateDescription);
-
-    const productTypeForm = document.getElementById("productTypeForm");
-    if (productTypeForm) {
-        productTypeForm.addEventListener("submit", (e) => {
-            if (!validateProductTypeForm()) {
-                e.preventDefault();
-            }
-        });
-    }
-});
-
 // Add Role Form
 document.addEventListener("DOMContentLoaded", () => {
     const loader = document.getElementById('loader');
@@ -330,6 +294,45 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Add Product Type Form
+document.addEventListener("DOMContentLoaded", () => {
+    const loader = document.getElementById('loader');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const addProductTypeSuccess = document.getElementById('addProductTypeSuccess').value === 'true';
+
+    if (addProductTypeSuccess) {
+        loader.style.display = 'flex';
+
+        // Show Alert
+        setTimeout(() => {
+            loader.style.display = 'none';
+            showAlert('A new product type has been successfully added.');
+            setTimeout(() => {
+                window.location.href = 'AddProductType.php';
+            }, 5000);
+        }, 1000);
+    } else if (alertMessage) {
+        // Show Alert
+        showAlert(alertMessage);
+        setTimeout(() => {
+            window.location.href = 'AddProductType.php';
+        }, 5000);
+    }
+
+    // Add keyup event listeners for real-time validation
+    document.getElementById("productTypeInput").addEventListener("keyup", validateProductType);
+    document.getElementById("descriptionInput").addEventListener("keyup", validateDescription);
+
+    const productTypeForm = document.getElementById("productTypeForm");
+    if (productTypeForm) {
+        productTypeForm.addEventListener("submit", (e) => {
+            if (!validateProductTypeForm()) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+
 // Product Type Details Modal
 document.addEventListener('DOMContentLoaded', () => {
     const updateProductTypeModal = document.getElementById('updateProductTypeModal');
@@ -456,6 +459,50 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Add Product Form
+document.addEventListener("DOMContentLoaded", () => {
+    const loader = document.getElementById('loader');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const addProductSuccess = document.getElementById('addProductSuccess').value === 'true';
+
+    if (addProductSuccess) {
+        loader.style.display = 'flex';
+
+        // Show Alert
+        setTimeout(() => {
+            loader.style.display = 'none';
+            showAlert('A new product has been successfully added.');
+            setTimeout(() => {
+                window.location.href = 'AddProduct.php';
+            }, 5000);
+        }, 1000);
+    } else if (alertMessage) {
+        // Show Alert
+        showAlert(alertMessage);
+    }
+
+    // Add keyup event listeners for real-time validation
+    document.getElementById("productTitleInput").addEventListener("keyup", validateProductTitle);
+    document.getElementById("brandInput").addEventListener("keyup", validateProductBrand);
+    document.getElementById("productDescriptionInput").addEventListener("keyup", validateProductDescription);
+    document.getElementById("specificationInput").addEventListener("keyup", validateProductSpecification);
+    document.getElementById("informationInput").addEventListener("keyup", validateProductInformation);
+    document.getElementById("deliveryInput").addEventListener("keyup", validateProductDelivery);
+    document.getElementById("priceInput").addEventListener("keyup", validateProductPrice);
+    document.getElementById("discountPriceInput").addEventListener("keyup", validateProductDiscountPrice);
+    document.getElementById("productSizeInput").addEventListener("keyup", validateProductSize);
+    document.getElementById("stockInput").addEventListener("keyup", validateProductStock);
+
+    const productForm = document.getElementById("productForm");
+    if (productForm) {
+        productForm.addEventListener("submit", (e) => {
+            if (!validateProductForm()) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+
 // Product Details Modal
 document.addEventListener('DOMContentLoaded', () => {
     const updateProductModal = document.getElementById('updateProductModal');
@@ -482,6 +529,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             // Fill the modal form with product type data
                             document.getElementById('updateProductID').value = productId;
                             document.querySelector('[name="updateproductTitle"]').value = data.product.Title;
+                            document.getElementById('updateimg1').src = data.product.AdminImg1;
+                            document.getElementById('updateimg2').src = data.product.AdminImg2;
+                            document.getElementById('updateimg3').src = data.product.AdminImg3;
                             document.querySelector('[name="updatebrand"]').value = data.product.Brand;
                             document.querySelector('[name="updatedescription"]').value = data.product.Description;
                             document.querySelector('[name="updatespecification"]').value = data.product.Specification;
@@ -860,6 +910,21 @@ const validateUpdateProductType = () => {
     return isTypeValid && isDescriptionValid;
 };
 
+const validateProductForm = () => {
+    const isProductTitleValid = validateProductTitle();
+    const isProductBrandValid = validateProductBrand();
+    const isProductDescriptionValid = validateProductDescription();
+    const isProductSpecificationValid = validateProductSpecification();
+    const isProductInformationValid = validateProductInformation();
+    const isProductDeliveryValid = validateProductDelivery();
+    const isProductPriceValid = validateProductPrice();
+    const isProductDiscountPriceValid = validateProductDiscountPrice();
+    const isProductSizeValid = validateProductSize();
+    const isProductStockValid = validateProductStock();
+
+    return isProductTitleValid && isProductBrandValid && isProductDescriptionValid && isProductSpecificationValid && isProductInformationValid && isProductDeliveryValid && isProductPriceValid && isProductDiscountPriceValid && isProductSizeValid && isProductStockValid;
+}
+
 const validateSupplierForm = () => {
     const isSupplierNameValid = validateSupplierName();
     const isCompanyNameValid = validateCompanyName();
@@ -931,6 +996,86 @@ const validateDescription = () => {
         (input) => (!input ? "Description is required." : null)
     );
 };
+
+const validateProductDescription = () => {
+    return validateField(
+        "productDescriptionInput",
+        "productDescriptionError",
+        (input) => (!input ? "Description is required." : null)
+    );
+}
+
+const validateProductTitle = () => {
+    return validateField(
+        "productTitleInput",
+        "productTitleError",
+        (input) => (!input ? "Title is required." : null)
+    );
+}
+
+const validateProductBrand = () => {
+    return validateField(
+        "brandInput",
+        "brandError",
+        (input) => (!input ? "Brand is required." : null)
+    );
+}
+
+const validateProductSpecification = () => {
+    return validateField(
+        "specificationInput",
+        "specificationError",
+        (input) => (!input ? "Specification is required." : null)
+    );
+}
+
+const validateProductInformation = () => {
+    return validateField(
+        "informationInput",
+        "informationError",
+        (input) => (!input ? "Information is required." : null)
+    );
+}   
+
+const validateProductDelivery = () => {
+    return validateField(
+        "deliveryInput",
+        "deliveryError",
+        (input) => (!input ? "Delivery is required." : null)
+    );
+}   
+
+const validateProductPrice = () => {
+    return validateField(
+        "priceInput",
+        "priceError",
+        (input) => (!input ? "Price is required." : null)
+    );
+}
+
+const validateProductDiscountPrice = () => {
+    return validateField(
+        "discountPriceInput",
+        "discountPriceError",
+        (input) => (!input ? "Discount price is required." : null)
+    );
+}
+
+const validateProductSize = () => {
+    return validateField(
+        "productSizeInput",
+        "productSizeError",
+        (input) => (!input ? "Size is required." : null)
+    );
+}
+
+const validateProductStock = () => {
+    return validateField(
+        "stockInput",
+        "stockError",
+        (input) => (!input ? "Stock is required." : null)
+    );
+}
 
 const validateUpdateDescription = () => {
     return validateField(

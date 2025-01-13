@@ -18,13 +18,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproducttype'])) {
     $producttype = mysqli_real_escape_string($connect, $_POST['producttype']);
     $description = mysqli_real_escape_string($connect, $_POST['description']);
 
-    $addProductTypeQuery = "INSERT INTO producttypetb (ProductTypeID, ProductType, Description)
-    VALUES ('$productTypeID', '$producttype', '$description')";
+    // Check if the product type already exists using prepared statement
+    $checkQuery = "SELECT ProductType FROM producttypetb WHERE ProductType = '$producttype'";
 
-    if (mysqli_query($connect, $addProductTypeQuery)) {
-        $addProductTypeSuccess = true;
+    $checkQuery = mysqli_query($connect, $checkQuery);
+    $count = mysqli_num_rows($checkQuery);
+
+    if ($count > 0) {
+        $alertMessage = 'Product type you added is already existed.';
     } else {
-        $alertMessage = "Failed to add product type. Please try again.";
+        $addProductTypeQuery = "INSERT INTO producttypetb (ProductTypeID, ProductType, Description)
+        VALUES ('$productTypeID', '$producttype', '$description')";
+
+        if (mysqli_query($connect, $addProductTypeQuery)) {
+            $addProductTypeSuccess = true;
+        } else {
+            $alertMessage = "Failed to add product type. Please try again.";
+        }
     }
 }
 

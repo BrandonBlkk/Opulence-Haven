@@ -25,13 +25,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addsupplier'])) {
     $country = mysqli_real_escape_string($connect, $_POST['country']);
     $productType = mysqli_real_escape_string($connect, $_POST['productType']);
 
-    $addSupplierQuery = "INSERT INTO suppliertb (SupplierID, SupplierName, SupplierEmail, SupplierContact, SupplierCompany, Address, City, State, PostalCode, Country, ProductTypeID)
-    VALUES ('$supplierID', '$suppliername', '$email', '$contactNumber', '$companyName', '$address', '$city', '$state', '$postalCode', '$country', '$productType')";
+    // Check if the supplier already exists using prepared statement
+    $checkQuery = "SELECT SupplierEmail, SupplierContact FROM suppliertb WHERE SupplierEmail = '$email' OR SupplierContact = '$contactNumber'";
 
-    if (mysqli_query($connect, $addSupplierQuery)) {
-        $addSupplierSuccess = true;
+    $checkQuery = mysqli_query($connect, $checkQuery);
+    $count = mysqli_num_rows($checkQuery);
+
+    if ($count > 0) {
+        $alertMessage = 'Supplier you added is already existed.';
     } else {
-        $alertMessage = "Failed to add supplier. Please try again.";
+        $addSupplierQuery = "INSERT INTO suppliertb (SupplierID, SupplierName, SupplierEmail, SupplierContact, SupplierCompany, Address, City, State, PostalCode, Country, ProductTypeID)
+        VALUES ('$supplierID', '$suppliername', '$email', '$contactNumber', '$companyName', '$address', '$city', '$state', '$postalCode', '$country', '$productType')";
+
+        if (mysqli_query($connect, $addSupplierQuery)) {
+            $addSupplierSuccess = true;
+        } else {
+            $alertMessage = "Failed to add supplier. Please try again.";
+        }
     }
 }
 
