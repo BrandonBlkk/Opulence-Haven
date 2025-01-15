@@ -74,9 +74,28 @@ if (adminLogoutBtn && adminConfirmModal && cancelBtn && adminConfirmLogoutBtn &&
 
 // Add Role Form
 document.addEventListener("DOMContentLoaded", () => {
+    const addRoleModal = document.getElementById('addRoleModal');
+    const addRoleBtn = document.getElementById('addRoleBtn');
+    const addRoleCancelBtn = document.getElementById('addRoleCancelBtn');
     const loader = document.getElementById('loader');
     const alertMessage = document.getElementById('alertMessage').value;
     const addRoleSuccess = document.getElementById('addRoleSuccess').value === 'true';
+
+    if (addRoleModal && addRoleBtn && addRoleCancelBtn) {
+        // Show modal
+        addRoleBtn.addEventListener('click', () => {
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
+            addRoleModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+        }); 
+
+        // Cancel button functionality
+        addRoleCancelBtn.addEventListener('click', () => {
+            addRoleModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+    }
 
     if (addRoleSuccess) {
         loader.style.display = 'flex';
@@ -110,9 +129,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Add Supplier Form
 document.addEventListener("DOMContentLoaded", () => {
+    const addSupplierModal = document.getElementById('addSupplierModal');
+    const addSupplierBtn = document.getElementById('addSupplierBtn');
+    const addSupplierCancelBtn = document.getElementById('addSupplierCancelBtn');
     const loader = document.getElementById('loader');
     const alertMessage = document.getElementById('alertMessage').value;
     const addSupplierSuccess = document.getElementById('addSupplierSuccess').value === 'true';
+
+    if (addSupplierModal && addSupplierBtn && addSupplierCancelBtn) {
+        // Show modal
+        addSupplierBtn.addEventListener('click', () => {
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
+            addSupplierModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+        }); 
+
+        // Cancel button functionality
+        addSupplierCancelBtn.addEventListener('click', () => {
+            addSupplierModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+    }
 
     if (addSupplierSuccess) {
         loader.style.display = 'flex';
@@ -296,9 +334,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Add Product Type Form
 document.addEventListener("DOMContentLoaded", () => {
+    const addProductTypeModal = document.getElementById('addProductTypeModal');
+    const addProductTypeBtn = document.getElementById('addProductTypeBtn');
+    const addProductTypeCancelBtn = document.getElementById('addProductTypeCancelBtn');
     const loader = document.getElementById('loader');
     const alertMessage = document.getElementById('alertMessage').value;
     const addProductTypeSuccess = document.getElementById('addProductTypeSuccess').value === 'true';
+
+    if (addProductTypeModal && addProductTypeBtn && addProductTypeCancelBtn) {
+        // Show modal
+        addProductTypeBtn.addEventListener('click', () => {
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
+            addProductTypeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+        }); 
+
+        // Cancel button functionality
+        addProductTypeCancelBtn.addEventListener('click', () => {
+            addProductTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+    }
 
     if (addProductTypeSuccess) {
         loader.style.display = 'flex';
@@ -461,9 +518,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Add Product Form
 document.addEventListener("DOMContentLoaded", () => {
+    const addProductModal = document.getElementById('addProductModal');
+    const addProductBtn = document.getElementById('addProductBtn');
+    const addProductCancelBtn = document.getElementById('addProductCancelBtn');
     const loader = document.getElementById('loader');
     const alertMessage = document.getElementById('alertMessage').value;
     const addProductSuccess = document.getElementById('addProductSuccess').value === 'true';
+
+    if (addProductModal && addProductBtn && addProductCancelBtn) {
+        // Show modal
+        addProductBtn.addEventListener('click', () => {
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
+            addProductModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+        }); 
+
+        // Cancel button functionality
+        addProductCancelBtn.addEventListener('click', () => {
+            addProductModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+    }
 
     if (addProductSuccess) {
         loader.style.display = 'flex';
@@ -635,6 +711,193 @@ document.addEventListener('DOMContentLoaded', () => {
             showAlert('The product has been successfully deleted.');
             setTimeout(() => {
                 window.location.href = 'AddProduct.php';
+            }, 5000);
+        } else if (alertMessage) {
+            // Show Alert
+            showAlert(alertMessage);
+        }
+    }
+});
+
+// Add Room Type Form
+document.addEventListener("DOMContentLoaded", () => {
+    const addRoomTypeModal = document.getElementById('addRoomTypeModal');
+    const addRoomTypeBtn = document.getElementById('addRoomTypeBtn');
+    const addRoomTypeCancelBtn = document.getElementById('addRoomTypeCancelBtn');
+    const loader = document.getElementById('loader');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const addRoomTypeSuccess = document.getElementById('addRoomTypeSuccess').value === 'true';
+
+    if (addRoomTypeModal && addRoomTypeBtn && addRoomTypeCancelBtn) {
+        // Show modal
+        addRoomTypeBtn.addEventListener('click', () => {
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
+            addRoomTypeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+        }); 
+
+        // Cancel button functionality
+        addRoomTypeCancelBtn.addEventListener('click', () => {
+            addRoomTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+    }
+
+    if (addRoomTypeSuccess) {
+        loader.style.display = 'flex';
+
+        // Show Alert
+        setTimeout(() => {
+            loader.style.display = 'none';
+            showAlert('A new room type has been successfully added.');
+            setTimeout(() => {
+                window.location.href = 'AddRoomType.php';
+            }, 5000);
+        }, 1000);
+    } else if (alertMessage) {
+        // Show Alert
+        showAlert(alertMessage);
+        setTimeout(() => {
+            window.location.href = 'AddRoomType.php';
+        }, 5000);
+    }
+
+    // Add keyup event listeners for real-time validation
+    document.getElementById("roomTypeInput").addEventListener("keyup", validateRoomType);
+    document.getElementById("roomTypeDescriptionInput").addEventListener("keyup", validateRoomTypeDescription);
+    document.getElementById("roomCapacityInput").addEventListener("keyup", validateRoomCapacity);
+
+    const roomTypeForm = document.getElementById("roomTypeForm");
+    if (roomTypeForm) {
+        roomTypeForm.addEventListener("submit", (e) => {
+            if (!validateRoomTypeForm()) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+
+// Room Type Details Modal
+document.addEventListener('DOMContentLoaded', () => {
+    const updateRoomTypeModal = document.getElementById('updateRoomTypeModal');
+    const updateRoomTypeModalCancelBtn = document.getElementById('updateRoomTypeModalCancelBtn');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const updateRoomTypeSuccess = document.getElementById('updateRoomTypeSuccess').value === 'true';
+
+    // Get all details buttons
+    const detailsBtns = document.querySelectorAll('.details-btn');
+
+    if (updateRoomTypeModal && updateRoomTypeModalCancelBtn && detailsBtns) {
+        // Add click event to each button
+        detailsBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const roomTypeId = this.getAttribute('data-roomtype-id');
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+
+                // Fetch product type details
+                fetch(`../Admin/AddRoomType.php?action=getRoomTypeDetails&id=${roomTypeId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Fill the modal form with product type data
+                            document.getElementById('updateRoomTypeID').value = roomTypeId;
+                            document.querySelector('[name="updateroomtype"]').value = data.roomtype.RoomType;
+                            document.querySelector('[name="updateroomtypedescription"]').value = data.roomtype.RoomDescription;
+                            document.querySelector('[name="updateroomcapacity"]').value = data.roomtype.RoomCapacity;
+                            // Show the modal
+                            updateRoomTypeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        } else {
+                            console.error('Failed to load room type details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+            });
+        });
+
+        updateRoomTypeModalCancelBtn.addEventListener('click', () => {
+            updateRoomTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        if (updateRoomTypeSuccess) {
+            // Show Alert
+            setTimeout(() => {
+                showAlert('The room type has been successfully updated.');
+                setTimeout(() => {
+                    window.location.href = 'AddRoomType.php';
+                }, 5000);
+            }, 500);
+        } else if (alertMessage) {
+            // Show Alert
+            showAlert(alertMessage);
+        }
+        // Add keyup event listeners for real-time validation
+        document.getElementById("updateRoomTypeInput").addEventListener("keyup", validateUpdateRoomType);
+        document.getElementById("updateRoomTypeDescriptionInput").addEventListener("keyup", validateUpdateRoomTypeDescription);
+        document.getElementById("updateRoomCapacityInput").addEventListener("keyup", validateUpdateRoomCapacity);
+
+        const updateRoomTypeForm = document.getElementById("updateRoomTypeForm");
+        if (updateRoomTypeForm) {
+            updateRoomTypeForm.addEventListener("submit", (e) => {
+                if (!validateUpdateRoomTypeForm()) {
+                    e.preventDefault();
+                }
+            });
+        }
+    }
+});
+
+// Room Type Delete Modal
+document.addEventListener('DOMContentLoaded', () => {
+    const roomTypeConfirmDeleteModal = document.getElementById('roomTypeConfirmDeleteModal');
+    const roomTypeCancelDeleteBtn = document.getElementById('roomTypeCancelDeleteBtn');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const deleteRoomTypeSuccess = document.getElementById('deleteRoomTypeSuccess').value === 'true';
+
+    // Get all delete buttons
+    const deleteBtns = document.querySelectorAll('.delete-btn');
+
+    if (roomTypeConfirmDeleteModal && roomTypeCancelDeleteBtn && deleteBtns) {
+        // Add click event to each delete button
+        deleteBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const roomTypeId = this.getAttribute('data-roomtype-id');
+
+                // Fetch product type details
+                fetch(`../Admin/AddRoomType.php?action=getRoomTypeDetails&id=${roomTypeId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('deleteRoomTypeID').value = roomTypeId;
+                            document.getElementById('roomTypeDeleteName').textContent = data.roomtype.RoomType;
+                        } else {
+                            console.error('Failed to load room type details');
+                        }
+                    })
+                .catch(error => console.error('Fetch error:', error));
+
+                // Show modal
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+                roomTypeConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+            });
+        });
+
+        // Cancel button functionality
+        roomTypeCancelDeleteBtn.addEventListener('click', () => {
+            roomTypeConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        if (deleteRoomTypeSuccess) {
+            // Show Alert
+            showAlert('The room type has been successfully deleted.');
+            setTimeout(() => {
+                window.location.href = 'AddRoomType.php';
             }, 5000);
         } else if (alertMessage) {
             // Show Alert
@@ -847,35 +1110,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (profileUpdate)  {
         // Show Alert
-        alertText.textContent = 'You have successfully changed a profile.';
-        alertBox.classList.remove('-bottom-5');
-        alertBox.classList.remove('opacity-0');
-        alertBox.classList.add('opacity-100');
-        alertBox.classList.add('bottom-3');
-
-        // Hide Alert
+        showAlert('You have successfully changed a profile.');
         setTimeout(() => {
-            alertBox.classList.add('-bottom-1');
-            alertBox.classList.add('opacity-0');
-            alertBox.classList.remove('opacity-100');
-            alertBox.classList.remove('bottom-3');
-            // window.location.href = 'AdminProfileEdit.php';
+            window.location.href = 'AdminProfileEdit.php';
         }, 5000);
     } else if (alertMessage) {
         // Show Alert
-        alertText.textContent = alertMessage;
-        alertBox.classList.remove('-bottom-1');
-        alertBox.classList.remove('opacity-0');
-        alertBox.classList.add('opacity-100');
-        alertBox.classList.add('bottom-3');
-
-        // Hide Alert
-        setTimeout(() => {
-            alertBox.classList.add('-bottom-1');
-            alertBox.classList.add('opacity-0');
-            alertBox.classList.remove('opacity-100');
-            alertBox.classList.remove('bottom-3');
-        }, 5000);
+        showAlert(alertMessage);
     }
 
     document.getElementById("firstnameInput").addEventListener("keyup", validateFirstName);
@@ -960,6 +1201,22 @@ const validateRoleForm = () => {
     const isRoleDescriptionValid = validateRoleDescription();
 
     return isRoleValid && isRoleDescriptionValid;
+}
+
+const validateRoomTypeForm = () => {
+    const isRoomTypeValid = validateRoomType();
+    const isRoomDescriptionValid = validateRoomTypeDescription();
+    const isRoomCapacityValid = validateRoomCapacity();
+
+    return isRoomTypeValid && isRoomDescriptionValid && isRoomCapacityValid;
+}
+
+const validateUpdateRoomTypeForm = () => {
+    const isRoomTypeValid = validateUpdateRoomType();
+    const isRoomDescriptionValid = validateUpdateRoomTypeDescription();
+    const isRoomCapacityValid = validateUpdateRoomCapacity();
+
+    return isRoomTypeValid && isRoomDescriptionValid && isRoomCapacityValid;
 }
 
 const validateProfileUpdateForm = () => {
@@ -1274,6 +1531,54 @@ const validateRoleDescription = () => {
         "roleDescriptionInput",
         "roleDescriptionError",
         (input) => (!input ? "Description is required." : null)
+    );
+}
+
+const validateRoomType = () => {
+    return validateField(
+        "roomTypeInput",
+        "roomTypeError",
+        (input) => (!input ? "Room type is required." : null)
+    );
+}
+
+const validateUpdateRoomType = () => {
+    return validateField(
+        "updateRoomTypeInput",
+        "updateRoomTypeError",
+        (input) => (!input ? "Room type is required." : null)
+    );
+}
+
+const validateRoomTypeDescription = () => {
+    return validateField(
+        "roomTypeDescriptionInput",
+        "roomTypeDescriptionError",
+        (input) => (!input ? "Description is required." : null)
+    );
+}
+
+const validateUpdateRoomTypeDescription = () => {
+    return validateField(
+        "updateRoomTypeDescriptionInput",
+        "updateRoomTypeDescriptionError",
+        (input) => (!input ? "Description is required." : null)
+    );
+}
+
+const validateRoomCapacity = () => {
+    return validateField(
+        "roomCapacityInput",
+        "roomCapacityError",
+        (input) => (!input ? "Room capacity is required." : null)
+    );
+}
+
+const validateUpdateRoomCapacity = () => {
+    return validateField(
+        "updateRoomCapacityInput",
+        "updateRoomCapacityError",
+        (input) => (!input ? "Room capacity is required." : null)
     );
 }
 

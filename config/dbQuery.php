@@ -130,40 +130,40 @@ if (!$connect) {
 //     echo "Data has been saved";
 // }
 
-$product = "CREATE TABLE producttb
-(
-    ProductID varchar(20) not null primary key,
-    Title text,
-    AdminImg1 text,
-    AdminImg2 text,
-    AdminImg3 text,
-    UserImg1 text,
-    UserImg2 text,
-    UserImg3 text,
-    Price decimal(10, 2),
-    DiscountPrice decimal(10, 2),
-    Description text,
-    Specification text,
-    Information text,
-    DeliveryInfo text,
-    Brand varchar(30),
-    ProductSize varchar(30),
-    SellingFast boolean default false,
-    Stock int default 0,
-    AddedDate datetime default current_timestamp,
-    LastUpdate datetime default current_timestamp on update current_timestamp,
-    ProductTypeID varchar(30),
-    FOREIGN KEY (ProductTypeID) REFERENCES producttypetb (ProductTypeID)
-    ON DELETE CASCADE 
-    ON UPDATE CASCADE
-)";
+// $product = "CREATE TABLE producttb
+// (
+//     ProductID varchar(20) not null primary key,
+//     Title text,
+//     AdminImg1 text,
+//     AdminImg2 text,
+//     AdminImg3 text,
+//     UserImg1 text,
+//     UserImg2 text,
+//     UserImg3 text,
+//     Price decimal(10, 2),
+//     DiscountPrice decimal(10, 2),
+//     Description text,
+//     Specification text,
+//     Information text,
+//     DeliveryInfo text,
+//     Brand varchar(30),
+//     ProductSize varchar(30),
+//     SellingFast boolean default false,
+//     Stock int default 0,
+//     AddedDate datetime default current_timestamp,
+//     LastUpdate datetime default current_timestamp on update current_timestamp,
+//     ProductTypeID varchar(30),
+//     FOREIGN KEY (ProductTypeID) REFERENCES producttypetb (ProductTypeID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE
+// )";
 
-try {
-    $query = mysqli_query($connect, $product);
-    echo "Data Successfully saved";
-} catch (mysqli_sql_exception) {
-    echo "Data has been saved";
-}
+// try {
+//     $query = mysqli_query($connect, $product);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
 
 // $rule = "CREATE TABLE ruletb
 // (
@@ -171,7 +171,7 @@ try {
 //     Rule text,
 //     RuleIcon varchar(30),
 //     AddedDate datetime default current_timestamp,
-//     LastUpdate datetime default current_timestamp on update current_timestamp,
+//     LastUpdate datetime default current_timestamp on update current_timestamp
 // )";
 
 // try {
@@ -187,7 +187,7 @@ try {
 //     Facility text,
 //     FacilityIcon varchar(30),
 //     AddedDate datetime default current_timestamp,
-//     LastUpdate datetime default current_timestamp on update current_timestamp,
+//     LastUpdate datetime default current_timestamp on update current_timestamp
 // )";
 
 // try {
@@ -203,7 +203,7 @@ try {
 //     Amenity text,
 //     AmenityIcon varchar(30),
 //     AddedDate datetime default current_timestamp,
-//     LastUpdate datetime default current_timestamp on update current_timestamp,
+//     LastUpdate datetime default current_timestamp on update current_timestamp
 // )";
 
 // try {
@@ -213,22 +213,22 @@ try {
 //     echo "Data has been saved";
 // }
 
-// $roomtype = "CREATE TABLE roomtypetb
-// (
-//     RoomTypeID varchar(20) not null primary key,
-//     RoomType varchar(30),
-//     RoomDescription text,
-//     RoomCapacity int,
-//     AddedDate datetime default current_timestamp,
-//     LastUpdate datetime default current_timestamp on update current_timestamp,
-// )";
+$roomtype = "CREATE TABLE roomtypetb
+(
+    RoomTypeID varchar(20) not null primary key,
+    RoomType varchar(30),
+    RoomDescription text,
+    RoomCapacity int,
+    AddedDate datetime default current_timestamp,
+    LastUpdate datetime default current_timestamp on update current_timestamp
+)";
 
-// try {
-//     $query = mysqli_query($connect, $roomtype);
-//     echo "Data Successfully saved";
-// } catch (mysqli_sql_exception) {
-//     echo "Data has been saved";
-// }
+try {
+    $query = mysqli_query($connect, $roomtype);
+    echo "Data Successfully saved";
+} catch (mysqli_sql_exception) {
+    echo "Data has been saved";
+}
 
 // $room = "CREATE TABLE roomtb
 // (

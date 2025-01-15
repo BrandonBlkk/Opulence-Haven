@@ -49,3 +49,7 @@
 .adminTable::-webkit-scrollbar-thumb {
   background-color: #dcdcdc;
 }
+
+.adminNav::-webkit-scrollbar-thumb {
+  background-color: #eaeaea;
+}

@@ -8,52 +8,53 @@ if (!$connect) {
 }
 
 $alertMessage = '';
-$addProductTypeSuccess = false;
-$updateProductTypeSuccess = false;
-$deleteProductTypeSuccess = false;
-$productTypeID = AutoID('producttypetb', 'ProductTypeID', 'PT-', 6);
+$addRoomTypeSuccess = false;
+$updateRoomTypeSuccess = false;
+$deleteRoomTypeSuccess = false;
+$roomTypeID = AutoID('roomtypetb', 'RoomTypeID', 'RT-', 6);
 
-// Add Product Type
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproducttype'])) {
-    $producttype = mysqli_real_escape_string($connect, $_POST['producttype']);
+// Add Room Type
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addroomtype'])) {
+    $roomtype = mysqli_real_escape_string($connect, $_POST['roomtype']);
     $description = mysqli_real_escape_string($connect, $_POST['description']);
+    $roomcapacity = mysqli_real_escape_string($connect, $_POST['roomcapacity']);
 
     // Check if the product type already exists using prepared statement
-    $checkQuery = "SELECT ProductType FROM producttypetb WHERE ProductType = '$producttype'";
+    $checkQuery = "SELECT RoomType FROM roomtypetb WHERE RoomType = '$roomtype'";
 
     $checkQuery = mysqli_query($connect, $checkQuery);
     $count = mysqli_num_rows($checkQuery);
 
     if ($count > 0) {
-        $alertMessage = 'Product type you added is already existed.';
+        $alertMessage = 'Room type you added is already existed.';
     } else {
-        $addProductTypeQuery = "INSERT INTO producttypetb (ProductTypeID, ProductType, Description)
-        VALUES ('$productTypeID', '$producttype', '$description')";
+        $RoomTypeQuery = "INSERT INTO roomtypetb (RoomTypeID, RoomType, RoomDescription, RoomCapacity)
+        VALUES ('$roomTypeID', '$roomtype', '$description', '$roomcapacity')";
 
-        if (mysqli_query($connect, $addProductTypeQuery)) {
-            $addProductTypeSuccess = true;
+        if (mysqli_query($connect, $RoomTypeQuery)) {
+            $addRoomTypeSuccess = true;
         } else {
-            $alertMessage = "Failed to add product type. Please try again.";
+            $alertMessage = "Failed to add room type. Please try again.";
         }
     }
 }
 
-// Get Product Type Details
+// Get Room Type Details
 if (isset($_GET['action']) && isset($_GET['id'])) {
     $id = mysqli_real_escape_string($connect, $_GET['id']);
     $action = $_GET['action'];
 
     // Build query based on action
     $query = match ($action) {
-        'getProductTypeDetails' => "SELECT * FROM producttypetb WHERE ProductTypeID = '$id'",
+        'getRoomTypeDetails' => "SELECT * FROM roomtypetb WHERE RoomTypeID = '$id'",
         default => null
     };
     if ($query) {
         $result = mysqli_query($connect, $query);
-        $producttype = mysqli_fetch_assoc($result);
+        $roomtype = mysqli_fetch_assoc($result);
 
-        if ($producttype) {
-            echo json_encode(['success' => true, 'producttype' => $producttype]);
+        if ($roomtype) {
+            echo json_encode(['success' => true, 'roomtype' => $roomtype]);
         } else {
             echo json_encode(['success' => false]);
         }
@@ -62,32 +63,32 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
 }
 
 // Update Product Type
-if (isset($_POST['editproducttype'])) {
-    $productTypeId = mysqli_real_escape_string($connect, $_POST['producttypeid']);
-    $updatedProductType = mysqli_real_escape_string($connect, $_POST['updateproducttype']);
-    $updatedDescription = mysqli_real_escape_string($connect, $_POST['updatedescription']);
+if (isset($_POST['editroomtype'])) {
+    $roomTypeId = mysqli_real_escape_string($connect, $_POST['roomtypeid']);
+    $RoomType = mysqli_real_escape_string($connect, $_POST['updateroomtype']);
+    $updatedRoomTypeDescription = mysqli_real_escape_string($connect, $_POST['updateroomtypedescription']);
 
     // Update query
-    $updateQuery = "UPDATE producttypetb SET ProductType = '$updatedProductType', Description = '$updatedDescription' WHERE ProductTypeID = '$productTypeId'";
+    $updateQuery = "UPDATE roomtypetb SET RoomType = '$RoomType', RoomDescription = '$updatedRoomTypeDescription' WHERE RoomTypeID = '$roomTypeId'";
 
     if (mysqli_query($connect, $updateQuery)) {
-        $updateProductTypeSuccess = true;
+        $updateRoomTypeSuccess = true;
     } else {
-        $alertMessage = "Failed to update product type. Please try again.";
+        $alertMessage = "Failed to update room type. Please try again.";
     }
 }
 
 // Delete Product Type
-if (isset($_POST['deleteproducttype'])) {
-    $productTypeId = mysqli_real_escape_string($connect, $_POST['producttypeid']);
+if (isset($_POST['deleteroomtype'])) {
+    $roomTypeId = mysqli_real_escape_string($connect, $_POST['roomtypeid']);
 
     // Build query based on action
-    $deleteQuery = "DELETE FROM producttypetb WHERE ProductTypeID = '$productTypeId'";
+    $deleteQuery = "DELETE FROM roomtypetb WHERE RoomTypeID = '$roomTypeId'";
 
     if (mysqli_query($connect, $deleteQuery)) {
-        $deleteProductTypeSuccess = true;
+        $deleteRoomTypeSuccess = true;
     } else {
-        $alertMessage = "Failed to delete product type. Please try again.";
+        $alertMessage = "Failed to delete room type. Please try again.";
     }
 }
 ?>
@@ -114,10 +115,10 @@ if (isset($_POST['deleteproducttype'])) {
         <div class="w-full bg-white p-2">
             <div class="flex justify-between items-end">
                 <div>
-                    <h2 class="text-xl font-bold mb-4">Add Product Type Overview</h2>
-                    <p>Add information about product types to categorize items, track stock levels, and manage product details for efficient organization.</p>
+                    <h2 class="text-xl font-bold mb-4">Add Room Type Overview</h2>
+                    <p>Add information about room types to categorize items, track stock levels, and manage room details for efficient organization.</p>
                 </div>
-                <button id="addProductTypeBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
+                <button id="addRoomTypeBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
                     <i class="ri-add-line text-xl"></i>
                 </button>
             </div>
@@ -126,9 +127,9 @@ if (isset($_POST['deleteproducttype'])) {
             <div class="overflow-x-auto">
                 <!-- Product Type Search and Filter -->
                 <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
-                    <h1 class="text-lg font-semibold text-nowrap">All Product Type <span class="text-gray-400 text-sm ml-2"><?php echo $productTypeCount ?></span></h1>
+                    <h1 class="text-lg font-semibold text-nowrap">All Room Type <span class="text-gray-400 text-sm ml-2"><?php echo $roomTypeCount ?></span></h1>
                     <div class="flex items-center w-full">
-                        <input type="text" name="producttype_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full" placeholder="Search for product type..." value="<?php echo isset($_GET['producttype_search']) ? htmlspecialchars($_GET['producttype_search']) : ''; ?>">
+                        <input type="text" name="roomtype_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full" placeholder="Search for room type..." value="<?php echo isset($_GET['roomtype_search']) ? htmlspecialchars($_GET['roomtype_search']) : ''; ?>">
                     </div>
                 </form>
                 <div class="overflow-y-auto max-h-[510px]">
@@ -138,30 +139,34 @@ if (isset($_POST['deleteproducttype'])) {
                                 <th class="p-3 text-start">ID</th>
                                 <th class="p-3 text-start">Type</th>
                                 <th class="p-3 text-start hidden sm:table-cell">Description</th>
+                                <th class="p-3 text-start hidden sm:table-cell">Capacity</th>
                                 <th class="p-3 text-start">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="text-gray-600 text-sm">
-                            <?php foreach ($productTypes as $productType): ?>
+                            <?php foreach ($roomTypes as $roomType): ?>
                                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                                     <td class="p-3 text-start whitespace-nowrap">
                                         <div class="flex items-center gap-2 font-medium text-gray-500">
                                             <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                            <span><?= htmlspecialchars($productType['ProductTypeID']) ?></span>
+                                            <span><?= htmlspecialchars($roomType['RoomTypeID']) ?></span>
                                         </div>
                                     </td>
                                     <td class="p-3 text-start">
-                                        <?= htmlspecialchars($productType['ProductType']) ?>
+                                        <?= htmlspecialchars($roomType['RoomType']) ?>
                                     </td>
                                     <td class="p-3 text-start hidden sm:table-cell">
-                                        <?= htmlspecialchars($productType['Description']) ?>
+                                        <?= htmlspecialchars($roomType['RoomDescription']) ?>
+                                    </td>
+                                    <td class="p-3 text-start hidden sm:table-cell">
+                                        <?= htmlspecialchars($roomType['RoomCapacity']) ?>
                                     </td>
                                     <td class="p-3 text-start space-x-1 select-none">
                                         <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                            data-producttype-id="<?= htmlspecialchars($productType['ProductTypeID']) ?>"></i>
+                                            data-roomtype-id="<?= htmlspecialchars($roomType['RoomTypeID']) ?>"></i>
                                         <button class="text-red-500">
                                             <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                                data-producttype-id="<?= htmlspecialchars($productType['ProductTypeID']) ?>"></i>
+                                                data-roomtype-id="<?= htmlspecialchars($roomType['RoomTypeID']) ?>"></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -172,41 +177,51 @@ if (isset($_POST['deleteproducttype'])) {
             </div>
         </div>
 
-        <!-- Product Type Details Modal -->
-        <div id="updateProductTypeModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+        <!-- Room Type Details Modal -->
+        <div id="updateRoomTypeModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center w-full sm:max-w-[500px]">
-                <h2 class="text-xl font-bold mb-4">Edit Product Type</h2>
-                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="updateProductTypeForm">
-                    <input type="hidden" name="producttypeid" id="updateProductTypeID">
-                    <!-- Product Type Input -->
+                <h2 class="text-xl font-bold mb-4">Edit Room Type</h2>
+                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="updateRoomTypeForm">
+                    <input type="hidden" name="roomtypeid" id="updateRoomTypeID">
+                    <!-- Room Type Input -->
                     <div class="relative w-full">
-                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">Product Type Information</label>
+                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">Room Type Information</label>
                         <input
-                            id="updateProductTypeInput"
+                            id="updateRoomTypeInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="text"
-                            name="updateproducttype"
-                            placeholder="Enter product type">
-                        <small id="updateProductTypeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            name="updateroomtype"
+                            placeholder="Enter room type">
+                        <small id="updateRoomTypeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
                     <!-- Description Input -->
                     <div class="relative w-full">
                         <label class="block text-sm text-start font-medium text-gray-700 mb-1">Description</label>
                         <textarea
-                            id="updateProductTypeDescription"
+                            id="updateRoomTypeDescriptionInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                            name="updatedescription"
-                            placeholder="Enter product type description"></textarea>
-                        <small id="updateProductTypeDescriptionError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            name="updateroomtypedescription"
+                            placeholder="Enter room type description"></textarea>
+                        <small id="updateRoomTypeDescriptionError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                    </div>
+                    <!-- Capacity Input -->
+                    <div class="relative w-full">
+                        <input
+                            id="updateRoomCapacityInput"
+                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            type="number"
+                            name="updateroomcapacity"
+                            placeholder="Enter room capacity">
+                        <small id="updateRoomCapacityError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
                     <!-- Submit Button -->
                     <div class="flex justify-end gap-4 select-none">
-                        <div id="updateProductTypeModalCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300">
+                        <div id="updateRoomTypeModalCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300">
                             Cancel
                         </div>
                         <button
                             type="submit"
-                            name="editproducttype"
+                            name="editroomtype"
                             class="bg-amber-500 text-white px-4 py-2 select-none hover:bg-amber-600">
                             Save
                         </button>
@@ -215,22 +230,22 @@ if (isset($_POST['deleteproducttype'])) {
             </div>
         </div>
 
-        <!-- Product Type Delete Modal -->
-        <div id="productTypeConfirmDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+        <!-- Room Type Delete Modal -->
+        <div id="roomTypeConfirmDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <form class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="productTypeDeleteForm">
-                <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Product Type Deletion</h2>
-                <p class="text-slate-600 mb-2">You are about to delete the following Product Type: <span id="productTypeDeleteName" class="font-semibold"></span></p>
+                <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Room Type Deletion</h2>
+                <p class="text-slate-600 mb-2">You are about to delete the following Room Type: <span id="roomTypeDeleteName" class="font-semibold"></span></p>
                 <p class="text-sm text-gray-500 mb-4">
-                    Deleting this Product Type will permanently remove it from the system, including all associated data.
+                    Deleting this Room Type will permanently remove it from the system, including all associated data.
                 </p>
-                <input type="hidden" name="producttypeid" id="deleteProductTypeID">
+                <input type="hidden" name="roomtypeid" id="deleteRoomTypeID">
                 <div class="flex justify-end gap-4 select-none">
-                    <div id="productTypeCancelDeleteBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300">
+                    <div id="roomTypeCancelDeleteBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300">
                         Cancel
                     </div>
                     <button
                         type="submit"
-                        name="deleteproducttype"
+                        name="deleteroomtype"
                         class="px-4 py-2 bg-red-600 text-white hover:bg-red-700">
                         Delete
                     </button>
@@ -238,44 +253,53 @@ if (isset($_POST['deleteproducttype'])) {
             </form>
         </div>
 
-        <!-- Add Product Type Form -->
-        <div id="addProductTypeModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+        <!-- Add Room Type Form -->
+        <div id="addRoomTypeModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white w-full md:w-1/3 p-6 rounded-md shadow-md ">
-                <h2 class="text-xl font-bold mb-4">Add New Product Type</h2>
-                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="productTypeForm">
-                    <!-- Product Type Input -->
+                <h2 class="text-xl font-bold mb-4">Add New Room Type</h2>
+                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="roomTypeForm">
+                    <!-- Room Type Input -->
                     <div class="relative w-full">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Product Type Information</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Room Type Information</label>
                         <input
-                            id="productTypeInput"
+                            id="roomTypeInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="text"
-                            name="producttype"
-                            placeholder="Enter product type">
-                        <small id="productTypeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            name="roomtype"
+                            placeholder="Enter room type">
+                        <small id="roomTypeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
-
                     <!-- Description Input -->
                     <div class="relative">
                         <textarea
-                            id="descriptionInput"
+                            id="roomTypeDescriptionInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="text"
                             name="description"
-                            placeholder="Enter product type description"></textarea>
-                        <small id="descriptionError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            placeholder="Enter room type description"></textarea>
+                        <small id="roomTypeDescriptionError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                    </div>
+                    <!-- Capacity Input -->
+                    <div class="relative w-full">
+                        <input
+                            id="roomCapacityInput"
+                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            type="number"
+                            name="roomcapacity"
+                            placeholder="Enter room capacity">
+                        <small id="roomCapacityError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
 
                     <div class="flex justify-end gap-4 select-none">
-                        <div id="addProductTypeCancelBtn" class="px-4 py-2 text-amber-500 font-semibold hover:text-amber-600">
+                        <div id="addRoomTypeCancelBtn" class="px-4 py-2 text-amber-500 font-semibold hover:text-amber-600">
                             Cancel
                         </div>
                         <!-- Submit Button -->
                         <button
                             type="submit"
-                            name="addproducttype"
+                            name="addroomtype"
                             class="bg-amber-500 text-white font-semibold px-4 py-2 rounded select-none hover:bg-amber-600 transition-colors">
-                            Add Product Type
+                            Add Room Type
                         </button>
                     </div>
                 </form>
@@ -312,9 +336,9 @@ if (isset($_POST['deleteproducttype'])) {
                 <!-- Submit Button -->
                 <button
                     type="submit"
-                    name="addproducttype"
+                    name="addroomtype"
                     class="bg-amber-500 text-white font-semibold px-4 py-2 rounded select-none hover:bg-amber-600 transition-colors">
-                    Add Product Type
+                    Add Room Type
                 </button>
             </form>
         </div>

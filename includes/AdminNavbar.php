@@ -221,6 +221,41 @@ $productCountResult = mysqli_query($connect, $productCountQuery);
 $productCountRow = mysqli_fetch_assoc($productCountResult);
 $allProductCount = $productCountRow['count'];
 
+$searchRoomTypeQuery = isset($_GET['roomtype_search']) ? mysqli_real_escape_string($connect, $_GET['roomtype_search']) : '';
+
+// Construct the product type query based on search
+if (!empty($searchRoomTypeQuery)) {
+    $roomTypeSelect = "SELECT * FROM roomtypetb WHERE RoomType LIKE '%$searchRoomTypeQuery%' OR RoomDescription LIKE '%$searchRoomTypeQuery%'";
+} else {
+    $roomTypeSelect = "SELECT * FROM roomtypetb";
+}
+
+$roomTypeSelectQuery = mysqli_query($connect, $roomTypeSelect);
+$roomTypes = [];
+
+if (mysqli_num_rows($roomTypeSelectQuery) > 0) {
+    while ($row = mysqli_fetch_assoc($roomTypeSelectQuery)) {
+        $roomTypes[] = $row;
+    }
+}
+
+// Construct the prooducttype count query based on search
+if (!empty($searchRoomTypeQuery)) {
+    $roomTypeQuery = "SELECT COUNT(*) as count FROM roomtypetb WHERE RoomType LIKE '%$searchRoomTypeQuery%' OR RoomDescription LIKE '%$searchRoomTypeQuery%'";
+} else {
+    $roomTypeQuery = "SELECT COUNT(*) as count FROM roomtypetb";
+}
+
+// Execute the count query
+$roomTypeResult = mysqli_query($connect, $roomTypeQuery);
+$roomTypeRow = mysqli_fetch_assoc($roomTypeResult);
+$roomTypeCount = $roomTypeRow['count'];
+// Fetch product type count
+$roomTypeCountQuery = "SELECT COUNT(*) as count FROM roomtypetb";
+$roomTypeCountResult = mysqli_query($connect, $roomTypeCountQuery);
+$roomTypeCountRow = mysqli_fetch_assoc($roomTypeCountResult);
+$allRoomTypeCount = $roomTypeCountRow['count'];
+
 $searchContactQuery = isset($_GET['contact_search']) ? mysqli_real_escape_string($connect, $_GET['contact_search']) : '';
 $filterStatus = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 
@@ -298,7 +333,7 @@ if (mysqli_num_rows($query) > 0) {
 </button>
 
 <!-- Sidebar -->
-<nav id="sidebar" class="fixed top-0 left-0 h-full w-full sm:w-64 md:w-[250px] p-4 flex flex-col justify-between bg-white shadow-lg transform -translate-x-full md:translate-x-0 transition-all duration-300 z-40">
+<nav id="sidebar" class="adminNav overflow-y-auto fixed top-0 left-0 h-full w-full sm:w-64 md:w-[250px] p-4 flex flex-col justify-between bg-white shadow-lg transform -translate-x-full md:translate-x-0 transition-all duration-300 z-40">
     <div>
         <!-- Logo -->
         <div class="flex items-end gap-1 select-none">
@@ -354,12 +389,13 @@ if (mysqli_num_rows($query) > 0) {
                     <span class="font-semibold text-sm">Role Management</span>
                 </a>
 
-                <!-- Inventory Menu -->
+                <!-- Product Menu -->
                 <div x-data="{ expanded: false, height: 0 }" class="flex flex-col">
-                    <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '3') ? 'hidden' : 'flex'; ?>">
+                    <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0"
+                        class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '3') ? 'hidden' : 'flex'; ?>">
                         <div class="flex items-center gap-4">
                             <i class="ri-stock-line text-xl"></i>
-                            <span class="font-semibold text-sm">Inventory</span>
+                            <span class="font-semibold text-sm">Product</span>
                         </div>
                         <i :class="expanded ? 'rotate-180' : 'rotate-0'" class="ri-arrow-up-s-line text-xl transition-transform duration-300"></i>
                     </button>
@@ -368,6 +404,7 @@ if (mysqli_num_rows($query) > 0) {
                         :style="{ height: expanded ? height + 'px' : '0px' }"
                         class="overflow-hidden transition-all duration-300 select-none">
                         <div class="pl-3">
+                            <!-- Existing Links -->
                             <a href="../Admin/AddSupplier.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">
                                     <i class="ri-group-line text-xl"></i>
@@ -377,7 +414,7 @@ if (mysqli_num_rows($query) > 0) {
                             </a>
                             <a href="../Admin/AddProduct.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">
-                                    <i class="ri-shirt-line text-xl"></i>
+                                    <i class="ri-suitcase-line text-xl"></i>
                                     <span class="font-semibold text-sm">Add product</span>
                                 </div>
                                 <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allProductCount ?></p>
@@ -390,6 +427,31 @@ if (mysqli_num_rows($query) > 0) {
                                 <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allProductTypeCount ?></p>
                             </a>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Room Menu -->
+                <div x-data="{ roomExpanded: false, subHeight: 0 }" class="flex flex-col">
+                    <button @click="roomExpanded = !roomExpanded; subHeight = roomExpanded ? $refs.subDropdown.scrollHeight : 0"
+                        class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-gray-100 transition-colors duration-300 select-none">
+                        <div class="flex items-center gap-4">
+                            <i class="ri-hotel-bed-line text-xl"></i>
+                            <span class="font-semibold text-sm">Room</span>
+                        </div>
+                        <i :class="roomExpanded ? 'rotate-180' : 'rotate-0'" class="ri-arrow-up-s-line text-xl transition-transform duration-300"></i>
+                    </button>
+                    <div
+                        x-ref="subDropdown"
+                        :style="{ height: roomExpanded ? subHeight + 'px' : '0px' }"
+                        class="overflow-hidden transition-all duration-300 pl-3">
+                        <a href="../Admin/AddRoomType.php"
+                            class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?>">
+                            <div class="flex items-center gap-1">
+                                <i class="ri-hotel-bed-line text-xl"></i>
+                                <span class="font-semibold text-sm">Add room type</span>
+                            </div>
+                            <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allRoomTypeCount ?></p>
+                        </a>
                     </div>
                 </div>
 

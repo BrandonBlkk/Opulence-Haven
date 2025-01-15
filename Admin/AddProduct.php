@@ -188,11 +188,18 @@ if (isset($_POST['deleteproduct'])) {
     <?php include('../includes/AdminNavbar.php'); ?>
 
     <!-- Main Container -->
-    <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px]">
+    <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px] min-w-[350px]">
         <!-- Left Side Content -->
-        <div class="w-full md:w-2/3 bg-white p-2">
-            <h2 class="text-xl font-bold mb-4">Add Product Overview</h2>
-            <p>Add product information to monitor inventory, track orders, and manage product details for efficient operations.</p>
+        <div class="w-full bg-white p-2">
+            <div class="flex justify-between items-end">
+                <div>
+                    <h2 class="text-xl font-bold mb-4">Add Product Overview</h2>
+                    <p>Add product information to monitor inventory, track orders, and manage product details for efficient operations.</p>
+                </div>
+                <button id="addProductBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
+                    <i class="ri-add-line text-xl"></i>
+                </button>
+            </div>
 
             <!-- Product Table -->
             <div class="overflow-x-auto">
@@ -237,40 +244,40 @@ if (isset($_POST['deleteproduct'])) {
                     <table class="min-w-full bg-white rounded-lg">
                         <thead>
                             <tr class="bg-gray-100 text-gray-600 text-sm">
-                                <th class="p-3 text-left">ID</th>
-                                <th class="p-3 text-left">Title</th>
-                                <th class="p-3 text-left">Image</th>
-                                <th class="p-3 text-center">Price</th>
-                                <th class="p-3 text-center">Stock</th>
-                                <th class="p-3 text-center">Added Date</th>
-                                <th class="p-3 text-center">Actions</th>
+                                <th class="p-3 text-start">ID</th>
+                                <th class="p-3 text-start">Title</th>
+                                <th class="p-3 text-start">Image</th>
+                                <th class="p-3 text-start">Price</th>
+                                <th class="p-3 text-start">Stock</th>
+                                <th class="p-3 text-start">Added Date</th>
+                                <th class="p-3 text-start">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="text-gray-600 text-sm">
                             <?php foreach ($products as $product): ?>
                                 <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                    <td class="p-3 text-left whitespace-nowrap">
+                                    <td class="p-3 text-start whitespace-nowrap">
                                         <div class="flex items-center gap-2 font-medium text-gray-500">
                                             <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
                                             <span><?= htmlspecialchars($product['ProductID']) ?></span>
                                         </div>
                                     </td>
-                                    <td class="p-3 text-center">
+                                    <td class="p-3 text-start">
                                         <?= htmlspecialchars($product['Title']) ?>
                                     </td>
-                                    <td class="p-3 text-center select-none">
+                                    <td class="p-3 text-start select-none">
                                         <img src="<?= htmlspecialchars($product['AdminImg1']) ?>" alt="Product Image" class="w-12 h-12 object-cover rounded-sm">
                                     </td>
-                                    <td class="p-3 text-center">
+                                    <td class="p-3 text-start">
                                         $<?= htmlspecialchars(number_format($product['Price'], 2)) ?>
                                     </td>
-                                    <td class="p-3 text-center">
+                                    <td class="p-3 text-start">
                                         <?= htmlspecialchars($product['Stock']) ?>
                                     </td>
-                                    <td class="p-3 text-center">
+                                    <td class="p-3 text-start">
                                         <?= htmlspecialchars(date('Y-m-d', strtotime($product['AddedDate']))) ?>
                                     </td>
-                                    <td class="p-3 text-center space-x-1 select-none">
+                                    <td class="p-3 text-start space-x-1 select-none">
                                         <i class="details-btn ri-eye-line text-lg cursor-pointer"
                                             data-product-id="<?= htmlspecialchars($product['ProductID']) ?>"></i>
                                         <button class="text-red-500">
@@ -298,8 +305,8 @@ if (isset($_POST['deleteproduct'])) {
 
         <!-- Product Details Modal -->
         <div id="updateProductModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
-            <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center w-full sm:max-w-[800px]">
-                <h2 class="text-xl font-bold mb-4">Edit Product</h2>
+            <div class="bg-white w-full max-w-4xl p-6 rounded-md shadow-md mx-4 sm:mx-8 lg:mx-auto overflow-y-auto max-h-[92vh]">
+                <h2 class="text-xl text-center font-bold mb-4">Edit Product</h2>
                 <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" enctype="multipart/form-data" id="updateProductForm">
                     <input type="hidden" name="producttypeid" id="updateProductID">
                     <!-- Product Title Input -->
@@ -364,8 +371,8 @@ if (isset($_POST['deleteproduct'])) {
                     </div>
                     <!-- Image Uploads -->
                     <div class="relative">
-                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">Product Images</label>
-                        <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Product Images</label>
+                        <div class="flex flex-col flex-wrap sm:flex-row gap-4 sm:gap-2">
                             <div>
                                 <div class="w-20 h-20">
                                     <img id="updateimg1" src="" alt="Current Image 1" class="w-full h-full object-cover">
@@ -386,7 +393,6 @@ if (isset($_POST['deleteproduct'])) {
                             </div>
                         </div>
                     </div>
-
                     <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
                         <!-- Price -->
                         <div class="relative w-full">
@@ -399,7 +405,6 @@ if (isset($_POST['deleteproduct'])) {
                                 placeholder="Enter product price">
                             <small id="updatePriceError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
-
                         <!-- Discount Price -->
                         <div class="relative w-full">
                             <input
@@ -411,8 +416,6 @@ if (isset($_POST['deleteproduct'])) {
                                 placeholder="Enter discount price">
                             <small id="updateDiscountPriceError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
-                    </div>
-                    <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
                         <!-- Product Size -->
                         <div class="relative w-full">
                             <input
@@ -506,158 +509,167 @@ if (isset($_POST['deleteproduct'])) {
             </form>
         </div>
 
-        <!-- Right Side Form -->
-        <div class="w-full md:w-1/3 bg-white rounded-lg shadow p-2">
-            <h2 class="text-xl font-bold mb-4">Add New Product</h2>
-            <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" enctype="multipart/form-data" id="productForm">
-                <!-- Product Title Input -->
-                <div class="relative w-full">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Product Information</label>
-                    <input
-                        id="productTitleInput"
-                        class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                        type="text"
-                        name="productTitle"
-                        placeholder="Enter product title">
-                    <small id="productTitleError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
-                </div>
-                <!-- Brand -->
-                <div class="relative">
-                    <input
-                        id="brandInput"
-                        class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                        name="brand"
-                        placeholder="Enter product brand">
-                    <small id="brandError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
-                </div>
-                <!-- Description -->
-                <div class="relative">
-                    <textarea
-                        id="productDescriptionInput"
-                        class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                        name="description"
-                        placeholder="Enter product description"></textarea>
-                    <small id="productDescriptionError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
-                </div>
-                <!-- Specification -->
-                <div class="relative">
-                    <textarea
-                        id="specificationInput"
-                        class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                        name="specification"
-                        placeholder="Enter product specification"></textarea>
-                    <small id="specificationError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
-                </div>
-                <!-- Information -->
-                <div class="relative">
-                    <textarea
-                        id="informationInput"
-                        class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                        name="information"
-                        placeholder="Enter product information"></textarea>
-                    <small id="informationError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
-                </div>
-                <!-- DeliveryInfo -->
-                <div class="relative">
-                    <textarea
-                        id="deliveryInput"
-                        class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                        name="delivery"
-                        placeholder="Enter delivery information"></textarea>
-                    <small id="deliveryError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
-                </div>
-                <!-- Image Uploads -->
-                <div class="relative">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Product Images</label>
-                    <input type="file" name="img1" class="mb-2" required>
-                    <input type="file" name="img2" class="mb-2 required">
-                    <input type="file" name="img3" required>
-                </div>
-
-                <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
-                    <!-- Price -->
+        <!-- Add Produc Form -->
+        <div id="addProductModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+            <div class="bg-white w-full max-w-4xl p-6 rounded-md shadow-md mx-4 sm:mx-8 lg:mx-auto overflow-y-auto max-h-[92vh]">
+                <h2 class="text-xl font-bold mb-4 text-center">Add New Product</h2>
+                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post" enctype="multipart/form-data" id="productForm">
+                    <!-- Product Title Input -->
                     <div class="relative w-full">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Product Information</label>
                         <input
-                            id="priceInput"
-                            type="number"
-                            step="0.01"
-                            name="price"
+                            id="productTitleInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                            placeholder="Enter product price">
-                        <small id="priceError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                            type="text"
+                            name="productTitle"
+                            placeholder="Enter product title">
+                        <small id="productTitleError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                     </div>
-
-                    <!-- Discount Price -->
-                    <div class="relative w-full">
+                    <!-- Brand -->
+                    <div class="relative">
                         <input
-                            id="discountPriceInput"
-                            type="number"
-                            step="0.01"
-                            name="discountPrice"
+                            id="brandInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                            placeholder="Enter discount price">
-                        <small id="discountPriceError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                            name="brand"
+                            placeholder="Enter product brand">
+                        <small id="brandError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                     </div>
-                </div>
-                <!-- Product Size -->
-                <div class="relative w-full">
-                    <input
-                        id="productSizeInput"
-                        type="text"
-                        name="productSize"
-                        class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                        placeholder="Enter product size">
-                    <small id="productSizeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
-                </div>
-                <!-- Stock -->
-                <div class="relative w-full">
-                    <input
-                        id="stockInput"
-                        type="number"
-                        name="stock"
-                        class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                        placeholder="Enter stock quantity">
-                    <small id="stockError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
-                </div>
-                <!-- Selling Fast -->
-                <div class="relative">
-                    <select name="sellingfast" id="sellingfast" class="p-2 w-full border rounded" required>
-                        <option value="" disabled selected>Selling Fast</option>
-                        <option value="true">True</option>
-                        <option value="false">False</option>
-                    </select>
-                </div>
-                <!-- Product Type -->
-                <div class="relative">
-                    <select name="productType" id="productType" class="p-2 w-full border rounded" required>
-                        <option value="" disabled selected>Select type of products</option>
-                        <?php
-                        $select = "SELECT * FROM producttypetb";
-                        $query = mysqli_query($connect, $select);
-                        $count = mysqli_num_rows($query);
-
-                        if ($count) {
-                            for ($i = 0; $i < $count; $i++) {
-                                $row = mysqli_fetch_array($query);
-                                $product_type_id = $row['ProductTypeID'];
-                                $product_type = $row['ProductType'];
-
-                                echo "<option value= '$product_type_id'>$product_type</option>";
-                            }
-                        } else {
-                            echo "<option value='' disabled>No data yet</option>";
-                        }
-                        ?>
-                    </select>
-                </div>
-                <!-- Submit Button -->
-                <button
-                    type="submit"
-                    name="addproduct"
-                    class="bg-amber-500 text-white font-semibold px-4 py-2 rounded select-none hover:bg-amber-600 transition-colors">
-                    Add Product
-                </button>
-            </form>
+                    <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
+                        <!-- Description -->
+                        <div class="relative flex-1">
+                            <textarea
+                                id="productDescriptionInput"
+                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                name="description"
+                                placeholder="Enter product description"></textarea>
+                            <small id="productDescriptionError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                        </div>
+                        <!-- Specification -->
+                        <div class="relative flex-1">
+                            <textarea
+                                id="specificationInput"
+                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                name="specification"
+                                placeholder="Enter product specification"></textarea>
+                            <small id="specificationError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
+                        <!-- Information -->
+                        <div class="relative flex-1">
+                            <textarea
+                                id="informationInput"
+                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                name="information"
+                                placeholder="Enter product information"></textarea>
+                            <small id="informationError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                        </div>
+                        <!-- DeliveryInfo -->
+                        <div class="relative flex-1">
+                            <textarea
+                                id="deliveryInput"
+                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                name="delivery"
+                                placeholder="Enter delivery information"></textarea>
+                            <small id="deliveryError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                        </div>
+                    </div>
+                    <!-- Image Uploads -->
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Product Images</label>
+                        <input type="file" name="img1" class="mb-2" required>
+                        <input type="file" name="img2" class="mb-2" required>
+                        <input type="file" name="img3" required>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
+                        <!-- Price -->
+                        <div class="relative fl1">
+                            <input
+                                id="priceInput"
+                                type="number"
+                                step="0.01"
+                                name="price"
+                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                placeholder="Enter product price">
+                            <small id="priceError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                        </div>
+                        <!-- Discount Price -->
+                        <div class="relative flex-1">
+                            <input
+                                id="discountPriceInput"
+                                type="number"
+                                step="0.01"
+                                name="discountPrice"
+                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                placeholder="Enter discount price">
+                            <small id="discountPriceError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                        </div>
+                        <!-- Product Size -->
+                        <div class="relative flex-1">
+                            <input
+                                id="productSizeInput"
+                                type="text"
+                                name="productSize"
+                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                placeholder="Enter product size">
+                            <small id="productSizeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                        </div>
+                        <!-- Stock -->
+                        <div class="relative flex-1">
+                            <input
+                                id="stockInput"
+                                type="number"
+                                name="stock"
+                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                placeholder="Enter stock quantity">
+                            <small id="stockError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
+                        <!-- Selling Fast -->
+                        <div class="relative flex-1">
+                            <select name="sellingfast" id="sellingfast" class="p-2 w-full border rounded" required>
+                                <option value="" disabled selected>Selling Fast</option>
+                                <option value="true">True</option>
+                                <option value="false">False</option>
+                            </select>
+                        </div>
+                        <!-- Product Type -->
+                        <div class="relative flex-1">
+                            <select name="productType" id="productType" class="p-2 w-full border rounded" required>
+                                <option value="" disabled selected>Select type of products</option>
+                                <?php
+                                $select = "SELECT * FROM producttypetb";
+                                $query = mysqli_query($connect, $select);
+                                $count = mysqli_num_rows($query);
+                                if ($count) {
+                                    for ($i = 0; $i < $count; $i++) {
+                                        $row = mysqli_fetch_array($query);
+                                        $product_type_id = $row['ProductTypeID'];
+                                        $product_type = $row['ProductType'];
+                                        echo "<option value='$product_type_id'>$product_type</option>";
+                                    }
+                                } else {
+                                    echo "<option value='' disabled>No data yet</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-4 select-none">
+                        <div id="addProductCancelBtn" class="px-4 py-2 text-amber-500 font-semibold hover:text-amber-600">
+                            Cancel
+                        </div>
+                        <!-- Submit Button -->
+                        <button
+                            type="submit"
+                            name="addproduct"
+                            class="bg-amber-500 text-white font-semibold px-4 py-2 rounded select-none hover:bg-amber-600 transition-colors">
+                            Add Product
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 

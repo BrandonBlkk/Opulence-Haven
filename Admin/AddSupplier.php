@@ -127,18 +127,25 @@ if (isset($_POST['deletesupplier'])) {
     <?php include('../includes/AdminNavbar.php'); ?>
 
     <!-- Main Container -->
-    <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px]">
+    <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px] min-w-[350px]">
         <!-- Left Side Content -->
-        <div class="w-full md:w-2/3 bg-white p-2">
-            <h2 class="text-xl font-bold mb-4">Add Supplier Overview</h2>
-            <p>Add information about suppliers to keep track of inventory, orders, and supplier details for efficient management.</p>
+        <div class="w-full bg-white p-2">
+            <div class="flex justify-between items-end">
+                <div>
+                    <h2 class="text-xl font-bold mb-4">Add Supplier Overview</h2>
+                    <p>Add information about suppliers to keep track of inventory, orders, and supplier details for efficient management.</p>
+                </div>
+                <button id="addSupplierBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
+                    <i class="ri-add-line text-xl"></i>
+                </button>
+            </div>
 
             <!-- Supplier Table -->
             <div class="overflow-x-auto">
                 <!-- Supplier Search and Filter -->
-                <form method="GET" class="my-4 flex items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
-                    <h1 class="text-lg font-semibold text-nowrap">All Suppliers <span class="text-gray-400 text-sm ml-2"><?php echo $supplierCount ?></span></h1>
-                    <div class="flex items-center w-full">
+                <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
+                    <h1 class="text-lg text-start font-semibold text-nowrap">All Suppliers <span class="text-gray-400 text-sm ml-2"><?php echo $supplierCount ?></span></h1>
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center w-full gap-2 sm:gap-0">
                         <input type="text" name="supplier_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full" placeholder="Search for supplier..." value="<?php echo isset($_GET['supplier_search']) ? htmlspecialchars($_GET['supplier_search']) : ''; ?>">
                         <div class="flex items-center">
                             <label for="sort" class="ml-4 mr-2 flex items-center cursor-pointer select-none">
@@ -176,19 +183,19 @@ if (isset($_POST['deletesupplier'])) {
                     <table class="min-w-full bg-white rounded-lg">
                         <thead>
                             <tr class="bg-gray-100 text-gray-600 text-sm">
-                                <th class="p-3 text-left">ID</th>
-                                <th class="p-3 text-left">Name</th>
-                                <th class="p-3 text-center">Product Supplied</th>
-                                <th class="p-3 text-center">Contact</th>
-                                <th class="p-3 text-center">Company</th>
-                                <th class="p-3 text-center">Address</th>
-                                <th class="p-3 text-center">Actions</th>
+                                <th class="p-3 text-start">ID</th>
+                                <th class="p-3 text-start">Name</th>
+                                <th class="p-3 text-start hidden md:table-cell">Product Supplied</th>
+                                <th class="p-3 text-start hidden sm:table-cell">Contact</th>
+                                <th class="p-3 text-start hidden lg:table-cell">Company</th>
+                                <th class="p-3 text-start hidden lg:table-cell">Address</th>
+                                <th class="p-3 text-start">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="text-gray-600 text-sm">
                             <?php foreach ($suppliers as $supplier): ?>
                                 <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                    <td class="p-3 text-left whitespace-nowrap">
+                                    <td class="p-3 text-start whitespace-nowrap">
                                         <div class="flex items-center gap-2 font-medium text-gray-500">
                                             <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
                                             <span><?= htmlspecialchars($supplier['SupplierID']) ?></span>
@@ -198,7 +205,7 @@ if (isset($_POST['deletesupplier'])) {
                                         <p class="font-bold"><?= htmlspecialchars($supplier['SupplierName']) ?></p>
                                         <p><?= htmlspecialchars($supplier['SupplierEmail']) ?></p>
                                     </td>
-                                    <td class="p-3 text-center">
+                                    <td class="p-3 text-start hidden md:table-cell">
                                         <?php
                                         // Fetch the specific product type for the supplier
                                         $productTypeID = $supplier['ProductTypeID'];
@@ -211,20 +218,20 @@ if (isset($_POST['deletesupplier'])) {
                                         }
                                         ?>
                                     </td>
-                                    <td class="p-3 text-center">
+                                    <td class="p-3 text-start hidden sm:table-cell">
                                         <?= htmlspecialchars($supplier['SupplierContact']) ?>
                                     </td>
-                                    <td class="p-3 text-center">
+                                    <td class="p-3 text-start hidden lg:table-cell">
                                         <?= htmlspecialchars($supplier['SupplierCompany']) ?>
                                     </td>
-                                    <td class="p-3 text-center">
+                                    <td class="p-3 text-start hidden lg:table-cell">
                                         <p>
                                             <?= htmlspecialchars($supplier['Address']) ?>,
                                             <?= htmlspecialchars($supplier['City']) ?>,
                                             <?= htmlspecialchars($supplier['Country']) ?>
                                         </p>
                                     </td>
-                                    <td class="p-3 text-center space-x-1 select-none">
+                                    <td class="p-3 text-start space-x-1 select-none">
                                         <i class="details-btn ri-eye-line text-lg cursor-pointer"
                                             data-supplier-id="<?= htmlspecialchars($supplier['SupplierID']) ?>"></i>
                                         <button class="text-red-500">
@@ -409,145 +416,152 @@ if (isset($_POST['deletesupplier'])) {
             </form>
         </div>
 
-        <!-- Right Side Form -->
-        <div class="w-full md:w-1/3 h-full bg-white rounded-lg shadow p-2">
-            <h2 class="text-xl font-bold mb-4">Add New Supplier</h2>
-            <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="supplierForm">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Supplier Information</label>
+        <!-- Add Supplier Form -->
+        <div id="addSupplierModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+            <div class="bg-white w-full md:w-1/3 p-6 rounded-md shadow-md ">
+                <h2 class="text-xl font-bold mb-4">Add New Supplier</h2>
+                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="supplierForm">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Supplier Information</label>
+                        <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
+                            <!-- Supplier Name Input -->
+                            <div class="relative w-full">
+                                <input
+                                    id="supplierNameInput"
+                                    class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                    type="text"
+                                    name="suppliername"
+                                    placeholder="Enter supplier's name">
+                                <small id="supplierNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            </div>
+
+                            <!-- Company Name Input -->
+                            <div class="relative w-full">
+                                <input
+                                    id="companyNameInput"
+                                    class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                    type="text"
+                                    name="companyName"
+                                    placeholder="Enter company name">
+                                <small id="companyNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Email Input -->
+                    <div class="relative">
+                        <input
+                            id="emailInput"
+                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            type="email"
+                            name="email"
+                            placeholder="Enter supplier's email">
+                        <small id="emailError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                    </div>
+
+                    <!-- Contact Number Input -->
+                    <div class="relative">
+                        <input
+                            id="contactNumberInput"
+                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            type="tel"
+                            name="contactNumber"
+                            placeholder="Enter contact number">
+                        <small id="contactNumberError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                    </div>
+
+                    <!-- Address Input -->
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Address Details</label>
+                        <textarea
+                            id="addressInput"
+                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            type="text"
+                            name="address"
+                            placeholder="Enter address"></textarea>
+                        <small id="addressError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                    </div>
                     <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
-                        <!-- Supplier Name Input -->
-                        <div class="relative w-full">
+                        <!-- City Input -->
+                        <div class="relative">
                             <input
-                                id="supplierNameInput"
+                                id="cityInput"
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 type="text"
-                                name="suppliername"
-                                placeholder="Enter supplier's name">
-                            <small id="supplierNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                                name="city"
+                                placeholder="Enter city">
+                            <small id="cityError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                         </div>
-
-                        <!-- Company Name Input -->
-                        <div class="relative w-full">
+                        <!-- State Input -->
+                        <div class="relative">
                             <input
-                                id="companyNameInput"
+                                id="stateInput"
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 type="text"
-                                name="companyName"
-                                placeholder="Enter company name">
-                            <small id="companyNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                                name="state"
+                                placeholder="Enter state/region">
+                            <small id="stateError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                         </div>
                     </div>
-                </div>
-
-                <!-- Email Input -->
-                <div class="relative">
-                    <input
-                        id="emailInput"
-                        class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                        type="email"
-                        name="email"
-                        placeholder="Enter supplier's email">
-                    <small id="emailError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                </div>
-
-                <!-- Contact Number Input -->
-                <div class="relative">
-                    <input
-                        id="contactNumberInput"
-                        class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                        type="tel"
-                        name="contactNumber"
-                        placeholder="Enter contact number">
-                    <small id="contactNumberError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                </div>
-
-                <!-- Address Input -->
-                <div class="relative">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Address Details</label>
-                    <textarea
-                        id="addressInput"
-                        class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                        type="text"
-                        name="address"
-                        placeholder="Enter address"></textarea>
-                    <small id="addressError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                </div>
-                <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
-                    <!-- City Input -->
+                    <!-- Postal Code Input -->
                     <div class="relative">
                         <input
-                            id="cityInput"
+                            id="postalCodeInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="text"
-                            name="city"
-                            placeholder="Enter city">
-                        <small id="cityError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            name="postalCode"
+                            placeholder="Enter postal code">
+                        <small id="postalCodeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
-                    <!-- State Input -->
+                    <!-- Country Input -->
                     <div class="relative">
                         <input
-                            id="stateInput"
+                            id="countryInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="text"
-                            name="state"
-                            placeholder="Enter state/region">
-                        <small id="stateError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            name="country"
+                            placeholder="Enter country">
+                        <small id="countryError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
-                </div>
-                <!-- Postal Code Input -->
-                <div class="relative">
-                    <input
-                        id="postalCodeInput"
-                        class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                        type="text"
-                        name="postalCode"
-                        placeholder="Enter postal code">
-                    <small id="postalCodeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                </div>
-                <!-- Country Input -->
-                <div class="relative">
-                    <input
-                        id="countryInput"
-                        class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                        type="text"
-                        name="country"
-                        placeholder="Enter country">
-                    <small id="countryError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                </div>
 
-                <!-- Product Type -->
-                <div class="relative">
-                    <select name="productType" id="productType" class="p-2 w-full border rounded">
-                        <option value="" disabled selected>Select type of products supplied</option>
-                        <?php
-                        $select = "SELECT * FROM producttypetb";
-                        $query = mysqli_query($connect, $select);
-                        $count = mysqli_num_rows($query);
+                    <!-- Product Type -->
+                    <div class="relative">
+                        <select name="productType" id="productType" class="p-2 w-full border rounded">
+                            <option value="" disabled selected>Select type of products supplied</option>
+                            <?php
+                            $select = "SELECT * FROM producttypetb";
+                            $query = mysqli_query($connect, $select);
+                            $count = mysqli_num_rows($query);
 
-                        if ($count) {
-                            for ($i = 0; $i < $count; $i++) {
-                                $row = mysqli_fetch_array($query);
-                                $product_type_id = $row['ProductTypeID'];
-                                $product_type = $row['ProductType'];
+                            if ($count) {
+                                for ($i = 0; $i < $count; $i++) {
+                                    $row = mysqli_fetch_array($query);
+                                    $product_type_id = $row['ProductTypeID'];
+                                    $product_type = $row['ProductType'];
 
-                                echo "<option value= '$product_type_id'>$product_type</option>";
+                                    echo "<option value= '$product_type_id'>$product_type</option>";
+                                }
+                            } else {
+                                echo "<option value='' disabled>No data yet</option>";
                             }
-                        } else {
-                            echo "<option value='' disabled>No data yet</option>";
-                        }
-                        ?>
-                    </select>
-                </div>
+                            ?>
+                        </select>
+                    </div>
 
-                <!-- Submit Button -->
-                <button
-                    type="submit"
-                    name="addsupplier"
-                    class="bg-amber-500 text-white font-semibold px-4 py-2 rounded select-none hover:bg-amber-600 transition-colors">
-                    Add Supplier
-                </button>
-            </form>
+                    <div class="flex justify-end gap-4 select-none">
+                        <div id="addSupplierCancelBtn" class="px-4 py-2 text-amber-500 font-semibold hover:text-amber-600">
+                            Cancel
+                        </div>
+                        <!-- Submit Button -->
+                        <button
+                            type="submit"
+                            name="addsupplier"
+                            class="bg-amber-500 text-white font-semibold px-4 py-2 rounded select-none hover:bg-amber-600 transition-colors">
+                            Add Supplier
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
