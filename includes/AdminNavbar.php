@@ -8,30 +8,6 @@ $adminProfileRow = mysqli_fetch_assoc($adminProfileResult);
 $adminprofile = $adminProfileRow['AdminProfile'];
 $role = $adminProfileRow['RoleID'];
 
-// // Initialize search and filter variables
-// $searchAdminQuery = isset($_GET['acc_search']) ? mysqli_real_escape_string($connect, $_GET['acc_search']) : '';
-// $filterRoleID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
-
-// // Construct the admin query based on search and role filter
-// if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {
-//     $adminSelect = "SELECT * FROM admintb WHERE RoleID = '$filterRoleID' AND (FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%')";
-// } elseif ($filterRoleID !== 'random') {
-//     $adminSelect = "SELECT * FROM admintb WHERE RoleID = '$filterRoleID'";
-// } elseif (!empty($searchAdminQuery)) {
-//     $adminSelect = "SELECT * FROM admintb WHERE FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%'";
-// } else {
-//     $adminSelect = "SELECT * FROM admintb";
-// }
-
-// $adminSelectQuery = mysqli_query($connect, $adminSelect);
-// $admins = [];
-
-// if (mysqli_num_rows($adminSelectQuery) > 0) {
-//     while ($row = mysqli_fetch_assoc($adminSelectQuery)) {
-//         $admins[] = $row;
-//     }
-// }
-
 // Set the number of rows per page
 $rowsPerPage = 10;
 
@@ -257,17 +233,28 @@ $roomTypeCountRow = mysqli_fetch_assoc($roomTypeCountResult);
 $allRoomTypeCount = $roomTypeCountRow['count'];
 
 $searchContactQuery = isset($_GET['contact_search']) ? mysqli_real_escape_string($connect, $_GET['contact_search']) : '';
+$searchFromDate = isset($_GET['from_date']) ? $_GET['from_date'] : '';
+$searchToDate = isset($_GET['to_date']) ? $_GET['to_date'] : '';
 $filterStatus = isset($_GET['sort']) ? $_GET['sort'] : 'random';
+
+$dateCondition = '';
+if (!empty($searchFromDate) && !empty($searchToDate)) {
+    $dateCondition = " AND ContactDate BETWEEN '$searchFromDate 00:00:00' AND '$searchToDate 23:59:59'";
+} elseif (!empty($searchFromDate)) {
+    $dateCondition = " AND ContactDate >= '$searchFromDate 00:00:00'";
+} elseif (!empty($searchToDate)) {
+    $dateCondition = " AND ContactDate <= '$searchToDate 23:59:59'";
+}
 
 // Construct the contact query based on search and status filter
 if ($filterStatus !== 'random' && !empty($searchContactQuery)) {
-    $contactSelect = "SELECT * FROM contacttb WHERE Status = '$filterStatus' AND (FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%')";
+    $contactSelect = "SELECT * FROM contacttb WHERE Status = '$filterStatus' AND (FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%') $dateCondition";
 } elseif ($filterStatus !== 'random') {
-    $contactSelect = "SELECT * FROM contacttb WHERE Status = '$filterStatus'";
+    $contactSelect = "SELECT * FROM contacttb WHERE Status = '$filterStatus' $dateCondition";
 } elseif (!empty($searchContactQuery)) {
-    $contactSelect = "SELECT * FROM contacttb WHERE FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%'";
+    $contactSelect = "SELECT * FROM contacttb WHERE FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%' $dateCondition";
 } else {
-    $contactSelect = "SELECT * FROM contacttb";
+    $contactSelect = "SELECT * FROM contacttb WHERE 1 $dateCondition";
 }
 
 $contactSelectQuery = mysqli_query($connect, $contactSelect);
@@ -281,24 +268,13 @@ if (mysqli_num_rows($contactSelectQuery) > 0) {
 
 // Construct the contact query based on search and status filter
 if ($filterStatus !== 'random' && !empty($searchContactQuery)) {
-    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE Status = '$filterStatus' AND (FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%')";
+    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE Status = '$filterStatus' AND (FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%') $dateCondition";
 } elseif ($filterStatus !== 'random') {
-    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE Status = '$filterStatus'";
+    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE Status = '$filterStatus' $dateCondition";
 } elseif (!empty($searchContactQuery)) {
-    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%'";
+    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%' $dateCondition";
 } else {
-    $contactQuery = "SELECT COUNT(*) as count FROM contacttb";
-}
-
-// Construct the contact query based on search and status filter
-if ($filterStatus !== 'random' && !empty($searchContactQuery)) {
-    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE Status = '$filterStatus' AND (FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%')";
-} elseif ($filterStatus !== 'random') {
-    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE Status = '$filterStatus'";
-} elseif (!empty($searchContactQuery)) {
-    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%'";
-} else {
-    $contactQuery = "SELECT COUNT(*) as count FROM contacttb";
+    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE 1 $dateCondition";
 }
 
 // Execute the count query

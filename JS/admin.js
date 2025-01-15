@@ -906,6 +906,76 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Admin Details Modal
+document.addEventListener('DOMContentLoaded', () => {
+    const alertMessage = document.getElementById('alertMessage').value;
+    // const updateRoomTypeSuccess = document.getElementById('updateRoomTypeSuccess').value === 'true';
+
+    // Get all details buttons
+    const editsBtns = document.querySelectorAll('.edits-btn');
+
+    if (updateRoomTypeModal && updateRoomTypeModalCancelBtn && editsBtns) {
+        // Add click event to each button
+        editsBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const adminId = this.getAttribute('data-admin-id');
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+
+                // Fetch admin details
+                fetch(`../Admin/RoleManagement.php?action=getAdminDetails&id=${adminId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Fill the modal form with product type data
+                            document.getElementById('updateRoomTypeID').value = adminId;
+                            document.querySelector('[name="updateroomtype"]').value = data.roomtype.RoomType;
+                            document.querySelector('[name="updateroomtypedescription"]').value = data.roomtype.RoomDescription;
+                            document.querySelector('[name="updateroomcapacity"]').value = data.roomtype.RoomCapacity;
+                            // Show the modal
+                            updateRoomTypeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        } else {
+                            console.error('Failed to load room type details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+            });
+        });
+
+        updateRoomTypeModalCancelBtn.addEventListener('click', () => {
+            updateRoomTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        if (updateRoomTypeSuccess) {
+            // Show Alert
+            setTimeout(() => {
+                showAlert('The room type has been successfully updated.');
+                setTimeout(() => {
+                    window.location.href = 'AddRoomType.php';
+                }, 5000);
+            }, 500);
+        } else if (alertMessage) {
+            // Show Alert
+            showAlert(alertMessage);
+        }
+        // Add keyup event listeners for real-time validation
+        document.getElementById("updateRoomTypeInput").addEventListener("keyup", validateUpdateRoomType);
+        document.getElementById("updateRoomTypeDescriptionInput").addEventListener("keyup", validateUpdateRoomTypeDescription);
+        document.getElementById("updateRoomCapacityInput").addEventListener("keyup", validateUpdateRoomCapacity);
+
+        const updateRoomTypeForm = document.getElementById("updateRoomTypeForm");
+        if (updateRoomTypeForm) {
+            updateRoomTypeForm.addEventListener("submit", (e) => {
+                if (!validateUpdateRoomTypeForm()) {
+                    e.preventDefault();
+                }
+            });
+        }
+    }
+});
+
 // Admin Delete Modal
 document.addEventListener('DOMContentLoaded', () => {
     const adminConfirmDeleteModal = document.getElementById('adminConfirmDeleteModal');
@@ -924,7 +994,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', function () {
                 const adminId = this.getAttribute('data-admin-id');
 
-                // Fetch product type details
+                // Fetch admin details
                 fetch(`../Admin/RoleManagement.php?action=getAdminDetails&id=${adminId}`)
                     .then(response => response.json())
                     .then(data => {
@@ -976,6 +1046,22 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show Alert
             showAlert(alertMessage);
         }
+    }
+});
+
+// Contact Date Filter Modal
+document.addEventListener('DOMContentLoaded', () => {
+    const contactDateFilterModal = document.getElementById('contactDateFilterModal');
+    const contactDateFilterBtn = document.getElementById('contactDateFilterBtn');
+
+    if (contactDateFilterModal && contactDateFilterBtn) {
+        const toggleModal = () => {
+            contactDateFilterModal.classList.toggle('opacity-0');
+            contactDateFilterModal.classList.toggle('invisible');
+            contactDateFilterModal.classList.toggle('-translate-y-5');
+        };
+
+        contactDateFilterBtn.addEventListener('click', toggleModal);
     }
 });
 

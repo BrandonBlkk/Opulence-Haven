@@ -104,6 +104,7 @@ if (isset($_POST['respondcontact'])) {
                                     <option value="responded" <?= ($filterStatus === 'responded') ? 'selected' : ''; ?>>Responded</option>
                                 </select>
                             </form>
+                            <i id="contactDateFilterBtn" class="ri-calendar-2-line text-xl px-3 cursor-pointer"></i>
                         </div>
                     </div>
                 </form>
@@ -127,7 +128,6 @@ if (isset($_POST['respondcontact'])) {
                                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                                     <td class="p-3 text-start whitespace-nowrap">
                                         <div class="flex items-center gap-2 font-medium text-gray-500">
-                                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
                                             <span><?= htmlspecialchars($contact['ContactID']) ?></span>
                                         </div>
                                     </td>
@@ -169,6 +169,16 @@ if (isset($_POST['respondcontact'])) {
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Pagination Controls -->
+                <div class="flex justify-center items-center mt-1">
+                    <?php for ($page = 1; $page <= $totalPages; $page++): ?>
+                        <a href="?page=<?= $page ?>&sort=<?= htmlspecialchars($filterRoleID) ?>&acc_search=<?= htmlspecialchars($searchAdminQuery) ?>"
+                            class="px-3 py-1 mx-1 border rounded <?= $page == $currentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                            <?= $page ?>
+                        </a>
+                    <?php endfor; ?>
+                </div>
             </div>
         </div>
 
@@ -203,6 +213,32 @@ if (isset($_POST['respondcontact'])) {
                 </form>
             </div>
         </div>
+
+        <!-- Date Filter -->
+        <div id="contactDateFilterModal" class="fixed top-36 right-0 sm:right-5 z-50 w-full sm:max-w-[500px] flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+            <div class="bg-white max-w-5xl p-5 rounded-md shadow-md text-center w-full sm:max-w-[500px]">
+                <h2 class="text-md text-start font-bold mb-4">Date Filter</h2>
+                <form class="flex flex-col space-y-4" method="get">
+                    <!-- Date Filter: From -->
+                    <div class="text-start">
+                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">From:</label>
+                        <input type="date" name="from_date" id="from_date" value="<?php echo isset($_GET['from_date']) ? $_GET['from_date'] : ''; ?>" class="border p-2 rounded w-full">
+                    </div>
+                    <!-- Date Filter: To -->
+                    <div class="text-start">
+                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">To:</label>
+                        <input type="date" name="to_date" id="to_date" value="<?php echo isset($_GET['to_date']) ? $_GET['to_date'] : ''; ?>" class="border p-2 rounded w-full">
+                    </div>
+                    <!-- Search Button -->
+                    <div class="flex justify-end gap-4 select-none">
+                        <button type="submit" class="w-full sm:w-auto bg-amber-500 text-white px-4 py-2 rounded hover:bg-amber-600">
+                            Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
     </div>
 
     <!-- Loader -->
