@@ -179,7 +179,7 @@ if (isset($_POST['deletesupplier'])) {
                         </div>
                     </div>
                 </form>
-                <div class="adminTable overflow-y-auto max-h-[510px]">
+                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
                     <table class="min-w-full bg-white rounded-lg">
                         <thead>
                             <tr class="bg-gray-100 text-gray-600 text-sm">
@@ -243,6 +243,48 @@ if (isset($_POST['deletesupplier'])) {
                             <?php endforeach; ?>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div class="flex justify-center items-center mt-1">
+                    <!-- Previous Btn -->
+                    <?php if ($supplierCurrentPage > 1) {
+                    ?>
+                        <a href="?supplierpage=<?= $supplierCurrentPage - 1 ?>"
+                            class="px-3 py-1 mx-1 border rounded <?= $supplierpage == $supplierCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                            <i class="ri-arrow-left-s-line"></i>
+                        </a>
+                    <?php
+                    } else {
+                    ?>
+                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
+                            <i class="ri-arrow-left-s-line"></i>
+                        </p>
+                    <?php
+                    }
+                    ?>
+                    <?php for ($supplierpage = 1; $supplierpage <= $totalSupplierPages; $supplierpage++): ?>
+                        <a href="?supplierpage=<?= $supplierpage ?>&supplier_search=<?= htmlspecialchars($searchSupplierQuery) ?>"
+                            class="px-3 py-1 mx-1 border rounded select-none <?= $supplierpage == $supplierCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                            <?= $supplierpage ?>
+                        </a>
+                    <?php endfor; ?>
+                    <!-- Next Btn -->
+                    <?php if ($supplierCurrentPage < $totalSupplierPages) {
+                    ?>
+                        <a href="?supplierpage=<?= $supplierCurrentPage + 1 ?>"
+                            class="px-3 py-1 mx-1 border rounded <?= $supplierpage == $supplierCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                            <i class="ri-arrow-right-s-line"></i>
+                        </a>
+                    <?php
+                    } else {
+                    ?>
+                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
+                            <i class="ri-arrow-right-s-line"></i>
+                        </p>
+                    <?php
+                    }
+                    ?>
                 </div>
             </div>
         </div>

@@ -108,7 +108,7 @@ if (isset($_POST['respondcontact'])) {
                         </div>
                     </div>
                 </form>
-                <div class="adminTable overflow-y-auto max-h-[510px]">
+                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
                     <table class="min-w-full bg-white rounded-lg">
                         <thead>
                             <tr class="bg-gray-100 text-gray-600 text-sm">
@@ -172,12 +172,44 @@ if (isset($_POST['respondcontact'])) {
 
                 <!-- Pagination Controls -->
                 <div class="flex justify-center items-center mt-1">
-                    <?php for ($page = 1; $page <= $totalPages; $page++): ?>
-                        <a href="?page=<?= $page ?>&sort=<?= htmlspecialchars($filterRoleID) ?>&acc_search=<?= htmlspecialchars($searchAdminQuery) ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $page == $currentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <?= $page ?>
+                    <!-- Previous Btn -->
+                    <?php if ($contactCurrentPage > 1) {
+                    ?>
+                        <a href="?contactpage=<?= $contactCurrentPage - 1 ?>"
+                            class="px-3 py-1 mx-1 border rounded <?= $contactpage == $contactCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                            <i class="ri-arrow-left-s-line"></i>
+                        </a>
+                    <?php
+                    } else {
+                    ?>
+                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
+                            <i class="ri-arrow-left-s-line"></i>
+                        </p>
+                    <?php
+                    }
+                    ?>
+                    <?php for ($contactpage = 1; $contactpage <= $totalContactPages; $contactpage++): ?>
+                        <a href="?contactpage=<?= $contactpage ?>&sort=<?= htmlspecialchars($filterStatus) ?>&contact_search=<?= htmlspecialchars($searchContactQuery) ?>"
+                            class="px-3 py-1 mx-1 border rounded select-none <?= $contactpage == $contactCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                            <?= $contactpage ?>
                         </a>
                     <?php endfor; ?>
+                    <!-- Next Btn -->
+                    <?php if ($contactCurrentPage < $totalContactPages) {
+                    ?>
+                        <a href="?contactpage=<?= $contactCurrentPage + 1 ?>"
+                            class="px-3 py-1 mx-1 border rounded <?= $contactpage == $contactCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                            <i class="ri-arrow-right-s-line"></i>
+                        </a>
+                    <?php
+                    } else {
+                    ?>
+                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
+                            <i class="ri-arrow-right-s-line"></i>
+                        </p>
+                    <?php
+                    }
+                    ?>
                 </div>
             </div>
         </div>

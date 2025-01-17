@@ -1,4 +1,6 @@
 <?php
+include('../includes/AdminPagination.php');
+
 $adminID = $_SESSION['AdminID'];
 
 // Fetch admin profile
@@ -7,15 +9,6 @@ $adminProfileResult = mysqli_query($connect, $adminProfileQuery);
 $adminProfileRow = mysqli_fetch_assoc($adminProfileResult);
 $adminprofile = $adminProfileRow['AdminProfile'];
 $role = $adminProfileRow['RoleID'];
-
-// Set the number of rows per page
-$rowsPerPage = 10;
-
-// Get the current page number from the URL or default to 1
-$currentPage = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
-
-// Calculate the offset for the query
-$offset = ($currentPage - 1) * $rowsPerPage;
 
 // Initialize search and filter variables
 $searchAdminQuery = isset($_GET['acc_search']) ? mysqli_real_escape_string($connect, $_GET['acc_search']) : '';
@@ -42,21 +35,6 @@ if (mysqli_num_rows($adminSelectQuery) > 0) {
     }
 }
 
-// Fetch total number of rows for pagination calculation
-$totalRowsQuery = "SELECT COUNT(*) as total FROM admintb";
-if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {
-    $totalRowsQuery = "SELECT COUNT(*) as total FROM admintb WHERE RoleID = '$filterRoleID' AND (FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%')";
-} elseif ($filterRoleID !== 'random') {
-    $totalRowsQuery = "SELECT COUNT(*) as total FROM admintb WHERE RoleID = '$filterRoleID'";
-} elseif (!empty($searchAdminQuery)) {
-    $totalRowsQuery = "SELECT COUNT(*) as total FROM admintb WHERE FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%'";
-}
-$totalRowsResult = mysqli_query($connect, $totalRowsQuery);
-$totalRows = mysqli_fetch_assoc($totalRowsResult)['total'];
-
-// Calculate the total number of pages
-$totalPages = ceil($totalRows / $rowsPerPage);
-
 // Construct the admin count query based on search and role filter
 if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {
     $adminCountQuery = "SELECT COUNT(*) as count FROM admintb WHERE RoleID = '$filterRoleID' AND (FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%')";
@@ -78,13 +56,13 @@ $filterSupplierID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 
 // Construct the supplier query based on search and role filter
 if ($filterSupplierID !== 'random' && !empty($searchSupplierQuery)) {
-    $supplierSelect = "SELECT * FROM suppliertb WHERE ProductTypeID = '$filterSupplierID' AND (SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%')";
+    $supplierSelect = "SELECT * FROM suppliertb WHERE ProductTypeID = '$filterSupplierID' AND (SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%') LIMIT $rowsPerPage OFFSET $supplierOffset";
 } elseif ($filterSupplierID !== 'random') {
-    $supplierSelect = "SELECT * FROM suppliertb WHERE ProductTypeID = '$filterSupplierID'";
+    $supplierSelect = "SELECT * FROM suppliertb WHERE ProductTypeID = '$filterSupplierID' LIMIT $rowsPerPage OFFSET $supplierOffset";
 } elseif (!empty($searchSupplierQuery)) {
-    $supplierSelect = "SELECT * FROM suppliertb WHERE SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%'";
+    $supplierSelect = "SELECT * FROM suppliertb WHERE SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%' LIMIT $rowsPerPage OFFSET $supplierOffset";
 } else {
-    $supplierSelect = "SELECT * FROM suppliertb";
+    $supplierSelect = "SELECT * FROM suppliertb LIMIT $rowsPerPage OFFSET $supplierOffset";
 }
 
 $supplierSelectQuery = mysqli_query($connect, $supplierSelect);
@@ -122,9 +100,9 @@ $filterProductTypeID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 
 // Construct the product type query based on search
 if (!empty($searchProductTypeQuery)) {
-    $productTypeSelect = "SELECT * FROM producttypetb WHERE ProductType LIKE '%$searchProductTypeQuery%' OR Description LIKE '%$searchProductTypeQuery%'";
+    $productTypeSelect = "SELECT * FROM producttypetb WHERE ProductType LIKE '%$searchProductTypeQuery%' OR Description LIKE '%$searchProductTypeQuery%' LIMIT $rowsPerPage OFFSET $productTypeOffset";
 } else {
-    $productTypeSelect = "SELECT * FROM producttypetb";
+    $productTypeSelect = "SELECT * FROM producttypetb LIMIT $rowsPerPage OFFSET $productTypeOffset";
 }
 
 $productTypeSelectQuery = mysqli_query($connect, $productTypeSelect);
@@ -158,13 +136,13 @@ $filterProductID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 
 // Construct the product query based on search and product type filter
 if ($filterProductID !== 'random' && !empty($searchProductQuery)) {
-    $productSelect = "SELECT * FROM producttb WHERE ProductTypeID = '$filterProductID' AND (Title LIKE '%$searchProductQuery%' OR Description LIKE '%$searchProductQuery%' OR Specification LIKE '%$searchProductQuery%' OR Information LIKE '%$searchProductQuery%' OR Brand LIKE '%$searchProductQuery%')";
+    $productSelect = "SELECT * FROM producttb WHERE ProductTypeID = '$filterProductID' AND (Title LIKE '%$searchProductQuery%' OR Description LIKE '%$searchProductQuery%' OR Specification LIKE '%$searchProductQuery%' OR Information LIKE '%$searchProductQuery%' OR Brand LIKE '%$searchProductQuery%') LIMIT $rowsPerPage OFFSET $productOffset";
 } elseif ($filterProductID !== 'random') {
-    $productSelect = "SELECT * FROM producttb WHERE ProductTypeID = '$filterProductID'";
+    $productSelect = "SELECT * FROM producttb WHERE ProductTypeID = '$filterProductID' LIMIT $rowsPerPage OFFSET $productOffset";
 } elseif (!empty($searchProductQuery)) {
-    $productSelect = "SELECT * FROM producttb WHERE Title LIKE '%$searchProductQuery%' OR Description LIKE '%$searchProductQuery%' OR Specification LIKE '%$searchProductQuery%' OR Information LIKE '%$searchProductQuery%' OR Brand LIKE '%$searchProductQuery%'";
+    $productSelect = "SELECT * FROM producttb WHERE Title LIKE '%$searchProductQuery%' OR Description LIKE '%$searchProductQuery%' OR Specification LIKE '%$searchProductQuery%' OR Information LIKE '%$searchProductQuery%' OR Brand LIKE '%$searchProductQuery%' LIMIT $rowsPerPage OFFSET $productOffset";
 } else {
-    $productSelect = "SELECT * FROM producttb";
+    $productSelect = "SELECT * FROM producttb LIMIT $rowsPerPage OFFSET $productOffset";
 }
 
 $productSelectQuery = mysqli_query($connect, $productSelect);
@@ -201,9 +179,9 @@ $searchRoomTypeQuery = isset($_GET['roomtype_search']) ? mysqli_real_escape_stri
 
 // Construct the product type query based on search
 if (!empty($searchRoomTypeQuery)) {
-    $roomTypeSelect = "SELECT * FROM roomtypetb WHERE RoomType LIKE '%$searchRoomTypeQuery%' OR RoomDescription LIKE '%$searchRoomTypeQuery%'";
+    $roomTypeSelect = "SELECT * FROM roomtypetb WHERE RoomType LIKE '%$searchRoomTypeQuery%' OR RoomDescription LIKE '%$searchRoomTypeQuery%' LIMIT $rowsPerPage OFFSET $roomTypeOffset";
 } else {
-    $roomTypeSelect = "SELECT * FROM roomtypetb";
+    $roomTypeSelect = "SELECT * FROM roomtypetb LIMIT $rowsPerPage OFFSET $roomTypeOffset";
 }
 
 $roomTypeSelectQuery = mysqli_query($connect, $roomTypeSelect);
@@ -248,13 +226,13 @@ if (!empty($searchFromDate) && !empty($searchToDate)) {
 
 // Construct the contact query based on search and status filter
 if ($filterStatus !== 'random' && !empty($searchContactQuery)) {
-    $contactSelect = "SELECT * FROM contacttb WHERE Status = '$filterStatus' AND (FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%') $dateCondition";
+    $contactSelect = "SELECT * FROM contacttb WHERE Status = '$filterStatus' AND (FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%') LIMIT $rowsPerPage OFFSET $contactOffset $dateCondition";
 } elseif ($filterStatus !== 'random') {
-    $contactSelect = "SELECT * FROM contacttb WHERE Status = '$filterStatus' $dateCondition";
+    $contactSelect = "SELECT * FROM contacttb WHERE Status = '$filterStatus' LIMIT $rowsPerPage OFFSET $contactOffset $dateCondition";
 } elseif (!empty($searchContactQuery)) {
-    $contactSelect = "SELECT * FROM contacttb WHERE FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%' $dateCondition";
+    $contactSelect = "SELECT * FROM contacttb WHERE FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%' LIMIT $rowsPerPage OFFSET $contactOffset $dateCondition";
 } else {
-    $contactSelect = "SELECT * FROM contacttb WHERE 1 $dateCondition";
+    $contactSelect = "SELECT * FROM contacttb WHERE 1 $dateCondition LIMIT $rowsPerPage OFFSET $contactOffset";
 }
 
 $contactSelectQuery = mysqli_query($connect, $contactSelect);

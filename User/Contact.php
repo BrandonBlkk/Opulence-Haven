@@ -84,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                 </ul>
             </div>
             <div class="w-full max-w-2xl">
-                <form class="flex flex-col space-y-4 w-full" action="<?php $_SERVER["PHP_SELF"] ?>" method="post" id="signinForm">
+                <form class="flex flex-col space-y-4 w-full" action="<?php $_SERVER["PHP_SELF"] ?>" method="post" id="contactForm">
                     <!-- User id -->
                     <input type="hidden" name="userid" value="<?php echo $userID; ?>">
                     <label class="block text-sm text-start font-medium text-gray-700 mb-1">User Information</label>
@@ -97,6 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                                 type="text"
                                 name="fullname"
                                 placeholder="Enter your fullname">
+                            <small id="contactFullNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                         </div>
                         <!-- Email Input -->
                         <div class="relative flex-1">

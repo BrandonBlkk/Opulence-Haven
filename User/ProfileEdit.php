@@ -12,7 +12,7 @@ $resetSuccess = false;
 $profileUpdate = false;
 
 // Fetch the current user data from the database
-$userQuery = "SELECT * FROM usertb WHERE UserID = $id";
+$userQuery = "SELECT * FROM usertb WHERE UserID = '$id'";
 $userResult = mysqli_query($connect, $userQuery);
 $userData = mysqli_fetch_assoc($userResult);
 

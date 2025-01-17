@@ -240,7 +240,7 @@ if (isset($_POST['deleteproduct'])) {
                         </div>
                     </div>
                 </form>
-                <div class="overflow-y-auto max-h-[510px]">
+                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
                     <table class="min-w-full bg-white rounded-lg">
                         <thead>
                             <tr class="bg-gray-100 text-gray-600 text-sm">
@@ -291,14 +291,46 @@ if (isset($_POST['deleteproduct'])) {
                     </table>
 
                     <!-- Pagination Controls -->
-                    <!-- <div class="flex justify-center items-center mt-1">
-                        <?php for ($page = 1; $page <= $totalPages; $page++): ?>
-                            <a href="?page=<?= $page ?>&sort=<?= htmlspecialchars($filterRoleID) ?>&acc_search=<?= htmlspecialchars($searchAdminQuery) ?>"
-                                class="px-3 py-1 mx-1 border rounded <?= $page == $currentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                                <?= $page ?>
+                    <div class="flex justify-center items-center mt-1">
+                        <!-- Previous Btn -->
+                        <?php if ($productCurrentPage > 1) {
+                        ?>
+                            <a href="?productpage=<?= $productCurrentPage - 1 ?>"
+                                class="px-3 py-1 mx-1 border rounded <?= $productpage == $productCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                                <i class="ri-arrow-left-s-line"></i>
+                            </a>
+                        <?php
+                        } else {
+                        ?>
+                            <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
+                                <i class="ri-arrow-left-s-line"></i>
+                            </p>
+                        <?php
+                        }
+                        ?>
+                        <?php for ($productpage = 1; $productpage <= $totalProductPages; $productpage++): ?>
+                            <a href="?productpage=<?= $productpage ?>&product_search=<?= htmlspecialchars($searchProductQuery) ?>"
+                                class="px-3 py-1 mx-1 border rounded select-none <?= $productpage == $productCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                                <?= $productpage ?>
                             </a>
                         <?php endfor; ?>
-                    </div> -->
+                        <!-- Next Btn -->
+                        <?php if ($productCurrentPage < $totalProductPages) {
+                        ?>
+                            <a href="?productpage=<?= $productCurrentPage + 1 ?>"
+                                class="px-3 py-1 mx-1 border rounded <?= $productpage == $productCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                                <i class="ri-arrow-right-s-line"></i>
+                            </a>
+                        <?php
+                        } else {
+                        ?>
+                            <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
+                                <i class="ri-arrow-right-s-line"></i>
+                            </p>
+                        <?php
+                        }
+                        ?>
+                    </div>
                 </div>
             </div>
         </div>

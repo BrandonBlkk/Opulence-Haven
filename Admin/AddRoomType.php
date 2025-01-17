@@ -67,9 +67,11 @@ if (isset($_POST['editroomtype'])) {
     $roomTypeId = mysqli_real_escape_string($connect, $_POST['roomtypeid']);
     $RoomType = mysqli_real_escape_string($connect, $_POST['updateroomtype']);
     $updatedRoomTypeDescription = mysqli_real_escape_string($connect, $_POST['updateroomtypedescription']);
+    $updatedRoomCapacity = mysqli_real_escape_string($connect, $_POST['updateroomcapacity']);
 
     // Update query
-    $updateQuery = "UPDATE roomtypetb SET RoomType = '$RoomType', RoomDescription = '$updatedRoomTypeDescription' WHERE RoomTypeID = '$roomTypeId'";
+    $updateQuery = "UPDATE roomtypetb SET RoomType = '$RoomType', RoomDescription = '$updatedRoomTypeDescription', RoomCapacity = '$updatedRoomCapacity' 
+    WHERE RoomTypeID = '$roomTypeId'";
 
     if (mysqli_query($connect, $updateQuery)) {
         $updateRoomTypeSuccess = true;
@@ -132,7 +134,7 @@ if (isset($_POST['deleteroomtype'])) {
                         <input type="text" name="roomtype_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full" placeholder="Search for room type..." value="<?php echo isset($_GET['roomtype_search']) ? htmlspecialchars($_GET['roomtype_search']) : ''; ?>">
                     </div>
                 </form>
-                <div class="overflow-y-auto max-h-[510px]">
+                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
                     <table class="min-w-full bg-white rounded-lg">
                         <thead>
                             <tr class="bg-gray-100 text-gray-600 text-sm">
@@ -173,6 +175,48 @@ if (isset($_POST['deleteroomtype'])) {
                             <?php endforeach; ?>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div class="flex justify-center items-center mt-1">
+                    <!-- Previous Btn -->
+                    <?php if ($roomTypeCurrentPage > 1) {
+                    ?>
+                        <a href="?roomtypepage=<?= $roomTypeCurrentPage - 1 ?>"
+                            class="px-3 py-1 mx-1 border rounded <?= $roomtypepage == $roomTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                            <i class="ri-arrow-left-s-line"></i>
+                        </a>
+                    <?php
+                    } else {
+                    ?>
+                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
+                            <i class="ri-arrow-left-s-line"></i>
+                        </p>
+                    <?php
+                    }
+                    ?>
+                    <?php for ($roomtypepage = 1; $roomtypepage <= $totalRoomTypePages; $roomtypepage++): ?>
+                        <a href="?roomtypepage=<?= $roomtypepage ?>&roomtype_search=<?= htmlspecialchars($searchRoomTypeQuery) ?>"
+                            class="px-3 py-1 mx-1 border rounded select-none <?= $roomtypepage == $roomTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                            <?= $roomtypepage ?>
+                        </a>
+                    <?php endfor; ?>
+                    <!-- Next Btn -->
+                    <?php if ($roomTypeCurrentPage < $totalRoomTypePages) {
+                    ?>
+                        <a href="?roomtypepage=<?= $roomTypeCurrentPage + 1 ?>"
+                            class="px-3 py-1 mx-1 border rounded <?= $roomtypepage == $roomTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                            <i class="ri-arrow-right-s-line"></i>
+                        </a>
+                    <?php
+                    } else {
+                    ?>
+                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
+                            <i class="ri-arrow-right-s-line"></i>
+                        </p>
+                    <?php
+                    }
+                    ?>
                 </div>
             </div>
         </div>

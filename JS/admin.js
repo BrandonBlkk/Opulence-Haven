@@ -909,7 +909,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Admin Details Modal
 document.addEventListener('DOMContentLoaded', () => {
     const alertMessage = document.getElementById('alertMessage').value;
-    // const updateRoomTypeSuccess = document.getElementById('updateRoomTypeSuccess').value === 'true';
+    const updateRoomTypeSuccess = document.getElementById('updateRoomTypeSuccess').value === 'true';
 
     // Get all details buttons
     const editsBtns = document.querySelectorAll('.edits-btn');
