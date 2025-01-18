@@ -210,6 +210,46 @@ $roomTypeCountResult = mysqli_query($connect, $roomTypeCountQuery);
 $roomTypeCountRow = mysqli_fetch_assoc($roomTypeCountResult);
 $allRoomTypeCount = $roomTypeCountRow['count'];
 
+
+
+
+$searchFacilityTypeQuery = isset($_GET['facilitytype_search']) ? mysqli_real_escape_string($connect, $_GET['facilitytype_search']) : '';
+
+// Construct the product type query based on search
+if (!empty($searchFacilityTypeQuery)) {
+    $facilityTypeSelect = "SELECT * FROM facilitytypetb WHERE FacilityType LIKE '%$searchFacilityTypeQuery%' LIMIT $rowsPerPage OFFSET $facilityTypeOffset";
+} else {
+    $facilityTypeSelect = "SELECT * FROM facilitytypetb LIMIT $rowsPerPage OFFSET $facilityTypeOffset";
+}
+
+$facilityTypeSelectQuery = mysqli_query($connect, $facilityTypeSelect);
+$facilityTypes = [];
+
+if (mysqli_num_rows($facilityTypeSelectQuery) > 0) {
+    while ($row = mysqli_fetch_assoc($facilityTypeSelectQuery)) {
+        $facilityTypes[] = $row;
+    }
+}
+
+// Construct the prooducttype count query based on search
+if (!empty($searchFacilityTypeQuery)) {
+    $facilityTypeQuery = "SELECT COUNT(*) as count FROM facilitytypetb WHERE FacilityType LIKE '%$searchFacilityTypeQuery%'";
+} else {
+    $facilityTypeQuery = "SELECT COUNT(*) as count FROM facilitytypetb";
+}
+
+// Execute the count query
+$facilityTypeResult = mysqli_query($connect, $facilityTypeQuery);
+$facilityTypeRow = mysqli_fetch_assoc($facilityTypeResult);
+$facilityTypeCount = $facilityTypeRow['count'];
+// Fetch product type count
+$facilityTypeCountQuery = "SELECT COUNT(*) as count FROM facilitytypetb";
+$facilityTypeCountResult = mysqli_query($connect, $facilityTypeCountQuery);
+$facilityTypeCountRow = mysqli_fetch_assoc($facilityTypeCountResult);
+$allFacilityTypeCount = $facilityTypeCountRow['count'];
+
+
+
 $searchContactQuery = isset($_GET['contact_search']) ? mysqli_real_escape_string($connect, $_GET['contact_search']) : '';
 $searchFromDate = isset($_GET['from_date']) ? $_GET['from_date'] : '';
 $searchToDate = isset($_GET['to_date']) ? $_GET['to_date'] : '';
@@ -403,6 +443,38 @@ if (mysqli_num_rows($query) > 0) {
                             <div class="flex items-center gap-1">
                                 <i class="ri-hotel-bed-line text-xl"></i>
                                 <span class="font-semibold text-sm">Add room type</span>
+                            </div>
+                            <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allRoomTypeCount ?></p>
+                        </a>
+                        <a href="../Admin/AddRule.php"
+                            class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?>">
+                            <div class="flex items-center gap-1">
+                                <i class="ri-file-list-3-line text-xl"></i>
+                                <span class="font-semibold text-sm">Add rule</span>
+                            </div>
+                            <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allRoomTypeCount ?></p>
+                        </a>
+                        <a href="../Admin/AddFacility.php"
+                            class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?>">
+                            <div class="flex items-center gap-1">
+                                <i class="ri-hotel-line text-xl"></i>
+                                <span class="font-semibold text-sm">Add facility</span>
+                            </div>
+                            <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allRoomTypeCount ?></p>
+                        </a>
+                        <a href="../Admin/AddFacilityType.php"
+                            class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?>">
+                            <div class="flex items-center gap-1">
+                                <i class="ri-list-check-3 text-xl"></i>
+                                <span class="font-semibold text-sm">Add facility type</span>
+                            </div>
+                            <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allFacilityTypeCount ?></p>
+                        </a>
+                        <a href="../Admin/AddRoomType.php"
+                            class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?>">
+                            <div class="flex items-center gap-1">
+                                <i class="ri-file-list-3-line text-xl"></i>
+                                <span class="font-semibold text-sm">Add amenity</span>
                             </div>
                             <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allRoomTypeCount ?></p>
                         </a>

@@ -18,6 +18,12 @@ if (!$connect) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.css" integrity="sha512-HXXR0l2yMwHDrDyxJbrMD9eLvPe3z3qL3PPeozNTsiHJEENxx8DH2CxmV05iwG0dwoz5n4gQZQyYLUNt1Wdgfg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="../CSS/output.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+
+    <!-- Swiper JS -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
 </head>
 
 <body class="relative">
@@ -27,11 +33,53 @@ if (!$connect) {
     ?>
 
     <main class="pb-4">
-        <div class="select-none">
+        <!-- <div class="select-none">
             <img src="../UserImages/hotel-room-5858069_1280.jpg"
                 class="w-full h-full lg:max-h-[620px] object-cover object-bottom clip-custom"
                 alt="Image">
+        </div> -->
+        <div class="swiper-container">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <img src="../UserImages/hotel-room-5858069_1280.jpg"
+                        class="w-full h-full lg:max-h-[620px] object-cover object-bottom clip-custom"
+                        alt="Hotel Room">
+                </div>
+                <div class="swiper-slide">
+                    <img src="../UserImages/slide_image_2.jpg"
+                        class="w-full h-full lg:max-h-[620px] object-cover object-bottom clip-custom"
+                        alt="Another Room">
+                </div>
+                <div class="swiper-slide">
+                    <img src="../UserImages/slide_image_3.jpg"
+                        class="w-full h-full lg:max-h-[620px] object-cover object-bottom clip-custom"
+                        alt="Yet Another Room">
+                </div>
+                <div class="swiper-slide">
+                    <img src="../UserImages/slide_image_4.jpg"
+                        class="w-full h-full lg:max-h-[620px] object-cover object-top clip-custom"
+                        alt="Yet Another Room">
+                </div>
+            </div>
         </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const swiper = new Swiper('.swiper-container', {
+                    effect: 'fade',
+                    loop: true,
+                    autoplay: {
+                        delay: 6000,
+                        disableOnInteraction: false,
+                    },
+                    pagination: {
+                        el: '.swiper-pagination',
+                        clickable: true,
+                    },
+                    allowTouchMove: true,
+                });
+            });
+        </script>
 
         <div class="flex flex-col items-center justify-center py-16 px-3 text-center">
             <h1 class="text-2xl sm:text-4xl mb-5 text-blue-900 font-semibold">Get away at the best price</h1>

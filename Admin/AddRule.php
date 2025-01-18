@@ -117,8 +117,8 @@ if (isset($_POST['deleteroomtype'])) {
         <div class="w-full bg-white p-2">
             <div class="flex justify-between items-end">
                 <div>
-                    <h2 class="text-xl font-bold mb-4">Add Room Type Overview</h2>
-                    <p>Add information about room types to categorize items, track stock levels, and manage room details for efficient organization.</p>
+                    <h2 class="text-xl font-bold mb-4">Add Rule Overview</h2>
+                    <p>Add information about rule to categorize items, track stock levels, and manage room details for efficient organization.</p>
                 </div>
                 <button id="addRoomTypeBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
                     <i class="ri-add-line text-xl"></i>
@@ -129,9 +129,9 @@ if (isset($_POST['deleteroomtype'])) {
             <div class="overflow-x-auto">
                 <!-- Product Type Search and Filter -->
                 <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
-                    <h1 class="text-lg font-semibold text-nowrap">All Room Types <span class="text-gray-400 text-sm ml-2"><?php echo $roomTypeCount ?></span></h1>
+                    <h1 class="text-lg font-semibold text-nowrap">All Rules <span class="text-gray-400 text-sm ml-2"><?php echo $roomTypeCount ?></span></h1>
                     <div class="flex items-center w-full">
-                        <input type="text" name="roomtype_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full" placeholder="Search for room type..." value="<?php echo isset($_GET['roomtype_search']) ? htmlspecialchars($_GET['roomtype_search']) : ''; ?>">
+                        <input type="text" name="rule_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full" placeholder="Search for rule..." value="<?php echo isset($_GET['rule_search']) ? htmlspecialchars($_GET['rule_search']) : ''; ?>">
                     </div>
                 </form>
                 <div class="tableScrollBar overflow-y-auto max-h-[510px]">
@@ -139,9 +139,8 @@ if (isset($_POST['deleteroomtype'])) {
                         <thead>
                             <tr class="bg-gray-100 text-gray-600 text-sm">
                                 <th class="p-3 text-start">ID</th>
-                                <th class="p-3 text-start">Type</th>
-                                <th class="p-3 text-start hidden sm:table-cell">Description</th>
-                                <th class="p-3 text-start hidden sm:table-cell">Capacity</th>
+                                <th class="p-3 text-start">Rule</th>
+                                <th class="p-3 text-start hidden sm:table-cell">Icon</th>
                                 <th class="p-3 text-start">Actions</th>
                             </tr>
                         </thead>
@@ -159,9 +158,6 @@ if (isset($_POST['deleteroomtype'])) {
                                     </td>
                                     <td class="p-3 text-start hidden sm:table-cell">
                                         <?= htmlspecialchars($roomType['RoomDescription']) ?>
-                                    </td>
-                                    <td class="p-3 text-start hidden sm:table-cell">
-                                        <?= htmlspecialchars($roomType['RoomCapacity']) ?>
                                     </td>
                                     <td class="p-3 text-start space-x-1 select-none">
                                         <i class="details-btn ri-eye-line text-lg cursor-pointer"
@@ -297,41 +293,31 @@ if (isset($_POST['deleteroomtype'])) {
             </form>
         </div>
 
-        <!-- Add Room Type Form -->
+        <!-- Add Rule Form -->
         <div id="addRoomTypeModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white w-full md:w-1/3 p-6 rounded-md shadow-md ">
-                <h2 class="text-xl font-bold mb-4">Add New Room Type</h2>
+                <h2 class="text-xl font-bold mb-4">Add New Rule</h2>
                 <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="roomTypeForm">
-                    <!-- Room Type Input -->
+                    <!-- Rule Input -->
                     <div class="relative w-full">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Room Type Information</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Rule Information</label>
                         <input
                             id="roomTypeInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="text"
                             name="roomtype"
-                            placeholder="Enter room type">
+                            placeholder="Enter rule">
                         <small id="roomTypeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
-                    <!-- Description Input -->
+                    <!-- Icon Input -->
                     <div class="relative">
-                        <textarea
+                        <input
                             id="roomTypeDescriptionInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="text"
                             name="description"
-                            placeholder="Enter room type description"></textarea>
+                            placeholder="Enter rule icon">
                         <small id="roomTypeDescriptionError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                    </div>
-                    <!-- Capacity Input -->
-                    <div class="relative w-full">
-                        <input
-                            id="roomCapacityInput"
-                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                            type="number"
-                            name="roomcapacity"
-                            placeholder="Enter room capacity">
-                        <small id="roomCapacityError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
 
                     <div class="flex justify-end gap-4 select-none">
@@ -343,7 +329,7 @@ if (isset($_POST['deleteroomtype'])) {
                             type="submit"
                             name="addroomtype"
                             class="bg-amber-500 text-white font-semibold px-4 py-2 rounded select-none hover:bg-amber-600 transition-colors">
-                            Add Room Type
+                            Add Rule
                         </button>
                     </div>
                 </form>

@@ -88,7 +88,7 @@ if (isset($_POST['respondcontact'])) {
             <div class="overflow-x-auto">
                 <!-- User Contact Search and Filter -->
                 <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
-                    <h1 class="text-lg font-semibold text-nowrap">All Contacts<span class="text-gray-400 text-sm ml-2"><?php echo $contactCount ?></span></h1>
+                    <h1 class="text-lg font-semibold text-nowrap">All Contacts <span class="text-gray-400 text-sm ml-2"><?php echo $contactCount ?></span></h1>
                     <div class="flex flex-col sm:flex-row items-start sm:items-center w-full gap-2 sm:gap-0">
                         <input type="text" name="contact_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full" placeholder="Search for user contact..." value="<?php echo isset($_GET['contact_search']) ? htmlspecialchars($_GET['contact_search']) : ''; ?>">
                         <div class="flex items-center">

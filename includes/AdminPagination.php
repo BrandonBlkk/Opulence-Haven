@@ -1,6 +1,6 @@
 <?php
 // Set the number of rows per page
-$rowsPerPage = 10;
+$rowsPerPage = 1;
 
 // Get the current page number from the URL or default to 1
 $currentPage = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -9,6 +9,7 @@ $productTypeCurrentPage = isset($_GET['producttypepage']) && is_numeric($_GET['p
 $supplierCurrentPage = isset($_GET['supplierpage']) && is_numeric($_GET['supplierpage']) ? (int)$_GET['supplierpage'] : 1;
 $productCurrentPage = isset($_GET['productpage']) && is_numeric($_GET['productpage']) ? (int)$_GET['productpage'] : 1;
 $roomTypeCurrentPage = isset($_GET['roomtypepage']) && is_numeric($_GET['roomtypepage']) ? (int)$_GET['roomtypepage'] : 1;
+$facilityTypeCurrentPage = isset($_GET['facilitytypepage']) && is_numeric($_GET['facilitytypepage']) ? (int)$_GET['facilitytypepage'] : 1;
 
 // Calculate the offset for the query
 $offset = ($currentPage - 1) * $rowsPerPage;
@@ -17,6 +18,7 @@ $productTypeOffset = ($productTypeCurrentPage - 1) * $rowsPerPage;
 $productOffset = ($productCurrentPage - 1) * $rowsPerPage;
 $supplierOffset = ($supplierCurrentPage - 1) * $rowsPerPage;
 $roomTypeOffset = ($roomTypeCurrentPage - 1) * $rowsPerPage;
+$facilityTypeOffset = ($facilityTypeCurrentPage - 1) * $rowsPerPage;
 
 $filterRoleID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterStatus = isset($_GET['sort']) ? $_GET['sort'] : 'random';
@@ -113,3 +115,14 @@ $totalRoomTypeRows = mysqli_fetch_assoc($totalRoomTypeRowsResult)['total'];
 
 // Calculate the total number of pages
 $totalRoomTypePages = ceil($totalRoomTypeRows / $rowsPerPage);
+
+// Fetch total number of rows for pagination calculation
+$totalFacilityTypeRowsQuery = "SELECT COUNT(*) as total FROM facilitytypetb";
+if (!empty($searchFacilityTypeQuery)) {
+    $totalFacilityTypeRowsQuery = "SELECT COUNT(*) as total FROM facilitytypetb WHERE FacilityType LIKE '%$searchFacilityTypeQuery%'";
+}
+$totalFacilityTypeRowsResult = mysqli_query($connect, $totalFacilityTypeRowsQuery);
+$totalFacilityTypeRows = mysqli_fetch_assoc($totalFacilityTypeRowsResult)['total'];
+
+// Calculate the total number of pages
+$totalFacilityTypePages = ceil($totalFacilityTypeRows / $rowsPerPage);
