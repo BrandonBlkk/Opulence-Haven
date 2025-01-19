@@ -18,9 +18,6 @@ if (!$connect) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.css" integrity="sha512-HXXR0l2yMwHDrDyxJbrMD9eLvPe3z3qL3PPeozNTsiHJEENxx8DH2CxmV05iwG0dwoz5n4gQZQyYLUNt1Wdgfg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="../CSS/output.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
-    <!-- Swiper CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
-
     <!-- Swiper JS -->
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 
@@ -33,12 +30,8 @@ if (!$connect) {
     ?>
 
     <main class="pb-4">
-        <!-- <div class="select-none">
-            <img src="../UserImages/hotel-room-5858069_1280.jpg"
-                class="w-full h-full lg:max-h-[620px] object-cover object-bottom clip-custom"
-                alt="Image">
-        </div> -->
-        <div class="swiper-container">
+        <div class="relative swiper-container">
+            <!-- Swiper Wrapper -->
             <div class="swiper-wrapper">
                 <div class="swiper-slide">
                     <img src="../UserImages/hotel-room-5858069_1280.jpg"
@@ -61,7 +54,51 @@ if (!$connect) {
                         alt="Yet Another Room">
                 </div>
             </div>
+
+            <!-- Search Form at Bottom Center -->
+            <form class="absolute bottom-10 left-1/2 transform -translate-x-1/2 w-full sm:max-w-[1030px] z-10 p-4 bg-white rounded-sm shadow-lg flex justify-between items-center space-x-4">
+                <div class="flex items-center space-x-4">
+                    <div class="flex gap-3">
+                        <!-- Check-in Date -->
+                        <div>
+                            <label class="font-semibold text-blue-900">Check-In Date</label>
+                            <input type="date" id="checkin-date" class="p-3 border border-gray-300 rounded-sm" placeholder="Check-in Date">
+                        </div>
+                        <!-- Check-out Date -->
+                        <div>
+                            <label class="font-semibold text-blue-900">Check-Out Date</label>
+                            <input type="date" id="checkout-date" class="p-3 border border-gray-300 rounded-sm" placeholder="Check-out Date">
+                        </div>
+                    </div>
+                    <div class="flex">
+                        <!-- Adults -->
+                        <select id="adults" class="p-3 border border-gray-300 rounded-sm">
+                            <option value="1">1 Adult</option>
+                            <option value="2">2 Adults</option>
+                            <option value="3">3 Adults</option>
+                            <option value="4">4 Adults</option>
+                            <option value="5">5 Adults</option>
+                            <option value="6">6 Adults</option>
+                        </select>
+                        <!-- Children -->
+                        <select id="children" class="p-3 border border-gray-300 rounded-sm">
+                            <option value="0">0 Children</option>
+                            <option value="1">1 Child</option>
+                            <option value="2">2 Children</option>
+                            <option value="3">3 Children</option>
+                            <option value="4">4 Children</option>
+                            <option value="5">5 Children</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Search Button -->
+                <div class="flex items-center space-x-2">
+                    <button class="p-3 bg-blue-900 text-white rounded-sm hover:bg-blue-950 uppercase font-semibold transition-colors duration-300">Check Availability</button>
+                </div>
+            </form>
         </div>
+
 
         <script>
             document.addEventListener('DOMContentLoaded', function() {

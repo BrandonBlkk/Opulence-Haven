@@ -906,72 +906,188 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Admin Details Modal
-document.addEventListener('DOMContentLoaded', () => {
+// Add Facility Type Form
+document.addEventListener("DOMContentLoaded", () => {
+    const addFacilityTypeModal = document.getElementById('addFacilityTypeModal');
+    const addFFacilityTypeBtn = document.getElementById('addFFacilityTypeBtn');
+    const addFacilityTypeCancelBtn = document.getElementById('addFacilityTypeCancelBtn');
+    const loader = document.getElementById('loader');
     const alertMessage = document.getElementById('alertMessage').value;
-    const updateRoomTypeSuccess = document.getElementById('updateRoomTypeSuccess').value === 'true';
+    const addFacilityTypeSuccess = document.getElementById('addFacilityTypeSuccess').value === 'true';
+
+    if (addFacilityTypeModal && addFFacilityTypeBtn && addFacilityTypeCancelBtn) {
+        // Show modal
+        addFFacilityTypeBtn.addEventListener('click', () => {
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
+            addFacilityTypeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+        }); 
+
+        // Cancel button functionality
+        addFacilityTypeCancelBtn.addEventListener('click', () => {
+            addFacilityTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+    }
+
+    if (addFacilityTypeSuccess) {
+        loader.style.display = 'flex';
+
+        // Show Alert
+        setTimeout(() => {
+            loader.style.display = 'none';
+            showAlert('A new facility type has been successfully added.');
+            setTimeout(() => {
+                window.location.href = 'AddFacilityType.php';
+            }, 5000);
+        }, 1000);
+    } else if (alertMessage) {
+        // Show Alert
+        showAlert(alertMessage);
+        setTimeout(() => {
+            window.location.href = 'AddFacilityType.php';
+        }, 5000);
+    }
+
+    // Add keyup event listeners for real-time validation
+    document.getElementById("facilityTypeInput").addEventListener("keyup", validateFacilityType);
+    document.getElementById("facilityTypeIconInput").addEventListener("keyup", validateFacilityTypeIcon);
+
+    const facilityTypeForm = document.getElementById("facilityTypeForm");
+    if (facilityTypeForm) {
+        facilityTypeForm.addEventListener("submit", (e) => {
+            if (!validateFacilityTypeForm()) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+
+// Facility Type Details Modal
+document.addEventListener('DOMContentLoaded', () => {
+    const updateFacilityTypeModal = document.getElementById('updateFacilityTypeModal');
+    const updateFacilityTypeModalCancelBtn = document.getElementById('updateFacilityTypeModalCancelBtn');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const updateFacilityTypeSuccess = document.getElementById('updateFacilityTypeSuccess').value === 'true';
 
     // Get all details buttons
-    const editsBtns = document.querySelectorAll('.edits-btn');
+    const detailsBtns = document.querySelectorAll('.details-btn');
 
-    if (updateRoomTypeModal && updateRoomTypeModalCancelBtn && editsBtns) {
+    if (updateFacilityTypeModal && updateFacilityTypeModalCancelBtn && detailsBtns) {
         // Add click event to each button
-        editsBtns.forEach(btn => {
+        detailsBtns.forEach(btn => {
             btn.addEventListener('click', function() {
-                const adminId = this.getAttribute('data-admin-id');
+                const facilityTypeId = this.getAttribute('data-facilitytype-id');
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
-                // Fetch admin details
-                fetch(`../Admin/RoleManagement.php?action=getAdminDetails&id=${adminId}`)
+                // Fetch product type details
+                fetch(`../Admin/AddFacilityType.php?action=getFacilityTypeDetails&id=${facilityTypeId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
                             // Fill the modal form with product type data
-                            document.getElementById('updateRoomTypeID').value = adminId;
-                            document.querySelector('[name="updateroomtype"]').value = data.roomtype.RoomType;
-                            document.querySelector('[name="updateroomtypedescription"]').value = data.roomtype.RoomDescription;
-                            document.querySelector('[name="updateroomcapacity"]').value = data.roomtype.RoomCapacity;
+                            document.getElementById('updateFacilityTypeID').value = facilityTypeId;
+                            document.querySelector('[name="updatefacilitytype"]').value = data.facilitytype.FacilityType;
+                            document.querySelector('[name="updatefacilitytypeicon"]').value = data.facilitytype.FacilityTypeIcon;
+                            document.querySelector('[name="updatefacilitytypeiconsize"]').value = data.facilitytype.IconSize;
                             // Show the modal
-                            updateRoomTypeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                            updateFacilityTypeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
                         } else {
-                            console.error('Failed to load room type details');
+                            console.error('Failed to load facility type details');
                         }
                     })
-                    .catch(error => console.error('Fetch error:', error));
+                .catch(error => console.error('Fetch error:', error));
             });
         });
 
-        updateRoomTypeModalCancelBtn.addEventListener('click', () => {
-            updateRoomTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+        updateFacilityTypeModalCancelBtn.addEventListener('click', () => {
+            updateFacilityTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
         });
 
-        if (updateRoomTypeSuccess) {
+        if (updateFacilityTypeSuccess) {
             // Show Alert
             setTimeout(() => {
-                showAlert('The room type has been successfully updated.');
+                showAlert('The facility type has been successfully updated.');
                 setTimeout(() => {
-                    window.location.href = 'AddRoomType.php';
+                    window.location.href = 'AddFacilityType.php';
                 }, 5000);
             }, 500);
         } else if (alertMessage) {
             // Show Alert
             showAlert(alertMessage);
         }
-        // Add keyup event listeners for real-time validation
-        document.getElementById("updateRoomTypeInput").addEventListener("keyup", validateUpdateRoomType);
-        document.getElementById("updateRoomTypeDescriptionInput").addEventListener("keyup", validateUpdateRoomTypeDescription);
-        document.getElementById("updateRoomCapacityInput").addEventListener("keyup", validateUpdateRoomCapacity);
+        // // Add keyup event listeners for real-time validation
+        // document.getElementById("updateRoomTypeInput").addEventListener("keyup", validateUpdateRoomType);
+        // document.getElementById("updateRoomTypeDescriptionInput").addEventListener("keyup", validateUpdateRoomTypeDescription);
+        // document.getElementById("updateRoomCapacityInput").addEventListener("keyup", validateUpdateRoomCapacity);
 
-        const updateRoomTypeForm = document.getElementById("updateRoomTypeForm");
-        if (updateRoomTypeForm) {
-            updateRoomTypeForm.addEventListener("submit", (e) => {
-                if (!validateUpdateRoomTypeForm()) {
-                    e.preventDefault();
-                }
+        // const updateRoomTypeForm = document.getElementById("updateRoomTypeForm");
+        // if (updateRoomTypeForm) {
+        //     updateRoomTypeForm.addEventListener("submit", (e) => {
+        //         if (!validateUpdateRoomTypeForm()) {
+        //             e.preventDefault();
+        //         }
+        //     });
+        // }
+    }
+});
+
+// Facility Type Delete Modal
+document.addEventListener('DOMContentLoaded', () => {
+    const facilityTypeConfirmDeleteModal = document.getElementById('facilityTypeConfirmDeleteModal');
+    const facilityTypeCancelDeleteBtn = document.getElementById('facilityTypeCancelDeleteBtn');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const deleteFacilityTypeSuccess = document.getElementById('deleteFacilityTypeSuccess').value === 'true';
+
+    // Get all delete buttons
+    const deleteBtns = document.querySelectorAll('.delete-btn');
+
+    if (facilityTypeConfirmDeleteModal && facilityTypeCancelDeleteBtn && deleteBtns) {
+        // Add click event to each delete button
+        deleteBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const facilityTypeId = this.getAttribute('data-facilitytype-id');
+
+                // Fetch product type details
+                fetch(`../Admin/AddFacilityType.php?action=getFacilityTypeDetails&id=${facilityTypeId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('deleteFacilityTypeID').value = facilityTypeId;
+                            document.getElementById('facilityTypeDeleteName').textContent = data.facilitytype.FacilityType;
+                        } else {
+                            console.error('Failed to load facility type details');
+                        }
+                    })
+                .catch(error => console.error('Fetch error:', error));
+
+                // Show modal
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+                facilityTypeConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
             });
+        });
+
+        // Cancel button functionality
+        facilityTypeCancelDeleteBtn.addEventListener('click', () => {
+            facilityTypeConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        if (deleteFacilityTypeSuccess) {
+            // Show Alert
+            showAlert('The room type has been successfully deleted.');
+            setTimeout(() => {
+                window.location.href = 'AddRoomType.php';
+            }, 5000);
+        } else if (alertMessage) {
+            // Show Alert
+            showAlert(alertMessage);
         }
     }
 });
@@ -1304,6 +1420,13 @@ const validateUpdateRoomTypeForm = () => {
 
     return isRoomTypeValid && isRoomDescriptionValid && isRoomCapacityValid;
 }
+
+const validateFacilityTypeForm = () => {
+    const isFacilityTypeValid = validateFacilityType();
+    const isFacilityTypeIconValid = validateFacilityTypeIcon();
+
+    return isFacilityTypeValid && isFacilityTypeIconValid;
+};
 
 const validateProfileUpdateForm = () => {
     const isFirstnameValid = validateFirstName();
@@ -1667,6 +1790,23 @@ const validateUpdateRoomCapacity = () => {
         (input) => (!input ? "Room capacity is required." : null)
     );
 }
+
+const validateFacilityType = () => {
+    return validateField(
+        "facilityTypeInput",
+        "facilityTypeError",
+        (input) => (!input ? "Facility type is required." : null)
+    );
+}
+
+const validateFacilityTypeIcon = () => {
+    return validateField(
+        "facilityTypeIconInput",
+        "facilityTypeIconError",
+        (input) => (!input ? "Facility type icon is required." : null)
+    );
+}
+
 
 
 

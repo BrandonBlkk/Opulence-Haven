@@ -17,6 +17,9 @@
 <input type="hidden" id="addRoomTypeSuccess" value="<?php echo $addRoomTypeSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="updateRoomTypeSuccess" value="<?php echo $updateRoomTypeSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="deleteRoomTypeSuccess" value="<?php echo $deleteRoomTypeSuccess ? 'true' : 'false'; ?>">
+<input type="hidden" id="addFacilityTypeSuccess" value="<?php echo $addFacilityTypeSuccess ? 'true' : 'false'; ?>">
+<input type="hidden" id="updateFacilityTypeSuccess" value="<?php echo $updateFacilityTypeSuccess ? 'true' : 'false'; ?>">
+<input type="hidden" id="deleteFacilityTypeSuccess" value="<?php echo $deleteFacilityTypeSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="deleteAdminSuccess" value="<?php echo $deleteAdminSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="confirmContactSuccess" value="<?php echo $confirmContactSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="contactSuccess" value="<?php echo $contactSuccess ? 'true' : 'false'; ?>">
