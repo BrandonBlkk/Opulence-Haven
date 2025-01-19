@@ -20,6 +20,7 @@
         </div>
         <?php
         include('Sidebar.php');
+        include('MaintenanceAlert.php');
         ?>
     </nav>
 </div>

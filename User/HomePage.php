@@ -99,7 +99,6 @@ if (!$connect) {
             </form>
         </div>
 
-
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const swiper = new Swiper('.swiper-container', {
@@ -157,7 +156,7 @@ if (!$connect) {
                         ensuring the energy needed for the day ahead. Perfect for business or family trips.
                     </p>
                     <div class="flex items-center text-amber-500 group mt-1">
-                        <span class="group-hover:text-amber-600 transition-all duration-200">Book now</span>
+                        <span class="group-hover:text-amber-600 transition-all duration-200">Reserve your breakfast</span>
                         <i class="ri-arrow-right-line text-xl group-hover:text-amber-600 group-hover:translate-x-2 transition-all duration-200"></i>
                     </div>
                 </div>
@@ -255,7 +254,6 @@ if (!$connect) {
                     </iframe>
                 </div>
             </div>
-
         </section>
     </main>
 

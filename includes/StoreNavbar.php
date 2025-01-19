@@ -45,6 +45,7 @@
 <div class="sticky top-0 w-full bg-white border-b z-30">
     <?php
     include('MoveRightLoader.php');
+    include('MaintenanceAlert.php');
     ?>
     <nav class="flex items-center justify-between max-w-[1050px] mx-auto p-3">
         <div class="flex items-end gap-1 select-none">

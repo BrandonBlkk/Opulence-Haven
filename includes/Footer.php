@@ -119,23 +119,32 @@
             </div>
         </div>
 
+        <!-- <section class="p-4 max-w-3xl mx-auto">
+            <div class="flex justify-between cursor-pointer select-none">
+                <div class="w-20">
+                    <img class="w-full h-full" src="../UserImages/north-face.avif" alt="Image">
+                </div>
+                <div class="w-20">
+                    <img class="w-full h-full" src="../UserImages/north-face.avif" alt="Image">
+                </div>
+                <div class="w-20">
+                    <img class="w-full h-full" src="../UserImages/north-face.avif" alt="Image">
+                </div>
+                <div class="w-20">
+                    <img class="w-full h-full" src="../UserImages/north-face.avif" alt="Image">
+                </div>
+                <div class="w-20">
+                    <img class="w-full h-full" src="../UserImages/north-face.avif" alt="Image">
+                </div>
+                <div class="w-20">
+                    <img class="w-full h-full" src="../UserImages/north-face.avif" alt="Image">
+                </div>
+            </div>
+        </section> -->
+
         <div class="flex flex-col items-center border-t border-gray-200 gap-3 sm:gap-0 py-10 px-10">
             <p class="text-xs text-slate-700 mb-1">OpulenceHaven.com is part of Booking Holdings Inc., the world leader in online travel and related services.</p>
             <p class="text-xs text-slate-700">Copyright © <span id="year"></span> OpulenceHaven.com™. All rights reserved.</p>
-            <!-- <ul class="flex gap-2 select-none">
-                <li>
-                    <img src="Images/fashion-designer-cc-visa-icon.svg" alt="Icon">
-                </li>
-                <li>
-                    <img src="Images/fashion-designer-cc-mastercard-icon.svg" alt="Icon">
-                </li>
-                <li>
-                    <img src="Images/fashion-designer-cc-discover-icon.svg" alt="Icon">
-                </li>
-                <li>
-                    <img src="Images/fashion-designer-cc-apple-pay-icon.svg" alt="Icon">
-                </li>
-            </ul> -->
         </div>
     </section>
 </footer>
