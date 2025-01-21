@@ -165,22 +165,22 @@ if (!$connect) {
 //     echo "Data has been saved";
 // }
 
-$facilitytype = "CREATE TABLE facilitytypetb
-(
-    FacilityTypeID varchar(20) not null primary key,
-    FacilityType varchar(30),
-    FacilityTypeIcon text,
-    IconSize varchar(10),
-    AddedDate datetime default current_timestamp,
-    LastUpdate datetime default current_timestamp on update current_timestamp
-)";
+// $facilitytype = "CREATE TABLE facilitytypetb
+// (
+//     FacilityTypeID varchar(20) not null primary key,
+//     FacilityType varchar(30),
+//     FacilityTypeIcon text,
+//     IconSize varchar(10),
+//     AddedDate datetime default current_timestamp,
+//     LastUpdate datetime default current_timestamp on update current_timestamp
+// )";
 
-try {
-    $query = mysqli_query($connect, $facilitytype);
-    echo "Data Successfully saved";
-} catch (mysqli_sql_exception) {
-    echo "Data has been saved";
-}
+// try {
+//     $query = mysqli_query($connect, $facilitytype);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
 
 // $rule = "CREATE TABLE ruletb
 // (
@@ -203,7 +203,9 @@ $facility = "CREATE TABLE facilitytb
     FacilityID varchar(20) not null primary key,
     Facility text,
     FacilityIcon text,
+    IconSize varchar(10),
     AdditionalCharge boolean default false,
+    Popular boolean default false,
     FacilityTypeID varchar(20),
     AddedDate datetime default current_timestamp,
     LastUpdate datetime default current_timestamp on update current_timestamp,
@@ -218,22 +220,6 @@ try {
 } catch (mysqli_sql_exception) {
     echo "Data has been saved";
 }
-
-// $amenity = "CREATE TABLE amenitytb
-// (
-//     AmenityID varchar(20) not null primary key,
-//     Amenity text,
-//     AmenityIcon text,
-//     AddedDate datetime default current_timestamp,
-//     LastUpdate datetime default current_timestamp on update current_timestamp
-// )";
-
-// try {
-//     $query = mysqli_query($connect, $amenity);
-//     echo "Data Successfully saved";
-// } catch (mysqli_sql_exception) {
-//     echo "Data has been saved";
-// }
 
 // $roomtype = "CREATE TABLE roomtypetb
 // (
@@ -378,25 +364,6 @@ try {
 
 // try {
 //     $query = mysqli_query($connect, $roomfacility);
-//     echo "Data Successfully saved";
-// } catch (mysqli_sql_exception) {
-//     echo "Data has been saved";
-// }
-
-// $roomamenity = "CREATE TABLE roomamenitytb
-// (
-//     RoomID varchar(20),
-//     AmenityID varchar(20),
-//     FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
-//     ON DELETE CASCADE 
-//     ON UPDATE CASCADE,
-//     FOREIGN KEY (AmenityID) REFERENCES amenitytb (AmenityID)
-//     ON DELETE CASCADE 
-//     ON UPDATE CASCADE 
-// )";
-
-// try {
-//     $query = mysqli_query($connect, $roomamenity);
 //     echo "Data Successfully saved";
 // } catch (mysqli_sql_exception) {
 //     echo "Data has been saved";

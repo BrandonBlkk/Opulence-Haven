@@ -20,6 +20,9 @@
 <input type="hidden" id="addFacilityTypeSuccess" value="<?php echo $addFacilityTypeSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="updateFacilityTypeSuccess" value="<?php echo $updateFacilityTypeSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="deleteFacilityTypeSuccess" value="<?php echo $deleteFacilityTypeSuccess ? 'true' : 'false'; ?>">
+<input type="hidden" id="addFacilitySuccess" value="<?php echo $addFacilitySuccess ? 'true' : 'false'; ?>">
+<input type="hidden" id="updateFacilitySuccess" value="<?php echo $updateFacilitySuccess ? 'true' : 'false'; ?>">
+<input type="hidden" id="deleteFacilitySuccess" value="<?php echo $deleteFacilitySuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="deleteAdminSuccess" value="<?php echo $deleteAdminSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="confirmContactSuccess" value="<?php echo $confirmContactSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="contactSuccess" value="<?php echo $contactSuccess ? 'true' : 'false'; ?>">

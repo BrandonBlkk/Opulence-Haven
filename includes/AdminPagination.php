@@ -10,6 +10,7 @@ $supplierCurrentPage = isset($_GET['supplierpage']) && is_numeric($_GET['supplie
 $productCurrentPage = isset($_GET['productpage']) && is_numeric($_GET['productpage']) ? (int)$_GET['productpage'] : 1;
 $roomTypeCurrentPage = isset($_GET['roomtypepage']) && is_numeric($_GET['roomtypepage']) ? (int)$_GET['roomtypepage'] : 1;
 $facilityTypeCurrentPage = isset($_GET['facilitytypepage']) && is_numeric($_GET['facilitytypepage']) ? (int)$_GET['facilitytypepage'] : 1;
+$facilityCurrentPage = isset($_GET['facilitypage']) && is_numeric($_GET['facilitypage']) ? (int)$_GET['facilitypage'] : 1;
 
 // Calculate the offset for the query
 $offset = ($currentPage - 1) * $rowsPerPage;
@@ -19,6 +20,7 @@ $productOffset = ($productCurrentPage - 1) * $rowsPerPage;
 $supplierOffset = ($supplierCurrentPage - 1) * $rowsPerPage;
 $roomTypeOffset = ($roomTypeCurrentPage - 1) * $rowsPerPage;
 $facilityTypeOffset = ($facilityTypeCurrentPage - 1) * $rowsPerPage;
+$facilityOffset = ($facilityCurrentPage - 1) * $rowsPerPage;
 
 $filterRoleID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterStatus = isset($_GET['sort']) ? $_GET['sort'] : 'random';
@@ -126,3 +128,14 @@ $totalFacilityTypeRows = mysqli_fetch_assoc($totalFacilityTypeRowsResult)['total
 
 // Calculate the total number of pages
 $totalFacilityTypePages = ceil($totalFacilityTypeRows / $rowsPerPage);
+
+// Fetch total number of rows for pagination calculation
+$totalFacilityRowsQuery = "SELECT COUNT(*) as total FROM facilitytb";
+if (!empty($searchFacilityQuery)) {
+    $totalFacilityRowsQuery = "SELECT COUNT(*) as total FROM facilitytb WHERE Facility LIKE '%$searchFacilityQuery%'";
+}
+$totalFacilityRowsResult = mysqli_query($connect, $totalFacilityRowsQuery);
+$totalFacilityRows = mysqli_fetch_assoc($totalFacilityRowsResult)['total'];
+
+// Calculate the total number of pages
+$totalFacilityPages = ceil($totalFacilityRows / $rowsPerPage);

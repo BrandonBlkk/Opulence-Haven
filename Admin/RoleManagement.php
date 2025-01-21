@@ -286,14 +286,14 @@ if (isset($_POST['deleteadmin'])) {
                     placeholder='Type "DELETE" here'
                     class="w-full p-2 mb-4 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-red-300" />
                 <div class="flex justify-end gap-4 select-none">
-                    <div id="adminCancelDeleteBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300">
+                    <div id="adminCancelDeleteBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm">
                         Cancel
                     </div>
                     <button
                         type="submit"
                         id="confirmAdminDeleteBtn"
                         name="deleteadmin"
-                        class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 cursor-not-allowed" disabled>
+                        class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 cursor-not-allowed rounded-sm" disabled>
                         Delete
                     </button>
                 </div>
@@ -336,7 +336,7 @@ if (isset($_POST['deleteadmin'])) {
                         <button
                             type="submit"
                             name="addrole"
-                            class="bg-amber-500 text-white font-semibold px-4 py-2 rounded select-none hover:bg-amber-600 transition-colors">
+                            class="bg-amber-500 text-white font-semibold px-4 py-2 rounded-sm select-none hover:bg-amber-600 transition-colors">
                             Add Role
                         </button>
                     </div>

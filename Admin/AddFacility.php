@@ -8,53 +8,56 @@ if (!$connect) {
 }
 
 $alertMessage = '';
-$addFacilityTypeSuccess = false;
-$updateFacilityTypeSuccess = false;
-$deleteFacilityTypeSuccess = false;
-$facilityTypeID = AutoID('facilitytypetb', 'FacilityTypeID', 'FT-', 6);
+$addFacilitySuccess = false;
+$updateFacilitySuccess = false;
+$deleteFacilitySuccess = false;
+$facilityID = AutoID('facilitytb', 'FacilityID', 'F-', 6);
 
-// Add Facility Type
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addfacilitytype'])) {
-    $facilitytype = mysqli_real_escape_string($connect, $_POST['facilitytype']);
-    $facilitytypeicon = mysqli_real_escape_string($connect, $_POST['facilitytypeicon']);
-    $facilitytypeiconsize = mysqli_real_escape_string($connect, $_POST['facilitytypeiconsize']);
+// Add Facility
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addfacility'])) {
+    $facility = mysqli_real_escape_string($connect, $_POST['facility']);
+    $facilityicon = mysqli_real_escape_string($connect, $_POST['facilityicon']);
+    $facilityiconsize = mysqli_real_escape_string($connect, $_POST['facilityiconsize']);
+    $additionalcharge = mysqli_real_escape_string($connect, $_POST['additionalcharge']);
+    $popular = mysqli_real_escape_string($connect, $_POST['popular']);
+    $facilityType = mysqli_real_escape_string($connect, $_POST['facilityType']);
 
-    // Check if the product type already exists using prepared statement
-    $checkQuery = "SELECT FacilityType FROM facilitytypetb WHERE FacilityType = '$facilitytype'";
+    // Check if the product  already exists using prepared statement
+    $checkQuery = "SELECT Facility FROM facilitytb WHERE Facility = '$facility'";
 
     $checkQuery = mysqli_query($connect, $checkQuery);
     $count = mysqli_num_rows($checkQuery);
 
     if ($count > 0) {
-        $alertMessage = 'Facility type you added is already existed.';
+        $alertMessage = 'Facility you added is already existed.';
     } else {
-        $addFacilityTypeQuery = "INSERT INTO facilitytypetb (FacilityTypeID, FacilityType, FacilityTypeIcon, IconSize)
-        VALUES ('$facilityTypeID', '$facilitytype', '$facilitytypeicon', '$facilitytypeiconsize')";
+        $addFacilityQuery = "INSERT INTO facilitytb (FacilityID, Facility, FacilityIcon, IconSize, AdditionalCharge, Popular, FacilityTypeID)
+        VALUES ('$facilityID', '$facility', '$facilityicon', '$facilityiconsize', '$additionalcharge', '$popular', '$facilityType')";
 
-        if (mysqli_query($connect, $addFacilityTypeQuery)) {
-            $addFacilityTypeSuccess = true;
+        if (mysqli_query($connect, $addFacilityQuery)) {
+            $addFacilitySuccess = true;
         } else {
-            $alertMessage = "Failed to add facility type. Please try again.";
+            $alertMessage = "Failed to add facility. Please try again.";
         }
     }
 }
 
-// Get Facility Type Details
+// Get Facility  Details
 if (isset($_GET['action']) && isset($_GET['id'])) {
     $id = mysqli_real_escape_string($connect, $_GET['id']);
     $action = $_GET['action'];
 
     // Build query based on action
     $query = match ($action) {
-        'getFacilityTypeDetails' => "SELECT * FROM facilitytypetb WHERE FacilityTypeID = '$id'",
+        'getFacilityDetails' => "SELECT * FROM facilitytb WHERE FacilityID = '$id'",
         default => null
     };
     if ($query) {
         $result = mysqli_query($connect, $query);
-        $facilitytype = mysqli_fetch_assoc($result);
+        $facility = mysqli_fetch_assoc($result);
 
-        if ($facilitytype) {
-            echo json_encode(['success' => true, 'facilitytype' => $facilitytype]);
+        if ($facility) {
+            echo json_encode(['success' => true, 'facility' => $facility]);
         } else {
             echo json_encode(['success' => false]);
         }
@@ -62,34 +65,37 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     exit;
 }
 
-// Update Facility Type
-if (isset($_POST['editfacilitytype'])) {
-    $facilityTypeId = mysqli_real_escape_string($connect, $_POST['facilitytypeid']);
-    $updatedFacilityType = mysqli_real_escape_string($connect, $_POST['updatefacilitytype']);
-    $updatedFacilityTypeIcon = mysqli_real_escape_string($connect, $_POST['updatefacilitytypeicon']);
-    $updatedFacilityTypeIconSize = mysqli_real_escape_string($connect, $_POST['updatefacilitytypeiconsize']);
+// Update Facility 
+if (isset($_POST['editfacility'])) {
+    $facilityId = mysqli_real_escape_string($connect, $_POST['facilityid']);
+    $updateFacility = mysqli_real_escape_string($connect, $_POST['updatefacility']);
+    $updateFacilityIcon = mysqli_real_escape_string($connect, $_POST['updatefacilityicon']);
+    $updateFacilityIconSize = mysqli_real_escape_string($connect, $_POST['updatefacilityiconsize']);
+    $updateAdditionalcharge = mysqli_real_escape_string($connect, $_POST['updateadditionalcharge']);
+    $updatePopular = mysqli_real_escape_string($connect, $_POST['updatepopular']);
+    $updateFacilityType = mysqli_real_escape_string($connect, $_POST['updatefacilitytype']);
 
     // Update query
-    $updateQuery = "UPDATE facilitytypetb SET FacilityType = '$updatedFacilityType', FacilityTypeIcon = '$updatedFacilityTypeIcon', IconSize = '$updatedFacilityTypeIconSize' WHERE FacilityTypeID = '$facilityTypeId'";
+    $updateQuery = "UPDATE facilitytb SET Facility = '$updateFacility', FacilityIcon = '$updateFacilityIcon', IconSize = '$updateFacilityIconSize', AdditionalCharge = '$updateAdditionalcharge', Popular = '$updatePopular', FacilityTypeID = '$updateFacilityType' WHERE FacilityID = '$facilityId'";
 
     if (mysqli_query($connect, $updateQuery)) {
-        $updateFacilityTypeSuccess = true;
+        $updateFacilitySuccess = true;
     } else {
-        $alertMessage = "Failed to update facility type. Please try again.";
+        $alertMessage = "Failed to update facility. Please try again.";
     }
 }
 
-// Delete Facility Type
-if (isset($_POST['deletefacilitytype'])) {
-    $facilityTypeId = mysqli_real_escape_string($connect, $_POST['facilitytypeid']);
+// Delete Facility 
+if (isset($_POST['deletefacility'])) {
+    $facilityId = mysqli_real_escape_string($connect, $_POST['facilityid']);
 
     // Build query based on action
-    $deleteQuery = "DELETE FROM facilitytypetb WHERE FacilityTypeID = '$facilityTypeId'";
+    $deleteQuery = "DELETE FROM facilitytb WHERE FacilityID = '$facilityId'";
 
     if (mysqli_query($connect, $deleteQuery)) {
-        $deleteFacilityTypeSuccess = true;
+        $deleteFacilitySuccess = true;
     } else {
-        $alertMessage = "Failed to delete facility type. Please try again.";
+        $alertMessage = "Failed to delete facility. Please try again.";
     }
 }
 ?>
@@ -118,9 +124,9 @@ if (isset($_POST['deletefacilitytype'])) {
             <div class="flex justify-between items-end">
                 <div>
                     <h2 class="text-xl font-bold mb-4">Add Facility Overview</h2>
-                    <p>Add information about facility types to categorize facilities, track usage, and manage facility details for efficient organization.</p>
+                    <p>Add information about facility to categorize facilities, track usage, and manage facility details for efficient organization.</p>
                 </div>
-                <button id="addFFacilityTypeBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
+                <button id="addFFacilityBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
                     <i class="ri-add-line text-xl"></i>
                 </button>
             </div>
@@ -129,9 +135,39 @@ if (isset($_POST['deletefacilitytype'])) {
             <div class="overflow-x-auto">
                 <!-- Facility Type Search and Filter -->
                 <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
-                    <h1 class="text-lg font-semibold text-nowrap">All Facility Types <span class="text-gray-400 text-sm ml-2"><?php echo $facilityTypeCount ?></span></h1>
+                    <h1 class="text-lg font-semibold text-nowrap">All Facilities <span class="text-gray-400 text-sm ml-2"><?php echo $facilityCount ?></span></h1>
                     <div class="flex items-center w-full">
-                        <input type="text" name="facilitytype_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full" placeholder="Search for facility type..." value="<?php echo isset($_GET['facilitytype_search']) ? htmlspecialchars($_GET['facilitytype_search']) : ''; ?>">
+                        <input type="text" name="facility_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full" placeholder="Search for facility..." value="<?php echo isset($_GET['facility_search']) ? htmlspecialchars($_GET['facility_search']) : ''; ?>">
+                        <div class="flex items-center">
+                            <label for="sort" class="ml-4 mr-2 flex items-center cursor-pointer select-none">
+                                <i class="ri-filter-2-line text-xl"></i>
+                                <p>Filters</p>
+                            </label>
+                            <!-- Search and filter form -->
+                            <form method="GET" class="flex flex-col md:flex-row items-center gap-4 mb-4">
+                                <select name="sort" id="sort" class="border p-2 rounded text-sm" onchange="this.form.submit()">
+                                    <option value="random">All Facility Types</option>
+                                    <?php
+                                    $select = "SELECT * FROM facilitytypetb";
+                                    $query = mysqli_query($connect, $select);
+                                    $count = mysqli_num_rows($query);
+
+                                    if ($count) {
+                                        for ($i = 0; $i < $count; $i++) {
+                                            $row = mysqli_fetch_array($query);
+                                            $facilitytype_id = $row['FacilityTypeID'];
+                                            $facilitytype = $row['FacilityType'];
+                                            $selected = ($filterFacilityTypeID == $facilitytype_id) ? 'selected' : '';
+
+                                            echo "<option value='$facilitytype_id' $selected>$facilitytype</option>";
+                                        }
+                                    } else {
+                                        echo "<option value='' disabled>No data yet</option>";
+                                    }
+                                    ?>
+                                </select>
+                            </form>
+                        </div>
                     </div>
                 </form>
                 <div class="tableScrollBar overflow-y-auto max-h-[510px]">
@@ -140,32 +176,55 @@ if (isset($_POST['deletefacilitytype'])) {
                             <tr class="bg-gray-100 text-gray-600 text-sm">
                                 <th class="p-3 text-start">ID</th>
                                 <th class="p-3 text-start">Type</th>
-                                <th class="p-3 text-start hidden sm:table-cell">Icon</th>
+                                <th class="p-3 text-start">Icon</th>
+                                <th class="p-3 text-start">Additional Charge</th>
+                                <th class="p-3 text-start">Popular</th>
+                                <th class="p-3 text-start">Facility Type</th>
                                 <th class="p-3 text-start">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="text-gray-600 text-sm">
-                            <?php foreach ($facilityTypes as $facilityType): ?>
+                            <?php foreach ($facilities as $facility): ?>
                                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                                     <td class="p-3 text-start whitespace-nowrap">
                                         <div class="flex items-center gap-2 font-medium text-gray-500">
                                             <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                            <span><?= htmlspecialchars($facilityType['FacilityTypeID']) ?></span>
+                                            <span><?= htmlspecialchars($facility['FacilityID']) ?></span>
                                         </div>
                                     </td>
                                     <td class="p-3 text-start">
-                                        <?= htmlspecialchars($facilityType['FacilityType']) ?>
+                                        <?= htmlspecialchars($facility['Facility']) ?>
                                     </td>
-                                    <td class="p-3 text-start hidden sm:table-cell">
-                                        <i class="<?= htmlspecialchars($facilityType['FacilityTypeIcon'], ENT_QUOTES, 'UTF-8') ?> <?= htmlspecialchars($facilityType['IconSize'], ENT_QUOTES, 'UTF-8') ?>"></i>
+                                    <td class="p-3 text-start">
+                                        <?= !empty($facility['FacilityIcon']) && !empty($facility['IconSize'])
+                                            ? '<i class="' . htmlspecialchars($facility['FacilityIcon'], ENT_QUOTES, 'UTF-8') . ' ' . htmlspecialchars($facility['IconSize'], ENT_QUOTES, 'UTF-8') . '"></i>'
+                                            : 'None' ?>
                                     </td>
+                                    <td class="p-3 text-start">
+                                        <?= htmlspecialchars($facility['AdditionalCharge'] == 1 ? 'True' : 'False') ?>
+                                    </td>
+                                    <td class="p-3 text-start">
+                                        <?= htmlspecialchars($facility['Popular'] == 1 ? 'True' : 'False') ?>
+                                    </td>
+                                    <td class="p-3 text-start hidden md:table-cell">
+                                        <?php
+                                        // Fetch the specific facility type for the facility
+                                        $facilityTypeID = $facility['FacilityTypeID'];
+                                        $facilityTypeQuery = "SELECT FacilityType FROM facilitytypetb WHERE FacilityTypeID = '$facilityTypeID'";
+                                        $facilityTypeResult = mysqli_query($connect, $facilityTypeQuery);
 
+                                        if ($facilityTypeResult && mysqli_num_rows($facilityTypeResult) > 0) {
+                                            $facilityTypeRow = mysqli_fetch_assoc($facilityTypeResult);
+                                            echo htmlspecialchars($facilityTypeRow['FacilityType']);
+                                        }
+                                        ?>
+                                    </td>
                                     <td class="p-3 text-start space-x-1 select-none">
                                         <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                            data-facilitytype-id="<?= htmlspecialchars($facilityType['FacilityTypeID']) ?>"></i>
+                                            data-facility-id="<?= htmlspecialchars($facility['FacilityID']) ?>"></i>
                                         <button class="text-red-500">
                                             <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                                data-facilitytype-id="<?= htmlspecialchars($facilityType['FacilityTypeID']) ?>"></i>
+                                                data-facility-id="<?= htmlspecialchars($facility['FacilityID']) ?>"></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -176,10 +235,10 @@ if (isset($_POST['deletefacilitytype'])) {
 
                 <!-- Pagination Controls -->
                 <div class="flex justify-center items-center mt-1">
-                    <?php if ($facilityTypeCurrentPage > 1) {
+                    <?php if ($facilityCurrentPage > 1) {
                     ?>
-                        <a href="?facilitytypepage=<?= $facilityTypeCurrentPage - 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $facilitytypepage == $facilityTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                        <a href="?facilitytypepage=<?= $facilityCurrentPage - 1 ?>"
+                            class="px-3 py-1 mx-1 border rounded <?= $facilitypage == $facilityCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-left-s-line"></i>
                         </a>
                     <?php
@@ -191,17 +250,17 @@ if (isset($_POST['deletefacilitytype'])) {
                     <?php
                     }
                     ?>
-                    <?php for ($facilitytypepage = 1; $facilitytypepage <= $totalFacilityTypePages; $facilitytypepage++): ?>
-                        <a href="?facilitytypepage=<?= $facilitytypepage ?>&facilitytype_search=<?= htmlspecialchars($searchFacilityTypeQuery) ?>"
-                            class="px-3 py-1 mx-1 border rounded select-none <?= $facilitytypepage == $facilityTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <?= $facilitytypepage ?>
+                    <?php for ($facilitypage = 1; $facilitypage <= $totalFacilityPages; $facilitypage++): ?>
+                        <a href="?facilitypage=<?= $facilitypage ?>&facility_search=<?= htmlspecialchars($searchFacilityQuery) ?>"
+                            class="px-3 py-1 mx-1 border rounded select-none <?= $facilitypage == $facilityCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                            <?= $facilitypage ?>
                         </a>
                     <?php endfor; ?>
                     <!-- Next Btn -->
-                    <?php if ($facilityTypeCurrentPage < $totalFacilityTypePages) {
+                    <?php if ($facilityCurrentPage < $totalFacilityPages) {
                     ?>
-                        <a href="?facilitytypepage=<?= $facilityTypeCurrentPage + 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $facilitytypepage == $facilityTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                        <a href="?facilitypage=<?= $facilityCurrentPage + 1 ?>"
+                            class="px-3 py-1 mx-1 border rounded <?= $facilitypage == $facilityCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-right-s-line"></i>
                         </a>
                     <?php
@@ -217,37 +276,37 @@ if (isset($_POST['deletefacilitytype'])) {
             </div>
         </div>
 
-        <!-- Facility Type Details Modal -->
-        <div id="updateFacilityTypeModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+        <!-- Facility Details Modal -->
+        <div id="updateFacilityModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center w-full sm:max-w-[500px]">
-                <h2 class="text-xl font-bold mb-4">Edit Facility Type</h2>
-                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="updateFacilityTypeForm">
-                    <input type="hidden" name="facilitytypeid" id="updateFacilityTypeID">
-                    <!-- Facility Type Input -->
+                <h2 class="text-xl font-bold mb-4">Edit Facility</h2>
+                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="updateFacilityForm">
+                    <input type="hidden" name="facilityid" id="updateFacilityID">
+                    <!-- Facility Input -->
                     <div class="relative w-full">
-                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">Facility Type Information</label>
+                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">Facility Information</label>
                         <input
-                            id="updateFacilityTypeInput"
+                            id="updateFacilityInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="text"
-                            name="updatefacilitytype"
-                            placeholder="Enter product type">
-                        <small id="updateFacilityTypeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            name="updatefacility"
+                            placeholder="Enter facility">
+                        <small id="updateFacilityError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
                     <!-- Icon Input -->
                     <div class="relative w-full">
-                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">Icon</label>
+                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">Optional</label>
                         <textarea
-                            id="updateFacilityTypeIcon"
+                            id="updateFacilityIconInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                            name="updatefacilitytypeicon"
-                            placeholder="Enter icon"></textarea>
-                        <small id="updateFacilityTypeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            name="updatefacilityicon"
+                            placeholder="Enter icon (ri-sofa-line)"></textarea>
+                        <small id="updateFacilityIconError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
                     <!-- Size -->
                     <div class="relative">
                         <label class="block text-sm text-start font-medium text-gray-700 mb-1">Choose Size</label>
-                        <select id="updateFacilityTypeSize" name="updatefacilitytypeiconsize" class="p-2 w-full border rounded">
+                        <select id="updateFacilitySize" name="updatefacilityiconsize" class="p-2 w-full border rounded">
                             <option value="" disabled>Select size of icon</option>
                             <option value="text-base">M</option>
                             <option value="text-lg">L</option>
@@ -255,15 +314,58 @@ if (isset($_POST['deletefacilitytype'])) {
                             <option value="text-2xl">2XL</option>
                         </select>
                     </div>
+                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-1">
+                        <!-- Addictional Charge -->
+                        <div class="relative flex-1">
+                            <label class="block text-sm text-start font-medium text-gray-700 mb-1">Addictional Charge</label>
+                            <select id="updateAddictionalCharge" name="updateadditionalcharge" class="p-2 w-full border rounded">
+                                <option value="" disabled>Select one</option>
+                                <option value="1">True</option>
+                                <option value="0" selected>False</option>
+                            </select>
+                        </div>
+                        <!-- Popular -->
+                        <div class="relative flex-1">
+                            <label class="block text-sm text-start font-medium text-gray-700 mb-1">Popular</label>
+                            <select id="updatePopular" name="updatepopular" class="p-2 w-full border rounded">
+                                <option value="" disabled>Select one</option>
+                                <option value="1">True</option>
+                                <option value="0">False</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Facility Type -->
+                    <div class="relative">
+                        <select id="updateFacilityType" name="updatefacilitytype" class="p-2 w-full border rounded">
+                            <option value="" disabled selected>Select type of facility</option>
+                            <?php
+                            $select = "SELECT * FROM facilitytypetb";
+                            $query = mysqli_query($connect, $select);
+                            $count = mysqli_num_rows($query);
+
+                            if ($count) {
+                                for ($i = 0; $i < $count; $i++) {
+                                    $row = mysqli_fetch_array($query);
+                                    $facility_type_id = $row['FacilityTypeID'];
+                                    $facility_type = $row['FacilityType'];
+
+                                    echo "<option value= '$facility_type_id'>$facility_type</option>";
+                                }
+                            } else {
+                                echo "<option value='' disabled>No data yet</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
                     <!-- Submit Button -->
                     <div class="flex justify-end gap-4 select-none">
-                        <div id="updateFacilityTypeModalCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300">
+                        <div id="updateFacilityModalCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm">
                             Cancel
                         </div>
                         <button
                             type="submit"
-                            name="editfacilitytype"
-                            class="bg-amber-500 text-white px-4 py-2 select-none hover:bg-amber-600">
+                            name="editfacility"
+                            class="bg-amber-500 text-white px-4 py-2 select-none hover:bg-amber-600 rounded-sm">
                             Save
                         </button>
                     </div>
@@ -271,23 +373,23 @@ if (isset($_POST['deletefacilitytype'])) {
             </div>
         </div>
 
-        <!-- Facility Type Delete Modal -->
-        <div id="facilityTypeConfirmDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
-            <form class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="facilityTypeDeleteForm">
-                <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Facility Type Deletion</h2>
-                <p class="text-slate-600 mb-2">You are about to delete the following Facility Type: <span id="facilityTypeDeleteName" class="font-semibold"></span></p>
+        <!-- Facility Delete Modal -->
+        <div id="facilityConfirmDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+            <form class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="facilityDeleteForm">
+                <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Facility Deletion</h2>
+                <p class="text-slate-600 mb-2">You are about to delete the following Facility: <span id="facilityDeleteName" class="font-semibold"></span></p>
                 <p class="text-sm text-gray-500 mb-4">
-                    Deleting this Facility Type will permanently remove it from the system, including all associated data.
+                    Deleting this Facility will permanently remove it from the system, including all associated data.
                 </p>
-                <input type="hidden" name="facilitytypeid" id="deleteFacilityTypeID">
+                <input type="hidden" name="facilityid" id="deleteFacilityID">
                 <div class="flex justify-end gap-4 select-none">
-                    <div id="facilityTypeCancelDeleteBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300">
+                    <div id="facilityCancelDeleteBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm">
                         Cancel
                     </div>
                     <button
                         type="submit"
-                        name="deletefacilitytype"
-                        class="px-4 py-2 bg-red-600 text-white hover:bg-red-700">
+                        name="deletefacility"
+                        class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-sm">
                         Delete
                     </button>
                 </div>
@@ -295,7 +397,7 @@ if (isset($_POST['deletefacilitytype'])) {
         </div>
 
         <!-- Add Facility Form -->
-        <div id="addFacilityTypeModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+        <div id="addFacilityModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white w-full md:w-1/3 p-6 rounded-md shadow-md ">
                 <h2 class="text-xl font-bold mb-4">Add New Facility</h2>
                 <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="facilityForm">
@@ -312,6 +414,7 @@ if (isset($_POST['deletefacilitytype'])) {
                     </div>
                     <!-- Icon Input -->
                     <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Optional</label>
                         <textarea
                             id="facilityIconInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
@@ -323,7 +426,7 @@ if (isset($_POST['deletefacilitytype'])) {
                     <!-- Size -->
                     <div class="relative">
                         <label class="block text-sm text-start font-medium text-gray-700 mb-1">Choose Size</label>
-                        <select id="facilityTypeSize" name="facilitytypeiconsize" class="p-2 w-full border rounded">
+                        <select id="facilitySize" name="facilityiconsize" class="p-2 w-full border rounded">
                             <option value="" disabled>Select size of icon</option>
                             <option value="text-base">M</option>
                             <option value="text-lg">L</option>
@@ -332,15 +435,59 @@ if (isset($_POST['deletefacilitytype'])) {
                         </select>
                     </div>
 
+                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-1">
+                        <!-- Addictional Charge -->
+                        <div class="relative flex-1">
+                            <label class="block text-sm text-start font-medium text-gray-700 mb-1">Addictional Charge</label>
+                            <select id="addictionalCharge" name="additionalcharge" class="p-2 w-full border rounded">
+                                <option value="" disabled>Select one</option>
+                                <option value="1">True</option>
+                                <option value="0" selected>False (default)</option>
+                            </select>
+                        </div>
+                        <!-- Popular -->
+                        <div class="relative flex-1">
+                            <label class="block text-sm text-start font-medium text-gray-700 mb-1">Popular</label>
+                            <select id="popular" name="popular" class="p-2 w-full border rounded">
+                                <option value="" disabled>Select one</option>
+                                <option value="1">True</option>
+                                <option value="0" selected>False (default)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Facility Type -->
+                    <div class="relative">
+                        <select id="FacilityType" name="facilityType" class="p-2 w-full border rounded">
+                            <option value="" disabled selected>Select type of facility</option>
+                            <?php
+                            $select = "SELECT * FROM facilitytypetb";
+                            $query = mysqli_query($connect, $select);
+                            $count = mysqli_num_rows($query);
+
+                            if ($count) {
+                                for ($i = 0; $i < $count; $i++) {
+                                    $row = mysqli_fetch_array($query);
+                                    $facility_type_id = $row['FacilityTypeID'];
+                                    $facility_type = $row['FacilityType'];
+
+                                    echo "<option value= '$facility_type_id'>$facility_type</option>";
+                                }
+                            } else {
+                                echo "<option value='' disabled>No data yet</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+
                     <div class="flex justify-end gap-4 select-none">
-                        <div id="addFacilityTypeCancelBtn" class="px-4 py-2 text-amber-500 font-semibold hover:text-amber-600">
+                        <div id="addFacilityCancelBtn" class="px-4 py-2 text-amber-500 font-semibold hover:text-amber-600">
                             Cancel
                         </div>
                         <!-- Submit Button -->
                         <button
                             type="submit"
-                            name="addfacilitytype"
-                            class="bg-amber-500 text-white font-semibold px-4 py-2 rounded select-none hover:bg-amber-600 transition-colors">
+                            name="addfacility"
+                            class="bg-amber-500 text-white font-semibold px-4 py-2 rounded-sm select-none hover:bg-amber-600 transition-colors">
                             Add Facility
                         </button>
                     </div>

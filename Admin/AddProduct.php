@@ -504,13 +504,13 @@ if (isset($_POST['deleteproduct'])) {
                     </div>
                     <!-- Submit Button -->
                     <div class="flex justify-end gap-4 select-none">
-                        <div id="updateProductModalCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300">
+                        <div id="updateProductModalCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm">
                             Cancel
                         </div>
                         <button
                             type="submit"
                             name="editproduct"
-                            class="bg-amber-500 text-white px-4 py-2 select-none hover:bg-amber-600">
+                            class="bg-amber-500 text-white px-4 py-2 select-none hover:bg-amber-600 rounded-sm">
                             Save
                         </button>
                     </div>
@@ -528,13 +528,13 @@ if (isset($_POST['deleteproduct'])) {
                 </p>
                 <input type="hidden" name="productid" id="deleteProductID">
                 <div class="flex justify-end gap-4 select-none">
-                    <div id="productCancelDeleteBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300">
+                    <div id="productCancelDeleteBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm">
                         Cancel
                     </div>
                     <button
                         type="submit"
                         name="deleteproduct"
-                        class="px-4 py-2 bg-red-600 text-white hover:bg-red-700">
+                        class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-sm">
                         Delete
                     </button>
                 </div>
@@ -696,7 +696,7 @@ if (isset($_POST['deleteproduct'])) {
                         <button
                             type="submit"
                             name="addproduct"
-                            class="bg-amber-500 text-white font-semibold px-4 py-2 rounded select-none hover:bg-amber-600 transition-colors">
+                            class="bg-amber-500 text-white font-semibold px-4 py-2 rounded-sm select-none hover:bg-amber-600 transition-colors">
                             Add Product
                         </button>
                     </div>

@@ -909,15 +909,15 @@ document.addEventListener('DOMContentLoaded', () => {
 // Add Facility Type Form
 document.addEventListener("DOMContentLoaded", () => {
     const addFacilityTypeModal = document.getElementById('addFacilityTypeModal');
-    const addFFacilityTypeBtn = document.getElementById('addFFacilityTypeBtn');
+    const addFacilityTypeBtn = document.getElementById('addFacilityTypeBtn');
     const addFacilityTypeCancelBtn = document.getElementById('addFacilityTypeCancelBtn');
     const loader = document.getElementById('loader');
     const alertMessage = document.getElementById('alertMessage').value;
     const addFacilityTypeSuccess = document.getElementById('addFacilityTypeSuccess').value === 'true';
 
-    if (addFacilityTypeModal && addFFacilityTypeBtn && addFacilityTypeCancelBtn) {
+    if (addFacilityTypeModal && addFacilityTypeBtn && addFacilityTypeCancelBtn) {
         // Show modal
-        addFFacilityTypeBtn.addEventListener('click', () => {
+        addFacilityTypeBtn.addEventListener('click', () => {
             darkOverlay2.classList.remove('opacity-0', 'invisible');
             darkOverlay2.classList.add('opacity-100');
             addFacilityTypeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
@@ -1081,9 +1081,198 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (deleteFacilityTypeSuccess) {
             // Show Alert
-            showAlert('The room type has been successfully deleted.');
+            showAlert('The facility type has been successfully deleted.');
             setTimeout(() => {
-                window.location.href = 'AddRoomType.php';
+                window.location.href = 'AddFacilityType.php';
+            }, 5000);
+        } else if (alertMessage) {
+            // Show Alert
+            showAlert(alertMessage);
+        }
+    }
+});
+
+// Add Facility Form
+document.addEventListener("DOMContentLoaded", () => {
+    const addFacilityModal = document.getElementById('addFacilityModal');
+    const addFacilityBtn = document.getElementById('addFFacilityBtn');
+    const addFacilityCancelBtn = document.getElementById('addFacilityCancelBtn');
+    const loader = document.getElementById('loader');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const addFacilitySuccess = document.getElementById('addFacilitySuccess').value === 'true';
+
+    if (addFacilityModal && addFFacilityBtn && addFacilityCancelBtn) {
+        // Show modal
+        addFFacilityBtn.addEventListener('click', () => {
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
+            addFacilityModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+        }); 
+
+        // Cancel button functionality
+        addFacilityCancelBtn.addEventListener('click', () => {
+            addFacilityModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+    }
+
+    if (addFacilitySuccess) {
+        loader.style.display = 'flex';
+
+        // Show Alert
+        setTimeout(() => {
+            loader.style.display = 'none';
+            showAlert('A new facility type has been successfully added.');
+            setTimeout(() => {
+                window.location.href = 'AddFacility.php';
+            }, 5000);
+        }, 1000);
+    } else if (alertMessage) {
+        // Show Alert
+        showAlert(alertMessage);
+        setTimeout(() => {
+            window.location.href = 'AddFacility.php';
+        }, 5000);
+    }
+
+    // Add keyup event listeners for real-time validation
+    // document.getElementById("facilityInput").addEventListener("keyup", validateFacility);
+    // document.getElementById("facilityIconInput").addEventListener("keyup", validateFacilityIcon);
+
+    // const facilityForm = document.getElementById("facilityForm");
+    // if (facilityForm) {
+    //     facilityForm.addEventListener("submit", (e) => {
+    //         if (!validateFacilityForm()) {
+    //             e.preventDefault();
+    //         }
+    //     });
+    // }
+});
+
+// Facility Details Modal
+document.addEventListener('DOMContentLoaded', () => {
+    const updateFacilityModal = document.getElementById('updateFacilityModal');
+    const updateFacilityModalCancelBtn = document.getElementById('updateFacilityModalCancelBtn');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const updateFacilitySuccess = document.getElementById('updateFacilitySuccess').value === 'true';
+
+    // Get all details buttons
+    const detailsBtns = document.querySelectorAll('.details-btn');
+
+    if (updateFacilityModal && updateFacilityModalCancelBtn && detailsBtns) {
+        // Add click event to each button
+        detailsBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const facilityId = this.getAttribute('data-facility-id');
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+
+                // Fetch product  details
+                fetch(`../Admin/AddFacility.php?action=getFacilityDetails&id=${facilityId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Fill the modal form with product  data
+                            document.getElementById('updateFacilityID').value = facilityId;
+                            document.querySelector('[name="updatefacility"]').value = data.facility.Facility;
+                            document.querySelector('[name="updatefacilityicon"]').value = data.facility.FacilityIcon;
+                            document.querySelector('[name="updatefacilityiconsize"]').value = data.facility.IconSize;
+                            document.querySelector('[name="updateadditionalcharge"]').value = data.facility.AdditionalCharge;
+                            document.querySelector('[name="updatepopular"]').value = data.facility.Popular;
+                            document.querySelector('[name="updatefacilitytype"]').value = data.facility.FacilityTypeID;
+                            // Show the modal
+                            updateFacilityModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        } else {
+                            console.error('Failed to load facility details');
+                        }
+                    })
+                .catch(error => console.error('Fetch error:', error));
+            });
+        });
+
+        updateFacilityModalCancelBtn.addEventListener('click', () => {
+            updateFacilityModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        if (updateFacilitySuccess) {
+            // Show Alert
+            setTimeout(() => {
+                showAlert('The facility has been successfully updated.');
+                setTimeout(() => {
+                    window.location.href = 'AddFacility.php';
+                }, 5000);
+            }, 500);
+        } else if (alertMessage) {
+            // Show Alert
+            showAlert(alertMessage);
+        }
+        // // Add keyup event listeners for real-time validation
+        // document.getElementById("updateRoomInput").addEventListener("keyup", validateUpdateRoom);
+        // document.getElementById("updateRoomDescriptionInput").addEventListener("keyup", validateUpdateRoomDescription);
+        // document.getElementById("updateRoomCapacityInput").addEventListener("keyup", validateUpdateRoomCapacity);
+
+        // const updateRoomForm = document.getElementById("updateRoomForm");
+        // if (updateRoomForm) {
+        //     updateRoomForm.addEventListener("submit", (e) => {
+        //         if (!validateUpdateRoomForm()) {
+        //             e.preventDefault();
+        //         }
+        //     });
+        // }
+    }
+});
+
+// Facility Delete Modal
+document.addEventListener('DOMContentLoaded', () => {
+    const facilityConfirmDeleteModal = document.getElementById('facilityConfirmDeleteModal');
+    const facilityCancelDeleteBtn = document.getElementById('facilityCancelDeleteBtn');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const deleteFacilitySuccess = document.getElementById('deleteFacilitySuccess').value === 'true';
+
+    // Get all delete buttons
+    const deleteBtns = document.querySelectorAll('.delete-btn');
+
+    if (facilityConfirmDeleteModal && facilityCancelDeleteBtn && deleteBtns) {
+        // Add click event to each delete button
+        deleteBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const facilityId = this.getAttribute('data-facility-id');
+
+                // Fetch fafcility details
+                fetch(`../Admin/AddFacility.php?action=getFacilityDetails&id=${facilityId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('deleteFacilityID').value = facilityId;
+                            document.getElementById('facilityDeleteName').textContent = data.facility.Facility;
+                        } else {
+                            console.error('Failed to load facility details');
+                        }
+                    })
+                .catch(error => console.error('Fetch error:', error));
+
+                // Show modal
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+                facilityConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+            });
+        });
+
+        // Cancel button functionality
+        facilityCancelDeleteBtn.addEventListener('click', () => {
+            facilityConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        if (deleteFacilitySuccess) {
+            // Show Alert
+            showAlert('The facility has been successfully deleted.');
+            setTimeout(() => {
+                window.location.href = 'AddFacility.php';
             }, 5000);
         } else if (alertMessage) {
             // Show Alert

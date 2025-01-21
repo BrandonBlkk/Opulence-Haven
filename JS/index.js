@@ -70,6 +70,8 @@ window.addEventListener('storage', (event) => {
 function showMaintenanceAlert() {
     const maintenanceAlert = document.getElementById('maintenanceAlert');
     maintenanceAlert.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+    darkOverlay2.classList.remove('opacity-0', 'invisible');
+    darkOverlay2.classList.add('opacity-100');
     document.body.style.overflow = 'hidden';
 }
 
@@ -77,6 +79,8 @@ function showMaintenanceAlert() {
 function closeAlert() {
     const maintenanceAlert = document.getElementById('maintenanceAlert');
     maintenanceAlert.classList.add('opacity-0', 'invisible', '-translate-y-5');
+    darkOverlay2.classList.add('opacity-0', 'invisible');
+    darkOverlay2.classList.remove('opacity-100');
     document.body.style.overflow = 'auto';
 }
 

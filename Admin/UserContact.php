@@ -9,20 +9,6 @@ if (!$connect) {
 $alertMessage = '';
 $confirmContactSuccess = false;
 
-// if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addrole'])) {
-//     $role = mysqli_real_escape_string($connect, $_POST['role']);
-//     $description = mysqli_real_escape_string($connect, $_POST['description']);
-
-//     $addRoleQuery = "INSERT INTO roletb (Role, Description)
-//     VALUES ('$role', '$description')";
-
-//     if (mysqli_query($connect, $addRoleQuery)) {
-//         $addRoleSuccess = true;
-//     } else {
-//         $alertMessage = "Failed to add product type. Please try again.";
-//     }
-// }
-
 // Get Contact Details
 if (isset($_GET['action']) && isset($_GET['id'])) {
     $id = mysqli_real_escape_string($connect, $_GET['id']);
@@ -232,13 +218,13 @@ if (isset($_POST['respondcontact'])) {
                     </div>
                     <!-- Submit Button -->
                     <div class="flex justify-end gap-4 select-none">
-                        <div id="confirmContactModalCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300">
+                        <div id="confirmContactModalCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm">
                             Cancel
                         </div>
                         <button
                             type="submit"
                             name="respondcontact"
-                            class="bg-amber-500 text-white px-4 py-2 select-none hover:bg-amber-600">
+                            class="bg-amber-500 text-white px-4 py-2 select-none hover:bg-amber-600 rounded-sm">
                             Respond
                         </button>
                     </div>
@@ -263,7 +249,7 @@ if (isset($_POST['respondcontact'])) {
                     </div>
                     <!-- Search Button -->
                     <div class="flex justify-end gap-4 select-none">
-                        <button type="submit" class="w-full sm:w-auto bg-amber-500 text-white px-4 py-2 rounded hover:bg-amber-600">
+                        <button type="submit" class="w-full sm:w-auto bg-amber-500 text-white px-4 py-2 rounded-sm hover:bg-amber-600">
                             Search
                         </button>
                     </div>

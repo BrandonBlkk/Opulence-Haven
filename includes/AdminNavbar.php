@@ -10,7 +10,7 @@ $adminProfileRow = mysqli_fetch_assoc($adminProfileResult);
 $adminprofile = $adminProfileRow['AdminProfile'];
 $role = $adminProfileRow['RoleID'];
 
-// Initialize search and filter variables
+// Initialize search and filter variables for admin
 $searchAdminQuery = isset($_GET['acc_search']) ? mysqli_real_escape_string($connect, $_GET['acc_search']) : '';
 $filterRoleID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 
@@ -51,6 +51,7 @@ $adminCountResult = mysqli_query($connect, $adminCountQuery);
 $adminCountRow = mysqli_fetch_assoc($adminCountResult);
 $adminCount = $adminCountRow['count'];
 
+// Initialize search and filter variables for supplier
 $searchSupplierQuery = isset($_GET['supplier_search']) ? mysqli_real_escape_string($connect, $_GET['supplier_search']) : '';
 $filterSupplierID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 
@@ -95,6 +96,7 @@ $supplierCountResult = mysqli_query($connect, $supplierCountQuery);
 $supplierCountRow = mysqli_fetch_assoc($supplierCountResult);
 $allSupplierCount = $supplierCountRow['count'];
 
+// Initialize search and filter variables for product type
 $searchProductTypeQuery = isset($_GET['producttype_search']) ? mysqli_real_escape_string($connect, $_GET['producttype_search']) : '';
 $filterProductTypeID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 
@@ -131,6 +133,7 @@ $productTypeCountResult = mysqli_query($connect, $productTypeCountQuery);
 $productTypeCountRow = mysqli_fetch_assoc($productTypeCountResult);
 $allProductTypeCount = $productTypeCountRow['count'];
 
+// Initialize search and filter variables for product
 $searchProductQuery = isset($_GET['product_search']) ? mysqli_real_escape_string($connect, $_GET['product_search']) : '';
 $filterProductID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 
@@ -169,15 +172,16 @@ if ($filterProductID !== 'random' && !empty($searchProductQuery)) {
 $productResult = mysqli_query($connect, $productQuery);
 $productRow = mysqli_fetch_assoc($productResult);
 $productCount = $productRow['count'];
-// Fetch product type count
+// Fetch product count
 $productCountQuery = "SELECT COUNT(*) as count FROM producttb";
 $productCountResult = mysqli_query($connect, $productCountQuery);
 $productCountRow = mysqli_fetch_assoc($productCountResult);
 $allProductCount = $productCountRow['count'];
 
+// Initialize search variables for room type
 $searchRoomTypeQuery = isset($_GET['roomtype_search']) ? mysqli_real_escape_string($connect, $_GET['roomtype_search']) : '';
 
-// Construct the product type query based on search
+// Construct the room type query based on search
 if (!empty($searchRoomTypeQuery)) {
     $roomTypeSelect = "SELECT * FROM roomtypetb WHERE RoomType LIKE '%$searchRoomTypeQuery%' OR RoomDescription LIKE '%$searchRoomTypeQuery%' LIMIT $rowsPerPage OFFSET $roomTypeOffset";
 } else {
@@ -193,7 +197,7 @@ if (mysqli_num_rows($roomTypeSelectQuery) > 0) {
     }
 }
 
-// Construct the prooducttype count query based on search
+// Construct the roomtype count query based on search
 if (!empty($searchRoomTypeQuery)) {
     $roomTypeQuery = "SELECT COUNT(*) as count FROM roomtypetb WHERE RoomType LIKE '%$searchRoomTypeQuery%' OR RoomDescription LIKE '%$searchRoomTypeQuery%'";
 } else {
@@ -204,18 +208,16 @@ if (!empty($searchRoomTypeQuery)) {
 $roomTypeResult = mysqli_query($connect, $roomTypeQuery);
 $roomTypeRow = mysqli_fetch_assoc($roomTypeResult);
 $roomTypeCount = $roomTypeRow['count'];
-// Fetch product type count
+// Fetch room type count
 $roomTypeCountQuery = "SELECT COUNT(*) as count FROM roomtypetb";
 $roomTypeCountResult = mysqli_query($connect, $roomTypeCountQuery);
 $roomTypeCountRow = mysqli_fetch_assoc($roomTypeCountResult);
 $allRoomTypeCount = $roomTypeCountRow['count'];
 
-
-
-
+// Initialize search variables for facility type
 $searchFacilityTypeQuery = isset($_GET['facilitytype_search']) ? mysqli_real_escape_string($connect, $_GET['facilitytype_search']) : '';
 
-// Construct the product type query based on search
+// Construct the facility type query based on search
 if (!empty($searchFacilityTypeQuery)) {
     $facilityTypeSelect = "SELECT * FROM facilitytypetb WHERE FacilityType LIKE '%$searchFacilityTypeQuery%' LIMIT $rowsPerPage OFFSET $facilityTypeOffset";
 } else {
@@ -231,7 +233,7 @@ if (mysqli_num_rows($facilityTypeSelectQuery) > 0) {
     }
 }
 
-// Construct the prooducttype count query based on search
+// Construct the facilitytype count query based on search
 if (!empty($searchFacilityTypeQuery)) {
     $facilityTypeQuery = "SELECT COUNT(*) as count FROM facilitytypetb WHERE FacilityType LIKE '%$searchFacilityTypeQuery%'";
 } else {
@@ -242,14 +244,58 @@ if (!empty($searchFacilityTypeQuery)) {
 $facilityTypeResult = mysqli_query($connect, $facilityTypeQuery);
 $facilityTypeRow = mysqli_fetch_assoc($facilityTypeResult);
 $facilityTypeCount = $facilityTypeRow['count'];
-// Fetch product type count
+// Fetch facility type count
 $facilityTypeCountQuery = "SELECT COUNT(*) as count FROM facilitytypetb";
 $facilityTypeCountResult = mysqli_query($connect, $facilityTypeCountQuery);
 $facilityTypeCountRow = mysqli_fetch_assoc($facilityTypeCountResult);
 $allFacilityTypeCount = $facilityTypeCountRow['count'];
 
+// Initialize search and filter variables for facility
+$searchFacilityQuery = isset($_GET['facility_search']) ? mysqli_real_escape_string($connect, $_GET['facility_search']) : '';
+$filterFacilityTypeID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 
+// Construct the facility query based on search
+if ($filterFacilityTypeID !== 'random' && !empty($searchFacilityQuery)) {
+    $facilitySelect = "SELECT * FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID' AND (Facility LIKE '%$searchFacilityQuery%') LIMIT $rowsPerPage OFFSET $facilityOffset";
+} elseif ($filterFacilityTypeID !== 'random') {
+    $facilitySelect = "SELECT * FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID' LIMIT $rowsPerPage OFFSET $facilityOffset";
+} elseif (!empty($searchFacilityQuery)) {
+    $facilitySelect = "SELECT * FROM facilitytb WHERE Facility LIKE '%$searchFacilityQuery%' LIMIT $rowsPerPage OFFSET $facilityOffset";
+} else {
+    $facilitySelect = "SELECT * FROM facilitytb LIMIT $rowsPerPage OFFSET $facilityOffset";
+}
 
+$facilitySelectQuery = mysqli_query($connect, $facilitySelect);
+$facilities = [];
+
+if (mysqli_num_rows($facilitySelectQuery) > 0) {
+    while ($row = mysqli_fetch_assoc($facilitySelectQuery)) {
+        $facilities[] = $row;
+    }
+}
+
+// Construct the facility count query based on search
+if ($filterFacilityTypeID !== 'random' && !empty($searchFacilityQuery)) {
+    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID' AND (Facility LIKE '%$searchFacilityQuery%')";
+} elseif ($filterFacilityTypeID !== 'random') {
+    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID'";
+} elseif (!empty($searchFacilityQuery)) {
+    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb WHERE Facility LIKE '%$searchFacilityQuery%'";
+} else {
+    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb";
+}
+
+// Execute the count query
+$facilityResult = mysqli_query($connect, $facilityQuery);
+$facilityRow = mysqli_fetch_assoc($facilityResult);
+$facilityCount = $facilityRow['count'];
+// Fetch facility count
+$facilityCountQuery = "SELECT COUNT(*) as count FROM facilitytb";
+$facilityCountResult = mysqli_query($connect, $facilityCountQuery);
+$facilityCountRow = mysqli_fetch_assoc($facilityCountResult);
+$allFacilityCount = $facilityCountRow['count'];
+
+// Initialize search and filter variables for contact
 $searchContactQuery = isset($_GET['contact_search']) ? mysqli_real_escape_string($connect, $_GET['contact_search']) : '';
 $searchFromDate = isset($_GET['from_date']) ? $_GET['from_date'] : '';
 $searchToDate = isset($_GET['to_date']) ? $_GET['to_date'] : '';
@@ -460,7 +506,7 @@ if (mysqli_num_rows($query) > 0) {
                                 <i class="ri-hotel-line text-xl"></i>
                                 <span class="font-semibold text-sm">Add facility</span>
                             </div>
-                            <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allRoomTypeCount ?></p>
+                            <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allFacilityCount ?></p>
                         </a>
                         <a href="../Admin/AddFacilityType.php"
                             class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?>">
@@ -469,14 +515,6 @@ if (mysqli_num_rows($query) > 0) {
                                 <span class="font-semibold text-sm">Add facility type</span>
                             </div>
                             <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allFacilityTypeCount ?></p>
-                        </a>
-                        <a href="../Admin/AddRoomType.php"
-                            class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?>">
-                            <div class="flex items-center gap-1">
-                                <i class="ri-file-list-3-line text-xl"></i>
-                                <span class="font-semibold text-sm">Add amenity</span>
-                            </div>
-                            <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allRoomTypeCount ?></p>
                         </a>
                     </div>
                 </div>
@@ -600,10 +638,10 @@ if (mysqli_num_rows($query) > 0) {
             Logging out will end your session and remove access to secure areas of your account. Ensure all changes are saved.
         </p>
         <div class="flex justify-end gap-4 select-none">
-            <button id="cancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300">
+            <button id="cancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm">
                 Cancel
             </button>
-            <button id="adminConfirmLogoutBtn" class="px-4 py-2 bg-red-600 text-white hover:bg-red-700">
+            <button id="adminConfirmLogoutBtn" class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-sm">
                 Logout
             </button>
         </div>

@@ -120,7 +120,7 @@ if (isset($_POST['deletefacilitytype'])) {
                     <h2 class="text-xl font-bold mb-4">Add Facility Type Overview</h2>
                     <p>Add information about facility types to categorize facilities, track usage, and manage facility details for efficient organization.</p>
                 </div>
-                <button id="addFFacilityTypeBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
+                <button id="addFacilityTypeBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
                     <i class="ri-add-line text-xl"></i>
                 </button>
             </div>
@@ -257,13 +257,13 @@ if (isset($_POST['deletefacilitytype'])) {
                     </div>
                     <!-- Submit Button -->
                     <div class="flex justify-end gap-4 select-none">
-                        <div id="updateFacilityTypeModalCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300">
+                        <div id="updateFacilityTypeModalCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm">
                             Cancel
                         </div>
                         <button
                             type="submit"
                             name="editfacilitytype"
-                            class="bg-amber-500 text-white px-4 py-2 select-none hover:bg-amber-600">
+                            class="bg-amber-500 text-white px-4 py-2 select-none hover:bg-amber-600 rounded-sm">
                             Save
                         </button>
                     </div>
@@ -281,13 +281,13 @@ if (isset($_POST['deletefacilitytype'])) {
                 </p>
                 <input type="hidden" name="facilitytypeid" id="deleteFacilityTypeID">
                 <div class="flex justify-end gap-4 select-none">
-                    <div id="facilityTypeCancelDeleteBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300">
+                    <div id="facilityTypeCancelDeleteBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm">
                         Cancel
                     </div>
                     <button
                         type="submit"
                         name="deletefacilitytype"
-                        class="px-4 py-2 bg-red-600 text-white hover:bg-red-700">
+                        class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-sm">
                         Delete
                     </button>
                 </div>
@@ -340,7 +340,7 @@ if (isset($_POST['deletefacilitytype'])) {
                         <button
                             type="submit"
                             name="addfacilitytype"
-                            class="bg-amber-500 text-white font-semibold px-4 py-2 rounded select-none hover:bg-amber-600 transition-colors">
+                            class="bg-amber-500 text-white font-semibold px-4 py-2 rounded-sm select-none hover:bg-amber-600 transition-colors">
                             Add Facility
                         </button>
                     </div>
