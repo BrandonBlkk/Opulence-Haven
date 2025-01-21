@@ -1137,17 +1137,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Add keyup event listeners for real-time validation
-    // document.getElementById("facilityInput").addEventListener("keyup", validateFacility);
-    // document.getElementById("facilityIconInput").addEventListener("keyup", validateFacilityIcon);
+    document.getElementById("facilityInput").addEventListener("keyup", validateFacility);
 
-    // const facilityForm = document.getElementById("facilityForm");
-    // if (facilityForm) {
-    //     facilityForm.addEventListener("submit", (e) => {
-    //         if (!validateFacilityForm()) {
-    //             e.preventDefault();
-    //         }
-    //     });
-    // }
+    const facilityForm = document.getElementById("facilityForm");
+    if (facilityForm) {
+        facilityForm.addEventListener("submit", (e) => {
+            if (!validateFacilityForm()) {
+                e.preventDefault();
+            }
+        });
+    }
 });
 
 // Facility Details Modal
@@ -1209,19 +1208,17 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show Alert
             showAlert(alertMessage);
         }
-        // // Add keyup event listeners for real-time validation
-        // document.getElementById("updateRoomInput").addEventListener("keyup", validateUpdateRoom);
-        // document.getElementById("updateRoomDescriptionInput").addEventListener("keyup", validateUpdateRoomDescription);
-        // document.getElementById("updateRoomCapacityInput").addEventListener("keyup", validateUpdateRoomCapacity);
+        // Add keyup event listeners for real-time validation
+        document.getElementById("updateFacilityInput").addEventListener("keyup", validateUpdateFacility);
 
-        // const updateRoomForm = document.getElementById("updateRoomForm");
-        // if (updateRoomForm) {
-        //     updateRoomForm.addEventListener("submit", (e) => {
-        //         if (!validateUpdateRoomForm()) {
-        //             e.preventDefault();
-        //         }
-        //     });
-        // }
+        const updateFacilityForm = document.getElementById("updateFacilityForm");
+        if (updateFacilityForm) {
+            updateFacilityForm.addEventListener("submit", (e) => {
+                if (!validateFacilityUpdateForm()) {
+                    e.preventDefault();
+                }
+            });
+        }
     }
 });
 
@@ -1617,6 +1614,18 @@ const validateFacilityTypeForm = () => {
     return isFacilityTypeValid && isFacilityTypeIconValid;
 };
 
+const validateFacilityForm = () => {
+    const isFacilityValid = validateFacility();
+
+    return isFacilityValid;
+};
+
+const validateFacilityUpdateForm = () => {
+    const isFacilityValid = validateUpdateFacility();
+
+    return isFacilityValid;
+};
+
 const validateProfileUpdateForm = () => {
     const isFirstnameValid = validateFirstName();
     const isLastnameValid = validateLastName();
@@ -1993,6 +2002,22 @@ const validateFacilityTypeIcon = () => {
         "facilityTypeIconInput",
         "facilityTypeIconError",
         (input) => (!input ? "Facility type icon is required." : null)
+    );
+}
+
+const validateFacility = () => {
+    return validateField(
+        "facilityInput",
+        "facilityError",
+        (input) => (!input ? "Facility is required." : null)
+    );
+}
+
+const validateUpdateFacility = () => {
+    return validateField(
+        "updateFacilityInput",
+        "updateFacilityError",
+        (input) => (!input ? "Facility is required." : null)
     );
 }
 

@@ -551,31 +551,6 @@ if (mysqli_num_rows($query) > 0) {
                     </div>
                 </div>
 
-                <!-- Schedule Menu -->
-                <div x-data="{ expanded: false, height: 0 }" class="flex flex-col">
-                    <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?>">
-                        <div class="flex items-center gap-4">
-                            <i class="ri-calendar-2-line text-xl"></i>
-                            <span class="font-semibold text-sm">Schedule Menu</span>
-                        </div>
-                        <i :class="expanded ? 'rotate-180' : 'rotate-0'" class="ri-arrow-up-s-line text-xl transition-transform duration-300"></i>
-                    </button>
-                    <div
-                        x-ref="dropdown"
-                        :style="{ height: expanded ? height + 'px' : '0px' }"
-                        class="overflow-hidden transition-all duration-300 select-none">
-                        <div class="pl-3">
-                            <a href="../Admin/AddSupplier.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?>">
-                                <div class="flex items-center gap-1">
-                                    <i class="ri-hotel-bed-line text-xl"></i>
-                                    <span class="font-semibold text-sm">Schedule Room</span>
-                                </div>
-                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= htmlspecialchars($supplierCount) ?></p>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Bookings & Orders Menu -->
                 <div x-data="{ expanded: false, height: 0 }" class="flex flex-col">
                     <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '2') ? 'flex' : 'hidden'; ?>">

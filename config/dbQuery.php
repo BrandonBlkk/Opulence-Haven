@@ -268,49 +268,6 @@ try {
 //     echo "Data has been saved";
 // }
 
-// $schedule = "CREATE TABLE scheduletb
-// (
-//     ScheduleID varchar(20) not null primary key,
-//     ScheduleDate date,
-//     ScheduleStartTime time,
-//     ScheduleEndTime time,
-//     ScheduleStatus varchar(15) DEFAULT 'available',
-//     AdminID varchar(30),
-//     RoomID varchar(20),
-//     FOREIGN KEY (AdminID) REFERENCES admintb (AdminID)
-//     ON DELETE CASCADE
-//     ON UPDATE CASCADE,
-//     FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
-//     ON DELETE CASCADE
-//     ON UPDATE CASCADE
-// )";
-
-// try {
-//     $query = mysqli_query($connect, $schedule);
-//     echo "Data Successfully saved";
-// } catch (mysqli_sql_exception) {
-//     echo "Data has been saved";
-// }
-
-// $scheduledetail = "CREATE TABLE scheduledetailtb
-// (
-//     ScheduleID varchar(20) not null primary key,
-//     RoomID varchar(20),
-//     FOREIGN KEY (ScheduleID) REFERENCES scheduletb (ScheduleID)
-//     ON DELETE CASCADE
-//     ON UPDATE CASCADE,
-//     FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
-//     ON DELETE CASCADE
-//     ON UPDATE CASCADE
-// )";
-
-// try {
-//     $query = mysqli_query($connect, $scheduledetail);
-//     echo "Data Successfully saved";
-// } catch (mysqli_sql_exception) {
-//     echo "Data has been saved";
-// }
-
 // $favorite = "CREATE TABLE favoritetb
 // (
 //     FavoriteID int not null primary key auto_increment,
