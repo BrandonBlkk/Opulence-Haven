@@ -365,6 +365,17 @@ if (mysqli_num_rows($query) > 0) {
         $admin_role = $row['Role'];
     }
 }
+
+// Fetch all users
+$select = "SELECT * FROM usertb ORDER BY SignupDate DESC LIMIT 5";
+$query = mysqli_query($connect, $select);
+$users = [];
+
+if (mysqli_num_rows($query) > 0) {
+    while ($row = mysqli_fetch_assoc($query)) {
+        $users[] = $row;
+    }
+}
 ?>
 
 <!-- Hamburger Menu Button -->
@@ -373,7 +384,7 @@ if (mysqli_num_rows($query) > 0) {
 </button>
 
 <!-- Sidebar -->
-<nav id="sidebar" class="adminNav overflow-y-auto fixed top-0 left-0 h-full w-full sm:w-64 md:w-[250px] p-4 flex flex-col justify-between bg-white shadow-lg transform -translate-x-full md:translate-x-0 transition-all duration-300 z-40">
+<nav id="sidebar" class="adminNav overflow-y-auto fixed top-0 left-0 h-full w-full sm:w-64 md:w-[250px] p-4 flex flex-col justify-between bg-white shadow-md transform -translate-x-full md:translate-x-0 transition-all duration-300 z-40">
     <div>
         <!-- Logo -->
         <div class="flex items-end gap-1 select-none">

@@ -132,7 +132,7 @@ if (isset($_POST['deletesupplier'])) {
         <div class="w-full bg-white p-2">
             <div class="flex justify-between items-end">
                 <div>
-                    <h2 class="text-xl font-bold mb-4">Add Supplier Overview</h2>
+                    <h2 class="text-xl text-gray-700 font-bold mb-4">Add Supplier Overview</h2>
                     <p>Add information about suppliers to keep track of inventory, orders, and supplier details for efficient management.</p>
                 </div>
                 <button id="addSupplierBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
@@ -144,7 +144,7 @@ if (isset($_POST['deletesupplier'])) {
             <div class="overflow-x-auto">
                 <!-- Supplier Search and Filter -->
                 <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
-                    <h1 class="text-lg text-start font-semibold text-nowrap">All Suppliers <span class="text-gray-400 text-sm ml-2"><?php echo $supplierCount ?></span></h1>
+                    <h1 class="text-lg text-gray-700 text-start font-semibold text-nowrap">All Suppliers <span class="text-gray-400 text-sm ml-2"><?php echo $supplierCount ?></span></h1>
                     <div class="flex flex-col sm:flex-row items-start sm:items-center w-full gap-2 sm:gap-0">
                         <input type="text" name="supplier_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full" placeholder="Search for supplier..." value="<?php echo isset($_GET['supplier_search']) ? htmlspecialchars($_GET['supplier_search']) : ''; ?>">
                         <div class="flex items-center">

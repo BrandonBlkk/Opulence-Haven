@@ -143,7 +143,7 @@ if (isset($_POST['respondcontact'])) {
                                         </span>
                                     </td>
                                     <td class="p-3 text-start space-x-1 hidden xl:table-cell">
-                                        <p><?= htmlspecialchars(date('Y-m-d', strtotime($contact['ContactDate']))) ?></p>
+                                        <p><?= htmlspecialchars(date('d M Y', strtotime($contact['ContactDate']))) ?></p>
                                     </td>
                                     <td class="p-3 text-start space-x-1 select-none">
                                         <i class="details-btn ri-eye-line text-lg cursor-pointer"

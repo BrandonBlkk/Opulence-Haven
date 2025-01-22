@@ -84,8 +84,8 @@ if (isset($_POST['deleteadmin'])) {
         <div class="w-full bg-white p-2">
             <div class="flex justify-between items-end">
                 <div>
-                    <h2 class="text-xl text-gray-700 font-bold mb-4">Manage Admin Roles and Accounts</h2>
-                    <p>View the list of admins and assign roles for efficient role-based access control.</p>
+                    <h2 class="text-xl text-gray-700 font-bold mb-4">User's Lists</h2>
+                    <p>View the list of users and assign roles for efficient role-based access control.</p>
                 </div>
                 <button id="addRoleBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
                     <i class="ri-add-line text-xl"></i>
@@ -98,114 +98,61 @@ if (isset($_POST['deleteadmin'])) {
                 <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
                     <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Users <span class="text-gray-400 text-sm ml-2"><?php echo $adminCount ?></span></h1>
                     <div class="flex flex-col sm:flex-row items-start sm:items-center w-full gap-2 sm:gap-0">
-                        <input type="text" name="acc_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full" placeholder="Search for admin account..." value="<?php echo isset($_GET['acc_search']) ? htmlspecialchars($_GET['acc_search']) : ''; ?>">
-                        <div class="flex items-center">
-                            <label for="sort" class="ml-4 mr-2 flex items-center cursor-pointer select-none">
-                                <i class="ri-filter-2-line text-xl"></i>
-                                <p>Filters</p>
-                            </label>
-                            <!-- Search and filter form -->
-                            <form method="GET" class="flex flex-col md:flex-row items-center gap-4 mb-4">
-                                <select name="sort" id="sort" class="border p-2 rounded text-sm" onchange="this.form.submit()">
-                                    <option value="random">All Roles</option>
-                                    <?php
-                                    $select = "SELECT * FROM roletb";
-                                    $query = mysqli_query($connect, $select);
-                                    $count = mysqli_num_rows($query);
-
-                                    if ($count) {
-                                        for ($i = 0; $i < $count; $i++) {
-                                            $row = mysqli_fetch_array($query);
-                                            $role_id = $row['RoleID'];
-                                            $role = $row['Role'];
-                                            $selected = ($filterRoleID == $role_id) ? 'selected' : '';
-
-                                            echo "<option value='$role_id' $selected>$role</option>";
-                                        }
-                                    } else {
-                                        echo "<option value='' disabled>No data yet</option>";
-                                    }
-                                    ?>
-                                </select>
-                            </form>
-                        </div>
+                        <input type="text" name="user_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full" placeholder="Search for user account..." value="<?php echo isset($_GET['user_search']) ? htmlspecialchars($_GET['user_search']) : ''; ?>">
                     </div>
                 </form>
                 <div class="tableScrollBar overflow-y-auto max-h-[510px]">
                     <table class="min-w-full bg-white rounded-lg">
                         <thead>
                             <tr class="bg-gray-100 text-gray-600 text-sm">
-                                <th class="p-3 text-start">ID</th>
-                                <th class="p-3 text-start">Admin</th>
-                                <th class="p-3 text-start hidden md:table-cell">Role</th>
-                                <th class="p-3 text-start hidden lg:table-cell">Status</th>
-                                <th class="p-3 text-start text-nowrap hidden xl:table-cell">Reset Password</th>
+                                <th class="p-3 text-start">User</th>
+                                <th class="p-3 text-start hidden md:table-cell">Phone</th>
+                                <th class="p-3 text-start hidden lg:table-cell">Verified</th>
+                                <th class="p-3 text-start text-nowrap hidden xl:table-cell">Last Check Out</th>
+                                <th class="p-3 text-start text-nowrap hidden xl:table-cell">Last Sign In</th>
                                 <th class="p-3 text-start">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="text-gray-600 text-sm">
-                            <?php foreach ($admins as $admin): ?>
+                            <?php foreach ($users as $user):
+                                // Extract initials from the UserName
+                                $nameParts = explode(' ', trim($user['UserName'])); // Split the name by spaces
+                                $initials = substr($nameParts[0], 0, 1); // First letter of the first name
+                                if (count($nameParts) > 1) {
+                                    $initials .= substr(end($nameParts), 0, 1); // First letter of the last name
+                                }
+                            ?>
                                 <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                    <td class="p-3 text-start whitespace-nowrap">
-                                        <div class="flex items-center gap-2 font-medium text-gray-500">
-                                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                            <span><?= htmlspecialchars($admin['AdminID']) ?></span>
-                                        </div>
-                                    </td>
-                                    <td class="p-3 text-start flex items-center gap-2">
-                                        <div class="w-10 h-10 rounded-full select-none">
-                                            <img class="w-full h-full object-cover rounded-full"
-                                                src="<?= htmlspecialchars($admin['AdminProfile']) ?>"
-                                                alt="Profile">
-                                        </div>
+                                    <td class="p-3 text-start flex items-center gap-2 group">
+                                        <p
+                                            class="w-10 h-10 rounded-full bg-blue-100 text-blue-500 uppercase font-semibold flex items-center justify-center select-none">
+                                            <?= $initials ?>
+                                        </p>
                                         <div>
-                                            <p class="font-bold"><?= htmlspecialchars($admin['FirstName'] . ' ' . $admin['LastName']) ?>
-                                                <?php
-                                                // Check if the admin ID matches the logged-in admin's ID
-                                                if ($adminID == $admin['AdminID']) {
-                                                    echo "<span class='text-sm text-green-500 font-semibold'> (You)</span>";
-                                                }
-                                                ?>
-                                            </p>
-                                            <p><?= htmlspecialchars($admin['AdminEmail']) ?></p>
+                                            <p class="font-bold"><?= htmlspecialchars($user['UserName']) ?></p>
+                                            <p><?= htmlspecialchars($user['UserEmail']) ?></p>
                                         </div>
+
+                                        <a class="opacity-0 group-hover:opacity-100 transition-all duration-200" href="mailto:<?= htmlspecialchars($user['UserEmail']) ?>"><i class="ri-mail-fill text-lg"></i></a>
                                     </td>
                                     <td class="p-3 text-start hidden md:table-cell">
-                                        <select name="updateRole" class="border rounded p-2 bg-gray-50">
-                                            <?php
-                                            // Fetch roles for the dropdown
-                                            $rolesQuery = "SELECT * FROM roletb";
-                                            $rolesResult = mysqli_query($connect, $rolesQuery);
-
-                                            if (mysqli_num_rows($rolesResult) > 0) {
-                                                while ($roleRow = mysqli_fetch_assoc($rolesResult)) {
-                                                    $selected = $roleRow['RoleID'] == $admin['RoleID'] ? 'selected' : '';
-                                                    echo "<option value='{$roleRow['RoleID']}' $selected>{$roleRow['Role']}</option>";
-                                                }
-                                            } else {
-                                                echo "<option value='' disabled>No roles available</option>";
-                                            }
-                                            ?>
-                                        </select>
+                                        <?= htmlspecialchars($user['UserPhone']) ?>
                                     </td>
                                     <td class="p-3 text-start space-x-1 select-none hidden lg:table-cell">
-                                        <span class="p-1 rounded-md <?= $admin['Status'] === 'active' ? 'bg-green-100' : 'bg-red-100' ?>">
-                                            <?= htmlspecialchars($admin['Status']) ?>
-                                        </span>
+                                        <span><i class="ri-checkbox-circle-line text-green-500"></i> Email</span>
                                     </td>
-                                    <td class="p-3 text-start space-x-1 hidden xl:table-cell">
-                                        <button>
-                                            <span class="rounded-md border-2"><i class="ri-arrow-left-line text-md"></i></span>
-                                            <span>Reset</span>
-                                        </button>
+                                    <td class="p-3 text-start hidden md:table-cell">
+                                        <?= htmlspecialchars(date('d M Y', strtotime($user['LastSignIn']))) ?>
+                                    </td>
+                                    <td class="p-3 text-start hidden md:table-cell">
+                                        <?= htmlspecialchars(date('d M Y', strtotime($user['LastSignIn']))) ?>
                                     </td>
                                     <td class="p-3 text-start space-x-1 select-none">
-                                        <button class=" text-amber-500">
-                                            <i class="ri-edit-line text-xl"></i>
-                                        </button>
+                                        <i class="details-btn ri-eye-line text-lg cursor-pointer"
+                                            data-user-id="<?= htmlspecialchars($user['UserID']) ?>"></i>
                                         <button class=" text-red-500">
                                             <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                                data-admin-id="<?= htmlspecialchars($admin['AdminID']) ?>"></i>
+                                                data-user-id="<?= htmlspecialchars($user['UserID']) ?>"></i>
                                         </button>
                                     </td>
                                 </tr>
