@@ -88,9 +88,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproduct'])) {
 
     // Check if the product already exists using prepared statement
     $checkQuery = "SELECT Title FROM producttb WHERE Title = '$productTitle'";
-
-    $checkQuery = mysqli_query($connect, $checkQuery);
-    $count = mysqli_num_rows($checkQuery);
+    $count = $connect->query($checkQuery)->num_rows;
 
     if ($count > 0) {
         $alertMessage = 'Product you added is already existed.';
@@ -98,7 +96,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproduct'])) {
         $addProductQuery = "INSERT INTO producttb (ProductID, Title, AdminImg1, AdminImg2, AdminImg3, UserImg1, UserImg2, UserImg3, Price, DiscountPrice, Description, Specification, Information, DeliveryInfo, Brand, ProductSize, SellingFast, Stock, ProductTypeID)
         VALUES ('$productID', '$productTitle', '$fileName1', '$fileName2', '$fileName3', '$userFileName1', '$userFileName2', '$userFileName3', '$price', '$discountPrice', '$description', '$specification', '$information', '$delivery', '$brand', '$productSize', '$sellingFast', '$stock', '$productType')";
 
-        if (mysqli_query($connect, $addProductQuery)) {
+        if ($connect->query($addProductQuery)) {
             $addProductSuccess = true;
         } else {
             $alertMessage = "Failed to add product. Please try again.";
@@ -117,8 +115,8 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         default => null
     };
     if ($query) {
-        $result = mysqli_query($connect, $query);
-        $product = mysqli_fetch_assoc($result);
+        $result = $connect->query($query);
+        $product = $result->fetch_assoc();
 
         if ($product) {
             echo json_encode(['success' => true, 'product' => $product]);
@@ -149,7 +147,7 @@ if (isset($_POST['editproduct'])) {
     $updateQuery = "UPDATE producttb SET Title = '$productTitle', Brand = '$brand', Description = '$description', Specification = '$specification', Information = '$information', DeliveryInfo = '$delivery', 
     Price = '$price', DiscountPrice = '$discountPrice', ProductSize = '$productSize', Stock = '$stock', SellingFast = '$sellingFast', ProductTypeID = '$productType' WHERE ProductID = '$productId'";
 
-    if (mysqli_query($connect, $updateQuery)) {
+    if ($connect->query($updateQuery)) {
         $updateProductSuccess = true;
     } else {
         $alertMessage = "Failed to update product type. Please try again.";
@@ -163,7 +161,7 @@ if (isset($_POST['deleteproduct'])) {
     // Build query based on action
     $deleteQuery = "DELETE FROM producttb WHERE ProductID = '$productId'";
 
-    if (mysqli_query($connect, $deleteQuery)) {
+    if ($connect->query($deleteQuery)) {
         $deleteProductSuccess = true;
     } else {
         $alertMessage = "Failed to delete product. Please try again.";
@@ -219,12 +217,12 @@ if (isset($_POST['deleteproduct'])) {
                                     <option value="random">All Product Types</option>
                                     <?php
                                     $select = "SELECT * FROM producttypetb";
-                                    $query = mysqli_query($connect, $select);
-                                    $count = mysqli_num_rows($query);
+                                    $query = $connect->query($select);
+                                    $count = $query->num_rows;
 
                                     if ($count) {
                                         for ($i = 0; $i < $count; $i++) {
-                                            $row = mysqli_fetch_array($query);
+                                            $row = $query->fetch_assoc();
                                             $producttype_id = $row['ProductTypeID'];
                                             $producttype = $row['ProductType'];
                                             $selected = ($filterProductTypeID == $producttype_id) ? 'selected' : '';
@@ -473,7 +471,7 @@ if (isset($_POST['deleteproduct'])) {
                         <!-- Selling Fast -->
                         <div class="relative flex-1">
                             <select name="updatesellingfast" id="updatesellingfast" class="p-2 w-full border rounded">
-                                <option value="">Selling Fast</option>
+                                <option value="" disabled selected>Selling Fast</option>
                                 <option value="true" <?php echo $product['SellingFast'] == 'true' ? 'selected' : ''; ?>>True</option>
                                 <option value="false" <?php echo $product['SellingFast'] == 'false' ? 'selected' : ''; ?>>False</option>
                             </select>
@@ -484,12 +482,12 @@ if (isset($_POST['deleteproduct'])) {
                                 <option value="" disabled selected>Select type of products</option>
                                 <?php
                                 $select = "SELECT * FROM producttypetb";
-                                $query = mysqli_query($connect, $select);
-                                $count = mysqli_num_rows($query);
+                                $query = $connect->query($select);
+                                $count = $query->num_rows;
 
                                 if ($count) {
                                     for ($i = 0; $i < $count; $i++) {
-                                        $row = mysqli_fetch_array($query);
+                                        $row = $query->fetch_assoc();
                                         $product_type_id = $row['ProductTypeID'];
                                         $product_type = $row['ProductType'];
 
@@ -672,11 +670,11 @@ if (isset($_POST['deleteproduct'])) {
                                 <option value="" disabled selected>Select type of products</option>
                                 <?php
                                 $select = "SELECT * FROM producttypetb";
-                                $query = mysqli_query($connect, $select);
-                                $count = mysqli_num_rows($query);
+                                $query = $connect->query($select);
+                                $count = $query->num_rows;
                                 if ($count) {
                                     for ($i = 0; $i < $count; $i++) {
-                                        $row = mysqli_fetch_array($query);
+                                        $row = $query->fetch_assoc();
                                         $product_type_id = $row['ProductTypeID'];
                                         $product_type = $row['ProductType'];
                                         echo "<option value='$product_type_id'>$product_type</option>";

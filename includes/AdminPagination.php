@@ -45,8 +45,8 @@ if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {
 } elseif (!empty($searchAdminQuery)) {
     $totalRowsQuery = "SELECT COUNT(*) as total FROM admintb WHERE FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%'";
 }
-$totalRowsResult = mysqli_query($connect, $totalRowsQuery);
-$totalRows = mysqli_fetch_assoc($totalRowsResult)['total'];
+$totalRowsResult = $connect->query($totalRowsQuery);
+$totalRows = $totalRowsResult->fetch_assoc()['total'];
 
 // Calculate the total number of pages
 $totalPages = ceil($totalRows / $rowsPerPage);
@@ -56,8 +56,8 @@ $totalProductTypeRowsQuery = "SELECT COUNT(*) as total FROM producttypetb";
 if (!empty($productTypeSelectQuery)) {
     $totalProductTypeRowsQuery = "SELECT COUNT(*) as total FROM producttypetb WHERE ProductType LIKE '%$searchProductTypeQuery%' OR Description LIKE '%$searchProductTypeQuery%'";
 }
-$totalProductTypeRowsResult = mysqli_query($connect, $totalProductTypeRowsQuery);
-$totalProductTypeRows = mysqli_fetch_assoc($totalProductTypeRowsResult)['total'];
+$totalProductTypeRowsResult = $connect->query($totalProductTypeRowsQuery);
+$totalProductTypeRows = $totalProductTypeRowsResult->fetch_assoc()['total'];
 
 // Calculate the total number of pages
 $totalProductTypePages = ceil($totalProductTypeRows / $rowsPerPage);
@@ -71,8 +71,8 @@ if ($filterProductID !== 'random' && !empty($searchProductQuery)) {
 } elseif (!empty($searchProductQuery)) {
     $totalProductRowsQuery = "SELECT COUNT(*) as total FROM producttb WHERE Title LIKE '%$searchProductQuery%' OR Description LIKE '%$searchProductQuery%' OR Specification LIKE '%$searchProductQuery%' OR Information LIKE '%$searchProductQuery%' OR Brand LIKE '%$searchProductQuery%'";
 }
-$totalProductRowsResult = mysqli_query($connect, $totalProductRowsQuery);
-$totalProductRows = mysqli_fetch_assoc($totalProductRowsResult)['total'];
+$totalProductRowsResult = $connect->query($totalProductRowsQuery);
+$totalProductRows = $totalProductRowsResult->fetch_assoc()['total'];
 
 // Calculate the total number of pages
 $totalProductPages = ceil($totalProductRows / $rowsPerPage);
@@ -86,8 +86,8 @@ if ($filterStatus !== 'random' && !empty($searchContactQuery)) {
 } elseif (!empty($searchContactQuery)) {
     $totalContactRowsQuery = "SELECT COUNT(*) as total FROM contacttb WHERE FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%' LIMIT $rowsPerPage OFFSET $contactOffset $dateCondition";
 }
-$totalContactRowsResult = mysqli_query($connect, $totalContactRowsQuery);
-$totalContactRows = mysqli_fetch_assoc($totalContactRowsResult)['total'];
+$totalContactRowsResult = $connect->query($totalContactRowsQuery);
+$totalContactRows = $totalContactRowsResult->fetch_assoc()['total'];
 
 // Calculate the total number of pages
 $totalContactPages = ceil($totalContactRows / $rowsPerPage);
@@ -101,8 +101,8 @@ if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {
 } elseif (!empty($searchAdminQuery)) {
     $totalSupplierRowsQuery = "SELECT COUNT(*) as total FROM suppliertb WHERE SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%'";
 }
-$totalSupplierRowsResult = mysqli_query($connect, $totalSupplierRowsQuery);
-$totalSupplierRows = mysqli_fetch_assoc($totalSupplierRowsResult)['total'];
+$totalSupplierRowsResult = $connect->query($totalSupplierRowsQuery);
+$totalSupplierRows = $totalSupplierRowsResult->fetch_assoc()['total'];
 
 // Calculate the total number of pages
 $totalSupplierPages = ceil($totalSupplierRows / $rowsPerPage);
@@ -112,8 +112,8 @@ $totalRoomTypeRowsQuery = "SELECT COUNT(*) as total FROM roomtypetb";
 if (!empty($roomTypeSelectQuery)) {
     $totalRoomTypeRowsQuery = "SELECT COUNT(*) as total FROM roomtypetb WHERE RoomType LIKE '%$searchRoomTypeQuery%' OR RoomDescription LIKE '%$searchRoomTypeQuery%'";
 }
-$totalRoomTypeRowsResult = mysqli_query($connect, $totalRoomTypeRowsQuery);
-$totalRoomTypeRows = mysqli_fetch_assoc($totalRoomTypeRowsResult)['total'];
+$totalRoomTypeRowsResult = $connect->query($totalRoomTypeRowsQuery);
+$totalRoomTypeRows = $totalRoomTypeRowsResult->fetch_assoc()['total'];
 
 // Calculate the total number of pages
 $totalRoomTypePages = ceil($totalRoomTypeRows / $rowsPerPage);
@@ -123,8 +123,8 @@ $totalFacilityTypeRowsQuery = "SELECT COUNT(*) as total FROM facilitytypetb";
 if (!empty($searchFacilityTypeQuery)) {
     $totalFacilityTypeRowsQuery = "SELECT COUNT(*) as total FROM facilitytypetb WHERE FacilityType LIKE '%$searchFacilityTypeQuery%'";
 }
-$totalFacilityTypeRowsResult = mysqli_query($connect, $totalFacilityTypeRowsQuery);
-$totalFacilityTypeRows = mysqli_fetch_assoc($totalFacilityTypeRowsResult)['total'];
+$totalFacilityTypeRowsResult = $connect->query($totalFacilityTypeRowsQuery);
+$totalFacilityTypeRows = $totalFacilityTypeRowsResult->fetch_assoc()['total'];
 
 // Calculate the total number of pages
 $totalFacilityTypePages = ceil($totalFacilityTypeRows / $rowsPerPage);
@@ -134,8 +134,8 @@ $totalFacilityRowsQuery = "SELECT COUNT(*) as total FROM facilitytb";
 if (!empty($searchFacilityQuery)) {
     $totalFacilityRowsQuery = "SELECT COUNT(*) as total FROM facilitytb WHERE Facility LIKE '%$searchFacilityQuery%'";
 }
-$totalFacilityRowsResult = mysqli_query($connect, $totalFacilityRowsQuery);
-$totalFacilityRows = mysqli_fetch_assoc($totalFacilityRowsResult)['total'];
+$totalFacilityRowsResult = $connect->query($totalFacilityRowsQuery);
+$totalFacilityRows = $totalFacilityRowsResult->fetch_assoc()['total'];
 
 // Calculate the total number of pages
 $totalFacilityPages = ceil($totalFacilityRows / $rowsPerPage);

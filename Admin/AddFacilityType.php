@@ -21,9 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addfacilitytype'])) {
 
     // Check if the product type already exists using prepared statement
     $checkQuery = "SELECT FacilityType FROM facilitytypetb WHERE FacilityType = '$facilitytype'";
-
-    $checkQuery = mysqli_query($connect, $checkQuery);
-    $count = mysqli_num_rows($checkQuery);
+    $count = $connect->query($checkQuery)->num_rows;
 
     if ($count > 0) {
         $alertMessage = 'Facility type you added is already existed.';
@@ -31,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addfacilitytype'])) {
         $addFacilityTypeQuery = "INSERT INTO facilitytypetb (FacilityTypeID, FacilityType, FacilityTypeIcon, IconSize)
         VALUES ('$facilityTypeID', '$facilitytype', '$facilitytypeicon', '$facilitytypeiconsize')";
 
-        if (mysqli_query($connect, $addFacilityTypeQuery)) {
+        if ($connect->query($addFacilityTypeQuery)) {
             $addFacilityTypeSuccess = true;
         } else {
             $alertMessage = "Failed to add facility type. Please try again.";
@@ -50,8 +48,8 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         default => null
     };
     if ($query) {
-        $result = mysqli_query($connect, $query);
-        $facilitytype = mysqli_fetch_assoc($result);
+        $result = $connect->query($query);
+        $facilitytype = $result->fetch_assoc();
 
         if ($facilitytype) {
             echo json_encode(['success' => true, 'facilitytype' => $facilitytype]);
@@ -72,7 +70,7 @@ if (isset($_POST['editfacilitytype'])) {
     // Update query
     $updateQuery = "UPDATE facilitytypetb SET FacilityType = '$updatedFacilityType', FacilityTypeIcon = '$updatedFacilityTypeIcon', IconSize = '$updatedFacilityTypeIconSize' WHERE FacilityTypeID = '$facilityTypeId'";
 
-    if (mysqli_query($connect, $updateQuery)) {
+    if ($connect->query($updateQuery)) {
         $updateFacilityTypeSuccess = true;
     } else {
         $alertMessage = "Failed to update facility type. Please try again.";
@@ -86,7 +84,7 @@ if (isset($_POST['deletefacilitytype'])) {
     // Build query based on action
     $deleteQuery = "DELETE FROM facilitytypetb WHERE FacilityTypeID = '$facilityTypeId'";
 
-    if (mysqli_query($connect, $deleteQuery)) {
+    if ($connect->query($deleteQuery)) {
         $deleteFacilityTypeSuccess = true;
     } else {
         $alertMessage = "Failed to delete facility type. Please try again.";

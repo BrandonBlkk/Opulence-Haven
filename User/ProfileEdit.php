@@ -13,8 +13,7 @@ $profileUpdate = false;
 
 // Fetch the current user data from the database
 $userQuery = "SELECT * FROM usertb WHERE UserID = '$id'";
-$userResult = mysqli_query($connect, $userQuery);
-$userData = mysqli_fetch_assoc($userResult);
+$userData = $connect->query($userQuery)->fetch_assoc();
 
 // Update the user profile
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
@@ -23,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
     $phone = mysqli_real_escape_string($connect, trim($_POST['phone']));
 
     $updateProfileQuery = "UPDATE usertb SET UserName = '$username', UserEmail = '$email', UserPhone ='$phone' WHERE UserID = '$id'";
-    $updateProfileQueryResult = mysqli_query($connect, $updateProfileQuery);
+    $updateProfileQueryResult = $connect->query($updateProfileQuery);
 
     if ($updateProfileQueryResult) {
         $profileUpdate = true;
@@ -40,15 +39,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['resetPassword'])) {
 
     // Check if the password is same from database
     $checkPasswordQuery = "SELECT UserPassword FROM usertb WHERE UserPassword = '$password'";
-
-    $checkPasswordQuery = mysqli_query($connect, $checkPasswordQuery);
-    $count = mysqli_num_rows($checkPasswordQuery);
+    $count = $connect->query($checkPasswordQuery)->num_rows;
 
     if ($count > 0) {
         // Ensure the new password and confirmation password match
         if ($newPassword === $confirmPassword) {
             $updatePasswordQuery = "UPDATE usertb SET UserPassword = '$newPassword' WHERE UserID = '$id'";
-            $updatePasswordQueryResult = mysqli_query($connect, $updatePasswordQuery);
+            $updatePasswordQueryResult = $connect->query($updatePasswordQuery);
 
             if ($updatePasswordQueryResult) {
                 $resetSuccess = true;

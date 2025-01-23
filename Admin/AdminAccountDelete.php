@@ -7,7 +7,7 @@ if (isset($_SESSION['AdminID'])) {
 
     // Delete the admin account
     $accountDeleteQuery = "DELETE FROM admintb WHERE AdminID = '$admin_id'";
-    if (!mysqli_query($connect, $accountDeleteQuery)) {
+    if (!$connect->query($accountDeleteQuery)) {
         http_response_code(500);
         exit("Failed to delete an account.");
     }

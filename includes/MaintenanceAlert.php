@@ -5,15 +5,15 @@
     <!-- Modal -->
     <div class="relative">
         <!-- Rope Design -->
-        <div class="absolute -top-52 left-40 right-40 flex justify-between z-10">
+        <div class="absolute -top-52 left-32 right-32 flex justify-between z-10">
             <!-- Left Rope -->
-            <div class="flex flex-col rotate-45 items-center">
-                <div class="w-1 h-60 bg-gray-400"></div>
+            <div class="flex flex-col items-center">
+                <div class="w-1 h-52 bg-gray-400"></div>
                 <div class="w-4 h-4 rounded-full bg-gray-600"></div>
             </div>
             <!-- Right Rope -->
-            <div class="flex flex-col -rotate-45 items-center">
-                <div class="w-1 h-60 bg-gray-400"></div>
+            <div class="flex flex-col items-center">
+                <div class="w-1 h-52 bg-gray-400"></div>
                 <div class="w-4 h-4 rounded-full bg-gray-600"></div>
             </div>
         </div>
@@ -24,7 +24,7 @@
             <p class="text-sm text-gray-600">
                 The website is currently under maintenance. We are working to improve your experience and will be back shortly.
             </p>
-            <div class="w-56">
+            <div class="w-56 select-none">
                 <img src="../UserImages/OQRG4V0_1_-removebg-preview.png" alt="">
             </div>
             <p class="text-sm text-gray-600 mb-4">

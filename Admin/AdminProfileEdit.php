@@ -11,8 +11,7 @@ $adminID = $_SESSION['AdminID'];
 
 // Fetch admin profile
 $adminProfileQuery = "SELECT AdminProfile FROM admintb WHERE AdminID = '$adminID'";
-$adminProfileResult = mysqli_query($connect, $adminProfileQuery);
-$adminProfileRow = mysqli_fetch_assoc($adminProfileResult);
+$adminProfileRow = $connect->query($adminProfileQuery)->fetch_assoc();
 $adminprofile = $adminProfileRow['AdminProfile'];
 
 $alertMessage = '';
@@ -20,8 +19,7 @@ $profileUpdate = false;
 
 // Fetch admin profile
 $adminQuery = "SELECT * FROM admintb WHERE AdminID = '$adminID'";
-$adminResult = mysqli_query($connect, $adminQuery);
-$adminRow = mysqli_fetch_assoc($adminResult);
+$adminRow = $connect->query($adminQuery)->fetch_assoc();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
     $firstname = mysqli_real_escape_string($connect, $_POST['firstname']);
@@ -48,7 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
     $updateProfileQuery = "UPDATE admintb SET AdminProfile = '$adminProfile', FirstName = '$firstname', 
     LastName = '$lastname', UserName = '$username', AdminEmail = '$email', AdminPhone ='$phone',  RoleID = '$role' 
     WHERE AdminID = '$adminID'";
-    $updateProfileQueryResult = mysqli_query($connect, $updateProfileQuery);
+    $updateProfileQueryResult = $connect->query($updateProfileQuery);
 
     if ($updateProfileQueryResult) {
         $profileUpdate = true;
@@ -236,13 +234,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
                                                 <?php
                                                 // Fetch roles for the dropdown
                                                 $rolesQuery = "SELECT * FROM roletb";
-                                                $rolesResult = mysqli_query($connect, $rolesQuery);
+                                                $rolesResult = $connect->query($rolesQuery);
 
-                                                if (mysqli_num_rows($rolesResult) > 0) {
+                                                if ($rolesResult->num_rows > 0) {
                                                     // Get the admin's role
                                                     $adminRoleID = $adminRow['RoleID'];
 
-                                                    while ($roleRow = mysqli_fetch_assoc($rolesResult)) {
+                                                    while ($roleRow = $rolesResult->fetch_assoc()) {
                                                         $selected = $roleRow['RoleID'] == $adminRoleID ? 'selected' : '';
                                                         echo "<option value='{$roleRow['RoleID']}' $selected>{$roleRow['Role']}</option>";
                                                     }

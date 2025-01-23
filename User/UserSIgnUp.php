@@ -14,9 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
 
     // Check if the email already exists using prepared statement
     $checkEmailQuery = "SELECT UserEmail FROM usertb WHERE UserEmail = '$email'";
-
-    $checkEmailQuery = mysqli_query($connect, $checkEmailQuery);
-    $count = mysqli_num_rows($checkEmailQuery);
+    $count = $connect->query($checkEmailQuery)->num_rows;
 
     if ($count > 0) {
         $alertMessage = 'Email you signed up with is already taken.';
@@ -24,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
         // Insert the new user data using prepared statement
         $insertQuery = "INSERT INTO usertb (UserID, UserName, UserEmail, UserPassword, UserPhone) 
                         VALUES ('$userID', '$username', '$email', '$password', '$phone')";
-        $insert_Query = mysqli_query($connect, $insertQuery);
+        $insert_Query = $connect->query($insertQuery);
 
         if ($insert_Query) {
             $signupSuccess = true;

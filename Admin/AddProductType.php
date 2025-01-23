@@ -21,8 +21,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproducttype'])) {
     // Check if the product type already exists using prepared statement
     $checkQuery = "SELECT ProductType FROM producttypetb WHERE ProductType = '$producttype'";
 
-    $checkQuery = mysqli_query($connect, $checkQuery);
-    $count = mysqli_num_rows($checkQuery);
+    $checkQuery = $connect->query($checkQuery);
+    $count = $checkQuery->num_rows;
 
     if ($count > 0) {
         $alertMessage = 'Product type you added is already existed.';
@@ -30,7 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproducttype'])) {
         $addProductTypeQuery = "INSERT INTO producttypetb (ProductTypeID, ProductType, Description)
         VALUES ('$productTypeID', '$producttype', '$description')";
 
-        if (mysqli_query($connect, $addProductTypeQuery)) {
+        if ($connect->query($addProductTypeQuery)) {
             $addProductTypeSuccess = true;
         } else {
             $alertMessage = "Failed to add product type. Please try again.";
@@ -49,8 +49,8 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         default => null
     };
     if ($query) {
-        $result = mysqli_query($connect, $query);
-        $producttype = mysqli_fetch_assoc($result);
+        $result = $connect->query($query);
+        $producttype = $result->fetch_assoc();
 
         if ($producttype) {
             echo json_encode(['success' => true, 'producttype' => $producttype]);
@@ -70,7 +70,7 @@ if (isset($_POST['editproducttype'])) {
     // Update query
     $updateQuery = "UPDATE producttypetb SET ProductType = '$updatedProductType', Description = '$updatedDescription' WHERE ProductTypeID = '$productTypeId'";
 
-    if (mysqli_query($connect, $updateQuery)) {
+    if ($connect->query($updateQuery)) {
         $updateProductTypeSuccess = true;
     } else {
         $alertMessage = "Failed to update product type. Please try again.";
@@ -84,7 +84,7 @@ if (isset($_POST['deleteproducttype'])) {
     // Build query based on action
     $deleteQuery = "DELETE FROM producttypetb WHERE ProductTypeID = '$productTypeId'";
 
-    if (mysqli_query($connect, $deleteQuery)) {
+    if ($connect->query($deleteQuery)) {
         $deleteProductTypeSuccess = true;
     } else {
         $alertMessage = "Failed to delete product type. Please try again.";

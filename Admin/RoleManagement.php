@@ -17,7 +17,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addrole'])) {
     $addRoleQuery = "INSERT INTO roletb (Role, Description)
     VALUES ('$role', '$description')";
 
-    if (mysqli_query($connect, $addRoleQuery)) {
+    if ($connect->query($addRoleQuery)) {
         $addRoleSuccess = true;
     } else {
         $alertMessage = "Failed to add product type. Please try again.";
@@ -35,12 +35,11 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         default => null
     };
     if ($query) {
-        $result = mysqli_query($connect, $query);
-        $admin = mysqli_fetch_assoc($result);
+        $result = $connect->query($query)->fetch_assoc();
     }
 
-    if ($admin) {
-        echo json_encode(['success' => true, 'admin' => $admin]);
+    if ($result) {
+        echo json_encode(['success' => true, 'admin' => $result]);
     } else {
         echo json_encode(['success' => false]);
     }
@@ -54,7 +53,7 @@ if (isset($_POST['deleteadmin'])) {
     // Build query based on action
     $deleteQuery = "DELETE FROM admintb WHERE AdminID = '$adminId'";
 
-    if (mysqli_query($connect, $deleteQuery)) {
+    if ($connect->query($deleteQuery)) {
         $deleteAdminSuccess = true;
     } else {
         $alertMessage = "Failed to delete admin. Please try again.";
@@ -110,12 +109,12 @@ if (isset($_POST['deleteadmin'])) {
                                     <option value="random">All Roles</option>
                                     <?php
                                     $select = "SELECT * FROM roletb";
-                                    $query = mysqli_query($connect, $select);
-                                    $count = mysqli_num_rows($query);
+                                    $query = $connect->query($select);
+                                    $count = $query->num_rows;
 
                                     if ($count) {
                                         for ($i = 0; $i < $count; $i++) {
-                                            $row = mysqli_fetch_array($query);
+                                            $row = $query->fetch_assoc();
                                             $role_id = $row['RoleID'];
                                             $role = $row['Role'];
                                             $selected = ($filterRoleID == $role_id) ? 'selected' : '';
@@ -175,10 +174,10 @@ if (isset($_POST['deleteadmin'])) {
                                             <?php
                                             // Fetch roles for the dropdown
                                             $rolesQuery = "SELECT * FROM roletb";
-                                            $rolesResult = mysqli_query($connect, $rolesQuery);
+                                            $rolesResult = $connect->query($rolesQuery);
 
-                                            if (mysqli_num_rows($rolesResult) > 0) {
-                                                while ($roleRow = mysqli_fetch_assoc($rolesResult)) {
+                                            if ($rolesResult->num_rows > 0) {
+                                                while ($roleRow = $rolesResult->fetch_assoc()) {
                                                     $selected = $roleRow['RoleID'] == $admin['RoleID'] ? 'selected' : '';
                                                     echo "<option value='{$roleRow['RoleID']}' $selected>{$roleRow['Role']}</option>";
                                                 }

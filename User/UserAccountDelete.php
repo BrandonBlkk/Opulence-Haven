@@ -7,7 +7,7 @@ if (isset($_SESSION['UserID'])) {
 
     // Delete the user account
     $accountDeleteQuery = "DELETE FROM usertb WHERE UserID = '$user_id'";
-    if (!mysqli_query($connect, $accountDeleteQuery)) {
+    if (!$connect->query($accountDeleteQuery)) {
         http_response_code(500);
         exit("Failed to delete an account.");
     }

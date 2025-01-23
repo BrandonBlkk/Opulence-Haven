@@ -17,8 +17,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
     // Check if the email exists
     $checkEmailQuery = "SELECT * FROM admintb 
     WHERE AdminEmail = '$email'";
-    $check_email_query = mysqli_query($connect, $checkEmailQuery);
-    $emailExist = mysqli_num_rows($check_email_query);
+    $emailExist = $connect->query($checkEmailQuery)->num_rows;
 
     if (!$emailExist) {
         $alertMessage = "No account found with the provided email. Please try again.";
@@ -26,8 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
         // Check if the email exists and fetch data
         $checkAccQuery = "SELECT * FROM admintb 
         WHERE AdminEmail = '$email' AND AdminPassword = '$password';";
-        $check_account_query = mysqli_query($connect, $checkAccQuery);
-        $rowCount = mysqli_num_rows($check_account_query);
+        $rowCount = $connect->query($checkAccQuery)->num_rows;
 
         // Initialize or reset sign-in attempt counter based on email consistency
         if (!isset($_SESSION['last_email']) || $_SESSION['last_email'] !== $email) {
@@ -37,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
 
         // Check customer account match with signup account
         if ($rowCount > 0) {
-            $array = mysqli_fetch_array($check_account_query);
+            $array = $connect->query($checkAccQuery)->fetch_assoc();
             $admin_id = $array["AdminID"];
             $admin_username = $array["UserName"];
             $admin_email = $array["AdminEmail"];
@@ -50,7 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
 
             $updateSignInQuery = "UPDATE admintb SET Status = 'active' 
             WHERE AdminID = '$admin_id'";
-            mysqli_query($connect, $updateSignInQuery);
+            $connect->query($updateSignInQuery);
 
             // Reset sign-in attempts on successful sign-in
             $_SESSION['signin_attempts'] = 0;

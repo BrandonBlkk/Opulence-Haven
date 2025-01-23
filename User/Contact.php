@@ -3,20 +3,20 @@ session_start();
 include('../config/dbConnection.php');
 include('../includes/AutoIDFunc.php');
 
+if (!$connect) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+
 $userID = $_SESSION['UserID'];
 
 $select = "SELECT * FROM usertb WHERE UserID = '$userID'";
-$query = mysqli_query($connect, $select);
+$query = $connect->query($select);
 
-if (mysqli_num_rows($query) > 0) {
-    while ($row = mysqli_fetch_assoc($query)) {
+if ($query->num_rows > 0) {
+    while ($row = $query->fetch_assoc()) {
         $user_email = $row['UserEmail'];
         $user_phone = $row['UserPhone'];
     }
-}
-
-if (!$connect) {
-    die("Connection failed: " . mysqli_connect_error());
 }
 
 $alertMessage = '';
@@ -33,7 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
     $addContactQuery = "INSERT INTO contacttb (ContactID, UserID, FullName, UserEmail, UserPhone, Country, ContactMessage)
     VALUES ('$contactID', '$userID', '$fullname', '$email', '$contactNumber', '$country', '$message')";
 
-    if (mysqli_query($connect, $addContactQuery)) {
+    if ($connect->query($addContactQuery)) {
         $contactSuccess = true;
     } else {
         $alertMessage = "Failed to submit contact. Please try again.";

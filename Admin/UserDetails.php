@@ -5,61 +5,6 @@ include('../config/dbConnection.php');
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
-
-$alertMessage = '';
-$addRoleSuccess = false;
-$deleteAdminSuccess = false;
-
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addrole'])) {
-    $role = mysqli_real_escape_string($connect, $_POST['role']);
-    $description = mysqli_real_escape_string($connect, $_POST['description']);
-
-    $addRoleQuery = "INSERT INTO roletb (Role, Description)
-    VALUES ('$role', '$description')";
-
-    if (mysqli_query($connect, $addRoleQuery)) {
-        $addRoleSuccess = true;
-    } else {
-        $alertMessage = "Failed to add product type. Please try again.";
-    }
-}
-
-// Get Admin Details
-if (isset($_GET['action']) && isset($_GET['id'])) {
-    $id = mysqli_real_escape_string($connect, $_GET['id']);
-    $action = $_GET['action'];
-
-    // Build query based on action
-    $query = match ($action) {
-        'getAdminDetails' => "SELECT * FROM admintb WHERE AdminID = '$id'",
-        default => null
-    };
-    if ($query) {
-        $result = mysqli_query($connect, $query);
-        $admin = mysqli_fetch_assoc($result);
-    }
-
-    if ($admin) {
-        echo json_encode(['success' => true, 'admin' => $admin]);
-    } else {
-        echo json_encode(['success' => false]);
-    }
-    exit;
-}
-
-// Delete Admin
-if (isset($_POST['deleteadmin'])) {
-    $adminId = mysqli_real_escape_string($connect, $_POST['adminid']);
-
-    // Build query based on action
-    $deleteQuery = "DELETE FROM admintb WHERE AdminID = '$adminId'";
-
-    if (mysqli_query($connect, $deleteQuery)) {
-        $deleteAdminSuccess = true;
-    } else {
-        $alertMessage = "Failed to delete admin. Please try again.";
-    }
-}
 ?>
 
 <!DOCTYPE html>

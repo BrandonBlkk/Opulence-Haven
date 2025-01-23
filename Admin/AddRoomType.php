@@ -21,9 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addroomtype'])) {
 
     // Check if the product type already exists using prepared statement
     $checkQuery = "SELECT RoomType FROM roomtypetb WHERE RoomType = '$roomtype'";
-
-    $checkQuery = mysqli_query($connect, $checkQuery);
-    $count = mysqli_num_rows($checkQuery);
+    $count = $connect->query($checkQuery)->num_rows;
 
     if ($count > 0) {
         $alertMessage = 'Room type you added is already existed.';
@@ -31,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addroomtype'])) {
         $RoomTypeQuery = "INSERT INTO roomtypetb (RoomTypeID, RoomType, RoomDescription, RoomCapacity)
         VALUES ('$roomTypeID', '$roomtype', '$description', '$roomcapacity')";
 
-        if (mysqli_query($connect, $RoomTypeQuery)) {
+        if ($connect->query($RoomTypeQuery)) {
             $addRoomTypeSuccess = true;
         } else {
             $alertMessage = "Failed to add room type. Please try again.";
@@ -50,11 +48,10 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         default => null
     };
     if ($query) {
-        $result = mysqli_query($connect, $query);
-        $roomtype = mysqli_fetch_assoc($result);
+        $result = $connect->query($query)?->fetch_assoc();
 
-        if ($roomtype) {
-            echo json_encode(['success' => true, 'roomtype' => $roomtype]);
+        if ($result) {
+            echo json_encode(['success' => true, 'roomtype' => $result]);
         } else {
             echo json_encode(['success' => false]);
         }
@@ -73,7 +70,7 @@ if (isset($_POST['editroomtype'])) {
     $updateQuery = "UPDATE roomtypetb SET RoomType = '$RoomType', RoomDescription = '$updatedRoomTypeDescription', RoomCapacity = '$updatedRoomCapacity' 
     WHERE RoomTypeID = '$roomTypeId'";
 
-    if (mysqli_query($connect, $updateQuery)) {
+    if ($connect->query($updateQuery)) {
         $updateRoomTypeSuccess = true;
     } else {
         $alertMessage = "Failed to update room type. Please try again.";
@@ -87,7 +84,7 @@ if (isset($_POST['deleteroomtype'])) {
     // Build query based on action
     $deleteQuery = "DELETE FROM roomtypetb WHERE RoomTypeID = '$roomTypeId'";
 
-    if (mysqli_query($connect, $deleteQuery)) {
+    if ($connect->query($deleteQuery)) {
         $deleteRoomTypeSuccess = true;
     } else {
         $alertMessage = "Failed to delete room type. Please try again.";

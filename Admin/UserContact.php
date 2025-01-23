@@ -20,12 +20,11 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         default => null
     };
     if ($query) {
-        $result = mysqli_query($connect, $query);
-        $contact = mysqli_fetch_assoc($result);
+        $result = $connect->query($query)->fetch_assoc();
     }
 
-    if ($contact) {
-        echo json_encode(['success' => true, 'contact' => $contact]);
+    if ($result) {
+        echo json_encode(['success' => true, 'contact' => $result]);
     } else {
         echo json_encode(['success' => false]);
     }
@@ -39,7 +38,7 @@ if (isset($_POST['respondcontact'])) {
     // Update query
     $updateQuery = "UPDATE contacttb SET Status = 'responded' WHERE ContactID = '$contactId'";
 
-    if (mysqli_query($connect, $updateQuery)) {
+    if ($connect->query($updateQuery)) {
         $confirmContactSuccess = true;
     } else {
         $alertMessage = "Failed to update product type. Please try again.";

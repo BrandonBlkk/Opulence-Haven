@@ -24,9 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addfacility'])) {
 
     // Check if the product  already exists using prepared statement
     $checkQuery = "SELECT Facility FROM facilitytb WHERE Facility = '$facility'";
-
-    $checkQuery = mysqli_query($connect, $checkQuery);
-    $count = mysqli_num_rows($checkQuery);
+    $count = $connect->query($checkQuery)->num_rows;
 
     if ($count > 0) {
         $alertMessage = 'Facility you added is already existed.';
@@ -34,7 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addfacility'])) {
         $addFacilityQuery = "INSERT INTO facilitytb (FacilityID, Facility, FacilityIcon, IconSize, AdditionalCharge, Popular, FacilityTypeID)
         VALUES ('$facilityID', '$facility', '$facilityicon', '$facilityiconsize', '$additionalcharge', '$popular', '$facilityType')";
 
-        if (mysqli_query($connect, $addFacilityQuery)) {
+        if ($connect->query($addFacilityQuery)) {
             $addFacilitySuccess = true;
         } else {
             $alertMessage = "Failed to add facility. Please try again.";
@@ -53,8 +51,8 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         default => null
     };
     if ($query) {
-        $result = mysqli_query($connect, $query);
-        $facility = mysqli_fetch_assoc($result);
+        $result = $connect->query($query);
+        $facility = $result->fetch_assoc();
 
         if ($facility) {
             echo json_encode(['success' => true, 'facility' => $facility]);
@@ -78,7 +76,7 @@ if (isset($_POST['editfacility'])) {
     // Update query
     $updateQuery = "UPDATE facilitytb SET Facility = '$updateFacility', FacilityIcon = '$updateFacilityIcon', IconSize = '$updateFacilityIconSize', AdditionalCharge = '$updateAdditionalcharge', Popular = '$updatePopular', FacilityTypeID = '$updateFacilityType' WHERE FacilityID = '$facilityId'";
 
-    if (mysqli_query($connect, $updateQuery)) {
+    if ($connect->query($updateQuery)) {
         $updateFacilitySuccess = true;
     } else {
         $alertMessage = "Failed to update facility. Please try again.";
@@ -92,7 +90,7 @@ if (isset($_POST['deletefacility'])) {
     // Build query based on action
     $deleteQuery = "DELETE FROM facilitytb WHERE FacilityID = '$facilityId'";
 
-    if (mysqli_query($connect, $deleteQuery)) {
+    if ($connect->query($deleteQuery)) {
         $deleteFacilitySuccess = true;
     } else {
         $alertMessage = "Failed to delete facility. Please try again.";
@@ -126,7 +124,7 @@ if (isset($_POST['deletefacility'])) {
                     <h2 class="text-xl text-gray-700 font-bold mb-4">Add Facility Overview</h2>
                     <p>Add information about facility to categorize facilities, track usage, and manage facility details for efficient organization.</p>
                 </div>
-                <button id="addFFacilityBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
+                <button id="addFacilityBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
                     <i class="ri-add-line text-xl"></i>
                 </button>
             </div>
@@ -149,12 +147,12 @@ if (isset($_POST['deletefacility'])) {
                                     <option value="random">All Facility Types</option>
                                     <?php
                                     $select = "SELECT * FROM facilitytypetb";
-                                    $query = mysqli_query($connect, $select);
-                                    $count = mysqli_num_rows($query);
+                                    $query = $connect->query($select);
+                                    $count = $query->num_rows;
 
                                     if ($count) {
                                         for ($i = 0; $i < $count; $i++) {
-                                            $row = mysqli_fetch_array($query);
+                                            $row = $query->fetch_assoc();
                                             $facilitytype_id = $row['FacilityTypeID'];
                                             $facilitytype = $row['FacilityType'];
                                             $selected = ($filterFacilityTypeID == $facilitytype_id) ? 'selected' : '';
@@ -213,8 +211,8 @@ if (isset($_POST['deletefacility'])) {
                                         $facilityTypeQuery = "SELECT FacilityType FROM facilitytypetb WHERE FacilityTypeID = '$facilityTypeID'";
                                         $facilityTypeResult = mysqli_query($connect, $facilityTypeQuery);
 
-                                        if ($facilityTypeResult && mysqli_num_rows($facilityTypeResult) > 0) {
-                                            $facilityTypeRow = mysqli_fetch_assoc($facilityTypeResult);
+                                        if ($facilityTypeResult && $facilityTypeResult->num_rows > 0) {
+                                            $facilityTypeRow = $facilityTypeResult->fetch_assoc();
                                             echo htmlspecialchars($facilityTypeRow['FacilityType']);
                                         }
                                         ?>
@@ -340,12 +338,12 @@ if (isset($_POST['deletefacility'])) {
                             <option value="" disabled selected>Select type of facility</option>
                             <?php
                             $select = "SELECT * FROM facilitytypetb";
-                            $query = mysqli_query($connect, $select);
-                            $count = mysqli_num_rows($query);
+                            $query = $connect->query($select);
+                            $count = $query->num_rows;
 
                             if ($count) {
                                 for ($i = 0; $i < $count; $i++) {
-                                    $row = mysqli_fetch_array($query);
+                                    $row = $query->fetch_assoc();
                                     $facility_type_id = $row['FacilityTypeID'];
                                     $facility_type = $row['FacilityType'];
 
@@ -457,16 +455,16 @@ if (isset($_POST['deletefacility'])) {
                     </div>
                     <!-- Facility Type -->
                     <div class="relative">
-                        <select id="FacilityType" name="facilityType" class="p-2 w-full border rounded">
+                        <select id="FacilityType" name="facilityType" class="p-2 w-full border rounded" required>
                             <option value="" disabled selected>Select type of facility</option>
                             <?php
                             $select = "SELECT * FROM facilitytypetb";
-                            $query = mysqli_query($connect, $select);
-                            $count = mysqli_num_rows($query);
+                            $query = $connect->query($select);
+                            $count = $query->num_rows;
 
                             if ($count) {
                                 for ($i = 0; $i < $count; $i++) {
-                                    $row = mysqli_fetch_array($query);
+                                    $row = $query->fetch_assoc();
                                     $facility_type_id = $row['FacilityTypeID'];
                                     $facility_type = $row['FacilityType'];
 

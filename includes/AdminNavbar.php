@@ -5,8 +5,8 @@ $adminID = $_SESSION['AdminID'];
 
 // Fetch admin profile
 $adminProfileQuery = "SELECT AdminProfile, RoleID FROM admintb WHERE AdminID = '$adminID'";
-$adminProfileResult = mysqli_query($connect, $adminProfileQuery);
-$adminProfileRow = mysqli_fetch_assoc($adminProfileResult);
+$adminProfileResult = $connect->query($adminProfileQuery);
+$adminProfileRow = $adminProfileResult->fetch_assoc();
 $adminprofile = $adminProfileRow['AdminProfile'];
 $role = $adminProfileRow['RoleID'];
 
@@ -26,11 +26,11 @@ if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {
 }
 
 // Execute the query to fetch admins
-$adminSelectQuery = mysqli_query($connect, $adminSelect);
+$adminSelectQuery = $connect->query($adminSelect);
 $admins = [];
 
 if (mysqli_num_rows($adminSelectQuery) > 0) {
-    while ($row = mysqli_fetch_assoc($adminSelectQuery)) {
+    while ($row = $adminSelectQuery->fetch_assoc()) {
         $admins[] = $row;
     }
 }
@@ -47,9 +47,8 @@ if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {
 }
 
 // Execute the count query
-$adminCountResult = mysqli_query($connect, $adminCountQuery);
-$adminCountRow = mysqli_fetch_assoc($adminCountResult);
-$adminCount = $adminCountRow['count'];
+$adminCountResult = $connect->query($adminCountQuery);
+$adminCount = $adminCountResult->fetch_assoc()['count'];
 
 // Initialize search and filter variables for supplier
 $searchSupplierQuery = isset($_GET['supplier_search']) ? mysqli_real_escape_string($connect, $_GET['supplier_search']) : '';
@@ -66,11 +65,11 @@ if ($filterSupplierID !== 'random' && !empty($searchSupplierQuery)) {
     $supplierSelect = "SELECT * FROM suppliertb LIMIT $rowsPerPage OFFSET $supplierOffset";
 }
 
-$supplierSelectQuery = mysqli_query($connect, $supplierSelect);
+$supplierSelectQuery = $connect->query($supplierSelect);
 $suppliers = [];
 
 if (mysqli_num_rows($supplierSelectQuery) > 0) {
-    while ($row = mysqli_fetch_assoc($supplierSelectQuery)) {
+    while ($row = $supplierSelectQuery->fetch_assoc()) {
         $suppliers[] = $row;
     }
 }
@@ -87,14 +86,13 @@ if ($filterSupplierID !== 'random' && !empty($searchSupplierQuery)) {
 }
 
 // Execute the count query
-$supplierResult = mysqli_query($connect, $supplierQuery);
-$supplierRow = mysqli_fetch_assoc($supplierResult);
-$supplierCount = $supplierRow['count'];
+$supplierResult = $connect->query($supplierQuery);
+$supplierCount = $supplierResult->fetch_assoc()['count'];
+
 // Fetch all supplier count
 $supplierCountQuery = "SELECT COUNT(*) as count FROM suppliertb";
-$supplierCountResult = mysqli_query($connect, $supplierCountQuery);
-$supplierCountRow = mysqli_fetch_assoc($supplierCountResult);
-$allSupplierCount = $supplierCountRow['count'];
+$supplierCountResult = $connect->query($supplierCountQuery);
+$allSupplierCount = $supplierCountResult->fetch_assoc()['count'];
 
 // Initialize search and filter variables for product type
 $searchProductTypeQuery = isset($_GET['producttype_search']) ? mysqli_real_escape_string($connect, $_GET['producttype_search']) : '';
@@ -107,11 +105,11 @@ if (!empty($searchProductTypeQuery)) {
     $productTypeSelect = "SELECT * FROM producttypetb LIMIT $rowsPerPage OFFSET $productTypeOffset";
 }
 
-$productTypeSelectQuery = mysqli_query($connect, $productTypeSelect);
+$productTypeSelectQuery = $connect->query($productTypeSelect);
 $productTypes = [];
 
 if (mysqli_num_rows($productTypeSelectQuery) > 0) {
-    while ($row = mysqli_fetch_assoc($productTypeSelectQuery)) {
+    while ($row = $productTypeSelectQuery->fetch_assoc()) {
         $productTypes[] = $row;
     }
 }
@@ -124,14 +122,13 @@ if (!empty($searchProductTypeQuery)) {
 }
 
 // Execute the count query
-$productTypeResult = mysqli_query($connect, $productTypeQuery);
-$productTypeRow = mysqli_fetch_assoc($productTypeResult);
-$productTypeCount = $productTypeRow['count'];
+$productTypeResult = $connect->query($productTypeQuery);
+$productTypeCount = $productTypeResult->fetch_assoc()['count'];
+
 // Fetch product type count
 $productTypeCountQuery = "SELECT COUNT(*) as count FROM producttypetb";
-$productTypeCountResult = mysqli_query($connect, $productTypeCountQuery);
-$productTypeCountRow = mysqli_fetch_assoc($productTypeCountResult);
-$allProductTypeCount = $productTypeCountRow['count'];
+$productTypeCountResult = $connect->query($productTypeCountQuery);
+$allProductTypeCount = $productTypeCountResult->fetch_assoc()['count'];
 
 // Initialize search and filter variables for product
 $searchProductQuery = isset($_GET['product_search']) ? mysqli_real_escape_string($connect, $_GET['product_search']) : '';
@@ -148,11 +145,11 @@ if ($filterProductID !== 'random' && !empty($searchProductQuery)) {
     $productSelect = "SELECT * FROM producttb LIMIT $rowsPerPage OFFSET $productOffset";
 }
 
-$productSelectQuery = mysqli_query($connect, $productSelect);
+$productSelectQuery = $connect->query($productSelect);
 $products = [];
 
 if (mysqli_num_rows($productSelectQuery) > 0) {
-    while ($row = mysqli_fetch_assoc($productSelectQuery)) {
+    while ($row = $productSelectQuery->fetch_assoc()) {
         $products[] = $row;
     }
 }
@@ -169,14 +166,13 @@ if ($filterProductID !== 'random' && !empty($searchProductQuery)) {
 }
 
 // Execute the count query
-$productResult = mysqli_query($connect, $productQuery);
-$productRow = mysqli_fetch_assoc($productResult);
-$productCount = $productRow['count'];
+$productResult = $connect->query($productQuery);
+$productCount = $productResult->fetch_assoc()['count'];
+
 // Fetch product count
 $productCountQuery = "SELECT COUNT(*) as count FROM producttb";
-$productCountResult = mysqli_query($connect, $productCountQuery);
-$productCountRow = mysqli_fetch_assoc($productCountResult);
-$allProductCount = $productCountRow['count'];
+$productCountResult = $connect->query($productCountQuery);
+$allProductCount = $productCountResult->fetch_assoc()['count'];
 
 // Initialize search variables for room type
 $searchRoomTypeQuery = isset($_GET['roomtype_search']) ? mysqli_real_escape_string($connect, $_GET['roomtype_search']) : '';
@@ -188,11 +184,11 @@ if (!empty($searchRoomTypeQuery)) {
     $roomTypeSelect = "SELECT * FROM roomtypetb LIMIT $rowsPerPage OFFSET $roomTypeOffset";
 }
 
-$roomTypeSelectQuery = mysqli_query($connect, $roomTypeSelect);
+$roomTypeSelectQuery = $connect->query($roomTypeSelect);
 $roomTypes = [];
 
 if (mysqli_num_rows($roomTypeSelectQuery) > 0) {
-    while ($row = mysqli_fetch_assoc($roomTypeSelectQuery)) {
+    while ($row = $roomTypeSelectQuery->fetch_assoc()) {
         $roomTypes[] = $row;
     }
 }
@@ -205,14 +201,13 @@ if (!empty($searchRoomTypeQuery)) {
 }
 
 // Execute the count query
-$roomTypeResult = mysqli_query($connect, $roomTypeQuery);
-$roomTypeRow = mysqli_fetch_assoc($roomTypeResult);
-$roomTypeCount = $roomTypeRow['count'];
+$roomTypeResult = $connect->query($roomTypeQuery);
+$roomTypeCount = $roomTypeResult->fetch_assoc()['count'];
+
 // Fetch room type count
 $roomTypeCountQuery = "SELECT COUNT(*) as count FROM roomtypetb";
-$roomTypeCountResult = mysqli_query($connect, $roomTypeCountQuery);
-$roomTypeCountRow = mysqli_fetch_assoc($roomTypeCountResult);
-$allRoomTypeCount = $roomTypeCountRow['count'];
+$roomTypeCountResult = $connect->query($roomTypeCountQuery);
+$allRoomTypeCount = $roomTypeCountResult->fetch_assoc()['count'];
 
 // Initialize search variables for facility type
 $searchFacilityTypeQuery = isset($_GET['facilitytype_search']) ? mysqli_real_escape_string($connect, $_GET['facilitytype_search']) : '';
@@ -228,7 +223,7 @@ $facilityTypeSelectQuery = mysqli_query($connect, $facilityTypeSelect);
 $facilityTypes = [];
 
 if (mysqli_num_rows($facilityTypeSelectQuery) > 0) {
-    while ($row = mysqli_fetch_assoc($facilityTypeSelectQuery)) {
+    while ($row = $facilityTypeSelectQuery->fetch_assoc()) {
         $facilityTypes[] = $row;
     }
 }
@@ -241,14 +236,13 @@ if (!empty($searchFacilityTypeQuery)) {
 }
 
 // Execute the count query
-$facilityTypeResult = mysqli_query($connect, $facilityTypeQuery);
-$facilityTypeRow = mysqli_fetch_assoc($facilityTypeResult);
-$facilityTypeCount = $facilityTypeRow['count'];
+$facilityTypeResult = $connect->query($facilityTypeQuery);
+$facilityTypeCount = $facilityTypeResult->fetch_assoc()['count'];
+
 // Fetch facility type count
 $facilityTypeCountQuery = "SELECT COUNT(*) as count FROM facilitytypetb";
-$facilityTypeCountResult = mysqli_query($connect, $facilityTypeCountQuery);
-$facilityTypeCountRow = mysqli_fetch_assoc($facilityTypeCountResult);
-$allFacilityTypeCount = $facilityTypeCountRow['count'];
+$facilityTypeCountResult = $connect->query($facilityTypeCountQuery);
+$allFacilityTypeCount = $facilityTypeCountResult->fetch_assoc()['count'];
 
 // Initialize search and filter variables for facility
 $searchFacilityQuery = isset($_GET['facility_search']) ? mysqli_real_escape_string($connect, $_GET['facility_search']) : '';
@@ -265,11 +259,11 @@ if ($filterFacilityTypeID !== 'random' && !empty($searchFacilityQuery)) {
     $facilitySelect = "SELECT * FROM facilitytb LIMIT $rowsPerPage OFFSET $facilityOffset";
 }
 
-$facilitySelectQuery = mysqli_query($connect, $facilitySelect);
+$facilitySelectQuery = $connect->query($facilitySelect);
 $facilities = [];
 
 if (mysqli_num_rows($facilitySelectQuery) > 0) {
-    while ($row = mysqli_fetch_assoc($facilitySelectQuery)) {
+    while ($row = $facilitySelectQuery->fetch_assoc()) {
         $facilities[] = $row;
     }
 }
@@ -286,14 +280,13 @@ if ($filterFacilityTypeID !== 'random' && !empty($searchFacilityQuery)) {
 }
 
 // Execute the count query
-$facilityResult = mysqli_query($connect, $facilityQuery);
-$facilityRow = mysqli_fetch_assoc($facilityResult);
-$facilityCount = $facilityRow['count'];
+$facilityResult = $connect->query($facilityQuery);
+$facilityCount = $facilityResult->fetch_assoc()['count'];
+
 // Fetch facility count
 $facilityCountQuery = "SELECT COUNT(*) as count FROM facilitytb";
-$facilityCountResult = mysqli_query($connect, $facilityCountQuery);
-$facilityCountRow = mysqli_fetch_assoc($facilityCountResult);
-$allFacilityCount = $facilityCountRow['count'];
+$facilityCountResult = $connect->query($facilityCountQuery);
+$allFacilityCount = $facilityCountResult->fetch_assoc()['count'];
 
 // Initialize search and filter variables for contact
 $searchContactQuery = isset($_GET['contact_search']) ? mysqli_real_escape_string($connect, $_GET['contact_search']) : '';
@@ -321,11 +314,11 @@ if ($filterStatus !== 'random' && !empty($searchContactQuery)) {
     $contactSelect = "SELECT * FROM contacttb WHERE 1 $dateCondition LIMIT $rowsPerPage OFFSET $contactOffset";
 }
 
-$contactSelectQuery = mysqli_query($connect, $contactSelect);
+$contactSelectQuery = $connect->query($contactSelect);
 $contacts = [];
 
 if (mysqli_num_rows($contactSelectQuery) > 0) {
-    while ($row = mysqli_fetch_assoc($contactSelectQuery)) {
+    while ($row = $contactSelectQuery->fetch_assoc()) {
         $contacts[] = $row;
     }
 }
@@ -342,23 +335,22 @@ if ($filterStatus !== 'random' && !empty($searchContactQuery)) {
 }
 
 // Execute the count query
-$contactResult = mysqli_query($connect, $contactQuery);
-$contactRow = mysqli_fetch_assoc($contactResult);
-$contactCount = $contactRow['count'];
+$contactResult = $connect->query($contactQuery);
+$contactCount = $contactResult->fetch_assoc()['count'];
+
 // Fetch contact count
 $contactCountQuery = "SELECT COUNT(*) as count FROM contacttb WHERE Status = 'pending'";
-$contactCountResult = mysqli_query($connect, $contactCountQuery);
-$contactCountRow = mysqli_fetch_assoc($contactCountResult);
-$allContactCount = $contactCountRow['count'];
+$contactCountResult = $connect->query($contactCountQuery);
+$allContactCount = $contactCountResult->fetch_assoc()['count'];
 
 $select = "SELECT admintb.*, roletb.Role 
     FROM admintb 
     INNER JOIN roletb ON admintb.RoleID = roletb.RoleID 
     WHERE admintb.RoleID = '$role' AND admintb.AdminID = '$adminID'";
-$query = mysqli_query($connect, $select);
+$query = $connect->query($select);
 
 if (mysqli_num_rows($query) > 0) {
-    while ($row = mysqli_fetch_assoc($query)) {
+    while ($row = $query->fetch_assoc()) {
         $admin_id = $row['AdminID'];
         $admin_username = $row['UserName'];
         $role_id = $row['RoleID'];
@@ -368,11 +360,11 @@ if (mysqli_num_rows($query) > 0) {
 
 // Fetch all users
 $select = "SELECT * FROM usertb ORDER BY SignupDate DESC LIMIT 5";
-$query = mysqli_query($connect, $select);
+$query = $connect->query($select);
 $users = [];
 
 if (mysqli_num_rows($query) > 0) {
-    while ($row = mysqli_fetch_assoc($query)) {
+    while ($row = $query->fetch_assoc()) {
         $users[] = $row;
     }
 }

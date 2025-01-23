@@ -371,9 +371,6 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (alertMessage) {
         // Show Alert
         showAlert(alertMessage);
-        setTimeout(() => {
-            window.location.href = 'AddProductType.php';
-        }, 5000);
     }
 
     // Add keyup event listeners for real-time validation
@@ -758,9 +755,6 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (alertMessage) {
         // Show Alert
         showAlert(alertMessage);
-        setTimeout(() => {
-            window.location.href = 'AddRoomType.php';
-        }, 5000);
     }
 
     // Add keyup event listeners for real-time validation
@@ -945,9 +939,6 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (alertMessage) {
         // Show Alert
         showAlert(alertMessage);
-        setTimeout(() => {
-            window.location.href = 'AddFacilityType.php';
-        }, 5000);
     }
 
     // Add keyup event listeners for real-time validation
@@ -1095,15 +1086,15 @@ document.addEventListener('DOMContentLoaded', () => {
 // Add Facility Form
 document.addEventListener("DOMContentLoaded", () => {
     const addFacilityModal = document.getElementById('addFacilityModal');
-    const addFacilityBtn = document.getElementById('addFFacilityBtn');
+    const addFacilityBtn = document.getElementById('addFacilityBtn');
     const addFacilityCancelBtn = document.getElementById('addFacilityCancelBtn');
     const loader = document.getElementById('loader');
     const alertMessage = document.getElementById('alertMessage').value;
     const addFacilitySuccess = document.getElementById('addFacilitySuccess').value === 'true';
 
-    if (addFacilityModal && addFFacilityBtn && addFacilityCancelBtn) {
+    if (addFacilityModal && addFacilityBtn && addFacilityCancelBtn) {
         // Show modal
-        addFFacilityBtn.addEventListener('click', () => {
+        addFacilityBtn.addEventListener('click', () => {
             darkOverlay2.classList.remove('opacity-0', 'invisible');
             darkOverlay2.classList.add('opacity-100');
             addFacilityModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
@@ -1131,9 +1122,6 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (alertMessage) {
         // Show Alert
         showAlert(alertMessage);
-        setTimeout(() => {
-            window.location.href = 'AddFacility.php';
-        }, 5000);
     }
 
     // Add keyup event listeners for real-time validation
@@ -1491,8 +1479,6 @@ if (adminProfileDeleteBtn && confirmDeleteModal && cancelDeleteBtn && confirmDel
 
 // Reset Password and Profile Update Form Validation
 document.addEventListener("DOMContentLoaded", () => {
-    const alertBox = document.getElementById('alertBox');
-    const alertText = document.getElementById('alertText');
     const alertMessage = document.getElementById('alertMessage').value;
     const profileUpdate = document.getElementById('profileUpdate').value === 'true';
 

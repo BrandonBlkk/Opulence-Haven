@@ -33,9 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
 
     // Check if the email already exists using prepared statement
     $checkEmailQuery = "SELECT AdminEmail FROM admintb WHERE AdminEmail = '$email'";
-
-    $checkEmailQuery = mysqli_query($connect, $checkEmailQuery);
-    $count = mysqli_num_rows($checkEmailQuery);
+    $count = $connect->query($checkEmailQuery)->num_rows;
 
     if ($count > 0) {
         $alertMessage = 'Email you signed up with is already taken.';
@@ -43,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
         // Insert the new user data using prepared statement
         $insertQuery = "INSERT INTO admintb (AdminID ,AdminProfile, FirstName, LastName, UserName, AdminEmail, AdminPassword, AdminPhone, RoleID) 
                         VALUES ('$adminID', '$fileName', '$firstname', '$lastname', '$username', '$email', '$password', '$phone', '$role')";
-        $insert_Query = mysqli_query($connect, $insertQuery);
+        $insert_Query = $connect->query($insertQuery);
 
         if ($insert_Query) {
             $signupSuccess = true;
@@ -168,12 +166,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                         <option value="" disabled selected>Select your role</option>
                         <?php
                         $select = "SELECT * FROM roletb";
-                        $query = mysqli_query($connect, $select);
-                        $count = mysqli_num_rows($query);
+                        $query = $connect->query($select);
+                        $count = $query->num_rows;
 
                         if ($count) {
                             for ($i = 0; $i < $count; $i++) {
-                                $row = mysqli_fetch_array($query);
+                                $row = $query->fetch_assoc();
                                 $role_id = $row['RoleID'];
                                 $role = $row['Role'];
 

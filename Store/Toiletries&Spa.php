@@ -11,11 +11,11 @@ $productSelect = "SELECT p.*, pt.ProductType FROM producttb p
 INNER JOIN producttypetb pt 
 ON p.ProductTypeID = pt.ProductTypeID
 WHERE pt.ProductType = 'Toiletries'";
-$productSelectQuery = mysqli_query($connect, $productSelect);
+$productSelectQuery = $connect->query($productSelect);
 $toiletriesProducts = [];
 
-if (mysqli_num_rows($productSelectQuery) > 0) {
-    while ($row = mysqli_fetch_assoc($productSelectQuery)) {
+if ($productSelectQuery->num_rows > 0) {
+    while ($row = $productSelectQuery->fetch_assoc()) {
         $toiletriesProducts[] = $row;
     }
 }
@@ -25,15 +25,14 @@ $productSelect = "SELECT p.*, pt.ProductType FROM producttb p
 INNER JOIN producttypetb pt 
 ON p.ProductTypeID = pt.ProductTypeID
 WHERE pt.ProductType = 'Spa'";
-$productSelectQuery = mysqli_query($connect, $productSelect);
+$productSelectQuery = $connect->query($productSelect);
 $spaProducts = [];
 
-if (mysqli_num_rows($productSelectQuery) > 0) {
-    while ($row = mysqli_fetch_assoc($productSelectQuery)) {
+if ($productSelectQuery->num_rows > 0) {
+    while ($row = $productSelectQuery->fetch_assoc()) {
         $spaProducts[] = $row;
     }
 }
-
 ?>
 
 <!DOCTYPE html>

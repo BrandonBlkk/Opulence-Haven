@@ -27,9 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addsupplier'])) {
 
     // Check if the supplier already exists using prepared statement
     $checkQuery = "SELECT SupplierEmail, SupplierContact FROM suppliertb WHERE SupplierEmail = '$email' OR SupplierContact = '$contactNumber'";
-
-    $checkQuery = mysqli_query($connect, $checkQuery);
-    $count = mysqli_num_rows($checkQuery);
+    $count = $connect->query($checkQuery)->num_rows;
 
     if ($count > 0) {
         $alertMessage = 'Supplier you added is already existed.';
@@ -37,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addsupplier'])) {
         $addSupplierQuery = "INSERT INTO suppliertb (SupplierID, SupplierName, SupplierEmail, SupplierContact, SupplierCompany, Address, City, State, PostalCode, Country, ProductTypeID)
         VALUES ('$supplierID', '$suppliername', '$email', '$contactNumber', '$companyName', '$address', '$city', '$state', '$postalCode', '$country', '$productType')";
 
-        if (mysqli_query($connect, $addSupplierQuery)) {
+        if ($connect->query($addSupplierQuery)) {
             $addSupplierSuccess = true;
         } else {
             $alertMessage = "Failed to add supplier. Please try again.";
@@ -56,11 +54,10 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         default => null
     };
     if ($query) {
-        $result = mysqli_query($connect, $query);
-        $supplier = mysqli_fetch_assoc($result);
+        $result = $connect->query($query)->fetch_assoc();
 
-        if ($supplier) {
-            echo json_encode(['success' => true, 'supplier' => $supplier]);
+        if ($result) {
+            echo json_encode(['success' => true, 'supplier' => $result]);
         } else {
             echo json_encode(['success' => false]);
         }
@@ -158,12 +155,12 @@ if (isset($_POST['deletesupplier'])) {
                                     <option value="random">All Supplied Products</option>
                                     <?php
                                     $select = "SELECT * FROM producttypetb";
-                                    $query = mysqli_query($connect, $select);
-                                    $count = mysqli_num_rows($query);
+                                    $query = $connect->query($select);
+                                    $count = $query->num_rows;
 
                                     if ($count) {
                                         for ($i = 0; $i < $count; $i++) {
-                                            $row = mysqli_fetch_array($query);
+                                            $row = $query->fetch_assoc();
                                             $producttype_id = $row['ProductTypeID'];
                                             $producttype = $row['ProductType'];
                                             $selected = ($filterProductTypeID == $producttype_id) ? 'selected' : '';
@@ -212,8 +209,8 @@ if (isset($_POST['deletesupplier'])) {
                                         $productTypeQuery = "SELECT ProductType FROM producttypetb WHERE ProductTypeID = '$productTypeID'";
                                         $productTypeResult = mysqli_query($connect, $productTypeQuery);
 
-                                        if ($productTypeResult && mysqli_num_rows($productTypeResult) > 0) {
-                                            $productTypeRow = mysqli_fetch_assoc($productTypeResult);
+                                        if ($productTypeResult && $productTypeResult->num_rows > 0) {
+                                            $productTypeRow = $productTypeResult->fetch_assoc();
                                             echo htmlspecialchars($productTypeRow['ProductType']);
                                         }
                                         ?>
@@ -401,12 +398,12 @@ if (isset($_POST['deletesupplier'])) {
                             <option value="" disabled selected>Select type of products supplied</option>
                             <?php
                             $select = "SELECT * FROM producttypetb";
-                            $query = mysqli_query($connect, $select);
-                            $count = mysqli_num_rows($query);
+                            $query = $connect->query($select);
+                            $count = $query->num_rows;
 
                             if ($count) {
                                 for ($i = 0; $i < $count; $i++) {
-                                    $row = mysqli_fetch_array($query);
+                                    $row = $query->fetch_assoc();
                                     $product_type_id = $row['ProductTypeID'];
                                     $product_type = $row['ProductType'];
 
@@ -572,12 +569,12 @@ if (isset($_POST['deletesupplier'])) {
                             <option value="" disabled selected>Select type of products supplied</option>
                             <?php
                             $select = "SELECT * FROM producttypetb";
-                            $query = mysqli_query($connect, $select);
-                            $count = mysqli_num_rows($query);
+                            $query = $connect->query($select);
+                            $count = $query->num_rows;
 
                             if ($count) {
                                 for ($i = 0; $i < $count; $i++) {
-                                    $row = mysqli_fetch_array($query);
+                                    $row = $query->fetch_assoc();
                                     $product_type_id = $row['ProductTypeID'];
                                     $product_type = $row['ProductType'];
 

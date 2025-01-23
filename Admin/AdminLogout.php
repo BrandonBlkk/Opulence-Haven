@@ -7,7 +7,7 @@ if (isset($_SESSION['AdminID'])) {
 
     // Update the user's status to inactive
     $updateSignInQuery = "UPDATE admintb SET Status = 'inactive' WHERE AdminID = '$admin_id'";
-    if (!mysqli_query($connect, $updateSignInQuery)) {
+    if (!$connect->query($updateSignInQuery)) {
         http_response_code(500);
         exit("Failed to update admin status.");
     }

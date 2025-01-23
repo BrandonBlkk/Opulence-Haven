@@ -143,11 +143,11 @@ $outOfStock = $outOfStockResult->fetch_assoc()['OutOfStock'];
 
                 if (isMaintenanceMode) {
                     // Maintenance Mode
-                    statusIcon.className = 'h-3 w-3 rounded-full bg-red-500';
+                    statusIcon.className = 'h-3 w-3 rounded-full bg-red-500 animate-pulse';
                     statusText.innerHTML = 'The website is currently <span class="font-semibold text-red-600">in maintenance mode</span>.';
                 } else {
                     // Active Mode
-                    statusIcon.className = 'h-3 w-3 rounded-full bg-green-500';
+                    statusIcon.className = 'h-3 w-3 rounded-full bg-green-500 animate-pulse';
                     statusText.innerHTML = 'The website is currently <span class="font-semibold text-green-600">active</span>.';
                 }
             }
@@ -196,28 +196,6 @@ $outOfStock = $outOfStockResult->fetch_assoc()['OutOfStock'];
             </div>
 
             <!-- Stock Available -->
-            <!-- <div class="bg-white rounded-sm p-3 mt-3">
-                <h2 class="text-lg font-bold text-gray-700">Stock Available</h2>
-                <p class="text-sm text-gray-500 mb-4">Current stock status across product types.</p>
-                <div class="grid grid-cols-3 gap-4 mb-4">
-                    <div class="text-center">
-                        <h3 class="text-xl font-semibold text-blue-600">1.28K</h3>
-                        <p class="text-gray-500 text-xs">Total Stock</p>
-                        <p class="text-green-500 text-sm">↑ 5.12%</p>
-                    </div>
-                    <div class="text-center">
-                        <h3 class="text-xl font-semibold text-red-600">0.69K</h3>
-                        <p class="text-gray-500 text-xs">Low Stock</p>
-                        <p class="text-red-500 text-sm">↓ 2.12%</p>
-                    </div>
-                    <div class="text-center">
-                        <h3 class="text-xl font-semibold text-green-600">0.54K</h3>
-                        <p class="text-gray-500 text-xs">Out of Stock</p>
-                        <p class="text-green-500 text-sm">↑ 1.85%</p>
-                    </div>
-                </div>
-            </div> -->
-            <!-- Stock Available -->
             <div class="bg-white rounded-sm p-3 mt-3">
                 <h2 class="text-lg font-bold text-gray-700">Stock Available</h2>
                 <p class="text-sm text-gray-500 mb-4">Current stock status across product types.</p>
@@ -227,25 +205,21 @@ $outOfStock = $outOfStockResult->fetch_assoc()['OutOfStock'];
                             <?php echo number_format($totalStock); ?>
                         </h3>
                         <p class="text-gray-500 text-xs">Total Stock</p>
-                        <p class="text-green-500 text-sm">↑ 5.12%</p>
                     </div>
                     <div class="text-center">
                         <h3 class="text-xl font-semibold text-red-600">
                             <?php echo number_format($lowStock); ?>
                         </h3>
                         <p class="text-gray-500 text-xs">Low Stock</p>
-                        <p class="text-red-500 text-sm">↓ 2.12%</p>
                     </div>
                     <div class="text-center">
                         <h3 class="text-xl font-semibold text-green-600">
                             <?php echo number_format($outOfStock); ?>
                         </h3>
                         <p class="text-gray-500 text-xs">Out of Stock</p>
-                        <p class="text-green-500 text-sm">↑ 1.85%</p>
                     </div>
                 </div>
             </div>
-
         </section>
 
         <section class="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -542,10 +516,19 @@ $outOfStock = $outOfStockResult->fetch_assoc()['OutOfStock'];
                 <h1 class="text-lg font-bold text-gray-700 mb-2">Recent Activities</h1>
                 <div class="p-2">
                     <div class="flex items-center gap-2">
-                        <p class="w-10 h-10 rounded-full bg-blue-100 text-blue-500 font-semibold flex items-center justify-center select-none">BD</p>
+                        <p class="w-10 h-10 rounded-full bg-blue-100 text-blue-500 font-semibold flex items-center justify-center select-none">B</p>
                         <div class="text-gray-600 text-sm">
                             <h1 class="font-semibold">Brandon requested for room.</h1>
                             <p>2 hours ago</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-2">
+                    <div class="flex items-center gap-2">
+                        <p class="w-10 h-10 rounded-full bg-blue-100 text-blue-500 font-semibold flex items-center justify-center select-none">F</p>
+                        <div class="text-gray-600 text-sm">
+                            <h1 class="font-semibold">Franco cancelled booking.</h1>
+                            <p>1 hour ago</p>
                         </div>
                     </div>
                 </div>
