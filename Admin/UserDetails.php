@@ -27,14 +27,11 @@ if (!$connect) {
     <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px] relative min-w-[350px]">
         <!-- Left Side Content -->
         <div class="w-full bg-white p-2">
-            <div class="flex justify-between items-end">
+            <div>
                 <div>
                     <h2 class="text-xl text-gray-700 font-bold mb-4">User's Lists</h2>
                     <p>View the list of users and assign roles for efficient role-based access control.</p>
                 </div>
-                <button id="addRoleBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
-                    <i class="ri-add-line text-xl"></i>
-                </button>
             </div>
 
             <!-- Admin Table -->
@@ -239,8 +236,8 @@ if (!$connect) {
 
     <!-- Loader -->
     <?php
-    include('../includes/Alert.php');
-    include('../includes/Loader.php');
+    // include('../includes/Alert.php');
+    // include('../includes/Loader.php');
     ?>
 
     <script src="//unpkg.com/alpinejs" defer></script>

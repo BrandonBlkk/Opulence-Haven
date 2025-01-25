@@ -358,6 +358,36 @@ if (mysqli_num_rows($query) > 0) {
     }
 }
 
+// Initialize search variables for product image
+$filterImages = isset($_GET['sort']) ? $_GET['sort'] : 'random';
+
+// Construct the facility type query based on search
+if ($filterImages !== 'random') {
+    $productImageSelect = "SELECT * FROM productimagetb WHERE ProductID LIKE '$filterImages'";
+} else {
+    $productImageSelect = "SELECT * FROM productimagetb";
+}
+
+$productImageSelectQuery = mysqli_query($connect, $productImageSelect);
+$productImages = [];
+
+if (mysqli_num_rows($productImageSelectQuery) > 0) {
+    while ($row = $productImageSelectQuery->fetch_assoc()) {
+        $productImages[] = $row;
+    }
+}
+
+// Construct the facilitytype count query based on search
+if ($filterImages !== 'random') {
+    $productImageQuery = "SELECT COUNT(*) as count FROM productimagetb WHERE ProductID LIKE '$filterImages'";
+} else {
+    $productImageQuery = "SELECT COUNT(*) as count FROM productimagetb";
+}
+
+// Execute the count query
+$productImageResult = $connect->query($productImageQuery);
+$productImageCount = $productImageResult->fetch_assoc()['count'];
+
 // Fetch all users
 $select = "SELECT * FROM usertb ORDER BY SignupDate DESC LIMIT 5";
 $query = $connect->query($select);
@@ -494,6 +524,14 @@ if (mysqli_num_rows($query) > 0) {
                                 <span class="font-semibold text-sm">Add room type</span>
                             </div>
                             <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allRoomTypeCount ?></p>
+                        </a>
+                        <a href="../Admin/AddSupplier.php"
+                            class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?>">
+                            <div class="flex items-center gap-1">
+                                <i class="ri-hotel-bed-line text-xl"></i>
+                                <span class="font-semibold text-sm">Add room</span>
+                            </div>
+                            <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= htmlspecialchars($supplierCount) ?></p>
                         </a>
                         <a href="../Admin/AddRule.php"
                             class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?>">

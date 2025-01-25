@@ -153,9 +153,9 @@ $outOfStock = $outOfStockResult->fetch_assoc()['OutOfStock'];
             }
         </script>
 
-        <section class="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <section class="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
             <!-- Total Booking -->
-            <div class="bg-white rounded-sm p-3 mt-3">
+            <div class="bg-white rounded-sm p-3">
                 <h2 class="text-lg font-bold text-gray-700">Total Booking</h2>
                 <p class="text-sm text-gray-500 mb-4">Total number of bookings recorded.</p>
                 <div class="grid grid-cols-3 gap-4 mb-4">
@@ -178,7 +178,7 @@ $outOfStock = $outOfStockResult->fetch_assoc()['OutOfStock'];
             </div>
 
             <!-- Room Available -->
-            <div class="bg-white rounded-sm p-3 mt-3">
+            <div class="bg-white rounded-sm p-3">
                 <h2 class="text-lg font-bold text-gray-700">Room Available</h2>
                 <p class="text-sm text-gray-500 mb-4">Current availability of rooms across different time periods.</p>
                 <div class="grid grid-cols-2 gap-4 mb-4">
@@ -196,7 +196,7 @@ $outOfStock = $outOfStockResult->fetch_assoc()['OutOfStock'];
             </div>
 
             <!-- Stock Available -->
-            <div class="bg-white rounded-sm p-3 mt-3">
+            <div class="bg-white rounded-sm p-3">
                 <h2 class="text-lg font-bold text-gray-700">Stock Available</h2>
                 <p class="text-sm text-gray-500 mb-4">Current stock status across product types.</p>
                 <div class="grid grid-cols-3 gap-4 mb-4">

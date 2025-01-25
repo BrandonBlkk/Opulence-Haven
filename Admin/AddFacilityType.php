@@ -236,11 +236,11 @@ if (isset($_POST['deletefacilitytype'])) {
                     <div class="relative w-full">
                         <label class="block text-sm text-start font-medium text-gray-700 mb-1">Icon</label>
                         <textarea
-                            id="updateFacilityTypeIcon"
+                            id="updateFacilityTypeIconInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             name="updatefacilitytypeicon"
                             placeholder="Enter icon"></textarea>
-                        <small id="updateFacilityTypeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                        <small id="updateFacilityTypeIconError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
                     <!-- Size -->
                     <div class="relative">

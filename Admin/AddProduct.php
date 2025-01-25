@@ -28,64 +28,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproduct'])) {
     $stock = mysqli_real_escape_string($connect, $_POST['stock']);
     $productType = mysqli_real_escape_string($connect, $_POST['productType']);
 
-    // Product image 1 upload 
-    $productImage1 = $_FILES["img1"]["name"];
-    $copyFile = "AdminImages/";
-    $fileName1 = $copyFile . uniqid() . "_" . $productImage1;
-    $copy = copy($_FILES["img1"]["tmp_name"], $fileName1);
-
-    if (!$copy) {
-        echo "<p>Cannot upload Product Image 1.</p>";
-        exit();
-    }
-    $userProductImage1 = $_FILES["img1"]["name"];
-    $copyFile = "../UserImages/";
-    $userFileName1 = $copyFile . uniqid() . "_" . $userProductImage1;
-    $copy = copy($_FILES["img1"]["tmp_name"], $userFileName1);
-
-    if (!$copy) {
-        echo "<p>Cannot upload Product Image 1.</p>";
-        exit();
-    }
-    // Product image 2 upload 
-    $productImage2 = $_FILES["img2"]["name"];
-    $copyFile = "AdminImages/";
-    $fileName2 = $copyFile . uniqid() . "_" . $productImage2;
-    $copy = copy($_FILES["img2"]["tmp_name"], $fileName2);
-
-    if (!$copy) {
-        echo "<p>Cannot upload Product Image 2.</p>";
-        exit();
-    }
-    $userProductImage2 = $_FILES["img2"]["name"];
-    $copyFile = "../UserImages/";
-    $userFileName2 = $copyFile . uniqid() . "_" . $userProductImage2;
-    $copy = copy($_FILES["img2"]["tmp_name"], $userFileName2);
-
-    if (!$copy) {
-        echo "<p>Cannot upload Product Image 2.</p>";
-        exit();
-    }
-    // Product image 3 upload 
-    $productImage3 = $_FILES["img3"]["name"];
-    $copyFile = "AdminImages/";
-    $fileName3 = $copyFile . uniqid() . "_" . $productImage3;
-    $copy = copy($_FILES["img3"]["tmp_name"], $fileName3);
-
-    if (!$copy) {
-        echo "<p>Cannot upload Product Image 3.</p>";
-        exit();
-    }
-    $userProductImage3 = $_FILES["img3"]["name"];
-    $copyFile = "../UserImages/";
-    $userFileName3 = $copyFile . uniqid() . "_" . $userProductImage3;
-    $copy = copy($_FILES["img3"]["tmp_name"], $userFileName3);
-
-    if (!$copy) {
-        echo "<p>Cannot upload Product Image 3.</p>";
-        exit();
-    }
-
     // Check if the product already exists using prepared statement
     $checkQuery = "SELECT Title FROM producttb WHERE Title = '$productTitle'";
     $count = $connect->query($checkQuery)->num_rows;
@@ -93,8 +35,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproduct'])) {
     if ($count > 0) {
         $alertMessage = 'Product you added is already existed.';
     } else {
-        $addProductQuery = "INSERT INTO producttb (ProductID, Title, AdminImg1, AdminImg2, AdminImg3, UserImg1, UserImg2, UserImg3, Price, DiscountPrice, Description, Specification, Information, DeliveryInfo, Brand, ProductSize, SellingFast, Stock, ProductTypeID)
-        VALUES ('$productID', '$productTitle', '$fileName1', '$fileName2', '$fileName3', '$userFileName1', '$userFileName2', '$userFileName3', '$price', '$discountPrice', '$description', '$specification', '$information', '$delivery', '$brand', '$productSize', '$sellingFast', '$stock', '$productType')";
+        $addProductQuery = "INSERT INTO producttb (ProductID, Title, Price, DiscountPrice, Description, Specification, Information, DeliveryInfo, Brand, ProductSize, SellingFast, Stock, ProductTypeID)
+        VALUES ('$productID', '$productTitle', '$price', '$discountPrice', '$description', '$specification', '$information', '$delivery', '$brand', '$productSize', '$sellingFast', '$stock', '$productType')";
 
         if ($connect->query($addProductQuery)) {
             $addProductSuccess = true;
@@ -194,9 +136,12 @@ if (isset($_POST['deleteproduct'])) {
                     <h2 class="text-xl text-gray-700 font-bold mb-4">Add Product Overview</h2>
                     <p>Add product information to monitor inventory, track orders, and manage product details for efficient operations.</p>
                 </div>
-                <button id="addProductBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
-                    <i class="ri-add-line text-xl"></i>
-                </button>
+                <div class="flex items-center gap-3">
+                    <a href="ProductImage.php">Image</a>
+                    <button id="addProductBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
+                        <i class="ri-add-line text-xl"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- Product Table -->
@@ -244,7 +189,6 @@ if (isset($_POST['deleteproduct'])) {
                             <tr class="bg-gray-100 text-gray-600 text-sm">
                                 <th class="p-3 text-start">ID</th>
                                 <th class="p-3 text-start">Title</th>
-                                <th class="p-3 text-start">Image</th>
                                 <th class="p-3 text-start">Price</th>
                                 <th class="p-3 text-start">Stock</th>
                                 <th class="p-3 text-start">Added Date</th>
@@ -252,44 +196,49 @@ if (isset($_POST['deleteproduct'])) {
                             </tr>
                         </thead>
                         <tbody class="text-gray-600 text-sm">
-                            <?php foreach ($products as $product): ?>
-                                <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                    <td class="p-3 text-start whitespace-nowrap">
-                                        <div class="flex items-center gap-2 font-medium text-gray-500">
-                                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                            <span><?= htmlspecialchars($product['ProductID']) ?></span>
-                                        </div>
-                                    </td>
-                                    <td class="p-3 text-start">
-                                        <?= htmlspecialchars($product['Title']) ?>
-                                    </td>
-                                    <td class="p-3 text-start select-none">
-                                        <img src="<?= htmlspecialchars($product['AdminImg1']) ?>" alt="Product Image" class="w-12 h-12 object-cover rounded-sm">
-                                    </td>
-                                    <td class="p-3 text-start">
-                                        $<?= htmlspecialchars(number_format($product['Price'], 2)) ?>
-                                    </td>
-                                    <td class="p-3 text-start">
-                                        <?= htmlspecialchars($product['Stock']) ?>
-                                    </td>
-                                    <td class="p-3 text-start">
-                                        <?= htmlspecialchars(date('Y-m-d', strtotime($product['AddedDate']))) ?>
-                                    </td>
-                                    <td class="p-3 text-start space-x-1 select-none">
-                                        <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                            data-product-id="<?= htmlspecialchars($product['ProductID']) ?>"></i>
-                                        <button class="text-red-500">
-                                            <i class="delete-btn ri-delete-bin-7-line text-xl"
+                            <?php if (!empty($products)): ?>
+                                <?php foreach ($products as $product): ?>
+                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                        <td class="p-3 text-start whitespace-nowrap">
+                                            <div class="flex items-center gap-2 font-medium text-gray-500">
+                                                <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                                                <span><?= htmlspecialchars($product['ProductID']) ?></span>
+                                            </div>
+                                        </td>
+                                        <td class="p-3 text-start">
+                                            <?= htmlspecialchars($product['Title']) ?>
+                                        </td>
+                                        <td class="p-3 text-start">
+                                            $<?= htmlspecialchars(number_format($product['Price'], 2)) ?>
+                                        </td>
+                                        <td class="p-3 text-start">
+                                            <?= htmlspecialchars($product['Stock']) ?>
+                                        </td>
+                                        <td class="p-3 text-start">
+                                            <?= htmlspecialchars(date('d M Y', strtotime($product['AddedDate']))) ?>
+                                        </td>
+                                        <td class="p-3 text-start space-x-1 select-none">
+                                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
                                                 data-product-id="<?= htmlspecialchars($product['ProductID']) ?>"></i>
-                                        </button>
+                                            <button class="text-red-500">
+                                                <i class="delete-btn ri-delete-bin-7-line text-xl"
+                                                    data-product-id="<?= htmlspecialchars($product['ProductID']) ?>"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="7" class="p-3 text-center text-gray-500 py-32">
+                                        No products available.
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
 
                     <!-- Pagination Controls -->
-                    <div class="flex justify-center items-center mt-1">
+                    <div class="flex justify-center items-center mt-1 <?= (!empty($products) ? 'flex' : 'hidden') ?>">
                         <!-- Previous Btn -->
                         <?php if ($productCurrentPage > 1) {
                         ?>
@@ -367,7 +316,7 @@ if (isset($_POST['deleteproduct'])) {
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 name="updatedescription"
                                 placeholder="Enter product description"></textarea>
-                            <small id="updateDescriptionError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                            <small id="updateDescriptionError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
                         <!-- Specification -->
                         <div class="relative flex-1">
@@ -376,7 +325,7 @@ if (isset($_POST['deleteproduct'])) {
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 name="updatespecification"
                                 placeholder="Enter product specification"></textarea>
-                            <small id="updateSpecificationError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                            <small id="updateSpecificationError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
@@ -387,7 +336,7 @@ if (isset($_POST['deleteproduct'])) {
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 name="updateinformation"
                                 placeholder="Enter product information"></textarea>
-                            <small id="updateInformationError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                            <small id="updateInformationError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
                         <!-- DeliveryInfo -->
                         <div class="relative flex-1">
@@ -396,7 +345,7 @@ if (isset($_POST['deleteproduct'])) {
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 name="updatedelivery"
                                 placeholder="Enter delivery information"></textarea>
-                            <small id="updateDeliveryError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                            <small id="updateDeliveryError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
                     </div>
                     <!-- Image Uploads -->
@@ -541,7 +490,7 @@ if (isset($_POST['deleteproduct'])) {
 
         <!-- Add Produc Form -->
         <div id="addProductModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
-            <div class="bg-white w-full max-w-4xl p-6 rounded-md shadow-md mx-4 sm:mx-8 lg:mx-auto overflow-y-auto max-h-[92vh]">
+            <div class="bg-white w-full max-w-4xl p-6 rounded-md shadow-md mx-4 sm:mx-8 lg:mx-auto">
                 <h2 class="text-xl font-bold mb-4 text-center">Add New Product</h2>
                 <form class="flex flex-col space-y-4" action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post" enctype="multipart/form-data" id="productForm">
                     <!-- Product Title Input -->
@@ -572,7 +521,7 @@ if (isset($_POST['deleteproduct'])) {
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 name="description"
                                 placeholder="Enter product description"></textarea>
-                            <small id="productDescriptionError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                            <small id="productDescriptionError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
                         <!-- Specification -->
                         <div class="relative flex-1">
@@ -581,7 +530,7 @@ if (isset($_POST['deleteproduct'])) {
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 name="specification"
                                 placeholder="Enter product specification"></textarea>
-                            <small id="specificationError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                            <small id="specificationError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
@@ -592,7 +541,7 @@ if (isset($_POST['deleteproduct'])) {
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 name="information"
                                 placeholder="Enter product information"></textarea>
-                            <small id="informationError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                            <small id="informationError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
                         <!-- DeliveryInfo -->
                         <div class="relative flex-1">
@@ -601,15 +550,8 @@ if (isset($_POST['deleteproduct'])) {
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 name="delivery"
                                 placeholder="Enter delivery information"></textarea>
-                            <small id="deliveryError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                            <small id="deliveryError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
-                    </div>
-                    <!-- Image Uploads -->
-                    <div class="relative">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Product Images</label>
-                        <input type="file" name="img1" class="mb-2" required>
-                        <input type="file" name="img2" class="mb-2" required>
-                        <input type="file" name="img3" required>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
                         <!-- Price -->
@@ -660,8 +602,8 @@ if (isset($_POST['deleteproduct'])) {
                         <div class="relative flex-1">
                             <select name="sellingfast" id="sellingfast" class="p-2 w-full border rounded" required>
                                 <option value="" disabled selected>Selling Fast</option>
-                                <option value="true">True</option>
-                                <option value="false">False</option>
+                                <option value="1">True</option>
+                                <option value="0">False</option>
                             </select>
                         </div>
                         <!-- Product Type -->

@@ -1011,19 +1011,18 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show Alert
             showAlert(alertMessage);
         }
-        // // Add keyup event listeners for real-time validation
-        // document.getElementById("updateRoomTypeInput").addEventListener("keyup", validateUpdateRoomType);
-        // document.getElementById("updateRoomTypeDescriptionInput").addEventListener("keyup", validateUpdateRoomTypeDescription);
-        // document.getElementById("updateRoomCapacityInput").addEventListener("keyup", validateUpdateRoomCapacity);
+        // Add keyup event listeners for real-time validation
+        document.getElementById("updateFacilityTypeInput").addEventListener("keyup", validateUpdateFacilityType);
+        document.getElementById("updateFacilityTypeIconInput").addEventListener("keyup", validateUpdateFacilityTypeIcon);
 
-        // const updateRoomTypeForm = document.getElementById("updateRoomTypeForm");
-        // if (updateRoomTypeForm) {
-        //     updateRoomTypeForm.addEventListener("submit", (e) => {
-        //         if (!validateUpdateRoomTypeForm()) {
-        //             e.preventDefault();
-        //         }
-        //     });
-        // }
+        const updateFacilityTypeForm = document.getElementById("updateFacilityTypeForm");
+        if (updateFacilityTypeForm) {
+            updateFacilityTypeForm.addEventListener("submit", (e) => {
+                if (!validateUpdateFacilityTypeForm()) {
+                    e.preventDefault();
+                }
+            });
+        }
     }
 });
 
@@ -1600,6 +1599,13 @@ const validateFacilityTypeForm = () => {
     return isFacilityTypeValid && isFacilityTypeIconValid;
 };
 
+const validateUpdateFacilityTypeForm = () => {
+    const isFacilityTypeValid = validateUpdateFacilityType();
+    const isFacilityTypeIconValid = validateUpdateFacilityTypeIcon();
+
+    return isFacilityTypeValid && isFacilityTypeIconValid;
+}
+
 const validateFacilityForm = () => {
     const isFacilityValid = validateFacility();
 
@@ -1983,10 +1989,26 @@ const validateFacilityType = () => {
     );
 }
 
+const validateUpdateFacilityType = () => {
+    return validateField(
+        "updateFacilityTypeInput",
+        "updateFacilityTypeError",
+        (input) => (!input ? "Facility type is required." : null)
+    );
+}
+
 const validateFacilityTypeIcon = () => {
     return validateField(
         "facilityTypeIconInput",
         "facilityTypeIconError",
+        (input) => (!input ? "Facility type icon is required." : null)
+    );
+}
+
+const validateUpdateFacilityTypeIcon = () => {
+    return validateField(
+        "updateFacilityTypeIconInput",
+        "updateFacilityTypeIconError",
         (input) => (!input ? "Facility type icon is required." : null)
     );
 }

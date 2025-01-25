@@ -7,10 +7,18 @@ if (!$connect) {
 }
 
 // Pillows
-$productSelect = "SELECT p.*, pt.ProductType FROM producttb p
-INNER JOIN producttypetb pt 
-ON p.ProductTypeID = pt.ProductTypeID
-WHERE pt.ProductType = 'Pillow'";
+$productSelect = "SELECT p.*, 
+        pt.ProductType, 
+        pi_primary.ImageUserPath AS PrimaryImagePath, 
+        pi_secondary.ImageUserPath AS SecondaryImagePath
+    FROM producttb p
+    INNER JOIN producttypetb pt 
+        ON p.ProductTypeID = pt.ProductTypeID
+    INNER JOIN productimagetb pi_primary
+        ON p.ProductID = pi_primary.ProductID AND pi_primary.PrimaryImage = 1
+    LEFT JOIN productimagetb pi_secondary
+        ON p.ProductID = pi_secondary.ProductID AND pi_secondary.PrimaryImage = 0
+    WHERE pt.ProductType = 'Pillow'";
 $productSelectQuery = $connect->query($productSelect);
 $pillowProducts = [];
 
@@ -21,9 +29,17 @@ if ($productSelectQuery->num_rows > 0) {
 }
 
 // Linens
-$productSelect = "SELECT p.*, pt.ProductType FROM producttb p
+$productSelect = "SELECT p.*, 
+pt.ProductType, 
+pi_primary.ImageUserPath AS PrimaryImagePath, 
+pi_secondary.ImageUserPath AS SecondaryImagePath
+FROM producttb p
 INNER JOIN producttypetb pt 
 ON p.ProductTypeID = pt.ProductTypeID
+INNER JOIN productimagetb pi_primary
+ON p.ProductID = pi_primary.ProductID AND pi_primary.PrimaryImage = 1
+LEFT JOIN productimagetb pi_secondary
+ON p.ProductID = pi_secondary.ProductID AND pi_secondary.PrimaryImage = 0
 WHERE pt.ProductType = 'Linen'";
 
 $productSelectQuery = $connect->query($productSelect);
@@ -36,9 +52,17 @@ if ($productSelectQuery->num_rows > 0) {
 }
 
 // Duvets
-$productSelect = "SELECT p.*, pt.ProductType FROM producttb p
+$productSelect = "SELECT p.*, 
+pt.ProductType, 
+pi_primary.ImageUserPath AS PrimaryImagePath, 
+pi_secondary.ImageUserPath AS SecondaryImagePath
+FROM producttb p
 INNER JOIN producttypetb pt 
 ON p.ProductTypeID = pt.ProductTypeID
+INNER JOIN productimagetb pi_primary
+ON p.ProductID = pi_primary.ProductID AND pi_primary.PrimaryImage = 1
+LEFT JOIN productimagetb pi_secondary
+ON p.ProductID = pi_secondary.ProductID AND pi_secondary.PrimaryImage = 0
 WHERE pt.ProductType = 'Duvet'";
 $productSelectQuery = $connect->query($productSelect);
 $duvetProducts = [];
@@ -172,10 +196,19 @@ if ($productSelectQuery->num_rows > 0) {
             <h1 class="uppercase text-xl sm:text-2xl text-blue-900 font-semibold my-5">Pillows</h1>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 border-t pt-5">
                 <?php foreach ($pillowProducts as $product): ?>
-                    <a href="StoreDetails.php" class="block w-full group">
+                    <a href="StoreDetails.php" class="block w-full group <?= $product['SecondaryImagePath'] ? '' : 'pointer-events-none' ?>">
                         <div class="relative">
-                            <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
-                                <img src="<?= htmlspecialchars($product['UserImg1']) ?>" class="w-full h-full object-cover rounded-sm" alt="Store Image">
+                            <div class="relative w-full h-auto md:h-[350px] lg:h-[300px] select-none mb-4">
+                                <!-- Primary Image -->
+                                <img
+                                    class="w-full h-full object-cover transition-opacity duration-300 opacity-100 group-hover:opacity-0"
+                                    src="<?= htmlspecialchars($product['PrimaryImagePath']) ?>"
+                                    alt="Primary Image">
+                                <!-- Secondary Image -->
+                                <img
+                                    class="w-full h-full object-cover absolute top-0 left-0 transition-opacity duration-300 opacity-0 group-hover:opacity-100 <?= $product['SecondaryImagePath'] ? '' : 'hidden' ?>"
+                                    src="<?= htmlspecialchars($product['SecondaryImagePath']) ?>"
+                                    alt="Secondary Image">
                             </div>
                             <div class="absolute bottom-0 bg-opacity-45 text-white p-3 w-full z-20 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all duration-300">
                                 <h1 class="font-semibold mt-3"><?= htmlspecialchars($product['Title']) ?></h1>
@@ -196,10 +229,19 @@ if ($productSelectQuery->num_rows > 0) {
             <h1 class="uppercase text-xl sm:text-2xl text-blue-900 font-semibold my-5">Linens</h1>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 border-t pt-5">
                 <?php foreach ($linenProducts as $product): ?>
-                    <a href="StoreDetails.php" class="block w-full group">
+                    <a href="StoreDetails.php" class="block w-full group <?= $product['SecondaryImagePath'] ? '' : 'pointer-events-none' ?>">
                         <div class="relative">
-                            <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
-                                <img src="<?= htmlspecialchars($product['UserImg1']) ?>" class="w-full h-full object-cover rounded-sm" alt="Store Image">
+                            <div class="relative w-full h-auto md:h-[350px] lg:h-[300px] select-none mb-4">
+                                <!-- Primary Image -->
+                                <img
+                                    class="w-full h-full object-cover transition-opacity duration-300 opacity-100 group-hover:opacity-0"
+                                    src="<?= htmlspecialchars($product['PrimaryImagePath']) ?>"
+                                    alt="Primary Image">
+                                <!-- Secondary Image -->
+                                <img
+                                    class="w-full h-full object-cover absolute top-0 left-0 transition-opacity duration-300 opacity-0 group-hover:opacity-100 <?= $product['SecondaryImagePath'] ? '' : 'hidden' ?>"
+                                    src="<?= htmlspecialchars($product['SecondaryImagePath']) ?>"
+                                    alt="Secondary Image">
                             </div>
                             <div class="absolute bottom-0 bg-opacity-45 text-white p-3 w-full z-20 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all duration-300">
                                 <h1 class="font-semibold mt-3"><?= htmlspecialchars($product['Title']) ?></h1>
@@ -220,10 +262,19 @@ if ($productSelectQuery->num_rows > 0) {
             <h1 class="uppercase text-xl sm:text-2xl text-blue-900 font-semibold my-5">Duvets</h1>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 border-t pt-5">
                 <?php foreach ($duvetsProducts as $product): ?>
-                    <a href="StoreDetails.php" class="block w-full group">
+                    <a href="StoreDetails.php" class="block w-full group <?= $product['SecondaryImagePath'] ? '' : 'pointer-events-none' ?>">
                         <div class="relative">
-                            <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
-                                <img src="<?= htmlspecialchars($product['UserImg1']) ?>" class="w-full h-full object-cover rounded-sm" alt="Store Image">
+                            <div class="relative w-full h-auto md:h-[350px] lg:h-[300px] select-none mb-4">
+                                <!-- Primary Image -->
+                                <img
+                                    class="w-full h-full object-cover transition-opacity duration-300 opacity-100 group-hover:opacity-0"
+                                    src="<?= htmlspecialchars($product['PrimaryImagePath']) ?>"
+                                    alt="Primary Image">
+                                <!-- Secondary Image -->
+                                <img
+                                    class="w-full h-full object-cover absolute top-0 left-0 transition-opacity duration-300 opacity-0 group-hover:opacity-100 <?= $product['SecondaryImagePath'] ? '' : 'hidden' ?>"
+                                    src="<?= htmlspecialchars($product['SecondaryImagePath']) ?>"
+                                    alt="Secondary Image">
                             </div>
                             <div class="absolute bottom-0 bg-opacity-45 text-white p-3 w-full z-20 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all duration-300">
                                 <h1 class="font-semibold mt-3"><?= htmlspecialchars($product['Title']) ?></h1>
