@@ -5,6 +5,58 @@ include('../config/dbConnection.php');
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
+
+if (isset($_GET["product_ID"])) {
+    $product_id = $_GET["product_ID"];
+
+    // Update the query to fetch all product images
+    $query = "SELECT p.*, pt.ProductTypeID, pi.ImageUserPath, ps.Size, ps.PriceModifier
+              FROM producttb p
+              INNER JOIN producttypetb pt ON p.ProductTypeID = pt.ProductTypeID
+              LEFT JOIN productimagetb pi ON p.ProductID = pi.ProductID
+              LEFT JOIN sizetb ps ON p.ProductID = ps.ProductID
+              WHERE p.ProductID = '$product_id'";
+
+    $product = $connect->query($query)->fetch_assoc();
+
+    // Fetch product details
+    $product_id = $product['ProductID'];
+    $product_type_id = $product['ProductTypeID'];
+    $title = $product['Title'];
+    $price = $product['Price'];
+    $price_modifier = $product['PriceModifier'];
+    $discount_price = $product['DiscountPrice'];
+    $description = $product['Description'];
+    $product_specification = $product['Specification'];
+    $product_information = $product['Information'];
+    $brand = $product['Brand'];
+    $selling_fast = $product['SellingFast'];
+    $stock = $product['Stock'];
+
+    // Fetch product image paths
+    $main_product_image = $product['ImageUserPath'];
+    $side_images = [];
+
+    $query_images = "SELECT ImageUserPath FROM productimagetb WHERE ProductID = '$product_id'";
+    $result_images = $connect->query($query_images);
+
+    // Store side images
+    while ($image = $result_images->fetch_assoc()) {
+        $side_images[] = $image['ImageUserPath'];
+    }
+
+    // Fetch product sizes
+    $product_size = $product['Size'];
+    $sizes = [];
+
+    $query_sizes = "SELECT Size, PriceModifier  FROM sizetb WHERE ProductID = '$product_id'";
+    $result_sizes = $connect->query($query_sizes);
+
+    // Store sizes
+    while ($size = $result_sizes->fetch_assoc()) {
+        $sizes[] = $size['Size'];
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -25,7 +77,7 @@ if (!$connect) {
     include('../includes/StoreNavbar.php');
     ?>
 
-    <main class="max-w-[1310px] mx-auto px-4 py-5">
+    <main class="max-w-[1310px] mx-auto px-4 py-5 min-w-[350px]">
         <div class="flex text-sm text-slate-600">
             <a href="HomePage.php" class="underline">Home</a>
             <span><i class="ri-arrow-right-s-fill"></i></span>
@@ -34,69 +86,105 @@ if (!$connect) {
             <a href="StoreDetails.php" class="underline">Store Details</a>
         </div>
 
-        <form action="<?php $_SERVER["PHP_SELF"] ?>" method="post" enctype="multipart/form-data" class="flex flex-col md:flex-row justify-center mt-3">
+        <form action="<?php $_SERVER["PHP_SELF"] ?>" method="post" enctype="multipart/form-data" class="flex flex-col md:flex-row justify-center gap-3 mt-3">
 
-            <!-- <input type="hidden" name="product_Id" value="<?php echo $product_id; ?>">
-            <input type="hidden" name="product_size" value="<?php echo $product_size; ?>"> -->
+            <input type="hidden" name="product_Id" value="<?php echo $product_id; ?>">
+            <!-- <input type="hidden" name="product_size" value="<?php echo $product_size; ?>"> -->
 
+            <!-- Product Showcase -->
             <div class="flex flex-col-reverse sm:flex-row gap-3 select-none">
+                <!-- Side Images -->
                 <div class="select-none cursor-pointer space-x-0 sm:space-y-2 flex gap-2 sm:block">
-                    <div class="product-detail-img w-20 h-16">
-                        <img class="w-full h-full rounded object-cover hover:border-2 hover:border-indigo-300" src="../UserImages/hilton-bath-mat-HIL-312-NL-WH_xlrg.jpg" alt="Image">
-                    </div>
-                    <div class="product-detail-img w-20 h-16">
-                        <img class="w-full h-full rounded object-cover hover:border-2 hover:border-indigo-300" src="../UserImages/hilton-bath-mat-HIL-312-NL-WH_xlrg.jpg" alt="Image">
-                    </div>
-                    <div class="product-detail-img w-20 h-16">
-                        <img class="w-full h-full rounded object-cover hover:border-2 hover:border-indigo-300" src="../UserImages/hilton-bath-mat-HIL-312-NL-WH_xlrg.jpg" alt="Image">
-                    </div>
+                    <?php foreach ($side_images as $side_image): ?>
+                        <div class="product-detail-img w-20 h-16" onclick="changeImage('<?= htmlspecialchars($side_image) ?>')">
+                            <img
+                                class="w-full h-full rounded object-cover hover:border-2 hover:border-amber-300"
+                                src="<?= htmlspecialchars($side_image) ?>"
+                                alt="Image"
+                                onmouseover="changeMainImage(this)"
+                                onmouseout="resetMainImage()">
+                        </div>
+                    <?php endforeach; ?>
                 </div>
-                <div class="relative">
-                    <div class="w-full md:max-w-[750px]">
-                        <img id="mainImage" class="w-full h-full object-cover" src="../UserImages/hilton-bath-mat-HIL-312-NL-WH_xlrg.jpg" alt="Image">
+                <!-- Main Image -->
+                <div class="relative overflow-hidden">
+                    <div class="w-full md:max-w-[740px] max-h-[430px]">
+                        <img id="mainImage" class="w-full h-full object-cover" src="<?= htmlspecialchars($main_product_image) ?>" alt="Main Image">
                     </div>
                 </div>
             </div>
-            <div class="w-full md:max-w-[290px] py-3 px-0 sm:py-0 sm:px-3">
-                <p class="text-lg font-bold mb-2">$ 34.65</p>
 
+            <script>
+                let originalImage = document.getElementById('mainImage').src;
+
+                function changeMainImage(element) {
+                    const mainImage = document.getElementById('mainImage');
+                    mainImage.src = element.src;
+                }
+
+                function resetMainImage() {
+                    const mainImage = document.getElementById('mainImage');
+                    mainImage.src = originalImage;
+                }
+
+                // Update the original image when clicked
+                function changeImage(newImage) {
+                    const mainImage = document.getElementById('mainImage');
+                    originalImage = newImage;
+                    mainImage.src = newImage;
+                }
+            </script>
+
+            <div class="w-full md:max-w-[290px] py-3 px-0 sm:py-0 sm:px-3">
+                <p class="text-lg font-bold mb-2" id="priceDisplay">$ <?= $price; ?></p>
                 <div class="mb-4 flex justify-between items-center">
-                    <p class="text-sm text-gray-500">(20 available)</p>
+                    <p class="text-sm text-gray-500">(<?= $stock; ?> available)</p>
                 </div>
 
+                <!-- Size Dropdown -->
                 <div class="mb-4">
                     <div class="mt-4">
-                        <select id="size" name="size" class="block w-full p-2 border border-gray-300 rounded-md text-gray-700 bg-white cursor-pointer focus:border-indigo-500 focus:ring-indigo-500 transition-colors duration-200">
+                        <select id="size" name="size" class="block w-full p-2 border border-gray-300 rounded-md text-gray-700 bg-white cursor-pointer focus:border-amber-500 focus:ring-amber-500 outline-none transition-colors duration-200">
                             <option value="" disabled selected>Choose a size</option>
-                            <option value="3">UK 3</option>
-                            <option value="3.5">UK 3.5</option>
-                            <option value="4">UK 4</option>
-                            <option value="4.5">UK 4.5</option>
-                            <option value="5">UK 5</option>
-                            <option value="5.5">UK 5.5</option>
-                            <option value="6">UK 6</option>
-                            <option value="6.5">UK 6.5</option>
-                            <option value="7">UK 7</option>
-                            <option value="7.5">UK 7.5</option>
-                            <option value="8">UK 8</option>
-                            <option value="8.5">UK 8.5</option>
-                            <option value="9">UK 9</option>
-                            <option value="9.5">UK 9.5</option>
-                            <option value="10">UK 10</option>
-                            <option value="10.5">UK 10.5</option>
-                            <option value="11">UK 11</option>
-                            <option value="11.5">UK 11.5</option>
-                            <option value="12">UK 12</option>
-                            <option value="12.5">UK 12.5</option>
-                            <option value="13">UK 13</option>
-                            <option value="13.5">UK 13.5</option>
-                            <option value="14">UK 14</option>
+                            <?php if (!empty($sizes)) : ?>
+                                <?php
+                                $query_sizes = "SELECT SizeID, Size, PriceModifier FROM sizetb WHERE ProductID = '$product_id'";
+                                $result_sizes = $connect->query($query_sizes);
+                                while ($size = $result_sizes->fetch_assoc()) :
+                                ?>
+                                    <option value="<?php echo $size['SizeID']; ?>" data-modifier="<?php echo $size['PriceModifier']; ?>">
+                                        <?php echo $size['Size']; ?>
+                                    </option>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <option value="" disabled>No size available right now</option>
+                            <?php endif; ?>
                         </select>
                     </div>
                 </div>
+                <script>
+                    // Dynamically update price
+                    document.getElementById("size").addEventListener("change", function() {
+                        // Get the base price from PHP
+                        const basePrice = <?= $price; ?>;
+                        const selectedOption = this.options[this.selectedIndex];
+                        const priceModifier = parseFloat(selectedOption.getAttribute("data-modifier"));
 
-                <div class="flex items-center justify-between mb-4">
-                    <input type="submit" value="ADD TO CART" name="addtobag" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold text-center p-2 select-none transition-colors duration-300">
+                        // Calculate the new price
+                        const newPrice = basePrice + (priceModifier || 0);
+
+                        // Update the displayed price
+                        document.getElementById("priceDisplay").textContent = `$ ${newPrice.toFixed(2)}`;
+                    });
+                </script>
+
+                <div class="flex items-center justify-between mb-4 <?= !empty($sizes) ? '' : 'cursor-not-allowed' ?>">
+                    <input
+                        type="submit"
+                        value="ADD TO CART"
+                        name="addtobag"
+                        class="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold text-center p-2 select-none transition-colors duration-300 <?= empty($sizes) ? 'pointer-events-none' : '' ?>"
+                        <?= empty($sizes) ? 'disabled' : '' ?>>
                 </div>
 
                 <div class="flex gap-4 border p-4 mb-4">
@@ -106,20 +194,67 @@ if (!$connect) {
                         <a href="../Delivery.php" class="text-xs underline text-gray-500 hover:text-gray-400 transition-colors duration-200">View our Delivery & Returns Policy</a>
                     </div>
                 </div>
-
-                <div class="divide-y cursor-pointer" id="accordion">
-                    <div class="p-1" data-target="details">
-                        <div class="flex items-center justify-between font-semibold">
-                            <h1>Product Details</h1>
-                            <i class="ri-add-line text-xl"></i>
-                        </div>
-                        <div class="h-0 overflow-hidden transition-all duration-300 ease-in-out text-gray-600 text-sm" id="details">
-                            <p>fsgdfgsdfgdfg</p>
-                        </div>
-                    </div>
-                </div>
             </div>
         </form>
+
+        <section class="max-w-[950px] mx-auto">
+            <div class="relative flex gap-10 border-b border-slate-200 pt-8 pb-2">
+                <!-- Tabs -->
+                <h1 id="tab-description" class="tab text-lg text-blue-900 font-semibold cursor-pointer select-none <?= ($description === 'Not provided') ? 'hidden' : ''; ?>" onclick="showTab('description')">Description</h1>
+                <h1 id="tab-specification" class="tab text-lg text-blue-900 font-semibold cursor-pointer select-none <?= ($product_specification === 'Not provided') ? 'hidden' : ''; ?>" onclick="showTab('specification')">Specification</h1>
+                <h1 id="tab-information" class="tab text-lg text-blue-900 font-semibold cursor-pointer select-none <?= ($product_information === 'Not provided') ? 'hidden' : ''; ?>" onclick="showTab('information')">Information</h1>
+                <h1 id="tab-review" class="tab text-lg text-blue-900 font-semibold cursor-pointer select-none" onclick="showTab('review')">Reviews (0)</h1>
+
+                <!-- Moving Bar -->
+                <div id="active-bar" class="absolute bottom-0 left-0 h-[2px] bg-blue-900 transition-all duration-300"></div>
+            </div>
+
+            <!-- Tab Contents -->
+            <div class="mt-5">
+                <div id="description" class="tab-content hidden">
+                    <p class="text-gray-600"><?php echo nl2br($description); ?></p>
+                </div>
+                <div id="specification" class="tab-content hidden">
+                    <p class="text-gray-600"><?php echo nl2br($product_specification); ?></p>
+                </div>
+                <div id="information" class="tab-content hidden">
+                    <p class="text-gray-600"><?php echo nl2br($product_information); ?></p>
+                </div>
+                <div id="review" class="tab-content hidden">
+                    <p class="text-gray-500 text-center my-20">No user review yet</p>
+                </div>
+            </div>
+        </section>
+
+        <script>
+            // Function to show the selected tab and move the active bar
+            const showTab = (tabId) => {
+                // Hide all tab contents
+                const tabs = document.querySelectorAll('.tab-content');
+                tabs.forEach(tab => tab.classList.add('hidden'));
+
+                // Show the selected tab content
+                const activeTab = document.getElementById(tabId);
+                if (activeTab) {
+                    activeTab.classList.remove('hidden');
+                }
+
+                // Update the active bar position
+                const clickedTab = document.getElementById(`tab-${tabId}`);
+                const activeBar = document.getElementById('active-bar');
+                if (clickedTab && activeBar) {
+                    const tabRect = clickedTab.getBoundingClientRect();
+                    const parentRect = clickedTab.parentElement.getBoundingClientRect();
+                    activeBar.style.width = `${tabRect.width}px`;
+                    activeBar.style.left = `${tabRect.left - parentRect.left}px`;
+                }
+            };
+
+            // Set a default tab to show and position the bar on page load
+            document.addEventListener('DOMContentLoaded', () => {
+                showTab('description');
+            });
+        </script>
 
         <div class="py-10 px-3 text-center">
             <h1 class="text-xl text-blue-900 font-semibold">Recommended Just For You</h1>

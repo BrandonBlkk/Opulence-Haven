@@ -130,55 +130,72 @@ if (!$connect) {
 //     echo "Data has been saved";
 // }
 
-$product = "CREATE TABLE producttb
-(
-    ProductID varchar(20) not null primary key,
-    Title text,
-    Price decimal(10, 2),
-    DiscountPrice decimal(10, 2),
-    Description text,
-    Specification text,
-    Information text,
-    DeliveryInfo text,
-    Brand varchar(30),
-    ProductSize varchar(30),
-    SellingFast boolean default false,
-    Stock int default 0,
-    AddedDate datetime default current_timestamp,
-    LastUpdate datetime default current_timestamp on update current_timestamp,
-    ProductTypeID varchar(30),
-    FOREIGN KEY (ProductTypeID) REFERENCES producttypetb (ProductTypeID)
-    ON DELETE CASCADE 
-    ON UPDATE CASCADE
-)";
+// $product = "CREATE TABLE producttb
+// (
+//     ProductID varchar(20) not null primary key,
+//     Title text,
+//     Price decimal(10, 2),
+//     DiscountPrice decimal(10, 2),
+//     Description text,
+//     Specification text,
+//     Information text,
+//     DeliveryInfo text,
+//     Brand varchar(30),
+//     SellingFast boolean default false,
+//     Stock int default 0,
+//     AddedDate datetime default current_timestamp,
+//     LastUpdate datetime default current_timestamp on update current_timestamp,
+//     ProductTypeID varchar(30),
+//     FOREIGN KEY (ProductTypeID) REFERENCES producttypetb (ProductTypeID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE
+// )";
 
-try {
-    $query = mysqli_query($connect, $product);
-    echo "Data Successfully saved";
-} catch (mysqli_sql_exception) {
-    echo "Data has been saved";
-}
+// try {
+//     $query = mysqli_query($connect, $product);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
 
-$productimage = "CREATE TABLE productimagetb
-(
-    ImageID int not null primary key auto_increment,
-    ImageAdminPath text,
-    ImageUserPath text,
-    PrimaryImage boolean default false,
-    SecondaryImage boolean default false,
-    ImageAlt text,
-    ProductID varchar(20),
-    FOREIGN KEY (ProductID) REFERENCES producttb (ProductID)
-    ON DELETE CASCADE 
-    ON UPDATE CASCADE
-)";
+// $productimage = "CREATE TABLE productimagetb
+// (
+//     ImageID int not null primary key auto_increment,
+//     ImageAdminPath text,
+//     ImageUserPath text,
+//     PrimaryImage boolean default false,
+//     SecondaryImage boolean default false,
+//     ImageAlt text,
+//     ProductID varchar(20),
+//     FOREIGN KEY (ProductID) REFERENCES producttb (ProductID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE
+// )";
 
-try {
-    $query = mysqli_query($connect, $productimage);
-    echo "Data Successfully saved";
-} catch (mysqli_sql_exception) {
-    echo "Data has been saved";
-}
+// try {
+//     $query = mysqli_query($connect, $productimage);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
+
+// $size = "CREATE TABLE sizetb
+// (
+//     SizeID int not null primary key auto_increment,
+//     Size varchar(30),
+//     PriceModifier decimal(10, 2),
+//     ProductID varchar(20),
+//     FOREIGN KEY (ProductID) REFERENCES producttb (ProductID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE
+// )";
+
+// try {
+//     $query = mysqli_query($connect, $size);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
 
 // $facilitytype = "CREATE TABLE facilitytypetb
 // (

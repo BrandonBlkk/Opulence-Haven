@@ -1,4 +1,4 @@
-<section class="bg-gray-100 px-3">
+<section class="bg-gray-100 px-3 min-w-[350px]">
     <div class="flex items-center justify-end max-w-[1050px] mx-auto gap-5 select-none">
         <i id="search-icon" class="ri-search-line text-xl cursor-pointer"></i>
         <a href="../User/UserSignIn.php" class="font-semibold text-slate-500 hover:bg-gray-200 p-2 rounded-sm transition-colors duration-200"><?php echo !empty($_SESSION['UserName']) ? $_SESSION['UserName'] : 'My account'; ?></a>
@@ -42,7 +42,7 @@
 <!-- Overlay -->
 <div id="storeDarkOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
 
-<div class="sticky top-0 w-full bg-white border-b z-30">
+<div class="sticky top-0 w-full bg-white border-b z-30 min-w-[350px]">
     <?php
     include('MoveRightLoader.php');
     include('MaintenanceAlert.php');

@@ -23,7 +23,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproduct'])) {
     $brand = mysqli_real_escape_string($connect, $_POST['brand']);
     $price = mysqli_real_escape_string($connect, $_POST['price']);
     $discountPrice = mysqli_real_escape_string($connect, $_POST['discountPrice']);
-    $productSize = mysqli_real_escape_string($connect, $_POST['productSize']);
     $sellingFast = mysqli_real_escape_string($connect, $_POST['sellingfast']);
     $stock = mysqli_real_escape_string($connect, $_POST['stock']);
     $productType = mysqli_real_escape_string($connect, $_POST['productType']);
@@ -35,8 +34,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproduct'])) {
     if ($count > 0) {
         $alertMessage = 'Product you added is already existed.';
     } else {
-        $addProductQuery = "INSERT INTO producttb (ProductID, Title, Price, DiscountPrice, Description, Specification, Information, DeliveryInfo, Brand, ProductSize, SellingFast, Stock, ProductTypeID)
-        VALUES ('$productID', '$productTitle', '$price', '$discountPrice', '$description', '$specification', '$information', '$delivery', '$brand', '$productSize', '$sellingFast', '$stock', '$productType')";
+        $addProductQuery = "INSERT INTO producttb (ProductID, Title, Price, DiscountPrice, Description, Specification, Information, DeliveryInfo, Brand, SellingFast, Stock, ProductTypeID)
+        VALUES ('$productID', '$productTitle', '$price', '$discountPrice', '$description', '$specification', '$information', '$delivery', '$brand', '$sellingFast', '$stock', '$productType')";
 
         if ($connect->query($addProductQuery)) {
             $addProductSuccess = true;
@@ -395,16 +394,6 @@ if (isset($_POST['deleteproduct'])) {
                                 placeholder="Enter discount price">
                             <small id="updateDiscountPriceError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
-                        <!-- Product Size -->
-                        <div class="relative w-full">
-                            <input
-                                id="updateProductSizeInput"
-                                type="text"
-                                name="updateproductsize"
-                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                placeholder="Enter product size">
-                            <small id="updateProductSizeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
-                        </div>
                         <!-- Stock -->
                         <div class="relative w-full">
                             <input
@@ -577,14 +566,8 @@ if (isset($_POST['deleteproduct'])) {
                             <small id="discountPriceError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
                         <!-- Product Size -->
-                        <div class="relative flex-1">
-                            <input
-                                id="productSizeInput"
-                                type="text"
-                                name="productSize"
-                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                placeholder="Enter product size">
-                            <small id="productSizeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                        <div>
+                            <a class="mt-1 text-sm text-amber-500 cursor-pointer" href="AddSize.php">Add product size</a>
                         </div>
                         <!-- Stock -->
                         <div class="relative flex-1">

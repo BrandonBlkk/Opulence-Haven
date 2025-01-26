@@ -128,8 +128,8 @@ if (!$connect) {
         <section class="grid grid-cols-1 md:grid-cols-3 gap-4 px-4 max-w-[1310px] mx-auto">
             <!-- Card 1 -->
             <a href="#" class="block w-full md:max-w-[450px] mx-auto group">
-                <div class="h-auto sm:h-[280px] select-none">
-                    <img src="../UserImages/hotel-room-5858069_1280.jpg" class="w-full h-full object-cover rounded-sm" alt="Image">
+                <div class="h-auto sm:h-[280px] select-none overflow-hidden">
+                    <img src="../UserImages/hotel-room-5858069_1280.jpg" class="w-full h-full object-cover rounded-sm transform group-hover:scale-105 transition-transform duration-200" alt="Image">
                 </div>
                 <div>
                     <h1 class="text-slate-700 font-semibold mt-3">Black Friday Limited Offer</h1>
@@ -146,8 +146,8 @@ if (!$connect) {
 
             <!-- Card 2 -->
             <a href="#" class="block w-full md:max-w-[450px] mx-auto group">
-                <div class="h-auto sm:h-[280px] select-none">
-                    <img src="../UserImages/FORMAT-16-9E---1920-X-1080-PX (1)_3by2.webp" class="w-full h-full object-cover rounded-sm" alt="Image">
+                <div class="h-auto sm:h-[280px] select-none overflow-hidden">
+                    <img src="../UserImages/FORMAT-16-9E---1920-X-1080-PX (1)_3by2.webp" class="w-full h-full object-cover rounded-sm transform group-hover:scale-105 transition-transform duration-200" alt="Image">
                 </div>
                 <div>
                     <h1 class="text-slate-700 font-semibold mt-3">Life in balance: Breakfast at Opulence</h1>
@@ -164,8 +164,8 @@ if (!$connect) {
 
             <!-- Card 3 -->
             <a href="../Store/Store.php" class="block w-full md:max-w-[450px] mx-auto group">
-                <div class="h-auto sm:h-[280px] select-none">
-                    <img src="../UserImages/Standard-Room-model.jpg" class="w-full h-full object-cover rounded-sm" alt="Image">
+                <div class="h-auto sm:h-[280px] select-none overflow-hidden">
+                    <img src="../UserImages/Standard-Room-model.jpg" class="w-full h-full object-cover rounded-sm transform group-hover:scale-105 transition-transform duration-200" alt="Image">
                 </div>
                 <div>
                     <h1 class="text-slate-700 font-semibold mt-3">Opulence Store - Black Friday</h1>

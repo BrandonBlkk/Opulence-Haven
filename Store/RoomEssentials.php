@@ -14,11 +14,13 @@ $productSelect = "SELECT p.*,
     FROM producttb p
     INNER JOIN producttypetb pt 
         ON p.ProductTypeID = pt.ProductTypeID
-    INNER JOIN productimagetb pi_primary
+    LEFT JOIN productimagetb pi_primary
         ON p.ProductID = pi_primary.ProductID AND pi_primary.PrimaryImage = 1
     LEFT JOIN productimagetb pi_secondary
         ON p.ProductID = pi_secondary.ProductID AND pi_secondary.PrimaryImage = 0
-    WHERE pt.ProductType = 'Pillow'";
+    WHERE pt.ProductType = 'Pillow'
+    GROUP BY p.ProductID";
+
 $productSelectQuery = $connect->query($productSelect);
 $pillowProducts = [];
 
@@ -196,7 +198,7 @@ if ($productSelectQuery->num_rows > 0) {
             <h1 class="uppercase text-xl sm:text-2xl text-blue-900 font-semibold my-5">Pillows</h1>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 border-t pt-5">
                 <?php foreach ($pillowProducts as $product): ?>
-                    <a href="StoreDetails.php" class="block w-full group <?= $product['SecondaryImagePath'] ? '' : 'pointer-events-none' ?>">
+                    <a href="StoreDetails.php?product_ID=<?php echo htmlspecialchars($product['ProductID']) ?>" class="block w-full <?= $product['SecondaryImagePath'] ? 'group' : '' ?>">
                         <div class="relative">
                             <div class="relative w-full h-auto md:h-[350px] lg:h-[300px] select-none mb-4">
                                 <!-- Primary Image -->
