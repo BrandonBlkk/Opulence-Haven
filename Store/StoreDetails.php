@@ -6,6 +6,8 @@ if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
+$session_userID = $_SESSION["UserID"];
+
 if (isset($_GET["product_ID"])) {
     $product_id = $_GET["product_ID"];
 
@@ -29,6 +31,7 @@ if (isset($_GET["product_ID"])) {
     $description = $product['Description'];
     $product_specification = $product['Specification'];
     $product_information = $product['Information'];
+    $product_delivery = $product['DeliveryInfo'];
     $brand = $product['Brand'];
     $selling_fast = $product['SellingFast'];
     $stock = $product['Stock'];
@@ -55,6 +58,24 @@ if (isset($_GET["product_ID"])) {
     // Store sizes
     while ($size = $result_sizes->fetch_assoc()) {
         $sizes[] = $size['Size'];
+    }
+}
+
+// Product Review
+$productReviewQuery = "SELECT COUNT(*) as count FROM productreviewtb WHERE ProductID = '$product_id'";
+
+// Execute the count query
+$productReviewResult = $connect->query($productReviewQuery);
+$productReviewCount = $productReviewResult->fetch_assoc()['count'];
+
+$productReviewSelect = "SELECT * FROM productreviewtb 
+WHERE ProductID = '$product_id'";
+$productReviewSelectQuery = $connect->query($productReviewSelect);
+$productReviews = [];
+
+if ($productReviewSelectQuery->num_rows > 0) {
+    while ($row = $productReviewSelectQuery->fetch_assoc()) {
+        $productReviews[] = $row;
     }
 }
 ?>
@@ -136,9 +157,58 @@ if (isset($_GET["product_ID"])) {
             </script>
 
             <div class="w-full md:max-w-[290px] py-3 px-0 sm:py-0 sm:px-3">
-                <p class="text-lg font-bold mb-2" id="priceDisplay">$ <?= $price; ?></p>
-                <div class="mb-4 flex justify-between items-center">
-                    <p class="text-sm text-gray-500">(<?= $stock; ?> available)</p>
+                <div class="mb-4">
+                    <p class="text-lg font-bold mb-2" id="priceDisplay">$ <?= $price; ?></p>
+                    <p class="text-sm text-gray-500">(<?= $stock; ?> <?= ($stock > 1) ? 'availablies' : 'available'  ?>)</p>
+                    <?php
+                    $review_select = "SELECT Rating FROM productreviewtb WHERE ProductID = '$product_id'";
+                    $select_query = $connect->query($review_select);
+
+                    // Check if there are any reviews
+                    $totalReviews = $select_query->num_rows;
+                    if ($totalReviews > 0) {
+                        $totalRating = 0;
+
+                        // Sum all ratings
+                        while ($review = $select_query->fetch_assoc()) {
+                            $totalRating += $review['Rating'];
+                        }
+
+                        // Calculate the average rating
+                        $averageRating = $totalRating / $totalReviews;
+                    } else {
+                        $averageRating = 0;
+                    }
+                    ?>
+
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="select-none space-x-1 cursor-pointer">
+                            <?php
+                            $fullStars = floor($averageRating);
+                            $halfStar = ($averageRating - $fullStars) >= 0.5 ? 1 : 0;
+                            $emptyStars = 5 - ($fullStars + $halfStar);
+
+                            // Display full stars
+                            for ($i = 0; $i < $fullStars; $i++) {
+                                echo '<i class="ri-star-fill text-amber-500"></i>';
+                            }
+
+                            // Display half star if needed
+                            if ($halfStar) {
+                                echo '<i class="ri-star-half-line text-amber-500"></i>';
+                            }
+
+                            // Display empty stars
+                            for ($i = 0; $i < $emptyStars; $i++) {
+                                echo '<i class="ri-star-line text-amber-500"></i>';
+                            }
+                            ?>
+                        </div>
+                        <p class="text-gray-500 text-sm">
+                            <?php echo number_format($averageRating, 1); ?> out of 5
+                            (<?php echo $totalReviews; ?> review<?php echo ($totalReviews > 1) ? 's' : ''; ?>)
+                        </p>
+                    </div>
                 </div>
 
                 <!-- Size Dropdown -->
@@ -203,7 +273,7 @@ if (isset($_GET["product_ID"])) {
                 <h1 id="tab-description" class="tab text-lg text-blue-900 font-semibold cursor-pointer select-none <?= ($description === 'Not provided') ? 'hidden' : ''; ?>" onclick="showTab('description')">Description</h1>
                 <h1 id="tab-specification" class="tab text-lg text-blue-900 font-semibold cursor-pointer select-none <?= ($product_specification === 'Not provided') ? 'hidden' : ''; ?>" onclick="showTab('specification')">Specification</h1>
                 <h1 id="tab-information" class="tab text-lg text-blue-900 font-semibold cursor-pointer select-none <?= ($product_information === 'Not provided') ? 'hidden' : ''; ?>" onclick="showTab('information')">Information</h1>
-                <h1 id="tab-review" class="tab text-lg text-blue-900 font-semibold cursor-pointer select-none" onclick="showTab('review')">Reviews (0)</h1>
+                <h1 id="tab-review" class="tab text-lg text-blue-900 font-semibold cursor-pointer select-none" onclick="showTab('review')">Reviews (<?= ($productReviewCount) ?>)</h1>
 
                 <!-- Moving Bar -->
                 <div id="active-bar" class="absolute bottom-0 left-0 h-[2px] bg-blue-900 transition-all duration-300"></div>
@@ -211,17 +281,141 @@ if (isset($_GET["product_ID"])) {
 
             <!-- Tab Contents -->
             <div class="mt-5">
+                <!-- Description -->
                 <div id="description" class="tab-content hidden">
                     <p class="text-gray-600"><?php echo nl2br($description); ?></p>
                 </div>
+                <!-- Specification -->
                 <div id="specification" class="tab-content hidden">
                     <p class="text-gray-600"><?php echo nl2br($product_specification); ?></p>
                 </div>
-                <div id="information" class="tab-content hidden">
-                    <p class="text-gray-600"><?php echo nl2br($product_information); ?></p>
+                <!-- Information -->
+                <div id="information" class="tab-content grid grid-cols-1 sm:grid-cols-2">
+                    <div>
+                        <h1 id="tab-specification" class="tab text-lg text-blue-900 font-semibold cursor-pointer select-none">Information</h1>
+                        <p class="text-gray-600"><?php echo nl2br($product_information); ?></p>
+                    </div>
+                    <!-- Delivery-->
+                    <div class="<?= ($product_delivery === 'Not provided') ? 'hidden' : ''; ?>">
+                        <h1 id="tab-specification" class="tab text-lg text-blue-900 font-semibold cursor-pointer select-none">Delivery</h1>
+                        <p class=" text-gray-600"><?php echo nl2br($product_delivery); ?></p>
+                    </div>
                 </div>
+
+                <!-- Review -->
                 <div id="review" class="tab-content hidden">
-                    <p class="text-gray-500 text-center my-20">No user review yet</p>
+                    <form class="w-24">
+                        <select id="options" class="block w-full py-1 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none">
+                            <option value="option1">Oldest</option>
+                            <option value="option2">Newest</option>
+                        </select>
+                    </form>
+
+                    <?php
+                    // SQL query to fetch reviews for the product
+                    $productReviewSelect = "SELECT productreviewtb.*, usertb.*
+                    FROM productreviewtb
+                    JOIN usertb 
+                    ON productreviewtb.UserID = usertb.UserID 
+                    WHERE productreviewtb.ProductID = '$product_id'";
+
+                    // Execute the query
+                    $productReviewSelectQuery = $connect->query($productReviewSelect);
+
+                    // Check if reviews exist
+                    if ($productReviewSelectQuery->num_rows > 0) {
+                        while ($row = $productReviewSelectQuery->fetch_assoc()) {
+                            // Fetch each review's data
+                            $userid = $row['UserID'];
+                            $fullname = $row['UserName'];
+                            $reviewdate = $row['AddedDate'];
+                            $rating = $row['Rating'];
+                            $comment = $row['Comment'];
+
+                            // Logic to handle truncated comments
+                            $comment_words = explode(' ', $comment);
+                            if (count($comment_words) > 100) {
+                                $truncated_comment = implode(' ', array_slice($comment_words, 0, 100)) . '...';
+                                $full_comment = $comment;
+                            } else {
+                                $truncated_comment = $comment;
+                                $full_comment = '';
+                            }
+                    ?>
+                            <!-- Output the review and customer details -->
+                            <div class="bg-white py-3 flex items-start border-b-2 border-slate-100 space-x-4">
+                                <?php
+                                // Extract initials from the UserName
+                                $nameParts = explode(' ', trim($row['UserName'])); // Split the name by spaces
+                                $initials = substr($nameParts[0], 0, 1); // First letter of the first name
+                                if (count($nameParts) > 1) {
+                                    $initials .= substr(end($nameParts), 0, 1); // First letter of the last name
+                                }
+                                ?>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <p
+                                            class="w-10 h-10 rounded-full bg-blue-100 text-blue-500 uppercase font-semibold flex items-center justify-center select-none">
+                                            <?= $initials ?>
+                                        </p>
+                                        <div class="flex items-center flex-wrap space-x-2">
+                                            <p class="text-sm font-semibold text-gray-800"><?php echo $fullname; ?></p>
+                                            <span class="text-xs text-gray-500">
+                                                <?php
+                                                // Check if the admin ID matches the logged-in admin's ID
+                                                if ($session_userID == $userid) {
+                                                    echo "<span class='text-sm text-green-500 font-semibold'> (You)</span>";
+                                                }
+                                                ?>
+                                                • Verified Buyer <i class="ri-checkbox-circle-line text-green-500"></i>
+                                            </span>
+                                            <span class="text-xs text-gray-500">Reviewed on <span><?= htmlspecialchars(date('Y-m-d', strtotime($reviewdate))) ?></span></span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center mt-1"><?php echo str_repeat('<i class="ri-star-s-line text-amber-500"></i>', $rating); ?></div>
+                                    <div class="flex gap-1 divide-x-2 mt-1">
+                                        <p class="text-gray-700 text-xs font-semibold px-1">Brand: <span class="font-normal"><?php echo $brand; ?></span></p>
+                                    </div>
+
+                                    <!-- Truncated Comment -->
+                                    <p class="text-gray-700 mt-2 text-sm leading-relaxed truncated-comment">
+                                        <?php echo $truncated_comment; ?>
+                                    </p>
+                                    <?php if ($full_comment): ?>
+                                        <p class="text-indigo-600 text-sm cursor-pointer mt-1 read-more">
+                                            <i class="ri-arrow-down-s-line"></i> Read More
+                                        </p>
+                                    <?php endif; ?>
+
+                                    <!-- Full Comment -->
+                                    <p class="text-gray-700 mt-2 text-sm leading-relaxed full-comment hidden">
+                                        <?php echo $full_comment; ?>
+                                    </p>
+                                    <?php if ($full_comment): ?>
+                                        <p class="text-indigo-600 text-sm cursor-pointer mt-1 read-less hidden">
+                                            <i class="ri-arrow-up-s-line"></i> Read Less
+                                        </p>s
+                                    <?php endif; ?>
+
+                                    <!-- React -->
+                                    <div class="mt-1 flex gap-2 text-slate-600 select-none">
+                                        <span class="text-xs cursor-pointer">
+                                            <i class="ri-thumb-up-line text-base"></i>
+                                            Like
+                                        </span>
+                                        <span class="text-xs cursor-pointer">
+                                            <i class="ri-thumb-down-line text-base"></i>
+                                            Dislike
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                    <?php
+                        }
+                    } else {
+                        echo "<p>No reviews available for this product.</p>";
+                    }
+                    ?>
                 </div>
             </div>
         </section>

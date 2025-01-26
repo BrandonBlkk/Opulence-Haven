@@ -179,6 +179,52 @@ if (!$connect) {
 //     echo "Data has been saved";
 // }
 
+// $productreview = "CREATE TABLE productreviewtb
+// (
+//     ReviewID int not null primary key auto_increment,
+//     Rating int,
+//     Comment text,
+//     AddedDate datetime default current_timestamp,
+//     LastUpdate datetime default current_timestamp on update current_timestamp,
+//     UserID varchar(30),
+//     ProductID varchar(20),
+//     FOREIGN KEY (UserID) REFERENCES usertb (UserID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE,
+//     FOREIGN KEY (ProductID) REFERENCES producttb (ProductID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE
+// )";
+
+// try {
+//     $query = mysqli_query($connect, $productreview);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
+
+$reviewReaction = "CREATE TABLE reviewreactiontb
+(
+    ReactionID int NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    ReviewID int NOT NULL,
+    UserID varchar(30) NOT NULL,
+    ReactionType ENUM('like', 'dislike') NOT NULL,
+    ReactedAt datetime DEFAULT current_timestamp,
+    FOREIGN KEY (ReviewID) REFERENCES productreviewtb(ReviewID)
+    ON DELETE CASCADE 
+    ON UPDATE CASCADE,
+    FOREIGN KEY (UserID) REFERENCES usertb(UserID)
+    ON DELETE CASCADE 
+    ON UPDATE CASCADE
+)";
+
+try {
+    $query = mysqli_query($connect, $reviewReaction);
+    echo "Data Successfully saved";
+} catch (mysqli_sql_exception) {
+    echo "Data has been saved";
+}
+
 // $size = "CREATE TABLE sizetb
 // (
 //     SizeID int not null primary key auto_increment,
