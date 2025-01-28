@@ -116,7 +116,10 @@ if (isset($_POST['deleteproducttype'])) {
             <div class="overflow-x-auto">
                 <!-- Product Image Filter -->
                 <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
-                    <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Product Sizes <span class="text-gray-400 text-sm ml-2"><?php echo $productImageCount ?></span></h1>
+                    <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Product Sizes <span class="text-gray-400 text-sm ml-2"><?php echo $productSizeCount ?></span></h1>
+                    <div class="flex items-center w-full">
+                        <input type="text" name="size_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full" placeholder="Search for product size..." value="<?php echo isset($_GET['size_search']) ? htmlspecialchars($_GET['size_search']) : ''; ?>">
+                    </div>
                     <div class="flex items-center">
                         <label for="sort" class="ml-4 mr-2 flex items-center cursor-pointer select-none">
                             <i class="ri-filter-2-line text-xl"></i>
@@ -154,6 +157,7 @@ if (isset($_POST['deleteproducttype'])) {
                                 <th class="p-3 text-start">ID</th>
                                 <th class="p-3 text-start">Size</th>
                                 <th class="p-3 text-start">Price</th>
+                                <th class="p-3 text-start">Product</th>
                                 <th class="p-3 text-start">Actions</th>
                             </tr>
                         </thead>
@@ -161,7 +165,7 @@ if (isset($_POST['deleteproducttype'])) {
                             <?php
                             $count = 1;
                             ?>
-                            <?php foreach ($productImages as $productImage): ?>
+                            <?php foreach ($productSizes as $productSize): ?>
                                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                                     <td class="p-3 text-start whitespace-nowrap">
                                         <div class="flex items-center gap-2 font-medium text-gray-500">
@@ -170,9 +174,15 @@ if (isset($_POST['deleteproducttype'])) {
                                         </div>
                                     </td>
                                     <td class="p-3 text-start hidden sm:table-cell">
+                                        <?= htmlspecialchars($productSize['Size']) ?>
+                                    </td>
+                                    <td class="p-3 text-start hidden sm:table-cell">
+                                        <?= htmlspecialchars($productSize['PriceModifier']) ?>
+                                    </td>
+                                    <td class="p-3 text-start hidden sm:table-cell">
                                         <?php
                                         // Fetch the specific product type for the supplier
-                                        $productID = $productImage['ProductID'];
+                                        $productID = $productSize['ProductID'];
                                         $productQuery = "SELECT ProductID, Title FROM producttb WHERE ProductID = '$productID'";
                                         $productResult = mysqli_query($connect, $productQuery);
 
@@ -184,19 +194,12 @@ if (isset($_POST['deleteproducttype'])) {
                                         }
                                         ?>
                                     </td>
-
-                                    <td class="p-3 text-start select-none">
-                                        <img src="<?= htmlspecialchars($productImage['ImageAdminPath']) ?>" alt="Product Image" class="w-12 h-12 object-cover rounded-sm">
-                                    </td>
-                                    <td class="p-3 text-start hidden sm:table-cell">
-                                        <?= htmlspecialchars($productImage['ImageAlt']) ?>
-                                    </td>
                                     <td class="p-3 text-start space-x-1 select-none">
                                         <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                            data-producttype-id="<?= htmlspecialchars($productImage['ImageID']) ?>"></i>
+                                            data-producttype-id="<?= htmlspecialchars($productSize['SizeID']) ?>"></i>
                                         <button class="text-red-500">
                                             <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                                data-producttype-id="<?= htmlspecialchars($productImage['ImageID']) ?>"></i>
+                                                data-producttype-id="<?= htmlspecialchars($productSize['SizeID']) ?>"></i>
                                         </button>
                                     </td>
                                 </tr>

@@ -12,7 +12,7 @@ if (isset($_GET["product_ID"])) {
     $product_id = $_GET["product_ID"];
 
     // Update the query to fetch all product images
-    $query = "SELECT p.*, pt.ProductTypeID, pi.ImageUserPath, ps.Size, ps.PriceModifier
+    $query = "SELECT p.*, pt.ProductTypeID, pt.ProductType, pi.ImageUserPath, ps.Size, ps.PriceModifier
               FROM producttb p
               INNER JOIN producttypetb pt ON p.ProductTypeID = pt.ProductTypeID
               LEFT JOIN productimagetb pi ON p.ProductID = pi.ProductID
@@ -24,6 +24,7 @@ if (isset($_GET["product_ID"])) {
     // Fetch product details
     $product_id = $product['ProductID'];
     $product_type_id = $product['ProductTypeID'];
+    $product_type = $product['ProductType'];
     $title = $product['Title'];
     $price = $product['Price'];
     $price_modifier = $product['PriceModifier'];
@@ -128,12 +129,17 @@ if ($productReviewSelectQuery->num_rows > 0) {
                     <?php endforeach; ?>
                 </div>
                 <!-- Main Image -->
-                <div class="relative overflow-hidden">
-                    <div class="w-full md:max-w-[740px] max-h-[430px]">
-                        <img id="mainImage" class="w-full h-full object-cover" src="<?= htmlspecialchars($main_product_image) ?>" alt="Main Image">
+                <div class="relative overflow-hidden group">
+                    <div class="w-full md:max-w-[740px] max-h-[430px] cursor-zoom-in relative">
+                        <img
+                            id="mainImage"
+                            class="w-full h-full object-cover transition-transform duration-200 group-hover:scale-125"
+                            src="<?= htmlspecialchars($main_product_image) ?>"
+                            alt="Main Image">
                     </div>
                 </div>
             </div>
+
 
             <script>
                 let originalImage = document.getElementById('mainImage').src;
@@ -154,12 +160,36 @@ if ($productReviewSelectQuery->num_rows > 0) {
                     originalImage = newImage;
                     mainImage.src = newImage;
                 }
+
+                // Zoom based on mouse
+                const mainImage = document.getElementById('mainImage');
+                mainImage.addEventListener('mousemove', (e) => {
+                    const {
+                        left,
+                        top,
+                        width,
+                        height
+                    } = mainImage.getBoundingClientRect();
+                    const x = ((e.clientX - left) / width) * 100;
+                    const y = ((e.clientY - top) / height) * 100;
+                    mainImage.style.transformOrigin = `${x}% ${y}%`;
+                });
+                mainImage.addEventListener('mouseleave', () => {
+                    mainImage.style.transformOrigin = 'center center';
+                });
             </script>
 
             <div class="w-full md:max-w-[290px] py-3 px-0 sm:py-0 sm:px-3">
                 <div class="mb-4">
-                    <p class="text-lg font-bold mb-2" id="priceDisplay">$ <?= $price; ?></p>
-                    <p class="text-sm text-gray-500">(<?= $stock; ?> <?= ($stock > 1) ? 'availablies' : 'available'  ?>)</p>
+                    <p class="text-base sm:text-lg font-bold mb-2" id="priceDisplay">$ <?= $price; ?></p>
+                    <div class="flex gap-1 items-center">
+                        <p class="text-sm text-gray-500">(<?= $stock; ?> <?= ($stock > 1) ? 'availablies' : 'available'  ?>)</p>
+                        <?php if ($selling_fast == 1): ?>
+                            <div class="inline-block bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-sm">
+                                Selling Fast
+                            </div>
+                        <?php endif; ?>
+                    </div>
                     <?php
                     $review_select = "SELECT Rating FROM productreviewtb WHERE ProductID = '$product_id'";
                     $select_query = $connect->query($review_select);
@@ -270,10 +300,10 @@ if ($productReviewSelectQuery->num_rows > 0) {
         <section class="max-w-[950px] mx-auto">
             <div class="relative flex gap-10 border-b border-slate-200 pt-8 pb-2">
                 <!-- Tabs -->
-                <h1 id="tab-description" class="tab text-lg text-blue-900 font-semibold cursor-pointer select-none <?= ($description === 'Not provided') ? 'hidden' : ''; ?>" onclick="showTab('description')">Description</h1>
-                <h1 id="tab-specification" class="tab text-lg text-blue-900 font-semibold cursor-pointer select-none <?= ($product_specification === 'Not provided') ? 'hidden' : ''; ?>" onclick="showTab('specification')">Specification</h1>
-                <h1 id="tab-information" class="tab text-lg text-blue-900 font-semibold cursor-pointer select-none <?= ($product_information === 'Not provided') ? 'hidden' : ''; ?>" onclick="showTab('information')">Information</h1>
-                <h1 id="tab-review" class="tab text-lg text-blue-900 font-semibold cursor-pointer select-none" onclick="showTab('review')">Reviews (<?= ($productReviewCount) ?>)</h1>
+                <h1 id="tab-description" class="tab text-base sm:text-lg text-blue-900 font-semibold cursor-pointer select-none <?= ($description === 'Not provided') ? 'hidden' : ''; ?>" onclick="showTab('description')">Description</h1>
+                <h1 id="tab-specification" class="tab text-base sm:text-lg text-blue-900 font-semibold cursor-pointer select-none <?= ($product_specification === 'Not provided') ? 'hidden' : ''; ?>" onclick="showTab('specification')">Specification</h1>
+                <h1 id="tab-information" class="tab text-base sm:text-lg text-blue-900 font-semibold cursor-pointer select-none <?= ($product_information === 'Not provided') ? 'hidden' : ''; ?>" onclick="showTab('information')">Information</h1>
+                <h1 id="tab-review" class="tab text-base sm:text-lg text-blue-900 font-semibold cursor-pointer select-none" onclick="showTab('review')">Reviews (<?= ($productReviewCount) ?>)</h1>
 
                 <!-- Moving Bar -->
                 <div id="active-bar" class="absolute bottom-0 left-0 h-[2px] bg-blue-900 transition-all duration-300"></div>
@@ -292,12 +322,12 @@ if ($productReviewSelectQuery->num_rows > 0) {
                 <!-- Information -->
                 <div id="information" class="tab-content grid grid-cols-1 sm:grid-cols-2">
                     <div>
-                        <h1 id="tab-specification" class="tab text-lg text-blue-900 font-semibold cursor-pointer select-none">Information</h1>
+                        <h1 id="tab-specification" class="tab text-base sm:text-lg text-blue-900 font-semibold cursor-pointer select-none">Information</h1>
                         <p class="text-gray-600"><?php echo nl2br($product_information); ?></p>
                     </div>
                     <!-- Delivery-->
                     <div class="<?= ($product_delivery === 'Not provided') ? 'hidden' : ''; ?>">
-                        <h1 id="tab-specification" class="tab text-lg text-blue-900 font-semibold cursor-pointer select-none">Delivery</h1>
+                        <h1 id="tab-specification" class="tab text-base sm:text-lg text-blue-900 font-semibold cursor-pointer select-none">Delivery</h1>
                         <p class=" text-gray-600"><?php echo nl2br($product_delivery); ?></p>
                     </div>
                 </div>
@@ -375,6 +405,7 @@ if ($productReviewSelectQuery->num_rows > 0) {
                                     <div class="flex items-center mt-1"><?php echo str_repeat('<i class="ri-star-s-line text-amber-500"></i>', $rating); ?></div>
                                     <div class="flex gap-1 divide-x-2 mt-1">
                                         <p class="text-gray-700 text-xs font-semibold px-1">Brand: <span class="font-normal"><?php echo $brand; ?></span></p>
+                                        <p class="text-gray-700 text-xs font-semibold px-1">Pattern: <span class="font-normal"><?php echo $product_type; ?></span></p>
                                     </div>
 
                                     <!-- Truncated Comment -->
@@ -413,7 +444,7 @@ if ($productReviewSelectQuery->num_rows > 0) {
                     <?php
                         }
                     } else {
-                        echo "<p>No reviews available for this product.</p>";
+                        echo "<p class='text-center text-gray-500 my-20'>No reviews available for this product.</p>";
                     }
                     ?>
                 </div>
@@ -450,10 +481,11 @@ if ($productReviewSelectQuery->num_rows > 0) {
             });
         </script>
 
+        <!-- Recommended section -->
         <div class="py-10 px-3 text-center">
-            <h1 class="text-xl text-blue-900 font-semibold">Recommended Just For You</h1>
+            <h1 class="text-lg sm:text-xl text-blue-900 font-semibold">Recommended Just For You</h1>
         </div>
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-2 px-4 max-w-[1000px] mx-auto">
+        <section class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 px-4 max-w-[1000px] mx-auto">
             <!-- Card 1 -->
             <a href="#" class="block w-full sm:max-w-[300px] mx-auto group">
                 <div class="h-auto sm:h-[180px] select-none">

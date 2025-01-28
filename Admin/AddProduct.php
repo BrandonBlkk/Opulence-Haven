@@ -24,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproduct'])) {
     $price = mysqli_real_escape_string($connect, $_POST['price']);
     $discountPrice = mysqli_real_escape_string($connect, $_POST['discountPrice']);
     $sellingFast = mysqli_real_escape_string($connect, $_POST['sellingfast']);
-    $stock = mysqli_real_escape_string($connect, $_POST['stock']);
+    $stock = 0;
     $productType = mysqli_real_escape_string($connect, $_POST['productType']);
 
     // Check if the product already exists using prepared statement
@@ -347,30 +347,6 @@ if (isset($_POST['deleteproduct'])) {
                             <small id="updateDeliveryError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
                     </div>
-                    <!-- Image Uploads -->
-                    <div class="relative">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Product Images</label>
-                        <div class="flex flex-col flex-wrap sm:flex-row gap-4 sm:gap-2">
-                            <div>
-                                <div class="w-20 h-20">
-                                    <img id="updateimg1" src="" alt="Current Image 1" class="w-full h-full object-cover">
-                                </div>
-                                <input type="file" name="updateimg1" class="mb-2">
-                            </div>
-                            <div>
-                                <div class="w-20 h-20">
-                                    <img id="updateimg2" src="" alt="Current Image 2" class="w-full h-full object-cover">
-                                </div>
-                                <input type="file" name="updateimg2" class="mb-2">
-                            </div>
-                            <div>
-                                <div class="w-20 h-20">
-                                    <img id="updateimg3" src="" alt="Current Image 3" class="w-full h-full object-cover">
-                                </div>
-                                <input type="file" name="updateimg3">
-                            </div>
-                        </div>
-                    </div>
                     <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
                         <!-- Price -->
                         <div class="relative w-full">
@@ -394,29 +370,19 @@ if (isset($_POST['deleteproduct'])) {
                                 placeholder="Enter discount price">
                             <small id="updateDiscountPriceError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
-                        <!-- Stock -->
-                        <div class="relative w-full">
-                            <input
-                                id="updateStockInput"
-                                type="number"
-                                name="updatestock"
-                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                placeholder="Enter stock quantity">
-                            <small id="updateStockError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
-                        </div>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
                         <!-- Selling Fast -->
                         <div class="relative flex-1">
-                            <select name="updatesellingfast" id="updatesellingfast" class="p-2 w-full border rounded">
+                            <select name="updatesellingfast" id="updatesellingfast" class="p-2 w-full border rounded outline-none">
                                 <option value="" disabled selected>Selling Fast</option>
-                                <option value="true" <?php echo $product['SellingFast'] == 'true' ? 'selected' : ''; ?>>True</option>
-                                <option value="false" <?php echo $product['SellingFast'] == 'false' ? 'selected' : ''; ?>>False</option>
+                                <option value="1" <?php echo $product['SellingFast'] == '1' ? 'selected' : ''; ?>>True</option>
+                                <option value="0" <?php echo $product['SellingFast'] == '0' ? 'selected' : ''; ?>>False</option>
                             </select>
                         </div>
                         <!-- Product Type -->
                         <div class="relative flex-1">
-                            <select name="updateproductType" id="updateproductType" class="p-2 w-full border rounded">
+                            <select name="updateproductType" id="updateproductType" class="p-2 w-full border rounded outline-none">
                                 <option value="" disabled selected>Select type of products</option>
                                 <?php
                                 $select = "SELECT * FROM producttypetb";
@@ -544,7 +510,7 @@ if (isset($_POST['deleteproduct'])) {
                     </div>
                     <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
                         <!-- Price -->
-                        <div class="relative fl1">
+                        <div class="relative flex-1">
                             <input
                                 id="priceInput"
                                 type="number"
@@ -565,25 +531,11 @@ if (isset($_POST['deleteproduct'])) {
                                 placeholder="Enter discount price">
                             <small id="discountPriceError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
-                        <!-- Product Size -->
-                        <div>
-                            <a class="mt-1 text-sm text-amber-500 cursor-pointer" href="AddSize.php">Add product size</a>
-                        </div>
-                        <!-- Stock -->
-                        <div class="relative flex-1">
-                            <input
-                                id="stockInput"
-                                type="number"
-                                name="stock"
-                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                placeholder="Enter stock quantity">
-                            <small id="stockError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
-                        </div>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
                         <!-- Selling Fast -->
                         <div class="relative flex-1">
-                            <select name="sellingfast" id="sellingfast" class="p-2 w-full border rounded" required>
+                            <select name="sellingfast" id="sellingfast" class="p-2 w-full border rounded outline-none" required>
                                 <option value="" disabled selected>Selling Fast</option>
                                 <option value="1">True</option>
                                 <option value="0">False</option>
@@ -591,7 +543,7 @@ if (isset($_POST['deleteproduct'])) {
                         </div>
                         <!-- Product Type -->
                         <div class="relative flex-1">
-                            <select name="productType" id="productType" class="p-2 w-full border rounded" required>
+                            <select name="productType" id="productType" class="p-2 w-full border rounded outline-none" required>
                                 <option value="" disabled selected>Select type of products</option>
                                 <?php
                                 $select = "SELECT * FROM producttypetb";
@@ -611,17 +563,23 @@ if (isset($_POST['deleteproduct'])) {
                             </select>
                         </div>
                     </div>
-                    <div class="flex justify-end gap-4 select-none">
-                        <div id="addProductCancelBtn" class="px-4 py-2 text-amber-500 font-semibold hover:text-amber-600">
-                            Cancel
+                    <div class="flex justify-between items-center gap-4 select-none">
+                        <!-- Product Size -->
+                        <div>
+                            <a class="mt-1 text-sm text-amber-500 cursor-pointer" href="AddSize.php">Add product size</a>
                         </div>
-                        <!-- Submit Button -->
-                        <button
-                            type="submit"
-                            name="addproduct"
-                            class="bg-amber-500 text-white font-semibold px-4 py-2 rounded-sm select-none hover:bg-amber-600 transition-colors">
-                            Add Product
-                        </button>
+                        <div class="flex items-center">
+                            <div id="addProductCancelBtn" class="px-4 py-2 text-amber-500 font-semibold hover:text-amber-600">
+                                Cancel
+                            </div>
+                            <!-- Submit Button -->
+                            <button
+                                type="submit"
+                                name="addproduct"
+                                class="bg-amber-500 text-white font-semibold px-4 py-2 rounded-sm select-none hover:bg-amber-600 transition-colors">
+                                Add Product
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>

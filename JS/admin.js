@@ -563,8 +563,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("deliveryInput").addEventListener("keyup", validateProductDelivery);
     document.getElementById("priceInput").addEventListener("keyup", validateProductPrice);
     document.getElementById("discountPriceInput").addEventListener("keyup", validateProductDiscountPrice);
-    document.getElementById("productSizeInput").addEventListener("keyup", validateProductSize);
-    document.getElementById("stockInput").addEventListener("keyup", validateProductStock);
 
     const productForm = document.getElementById("productForm");
     if (productForm) {
@@ -602,9 +600,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             // Fill the modal form with product type data
                             document.getElementById('updateProductID').value = productId;
                             document.querySelector('[name="updateproductTitle"]').value = data.product.Title;
-                            document.getElementById('updateimg1').src = data.product.AdminImg1;
-                            document.getElementById('updateimg2').src = data.product.AdminImg2;
-                            document.getElementById('updateimg3').src = data.product.AdminImg3;
                             document.querySelector('[name="updatebrand"]').value = data.product.Brand;
                             document.querySelector('[name="updatedescription"]').value = data.product.Description;
                             document.querySelector('[name="updatespecification"]').value = data.product.Specification;
@@ -612,8 +607,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             document.querySelector('[name="updatedelivery"]').value = data.product.DeliveryInfo;
                             document.querySelector('[name="updateprice"]').value = data.product.Price;
                             document.querySelector('[name="updatediscountPrice"]').value = data.product.DiscountPrice;
-                            document.querySelector('[name="updateproductsize"]').value = data.product.ProductSize;
-                            document.querySelector('[name="updatestock"]').value = data.product.Stock;
                             document.querySelector('[name="updatesellingfast"]').value = data.product.SellingFast;
                             document.querySelector('[name="updateproductType"]').value = data.product.ProductTypeID;
                             
@@ -1534,9 +1527,8 @@ const validateProductForm = () => {
     const isProductPriceValid = validateProductPrice();
     const isProductDiscountPriceValid = validateProductDiscountPrice();
     const isProductSizeValid = validateProductSize();
-    const isProductStockValid = validateProductStock();
 
-    return isProductTitleValid && isProductBrandValid && isProductDescriptionValid && isProductSpecificationValid && isProductInformationValid && isProductDeliveryValid && isProductPriceValid && isProductDiscountPriceValid && isProductSizeValid && isProductStockValid;
+    return isProductTitleValid && isProductBrandValid && isProductDescriptionValid && isProductSpecificationValid && isProductInformationValid && isProductDeliveryValid && isProductPriceValid && isProductDiscountPriceValid && isProductSizeValid;
 }
 
 const validateSupplierForm = () => {
@@ -1722,14 +1714,6 @@ const validateProductSize = () => {
         "productSizeInput",
         "productSizeError",
         (input) => (!input ? "Size is required." : null)
-    );
-}
-
-const validateProductStock = () => {
-    return validateField(
-        "stockInput",
-        "stockError",
-        (input) => (!input ? "Stock is required." : null)
     );
 }
 

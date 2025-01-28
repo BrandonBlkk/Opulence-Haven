@@ -212,6 +212,12 @@ if ($productSelectQuery->num_rows > 0) {
                                     src="<?= htmlspecialchars($product['SecondaryImagePath']) ?>"
                                     alt="Secondary Image">
                             </div>
+                            <!-- Selling Fast Badge -->
+                            <?php if (isset($product['SellingFast']) && $product['SellingFast'] == 1): ?>
+                                <div class="absolute top-1 left-1 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-sm">
+                                    Selling Fast
+                                </div>
+                            <?php endif; ?>
                             <div class="absolute bottom-0 bg-opacity-45 text-white p-3 w-full z-20 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all duration-300">
                                 <h1 class="font-semibold mt-3"><?= htmlspecialchars($product['Title']) ?></h1>
                                 <div class="flex items-center text-amber-500 group mt-1">
