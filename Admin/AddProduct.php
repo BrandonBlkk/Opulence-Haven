@@ -136,11 +136,16 @@ if (isset($_POST['deleteproduct'])) {
                     <p>Add product information to monitor inventory, track orders, and manage product details for efficient operations.</p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <a href="ProductImage.php">Image</a>
+                    <!-- Image Button -->
+                    <button id="imageButton" class="bg-amber-500 text-white px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
+                        <i class="ri-folder-image-line text-xl"></i>
+                    </button>
+                    <!-- Add Product Button -->
                     <button id="addProductBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
                         <i class="ri-add-line text-xl"></i>
                     </button>
                 </div>
+
             </div>
 
             <!-- Product Table -->
