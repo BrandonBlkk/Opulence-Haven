@@ -59,7 +59,7 @@ if (adminLogoutBtn && adminConfirmModal && cancelBtn && adminConfirmLogoutBtn &&
         darkOverlay2.classList.add('opacity-0', 'invisible');
         darkOverlay2.classList.remove('opacity-100');
         loader.style.display = 'flex';
-    
+
         // Notify the server to destroy the session
         fetch('AdminLogout.php', { method: 'POST' })
             .then(() => {
@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
             darkOverlay2.classList.remove('opacity-0', 'invisible');
             darkOverlay2.classList.add('opacity-100');
             addRoleModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-        }); 
+        });
 
         // Cancel button functionality
         addRoleCancelBtn.addEventListener('click', () => {
@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
             darkOverlay2.classList.remove('opacity-0', 'invisible');
             darkOverlay2.classList.add('opacity-100');
             addSupplierModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-        }); 
+        });
 
         // Cancel button functionality
         addSupplierCancelBtn.addEventListener('click', () => {
@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (updateSupplierModal && modalCancelBtn && detailsBtns) {
         // Add click event to each button
         detailsBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 const supplierId = this.getAttribute('data-supplier-id');
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
@@ -288,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (supplierConfirmDeleteModal && supplierCancelDeleteBtn && deleteBtns) {
         // Add click event to each delete button
-        deleteBtns.forEach(btn => { 
+        deleteBtns.forEach(btn => {
             btn.addEventListener('click', function () {
                 const supplierId = this.getAttribute('data-supplier-id');
 
@@ -347,7 +347,7 @@ document.addEventListener("DOMContentLoaded", () => {
             darkOverlay2.classList.remove('opacity-0', 'invisible');
             darkOverlay2.classList.add('opacity-100');
             addProductTypeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-        }); 
+        });
 
         // Cancel button functionality
         addProductTypeCancelBtn.addEventListener('click', () => {
@@ -400,7 +400,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (updateProductTypeModal && updateProductTypeModalCancelBtn && detailsBtns) {
         // Add click event to each button
         detailsBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 const productTypeId = this.getAttribute('data-producttype-id');
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
@@ -528,7 +528,7 @@ document.addEventListener("DOMContentLoaded", () => {
             darkOverlay2.classList.remove('opacity-0', 'invisible');
             darkOverlay2.classList.add('opacity-100');
             addProductModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-        }); 
+        });
 
         // Cancel button functionality
         addProductCancelBtn.addEventListener('click', () => {
@@ -587,7 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (updateProductModal && updateProductModalCancelBtn && detailsBtns) {
         // Add click event to each button
         detailsBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 const productId = this.getAttribute('data-product-id');
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
@@ -609,7 +609,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             document.querySelector('[name="updatediscountPrice"]').value = data.product.DiscountPrice;
                             document.querySelector('[name="updatesellingfast"]').value = data.product.SellingFast;
                             document.querySelector('[name="updateproductType"]').value = data.product.ProductTypeID;
-                            
+
                             // Show the modal
                             updateProductModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
                         } else {
@@ -724,7 +724,7 @@ document.addEventListener("DOMContentLoaded", () => {
             darkOverlay2.classList.remove('opacity-0', 'invisible');
             darkOverlay2.classList.add('opacity-100');
             addRoomTypeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-        }); 
+        });
 
         // Cancel button functionality
         addRoomTypeCancelBtn.addEventListener('click', () => {
@@ -778,7 +778,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (updateRoomTypeModal && updateRoomTypeModalCancelBtn && detailsBtns) {
         // Add click event to each button
         detailsBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 const roomTypeId = this.getAttribute('data-roomtype-id');
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
@@ -864,7 +864,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             console.error('Failed to load room type details');
                         }
                     })
-                .catch(error => console.error('Fetch error:', error));
+                    .catch(error => console.error('Fetch error:', error));
 
                 // Show modal
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
@@ -908,7 +908,7 @@ document.addEventListener("DOMContentLoaded", () => {
             darkOverlay2.classList.remove('opacity-0', 'invisible');
             darkOverlay2.classList.add('opacity-100');
             addFacilityTypeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-        }); 
+        });
 
         // Cancel button functionality
         addFacilityTypeCancelBtn.addEventListener('click', () => {
@@ -961,7 +961,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (updateFacilityTypeModal && updateFacilityTypeModalCancelBtn && detailsBtns) {
         // Add click event to each button
         detailsBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 const facilityTypeId = this.getAttribute('data-facilitytype-id');
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
@@ -982,7 +982,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             console.error('Failed to load facility type details');
                         }
                     })
-                .catch(error => console.error('Fetch error:', error));
+                    .catch(error => console.error('Fetch error:', error));
             });
         });
 
@@ -1046,7 +1046,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             console.error('Failed to load facility type details');
                         }
                     })
-                .catch(error => console.error('Fetch error:', error));
+                    .catch(error => console.error('Fetch error:', error));
 
                 // Show modal
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
@@ -1090,7 +1090,7 @@ document.addEventListener("DOMContentLoaded", () => {
             darkOverlay2.classList.remove('opacity-0', 'invisible');
             darkOverlay2.classList.add('opacity-100');
             addFacilityModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-        }); 
+        });
 
         // Cancel button functionality
         addFacilityCancelBtn.addEventListener('click', () => {
@@ -1142,7 +1142,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (updateFacilityModal && updateFacilityModalCancelBtn && detailsBtns) {
         // Add click event to each button
         detailsBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 const facilityId = this.getAttribute('data-facility-id');
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
@@ -1166,7 +1166,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             console.error('Failed to load facility details');
                         }
                     })
-                .catch(error => console.error('Fetch error:', error));
+                    .catch(error => console.error('Fetch error:', error));
             });
         });
 
@@ -1229,7 +1229,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             console.error('Failed to load facility details');
                         }
                     })
-                .catch(error => console.error('Fetch error:', error));
+                    .catch(error => console.error('Fetch error:', error));
 
                 // Show modal
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
@@ -1250,6 +1250,425 @@ document.addEventListener('DOMContentLoaded', () => {
             showAlert('The facility has been successfully deleted.');
             setTimeout(() => {
                 window.location.href = 'AddFacility.php';
+            }, 5000);
+        } else if (alertMessage) {
+            // Show Alert
+            showAlert(alertMessage);
+        }
+    }
+});
+
+// Add Rule Form
+document.addEventListener("DOMContentLoaded", () => {
+    const addRuleModal = document.getElementById('addRuleModal');
+    const addRuleBtn = document.getElementById('addRuleBtn');
+    const addRuleCancelBtn = document.getElementById('addRuleCancelBtn');
+    const loader = document.getElementById('loader');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const addProductSizeSuccess = document.getElementById('addProductSizeSuccess').value === 'true';
+
+    if (addRuleModal && addRuleBtn && addRuleCancelBtn) {
+        // Show modal
+        addRuleBtn.addEventListener('click', () => {
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
+            addRuleModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+        });
+
+        // Cancel button functionality
+        addRuleCancelBtn.addEventListener('click', () => {
+            addRuleModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+    }
+
+    if (addProductSizeSuccess) {
+        loader.style.display = 'flex';
+
+        // Show Alert
+        setTimeout(() => {
+            loader.style.display = 'none';
+            showAlert('A new rule has been successfully added.');
+            setTimeout(() => {
+                window.location.href = 'AddRule.php';
+            }, 5000);
+        }, 1000);
+    } else if (alertMessage) {
+        // Show Alert
+        showAlert(alertMessage);
+    }
+
+    // Add keyup event listeners for real-time validation
+    document.getElementById("ruleTitleInput").addEventListener("keyup", validateRuleTitle);
+    document.getElementById("ruleInput").addEventListener("keyup", validateRule);
+    document.getElementById("ruleIconInput").addEventListener("keyup", validateRuleIcon);
+
+    const ruleForm = document.getElementById("ruleForm");
+    if (ruleForm) {
+        ruleForm.addEventListener("submit", (e) => {
+            if (!validateRuleForm()) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+
+// Add Product Image Form
+document.addEventListener("DOMContentLoaded", () => {
+    const addProductImageModal = document.getElementById('addProductImageModal');
+    const addProductImageBtn = document.getElementById('addProductImageBtn');
+    const addProductImageCancelBtn = document.getElementById('addProductImageCancelBtn');
+    const loader = document.getElementById('loader');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const addProductImageSuccess = document.getElementById('addProductImageSuccess').value === 'true';
+
+    if (addProductImageModal && addProductImageBtn && addProductImageCancelBtn) {
+        // Show modal
+        addProductImageBtn.addEventListener('click', () => {
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
+            addProductImageModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+        });
+
+        // Cancel button functionality
+        addProductImageCancelBtn.addEventListener('click', () => {
+            addProductImageModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+    }
+
+    if (addProductImageSuccess) {
+        loader.style.display = 'flex';
+
+        // Show Alert
+        setTimeout(() => {
+            loader.style.display = 'none';
+            showAlert('A new product image has been successfully added.');
+            setTimeout(() => {
+                window.location.href = 'ProductImage.php';
+            }, 5000);
+        }, 1000);
+    } else if (alertMessage) {
+        // Show Alert
+        showAlert(alertMessage);
+    }
+
+    // Add keyup event listeners for real-time validation
+    document.getElementById("productImageAltInput").addEventListener("keyup", validateProductImageAlt);
+    const productImageForm = document.getElementById("productImageForm");
+    if (productImageForm) {
+        productImageForm.addEventListener("submit", (e) => {
+            if (!validateProductImageForm()) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+
+// Product Image Details Modal
+document.addEventListener('DOMContentLoaded', () => {
+    const updateProductImageModal = document.getElementById('updateProductImageModal');
+    const updateProductImageModalCancelBtn = document.getElementById('updateProductImageModalCancelBtn');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const updateProductImageSuccess = document.getElementById('updateProductImageSuccess').value === 'true';
+
+    // Get all details buttons
+    const detailsBtns = document.querySelectorAll('.details-btn');
+
+    if (updateProductImageModal && updateProductImageModalCancelBtn && detailsBtns) {
+        // Add click event to each button
+        detailsBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const ImageId = this.getAttribute('data-productimage-id');
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+
+                // Fetch product  details
+                fetch(`../Admin/ProductImage.php?action=getProductImageDetails&id=${ImageId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Fill the modal form with product  data
+                            document.getElementById('updateProductImageID').value = ImageId;
+                            document.getElementById('updateimagepath').src = data.productimage.ImageAdminPath;
+                            document.querySelector('[name="updateimagealt"]').value = data.productimage.ImageAlt;
+                            document.querySelector('[name="updateproduct"]').value = data.productimage.ProductID;
+                            document.querySelector('[name="updateprimary"]').value = data.productimage.PrimaryImage;
+                            document.querySelector('[name="updatesecondary"]').value = data.productimage.SecondaryImage;
+                            // Show the modal
+                            updateProductImageModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        } else {
+                            console.error('Failed to load product image details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+            });
+        });
+
+        updateProductImageModalCancelBtn.addEventListener('click', () => {
+            updateProductImageModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        if (updateProductImageSuccess) {
+            // Show Alert
+            setTimeout(() => {
+                showAlert('The product image has been successfully updated.');
+                setTimeout(() => {
+                    window.location.href = 'ProductImage.php';
+                }, 5000);
+            }, 500);
+        } else if (alertMessage) {
+            // Show Alert
+            showAlert(alertMessage);
+        }
+        // Add keyup event listeners for real-time validation
+        // document.getElementById("updateFacilityInput").addEventListener("keyup", validateUpdateFacility);
+
+        // const updateFacilityForm = document.getElementById("updateFacilityForm");
+        // if (updateFacilityForm) {
+        //     updateFacilityForm.addEventListener("submit", (e) => {
+        //         if (!validateFacilityUpdateForm()) {
+        //             e.preventDefault();
+        //         }
+        //     });
+        // }
+    }
+});
+
+// Product Image Delete Modal
+document.addEventListener('DOMContentLoaded', () => {
+    const productImageConfirmDeleteModal = document.getElementById('productImageConfirmDeleteModal');
+    const productImageCancelDeleteBtn = document.getElementById('productImageCancelDeleteBtn');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const deleteProductImageSuccess = document.getElementById('deleteProductImageSuccess').value === 'true';
+
+    // Get all delete buttons
+    const deleteBtns = document.querySelectorAll('.delete-btn');
+
+    if (productImageConfirmDeleteModal && productImageCancelDeleteBtn && deleteBtns) {
+        // Add click event to each delete button
+        deleteBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const ImageId = this.getAttribute('data-productimage-id');
+
+                // Fetch fafcility details
+                fetch(`../Admin/ProductImage.php?action=getProductImageDetails&id=${ImageId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('deleteProductImageID').value = ImageId;
+                            document.getElementById('deleteImagePath').src = data.productimage.ImageAdminPath;
+                        } else {
+                            console.error('Failed to load productimage details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+
+                // Show modal
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+                productImageConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+            });
+        });
+
+        // Cancel button functionality
+        productImageCancelDeleteBtn.addEventListener('click', () => {
+            productImageConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        if (deleteProductImageSuccess) {
+            // Show Alert
+            showAlert('The product image has been successfully deleted.');
+            setTimeout(() => {
+                window.location.href = 'ProductImage.php';
+            }, 5000);
+        } else if (alertMessage) {
+            // Show Alert
+            showAlert(alertMessage);
+        }
+    }
+});
+
+// Add Product Size Form
+document.addEventListener("DOMContentLoaded", () => {
+    const addProductSizeModal = document.getElementById('addProductSizeModal');
+    const addProductSizeBtn = document.getElementById('addProductSizeBtn');
+    const addProductSizeCancelBtn = document.getElementById('addProductSizeCancelBtn');
+    const loader = document.getElementById('loader');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const addProductSizeSuccess = document.getElementById('addProductSizeSuccess').value === 'true';
+
+    if (addProductSizeModal && addProductSizeBtn && addProductSizeCancelBtn) {
+        // Show modal
+        addProductSizeBtn.addEventListener('click', () => {
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
+            addProductSizeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+        });
+
+        // Cancel button functionality
+        addProductSizeCancelBtn.addEventListener('click', () => {
+            addProductSizeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+    }
+
+    if (addProductSizeSuccess) {
+        loader.style.display = 'flex';
+
+        // Show Alert
+        setTimeout(() => {
+            loader.style.display = 'none';
+            showAlert('A new product size has been successfully added.');
+            setTimeout(() => {
+                window.location.href = 'AddSize.php';
+            }, 5000);
+        }, 1000);
+    } else if (alertMessage) {
+        // Show Alert
+        showAlert(alertMessage);
+    }
+
+    // Add keyup event listeners for real-time validation
+    document.getElementById("sizeInput").addEventListener("keyup", validateProductSize);
+    document.getElementById("priceModifierInput").addEventListener("keyup", validatePriceModifier);
+
+    const productSizeForm = document.getElementById("productSizeForm");
+    if (productSizeForm) {
+        productSizeForm.addEventListener("submit", (e) => {
+            if (!validateProductSizeForm()) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+
+// Product Size Details Modal
+document.addEventListener('DOMContentLoaded', () => {
+    const updateProductSizeModal = document.getElementById('updateProductSizeModal');
+    const updateProductSizeModalCancelBtn = document.getElementById('updateProductSizeModalCancelBtn');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const updateProductSizeSuccess = document.getElementById('updateProductSizeSuccess').value === 'true';
+
+    // Get all details buttons
+    const detailsBtns = document.querySelectorAll('.details-btn');
+
+    if (updateProductSizeModal && updateProductSizeModalCancelBtn && detailsBtns) {
+        // Add click event to each button
+        detailsBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const productSizeId = this.getAttribute('data-productsize-id');
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+
+                // Fetch product  details
+                fetch(`../Admin/AddSize.php?action=getProductSizeDetails&id=${productSizeId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Fill the modal form with product  data
+                            document.getElementById('updateProductSizeID').value = productSizeId;
+                            document.querySelector('[name="updatesize"]').value = data.productsize.Size;
+                            document.querySelector('[name="updateprice"]').value = data.productsize.PriceModifier;
+                            document.querySelector('[name="updateproduct"]').value = data.productsize.ProductID;
+                            // Show the modal
+                            updateProductSizeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        } else {
+                            console.error('Failed to load product size details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+            });
+        });
+
+        updateProductSizeModalCancelBtn.addEventListener('click', () => {
+            updateProductSizeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        if (updateProductSizeSuccess) {
+            // Show Alert
+            setTimeout(() => {
+                showAlert('The product size has been successfully updated.');
+                setTimeout(() => {
+                    window.location.href = 'AddSize.php';
+                }, 5000);
+            }, 500);
+        } else if (alertMessage) {
+            // Show Alert
+            showAlert(alertMessage);
+        }
+        // Add keyup event listeners for real-time validation
+        document.getElementById("updateSizeInput").addEventListener("keyup", validateUpdateProductSize);
+        document.getElementById("updatePriceModifierInput").addEventListener("keyup", validateUpdateProductModifier);
+
+        const updateProductSizeForm = document.getElementById("updateProductSizeForm");
+        if (updateProductSizeForm) {
+            updateProductSizeForm.addEventListener("submit", (e) => {
+                if (!validateProductSizeUpdateForm()) {
+                    e.preventDefault();
+                }
+            });
+        }
+    }
+});
+
+// Product Size Delete Modal
+document.addEventListener('DOMContentLoaded', () => {
+    const productSizeConfirmDeleteModal = document.getElementById('productSizeConfirmDeleteModal');
+    const productSizeCancelDeleteBtn = document.getElementById('productSizeCancelDeleteBtn');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const deleteProductSizeSuccess = document.getElementById('deleteProductSizeSuccess').value === 'true';
+
+    // Get all delete buttons
+    const deleteBtns = document.querySelectorAll('.delete-btn');
+
+    if (productSizeConfirmDeleteModal && productSizeCancelDeleteBtn && deleteBtns) {
+        // Add click event to each delete button
+        deleteBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const productSizeId = this.getAttribute('data-productsize-id');
+
+                // Fetch fafcility details
+                fetch(`../Admin/AddSize.php?action=getProductSizeDetails&id=${productSizeId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('deleteProductSizeID').value = productSizeId;
+                            document.getElementById('productSizeDeleteName').textContent = data.productsize.Size;
+                        } else {
+                            console.error('Failed to load product size details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+
+                // Show modal
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+                productSizeConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+            });
+        });
+
+        // Cancel button functionality
+        productSizeCancelDeleteBtn.addEventListener('click', () => {
+            productSizeConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        if (deleteProductSizeSuccess) {
+            // Show Alert
+            showAlert('The product size has been successfully deleted.');
+            setTimeout(() => {
+                window.location.href = 'AddSize.php';
             }, 5000);
         } else if (alertMessage) {
             // Show Alert
@@ -1360,7 +1779,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (confirmContactModal && confirmContactModalCancelBtn && detailsBtns) {
         // Add click event to each button
         detailsBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 const contactId = this.getAttribute('data-contact-id');
                 const darkOverlay2 = document.getElementById('darkOverlay2');
 
@@ -1448,7 +1867,7 @@ if (adminProfileDeleteBtn && confirmDeleteModal && cancelDeleteBtn && confirmDel
     });
 
     // Handle Delete Action
-    confirmDeleteBtn.addEventListener("click", () => {                 
+    confirmDeleteBtn.addEventListener("click", () => {
         confirmDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
         confirmDeleteModal.classList.remove("opacity-100", "translate-y-0");
         darkOverlay2.classList.add("opacity-0", "invisible");
@@ -1474,7 +1893,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const alertMessage = document.getElementById('alertMessage').value;
     const profileUpdate = document.getElementById('profileUpdate').value === 'true';
 
-    if (profileUpdate)  {
+    if (profileUpdate) {
         // Show Alert
         showAlert('You have successfully changed a profile.');
         setTimeout(() => {
@@ -1526,9 +1945,28 @@ const validateProductForm = () => {
     const isProductDeliveryValid = validateProductDelivery();
     const isProductPriceValid = validateProductPrice();
     const isProductDiscountPriceValid = validateProductDiscountPrice();
-    const isProductSizeValid = validateProductSize();
 
-    return isProductTitleValid && isProductBrandValid && isProductDescriptionValid && isProductSpecificationValid && isProductInformationValid && isProductDeliveryValid && isProductPriceValid && isProductDiscountPriceValid && isProductSizeValid;
+    return isProductTitleValid && isProductBrandValid && isProductDescriptionValid && isProductSpecificationValid && isProductInformationValid && isProductDeliveryValid && isProductPriceValid && isProductDiscountPriceValid;
+}
+
+const validateProductImageForm = () => {
+    const isProductImageAltValid = validateProductImageAlt();
+
+    return isProductImageAltValid;
+}
+
+const validateProductSizeForm = () => {
+    const isProductSizeValid = validateProductSize();
+    const isProductPriceModifierValid = validatePriceModifier();
+
+    return isProductSizeValid && isProductPriceModifierValid;
+}
+
+const validateProductSizeUpdateForm = () => {
+    const isProductSizeValid = validateUpdateProductSize();
+    const isProductPriceModifierValid = validateUpdateProductModifier();
+
+    return isProductSizeValid && isProductPriceModifierValid;
 }
 
 const validateSupplierForm = () => {
@@ -1542,8 +1980,8 @@ const validateSupplierForm = () => {
     const isPostalCodeValid = validatePostalCode();
     const isCountryValid = validateCountry();
 
-    return isSupplierNameValid && isCompanyNameValid && isEmailValid && isContactNumberValid 
-    && isAddressValid && isCityValid && isStateValid && isPostalCodeValid && isCountryValid;
+    return isSupplierNameValid && isCompanyNameValid && isEmailValid && isContactNumberValid
+        && isAddressValid && isCityValid && isStateValid && isPostalCodeValid && isCountryValid;
 };
 
 const validateUpdateSupplier = () => {
@@ -1557,8 +1995,8 @@ const validateUpdateSupplier = () => {
     const isPostalCodeValid = validateUpdatePostalCode();
     const isCountryValid = validateUpdateCountry();
 
-    return isSupplierNameValid && isCompanyNameValid && isEmailValid && isContactNumberValid 
-    && isAddressValid && isCityValid && isStateValid && isPostalCodeValid && isCountryValid;
+    return isSupplierNameValid && isCompanyNameValid && isEmailValid && isContactNumberValid
+        && isAddressValid && isCityValid && isStateValid && isPostalCodeValid && isCountryValid;
 };
 
 const validateRoleForm = () => {
@@ -1609,6 +2047,14 @@ const validateFacilityUpdateForm = () => {
 
     return isFacilityValid;
 };
+
+const validateRuleForm = () => {
+    const isRuleTitleValid = validateRuleTitle();
+    const isRuleValid = validateRule();
+    const isRuleIconValid = validateRuleIcon();
+
+    return isRuleTitleValid && isRuleValid && isRuleIconValid;
+}
 
 const validateProfileUpdateForm = () => {
     const isFirstnameValid = validateFirstName();
@@ -1683,7 +2129,7 @@ const validateProductInformation = () => {
         "informationError",
         (input) => (!input ? "Information is required." : null)
     );
-}   
+}
 
 const validateProductDelivery = () => {
     return validateField(
@@ -1691,7 +2137,7 @@ const validateProductDelivery = () => {
         "deliveryError",
         (input) => (!input ? "Delivery is required." : null)
     );
-}   
+}
 
 const validateProductPrice = () => {
     return validateField(
@@ -1711,9 +2157,41 @@ const validateProductDiscountPrice = () => {
 
 const validateProductSize = () => {
     return validateField(
-        "productSizeInput",
-        "productSizeError",
+        "sizeInput",
+        "sizeError",
         (input) => (!input ? "Size is required." : null)
+    );
+}
+
+const validateUpdateProductSize = () => {
+    return validateField(
+        "updateSizeInput",
+        "updateSizeError",
+        (input) => (!input ? "Size is required." : null)
+    );
+}
+
+const validatePriceModifier = () => {
+    return validateField(
+        "priceModifierInput",
+        "priceModifierError",
+        (input) => (!input ? "Price modifier is required." : null)
+    );
+}
+
+const validateUpdateProductModifier = () => {
+    return validateField(
+        "updatePriceModifierInput",
+        "updatePriceModifierError",
+        (input) => (!input ? "Price modifier is required." : null)
+    );
+}
+
+const validateProductImageAlt = () => {
+    return validateField(
+        "productImageAltInput",
+        "productImageAltError",
+        (input) => (!input ? "Image Alt is required." : null)
     );
 }
 
@@ -1731,7 +2209,7 @@ const validateSupplierName = () => {
         "supplierNameError",
         (input) => (!input ? "Supplier name is required." : null)
     );
-} 
+}
 
 const validateUpdateSupplierName = () => {
     return validateField(
@@ -1811,7 +2289,7 @@ const validateContactNumber = () => {
         "contactNumberError",
         (input) => (!input ? "Contact number is required." : null)
     )
-} 
+}
 
 const validateUpdateContactNumber = () => {
     return validateField(
@@ -1907,7 +2385,7 @@ const validateRole = () => {
         "roleError",
         (input) => (!input ? "Role is required." : null)
     );
-} 
+}
 
 const validateRoleDescription = () => {
     return validateField(
@@ -2010,6 +2488,30 @@ const validateUpdateFacility = () => {
         "updateFacilityInput",
         "updateFacilityError",
         (input) => (!input ? "Facility is required." : null)
+    );
+}
+
+const validateRuleTitle = () => {
+    return validateField(
+        "ruleTitleInput",
+        "ruleTitleError",
+        (input) => (!input ? "Title is required." : null)
+    );
+}
+
+const validateRule = () => {
+    return validateField(
+        "ruleInput",
+        "ruleError",
+        (input) => (!input ? "Rule is required." : null)
+    );
+}
+
+const validateRuleIcon = () => {
+    return validateField(
+        "ruleIconInput",
+        "ruleIconError",
+        (input) => (!input ? "Rule icon is required." : null)
     );
 }
 

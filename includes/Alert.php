@@ -10,6 +10,12 @@
 <input type="hidden" id="addProductSuccess" value="<?php echo $addProductSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="updateProductSuccess" value="<?php echo $updateProductSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="deleteProductSuccess" value="<?php echo $deleteProductSuccess ? 'true' : 'false'; ?>">
+<input type="hidden" id="addProductImageSuccess" value="<?php echo $addProductImageSuccess ? 'true' : 'false'; ?>">
+<input type="hidden" id="updateProductImageSuccess" value="<?php echo $updateProductImageSuccess ? 'true' : 'false'; ?>">
+<input type="hidden" id="deleteProductImageSuccess" value="<?php echo $deleteProductImageSuccess ? 'true' : 'false'; ?>">
+<input type="hidden" id="addProductSizeSuccess" value="<?php echo $addProductSizeSuccess ? 'true' : 'false'; ?>">
+<input type="hidden" id="updateProductSizeSuccess" value="<?php echo $updateProductSizeSuccess ? 'true' : 'false'; ?>">
+<input type="hidden" id="deleteProductSizeSuccess" value="<?php echo $deleteProductSizeSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="addSupplierSuccess" value="<?php echo $addSupplierSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="updateSupplierSuccess" value="<?php echo $updateSupplierSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="deleteSupplierSuccess" value="<?php echo $deleteSupplierSuccess ? 'true' : 'false'; ?>">
@@ -23,15 +29,18 @@
 <input type="hidden" id="addFacilitySuccess" value="<?php echo $addFacilitySuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="updateFacilitySuccess" value="<?php echo $updateFacilitySuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="deleteFacilitySuccess" value="<?php echo $deleteFacilitySuccess ? 'true' : 'false'; ?>">
+<input type="hidden" id="addRuleSuccess" value="<?php echo $addRuleSuccess ? 'true' : 'false'; ?>">
+<input type="hidden" id="updateRuleSuccess" value="<?php echo $updateRuleSuccess ? 'true' : 'false'; ?>">
+<input type="hidden" id="deleteRuleSuccess" value="<?php echo $deleteRuleSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="deleteAdminSuccess" value="<?php echo $deleteAdminSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="confirmContactSuccess" value="<?php echo $confirmContactSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="contactSuccess" value="<?php echo $contactSuccess ? 'true' : 'false'; ?>">
 
-<div id="alertBox" class="fixed -bottom-1 opacity-0 right-3 items-center rounded-md shadow-lg border z-40 p-3 transition-all duration-200 <?php echo $alertMessage ? 'border-red-300 bg-red-50' : 'border-green-300 bg-green-50'; ?>">
+<div id="alertBox" class="fixed -bottom-1 opacity-0 right-3 items-center rounded-md shadow-lg border z-40 p-3 transition-all duration-200 <?php echo $alertMessage ? 'bg-red-400' : 'bg-green-400'; ?>">
     <div class="flex items-center justify-center gap-2 select-none">
         <div>
-            <i class="text-2xl <?php echo $alertMessage ? 'ri-error-warning-line text-red-400' : 'ri-checkbox-circle-fill text-green-400'; ?>"></i>
+            <i class="text-2xl text-white <?php echo $alertMessage ? 'ri-error-warning-line' : 'ri-checkbox-circle-fill'; ?>"></i>
         </div>
-        <p class="font-semibold <?php echo $alertMessage ? 'text-red-400' : 'text-green-400'; ?>" id="alertText"></p>
+        <p class="font-semibold text-white <?php echo $alertMessage ? 'bg-red-400' : 'bg-green-400'; ?>" id="alertText"></p>
     </div>
 </div>

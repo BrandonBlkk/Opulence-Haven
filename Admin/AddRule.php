@@ -8,33 +8,34 @@ if (!$connect) {
 }
 
 $alertMessage = '';
-$addRoomTypeSuccess = false;
-$updateRoomTypeSuccess = false;
-$deleteRoomTypeSuccess = false;
-$roomTypeID = AutoID('roomtypetb', 'RoomTypeID', 'RT-', 6);
+$addRuleSuccess = false;
+$updateRuleSuccess = false;
+$deleteRuleSuccess = false;
+$ruleID = AutoID('ruletb', 'RuleID', 'RL-', 6);
 
 // Add Room Type
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addroomtype'])) {
-    $roomtype = mysqli_real_escape_string($connect, $_POST['roomtype']);
-    $description = mysqli_real_escape_string($connect, $_POST['description']);
-    $roomcapacity = mysqli_real_escape_string($connect, $_POST['roomcapacity']);
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addrule'])) {
+    $ruletitle = mysqli_real_escape_string($connect, $_POST['ruletitle']);
+    $rule = mysqli_real_escape_string($connect, $_POST['rule']);
+    $ruleicon = mysqli_real_escape_string($connect, $_POST['ruleicon']);
+    $ruleiconsize = mysqli_real_escape_string($connect, $_POST['ruleiconsize']);
 
     // Check if the product type already exists using prepared statement
-    $checkQuery = "SELECT RoomType FROM roomtypetb WHERE RoomType = '$roomtype'";
+    $checkQuery = "SELECT Rule FROM ruletb WHERE Rule = '$rule'";
 
     $checkQuery = mysqli_query($connect, $checkQuery);
     $count = mysqli_num_rows($checkQuery);
 
     if ($count > 0) {
-        $alertMessage = 'Room type you added is already existed.';
+        $alertMessage = 'Rule you added is already existed.';
     } else {
-        $RoomTypeQuery = "INSERT INTO roomtypetb (RoomTypeID, RoomType, RoomDescription, RoomCapacity)
-        VALUES ('$roomTypeID', '$roomtype', '$description', '$roomcapacity')";
+        $RuleQuery = "INSERT INTO ruletb (RuleID, RuleTitle, Rule, RuleIcon, IconSize)
+        VALUES ('$ruleID', '$ruletitle', '$rule', '$ruleicon', '$ruleiconsize')";
 
-        if (mysqli_query($connect, $RoomTypeQuery)) {
-            $addRoomTypeSuccess = true;
+        if (mysqli_query($connect, $RuleQuery)) {
+            $addRuleSuccess = true;
         } else {
-            $alertMessage = "Failed to add room type. Please try again.";
+            $alertMessage = "Failed to add rule. Please try again.";
         }
     }
 }
@@ -120,7 +121,7 @@ if (isset($_POST['deleteroomtype'])) {
                     <h2 class="text-xl text-gray-700 font-bold mb-4">Add Rule Overview</h2>
                     <p>Add information about rule to categorize items, track stock levels, and manage room details for efficient organization.</p>
                 </div>
-                <button id="addRoomTypeBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
+                <button id="addRuleBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
                     <i class="ri-add-line text-xl"></i>
                 </button>
             </div>
@@ -294,40 +295,60 @@ if (isset($_POST['deleteroomtype'])) {
         </div>
 
         <!-- Add Rule Form -->
-        <div id="addRoomTypeModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+        <div id="addRuleModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white w-full md:w-1/3 p-6 rounded-md shadow-md ">
                 <h2 class="text-xl font-bold mb-4">Add New Rule</h2>
-                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="roomTypeForm">
+                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="ruleForm">
                     <!-- Rule Input -->
                     <div class="relative w-full">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Rule Information</label>
                         <input
-                            id="roomTypeInput"
+                            id="ruleTitleInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="text"
-                            name="roomtype"
+                            name="ruletitle"
+                            placeholder="Enter title">
+                        <small id="ruleTitleError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                    </div>
+                    <div class="relative w-full">
+                        <input
+                            id="ruleInput"
+                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            type="text"
+                            name="rule"
                             placeholder="Enter rule">
-                        <small id="roomTypeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                        <small id="ruleError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
                     <!-- Icon Input -->
                     <div class="relative">
                         <input
-                            id="roomTypeDescriptionInput"
+                            id="ruleIconInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="text"
-                            name="description"
+                            name="ruleicon"
                             placeholder="Enter rule icon">
-                        <small id="roomTypeDescriptionError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                        <small id="ruleIconError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                    </div>
+                    <!-- Size -->
+                    <div class="relative">
+                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">Choose Size</label>
+                        <select name="ruleiconsize" class="p-2 w-full border rounded">
+                            <option value="" disabled>Select size of icon</option>
+                            <option value="text-base">M</option>
+                            <option value="text-lg">L</option>
+                            <option value="text-xl" selected>XL (default)</option>
+                            <option value="text-2xl">2XL</option>
+                        </select>
                     </div>
 
                     <div class="flex justify-end gap-4 select-none">
-                        <div id="addRoomTypeCancelBtn" class="px-4 py-2 text-amber-500 font-semibold hover:text-amber-600">
+                        <div id="addRuleCancelBtn" class="px-4 py-2 text-amber-500 font-semibold hover:text-amber-600">
                             Cancel
                         </div>
                         <!-- Submit Button -->
                         <button
                             type="submit"
-                            name="addroomtype"
+                            name="addrule"
                             class="bg-amber-500 text-white font-semibold px-4 py-2 rounded-sm select-none hover:bg-amber-600 transition-colors">
                             Add Rule
                         </button>

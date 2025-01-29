@@ -5,6 +5,9 @@
 /* Swiper JS */
 @import url("https://unpkg.com/swiper/swiper-bundle.min.css");
 
+/* Remix Icon */
+@import url("https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.css");
+
 * {
   scroll-behavior: smooth;
 }

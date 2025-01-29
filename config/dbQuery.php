@@ -203,27 +203,27 @@ if (!$connect) {
 //     echo "Data has been saved";
 // }
 
-$reviewReaction = "CREATE TABLE reviewreactiontb
-(
-    ReactionID int NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    ReviewID int NOT NULL,
-    UserID varchar(30) NOT NULL,
-    ReactionType ENUM('like', 'dislike') NOT NULL,
-    ReactedAt datetime DEFAULT current_timestamp,
-    FOREIGN KEY (ReviewID) REFERENCES productreviewtb(ReviewID)
-    ON DELETE CASCADE 
-    ON UPDATE CASCADE,
-    FOREIGN KEY (UserID) REFERENCES usertb(UserID)
-    ON DELETE CASCADE 
-    ON UPDATE CASCADE
-)";
+// $reviewReaction = "CREATE TABLE reviewreactiontb
+// (
+//     ReactionID int NOT NULL PRIMARY KEY AUTO_INCREMENT,
+//     ReviewID int NOT NULL,
+//     UserID varchar(30) NOT NULL,
+//     ReactionType ENUM('like', 'dislike') NOT NULL,
+//     ReactedAt datetime DEFAULT current_timestamp,
+//     FOREIGN KEY (ReviewID) REFERENCES productreviewtb(ReviewID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE,
+//     FOREIGN KEY (UserID) REFERENCES usertb(UserID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE
+// )";
 
-try {
-    $query = mysqli_query($connect, $reviewReaction);
-    echo "Data Successfully saved";
-} catch (mysqli_sql_exception) {
-    echo "Data has been saved";
-}
+// try {
+//     $query = mysqli_query($connect, $reviewReaction);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
 
 // $size = "CREATE TABLE sizetb
 // (
@@ -260,21 +260,23 @@ try {
 //     echo "Data has been saved";
 // }
 
-// $rule = "CREATE TABLE ruletb
-// (
-//     RuleID varchar(20) not null primary key,
-//     Rule text,
-//     RuleIcon text,
-//     AddedDate datetime default current_timestamp,
-//     LastUpdate datetime default current_timestamp on update current_timestamp
-// )";
+$rule = "CREATE TABLE ruletb
+(
+    RuleID varchar(20) not null primary key,
+    RuleTitle text,
+    Rule text,
+    RuleIcon text,
+    IconSize varchar(10),
+    AddedDate datetime default current_timestamp,
+    LastUpdate datetime default current_timestamp on update current_timestamp
+)";
 
-// try {
-//     $query = mysqli_query($connect, $rule);
-//     echo "Data Successfully saved";
-// } catch (mysqli_sql_exception) {
-//     echo "Data has been saved";
-// }
+try {
+    $query = mysqli_query($connect, $rule);
+    echo "Data Successfully saved";
+} catch (mysqli_sql_exception) {
+    echo "Data has been saved";
+}
 
 // $facility = "CREATE TABLE facilitytb
 // (

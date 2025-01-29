@@ -137,9 +137,9 @@ if (isset($_POST['deleteproduct'])) {
                 </div>
                 <div class="flex items-center gap-3">
                     <!-- Image Button -->
-                    <button id="imageButton" class="bg-amber-500 text-white px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
+                    <a href="ProductImage.php" class="bg-amber-500 text-white px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
                         <i class="ri-folder-image-line text-xl"></i>
-                    </button>
+                    </a>
                     <!-- Add Product Button -->
                     <button id="addProductBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
                         <i class="ri-add-line text-xl"></i>
