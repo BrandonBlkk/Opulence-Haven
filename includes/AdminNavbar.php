@@ -288,6 +288,44 @@ $facilityCountQuery = "SELECT COUNT(*) as count FROM facilitytb";
 $facilityCountResult = $connect->query($facilityCountQuery);
 $allFacilityCount = $facilityCountResult->fetch_assoc()['count'];
 
+
+
+
+// Initialize search variables for facility type
+$searchRuleQuery = isset($_GET['rule_search']) ? mysqli_real_escape_string($connect, $_GET['rule_search']) : '';
+
+// Construct the facility type query based on search
+if (!empty($searchRuleQuery)) {
+    $ruleSelect = "SELECT * FROM ruletb WHERE RuleTitle LIKE '%$searchRuleQuery%' OR Rule LIKE '%$searchRuleQuery%'";
+} else {
+    $ruleSelect = "SELECT * FROM ruletb";
+}
+
+$ruleSelectQuery = mysqli_query($connect, $ruleSelect);
+$rules = [];
+
+if (mysqli_num_rows($ruleSelectQuery) > 0) {
+    while ($row = $ruleSelectQuery->fetch_assoc()) {
+        $rules[] = $row;
+    }
+}
+
+// Construct the facilitytype count query based on search
+if (!empty($searchRuleQuery)) {
+    $ruleQuery = "SELECT COUNT(*) as count FROM ruletb WHERE RuleTitle LIKE '%$searchRuleQuery%' OR Rule LIKE '%$searchRuleQuery%'";
+} else {
+    $ruleQuery = "SELECT COUNT(*) as count FROM ruletb";
+}
+
+// Execute the count query
+$ruleResult = $connect->query($ruleQuery);
+$ruleCount = $ruleResult->fetch_assoc()['count'];
+
+// Fetch facility type count
+$ruleCountQuery = "SELECT COUNT(*) as count FROM ruletb";
+$facilityTypeCountResult = $connect->query($ruleCountQuery);
+$allRuleCount = $facilityTypeCountResult->fetch_assoc()['count'];
+
 // Initialize search and filter variables for contact
 $searchContactQuery = isset($_GET['contact_search']) ? mysqli_real_escape_string($connect, $_GET['contact_search']) : '';
 $searchFromDate = isset($_GET['from_date']) ? $_GET['from_date'] : '';
@@ -578,7 +616,7 @@ if (mysqli_num_rows($query) > 0) {
                                 <i class="ri-file-list-3-line text-xl"></i>
                                 <span class="font-semibold text-sm">Add rule</span>
                             </div>
-                            <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allRoomTypeCount ?></p>
+                            <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allRuleCount ?></p>
                         </a>
                         <a href="../Admin/AddFacility.php"
                             class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?>">

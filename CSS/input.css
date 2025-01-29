@@ -6,7 +6,10 @@
 @import url("https://unpkg.com/swiper/swiper-bundle.min.css");
 
 /* Remix Icon */
-@import url("https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.css");
+@import url("https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.css");
+
+/* Font Awesome */
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");
 
 * {
   scroll-behavior: smooth;

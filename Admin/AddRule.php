@@ -130,7 +130,7 @@ if (isset($_POST['deleteroomtype'])) {
             <div class="overflow-x-auto">
                 <!-- Product Type Search and Filter -->
                 <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
-                    <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Rules <span class="text-gray-400 text-sm ml-2"><?php echo $roomTypeCount ?></span></h1>
+                    <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Rules <span class="text-gray-400 text-sm ml-2"><?php echo $ruleCount ?></span></h1>
                     <div class="flex items-center w-full">
                         <input type="text" name="rule_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full" placeholder="Search for rule..." value="<?php echo isset($_GET['rule_search']) ? htmlspecialchars($_GET['rule_search']) : ''; ?>">
                     </div>
@@ -140,32 +140,38 @@ if (isset($_POST['deleteroomtype'])) {
                         <thead>
                             <tr class="bg-gray-100 text-gray-600 text-sm">
                                 <th class="p-3 text-start">ID</th>
+                                <th class="p-3 text-start">Title</th>
                                 <th class="p-3 text-start">Rule</th>
                                 <th class="p-3 text-start hidden sm:table-cell">Icon</th>
                                 <th class="p-3 text-start">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="text-gray-600 text-sm">
-                            <?php foreach ($roomTypes as $roomType): ?>
+                            <?php foreach ($rules as $rule): ?>
                                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                                     <td class="p-3 text-start whitespace-nowrap">
                                         <div class="flex items-center gap-2 font-medium text-gray-500">
                                             <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                            <span><?= htmlspecialchars($roomType['RoomTypeID']) ?></span>
+                                            <span><?= htmlspecialchars($rule['RuleID']) ?></span>
                                         </div>
                                     </td>
                                     <td class="p-3 text-start">
-                                        <?= htmlspecialchars($roomType['RoomType']) ?>
+                                        <?= htmlspecialchars($rule['RuleTitle']) ?>
                                     </td>
                                     <td class="p-3 text-start hidden sm:table-cell">
-                                        <?= htmlspecialchars($roomType['RoomDescription']) ?>
+                                        <?= htmlspecialchars($rule['Rule']) ?>
+                                    </td>
+                                    <td class="p-3 text-start">
+                                        <?= !empty($rule['RuleIcon']) && !empty($rule['IconSize'])
+                                            ? '<i class="' . htmlspecialchars($rule['RuleIcon'], ENT_QUOTES, 'UTF-8') . ' ' . htmlspecialchars($rule['IconSize'], ENT_QUOTES, 'UTF-8') . '"></i>'
+                                            : 'None' ?>
                                     </td>
                                     <td class="p-3 text-start space-x-1 select-none">
                                         <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                            data-roomtype-id="<?= htmlspecialchars($roomType['RoomTypeID']) ?>"></i>
+                                            data-rule-id="<?= htmlspecialchars($rule['RuleID']) ?>"></i>
                                         <button class="text-red-500">
                                             <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                                data-roomtype-id="<?= htmlspecialchars($roomType['RoomTypeID']) ?>"></i>
+                                                data-rule-id="<?= htmlspecialchars($rule['RuleID']) ?>"></i>
                                         </button>
                                     </td>
                                 </tr>
