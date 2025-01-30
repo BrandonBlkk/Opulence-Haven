@@ -564,7 +564,7 @@ if (isset($_POST['deletesupplier'])) {
 
                     <!-- Product Type -->
                     <div class="relative">
-                        <select name="productType" id="productType" class="p-2 w-full border rounded">
+                        <select name="productType" id="productType" class="p-2 w-full border rounded outline-none" required>
                             <option value="" disabled selected>Select type of products supplied</option>
                             <?php
                             $select = "SELECT * FROM producttypetb";

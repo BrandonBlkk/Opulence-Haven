@@ -1314,6 +1314,135 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// Rule Details Modal
+document.addEventListener('DOMContentLoaded', () => {
+    const updateRuleModal = document.getElementById('updateRuleModal');
+    const updateRuleModalCancelBtn = document.getElementById('updateRuleModalCancelBtn');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const updateRuleSuccess = document.getElementById('updateRuleSuccess').value === 'true';
+
+    // Get all details buttons
+    const detailsBtns = document.querySelectorAll('.details-btn');
+
+    if (updateRuleModal && updateRuleModalCancelBtn && detailsBtns) {
+        // Add click event to each button
+        detailsBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const ruleId = this.getAttribute('data-rule-id');
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+
+                // Fetch product  details
+                fetch(`../Admin/AddRule.php?action=getRuleDetails&id=${ruleId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Fill the modal form with product  data
+                            document.getElementById('updateRuleID').value = ruleId;
+                            document.querySelector('[name="updateruletitle"]').value = data.rule.RuleTitle;
+                            document.querySelector('[name="updaterule"]').value = data.rule.Rule;
+                            document.querySelector('[name="updateruleicon"]').value = data.rule.RuleIcon;
+                            document.querySelector('[name="updateruleiconsize"]').value = data.rule.IconSize;
+                            // Show the modal
+                            updateRuleModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        } else {
+                            console.error('Failed to load rule details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+            });
+        });
+
+        updateRuleModalCancelBtn.addEventListener('click', () => {
+            updateRuleModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        if (updateRuleSuccess) {
+            // Show Alert
+            setTimeout(() => {
+                showAlert('The rule has been successfully updated.');
+                setTimeout(() => {
+                    window.location.href = 'AddRule.php';
+                }, 5000);
+            }, 500);
+        } else if (alertMessage) {
+            // Show Alert
+            showAlert(alertMessage);
+        }
+        // Add keyup event listeners for real-time validation
+        document.getElementById("updateRuleTitleInput").addEventListener("keyup", validateUpdateRuleTitle);
+        document.getElementById("updateRuleInput").addEventListener("keyup", validateUpdateRule);
+        document.getElementById("updateRuleIconInput").addEventListener("keyup", validateUpdateRuleIcon);
+
+        const updateRuleForm = document.getElementById("updateRuleForm");
+        if (updateRuleForm) {
+            updateRuleForm.addEventListener("submit", (e) => {
+                if (!validateRuleUpdateForm()) {
+                    e.preventDefault();
+                }
+            });
+        }
+    }
+});
+
+// Rule Delete Modal
+document.addEventListener('DOMContentLoaded', () => {
+    const ruleConfirmDeleteModal = document.getElementById('ruleConfirmDeleteModal');
+    const ruleCancelDeleteBtn = document.getElementById('ruleCancelDeleteBtn');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const deleteRuleSuccess = document.getElementById('deleteRuleSuccess').value === 'true';
+
+    // Get all delete buttons
+    const deleteBtns = document.querySelectorAll('.delete-btn');
+
+    if (ruleConfirmDeleteModal && ruleCancelDeleteBtn && deleteBtns) {
+        // Add click event to each delete button
+        deleteBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const ruleId = this.getAttribute('data-rule-id');
+
+                // Fetch fafcility details
+                fetch(`../Admin/AddRule.php?action=getRuleDetails&id=${ruleId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('deleteRuleID').value = ruleId;
+                            document.getElementById('ruleDeleteName').textContent = data.rule.RuleTitle;
+                        } else {
+                            console.error('Failed to load rule details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+
+                // Show modal
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+                ruleConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+            });
+        });
+
+        // Cancel button functionality
+        ruleCancelDeleteBtn.addEventListener('click', () => {
+            ruleConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        if (deleteRuleSuccess) {
+            // Show Alert
+            showAlert('The rule has been successfully deleted.');
+            setTimeout(() => {
+                window.location.href = 'AddRule.php';
+            }, 5000);
+        } else if (alertMessage) {
+            // Show Alert
+            showAlert(alertMessage);
+        }
+    }
+});
+
 // Add Product Image Form
 document.addEventListener("DOMContentLoaded", () => {
     const addProductImageModal = document.getElementById('addProductImageModal');
@@ -2056,6 +2185,14 @@ const validateRuleForm = () => {
     return isRuleTitleValid && isRuleValid && isRuleIconValid;
 }
 
+const validateRuleUpdateForm = () => {
+    const isRuleTitleValid = validateUpdateRuleTitle();
+    const isRuleValid = validateUpdateRule();
+    const isRuleIconValid = validateUpdateRuleIcon();
+
+    return isRuleTitleValid && isRuleValid && isRuleIconValid;
+}
+
 const validateProfileUpdateForm = () => {
     const isFirstnameValid = validateFirstName();
     const isLastnameValid = validateLastName();
@@ -2499,6 +2636,14 @@ const validateRuleTitle = () => {
     );
 }
 
+const validateUpdateRuleTitle = () => {
+    return validateField(
+        "updateRuleTitleInput",
+        "updateRuleTitleError",
+        (input) => (!input ? "Title is required." : null)
+    );
+}
+
 const validateRule = () => {
     return validateField(
         "ruleInput",
@@ -2507,10 +2652,26 @@ const validateRule = () => {
     );
 }
 
+const validateUpdateRule = () => {
+    return validateField(
+        "updateRuleInput",
+        "updateRuleError",
+        (input) => (!input ? "Rule is required." : null)
+    );
+}
+
 const validateRuleIcon = () => {
     return validateField(
         "ruleIconInput",
         "ruleIconError",
+        (input) => (!input ? "Rule icon is required." : null)
+    );
+}
+
+const validateUpdateRuleIcon = () => {
+    return validateField(
+        "updateRuleIconInput",
+        "updateRuleIconError",
         (input) => (!input ? "Rule icon is required." : null)
     );
 }

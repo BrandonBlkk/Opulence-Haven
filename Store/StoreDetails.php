@@ -6,7 +6,7 @@ if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-$session_userID = $_SESSION["UserID"];
+$session_userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
 
 if (isset($_GET["product_ID"])) {
     $product_id = $_GET["product_ID"];

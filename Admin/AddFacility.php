@@ -453,7 +453,7 @@ if (isset($_POST['deletefacility'])) {
                     </div>
                     <!-- Facility Type -->
                     <div class="relative">
-                        <select id="FacilityType" name="facilityType" class="p-2 w-full border rounded" required>
+                        <select id="FacilityType" name="facilityType" class="p-2 w-full border rounded outline-none" required>
                             <option value="" disabled selected>Select type of facility</option>
                             <?php
                             $select = "SELECT * FROM facilitytypetb";
