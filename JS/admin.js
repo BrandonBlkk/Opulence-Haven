@@ -639,17 +639,23 @@ document.addEventListener('DOMContentLoaded', () => {
             showAlert(alertMessage);
         }
         // Add keyup event listeners for real-time validation
-        // document.getElementById("updateProductTypeInput").addEventListener("keyup", validateUpdateProductTypeInput);
-        // document.getElementById("updateProductTypeDescription").addEventListener("keyup", validateUpdateDescription);
+        document.getElementById("updateProductTitleInput").addEventListener("keyup", validateUpdateProductTitle);
+        document.getElementById("updateBrandInput").addEventListener("keyup", validateUpdateBrand);
+        document.getElementById("updateDescriptionInput").addEventListener("keyup", validateUpdateProductDescription);
+        document.getElementById("updateSpecificationInput").addEventListener("keyup", validateUpdateSpecification);
+        document.getElementById("updateInformationInput").addEventListener("keyup", validateUpdateInformation);
+        document.getElementById("updateDeliveryInput").addEventListener("keyup", validateUpdateDelivery);
+        document.getElementById("updatePriceInput").addEventListener("keyup", validateUpdatePrice);
+        document.getElementById("updateDiscountPriceInput").addEventListener("keyup", validateUpdateDiscountPrice);
 
-        // const updateProductTypeForm = document.getElementById("updateProductTypeForm");
-        // if (updateProductTypeForm) {
-        //     updateProductTypeForm.addEventListener("submit", (e) => {
-        //         if (!validateUpdateProductType()) {
-        //             e.preventDefault();
-        //         }
-        //     });
-        // }
+        const updateProductForm = document.getElementById("updateProductForm");
+        if (updateProductForm) {
+            updateProductForm.addEventListener("submit", (e) => {
+                if (!validateUpdateProduct()) {
+                    e.preventDefault();
+                }
+            });
+        }
     }
 });
 
@@ -1555,16 +1561,16 @@ document.addEventListener('DOMContentLoaded', () => {
             showAlert(alertMessage);
         }
         // Add keyup event listeners for real-time validation
-        // document.getElementById("updateFacilityInput").addEventListener("keyup", validateUpdateFacility);
+        document.getElementById("updateProductImageAltInput").addEventListener("keyup", validateUpdateProductImageAlt);
 
-        // const updateFacilityForm = document.getElementById("updateFacilityForm");
-        // if (updateFacilityForm) {
-        //     updateFacilityForm.addEventListener("submit", (e) => {
-        //         if (!validateFacilityUpdateForm()) {
-        //             e.preventDefault();
-        //         }
-        //     });
-        // }
+        const updateProductImageForm = document.getElementById("updateProductImageForm");
+        if (updateProductImageForm) {
+            updateProductImageForm.addEventListener("submit", (e) => {
+                if (!validateProductImageUpdateForm()) {
+                    e.preventDefault();
+                }
+            });
+        }
     }
 });
 
@@ -2078,8 +2084,27 @@ const validateProductForm = () => {
     return isProductTitleValid && isProductBrandValid && isProductDescriptionValid && isProductSpecificationValid && isProductInformationValid && isProductDeliveryValid && isProductPriceValid && isProductDiscountPriceValid;
 }
 
+const validateUpdateProduct = () => {
+    const isProductTitleValid = validateUpdateProductTitle();
+    const isProductBrandValid = validateUpdateBrand();
+    const isProductDescriptionValid = validateUpdateProductDescription();
+    const isProductSpecificationValid = validateUpdateSpecification();
+    const isProductInformationValid = validateUpdateInformation();
+    const isProductDeliveryValid = validateUpdateDelivery();
+    const isProductPriceValid = validateUpdatePrice();
+    const isProductDiscountPriceValid = validateUpdateDiscountPrice();
+
+    return isProductTitleValid && isProductBrandValid && isProductDescriptionValid && isProductSpecificationValid && isProductInformationValid && isProductDeliveryValid && isProductPriceValid && isProductDiscountPriceValid;
+}
+
 const validateProductImageForm = () => {
     const isProductImageAltValid = validateProductImageAlt();
+
+    return isProductImageAltValid;
+}
+
+const validateProductImageUpdateForm = () => {
+    const isProductImageAltValid = validateUpdateProductImageAlt();
 
     return isProductImageAltValid;
 }
@@ -2236,10 +2261,26 @@ const validateProductDescription = () => {
     );
 }
 
+const validateUpdateProductDescription = () => {
+    return validateField(
+        "updateDescriptionInput",
+        "updateDescriptionError",
+        (input) => (!input ? "Description is required." : null)
+    );
+}
+
 const validateProductTitle = () => {
     return validateField(
         "productTitleInput",
         "productTitleError",
+        (input) => (!input ? "Title is required." : null)
+    );
+}
+
+const validateUpdateProductTitle = () => {
+    return validateField(
+        "updateProductTitleInput",
+        "updateProductTitleError",
         (input) => (!input ? "Title is required." : null)
     );
 }
@@ -2252,10 +2293,26 @@ const validateProductBrand = () => {
     );
 }
 
+const validateUpdateBrand = () => {
+    return validateField(
+        "updateBrandInput",
+        "updateBrandError",
+        (input) => (!input ? "Brand is required." : null)
+    );
+}
+
 const validateProductSpecification = () => {
     return validateField(
         "specificationInput",
         "specificationError",
+        (input) => (!input ? "Specification is required." : null)
+    );
+}
+
+const validateUpdateSpecification = () => {
+    return validateField(
+        "updateSpecificationInput",
+        "updateSpecificationError",
         (input) => (!input ? "Specification is required." : null)
     );
 }
@@ -2268,10 +2325,26 @@ const validateProductInformation = () => {
     );
 }
 
+const validateUpdateInformation = () => {
+    return validateField(
+        "updateInformationInput",
+        "updateInformationError",
+        (input) => (!input ? "Information is required." : null)
+    );
+}
+
 const validateProductDelivery = () => {
     return validateField(
         "deliveryInput",
         "deliveryError",
+        (input) => (!input ? "Delivery is required." : null)
+    );
+}
+
+const validateUpdateDelivery = () => {
+    return validateField(
+        "updateDeliveryInput",
+        "updateDeliveryError",
         (input) => (!input ? "Delivery is required." : null)
     );
 }
@@ -2284,10 +2357,26 @@ const validateProductPrice = () => {
     );
 }
 
+const validateUpdatePrice = () => {
+    return validateField(
+        "updatePriceInput",
+        "updatePriceError",
+        (input) => (!input ? "Price is required." : null)
+    );
+}
+
 const validateProductDiscountPrice = () => {
     return validateField(
         "discountPriceInput",
         "discountPriceError",
+        (input) => (!input ? "Discount price is required." : null)
+    );
+}
+
+const validateUpdateDiscountPrice = () => {
+    return validateField(
+        "updateDiscountPriceInput",
+        "updateDiscountPriceError",
         (input) => (!input ? "Discount price is required." : null)
     );
 }
@@ -2328,6 +2417,14 @@ const validateProductImageAlt = () => {
     return validateField(
         "productImageAltInput",
         "productImageAltError",
+        (input) => (!input ? "Image Alt is required." : null)
+    );
+}
+
+const validateUpdateProductImageAlt = () => {
+    return validateField(
+        "updateProductImageAltInput",
+        "updateProductImageAltError",
         (input) => (!input ? "Image Alt is required." : null)
     );
 }

@@ -2,6 +2,7 @@
 session_start();
 include('../config/dbConnection.php');
 include('../includes/AutoIDFunc.php');
+include('../includes/UpdateImageFunc.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -74,12 +75,29 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
 
 // Update Product Image
 if (isset($_POST['editproductimage'])) {
-    $productTypeId = mysqli_real_escape_string($connect, $_POST['producttypeid']);
-    $updatedProductType = mysqli_real_escape_string($connect, $_POST['updateproducttype']);
-    $updatedDescription = mysqli_real_escape_string($connect, $_POST['updatedescription']);
+    $productImageID = mysqli_real_escape_string($connect, $_POST['productimageid']);
+
+    // Fetch product image
+    $productImageery = "SELECT ImageAdminPath FROM productimagetb WHERE ImageID = '$productImageID'";
+    $productImageRow = $connect->query($productImageQuery)->fetch_assoc();
+    $currentProductImage = $productImageRow['ImageAdminPath'];
+
+    // Current image from the database
+    $currentImage = $currentProductImage;
+
+    // Simulate $_FILES array for images
+    $imageFile = $_FILES['AdminProfile'];
+
+    // Change Product Image 
+    $result = uploadProductImage($imageFile, $currentImage);
+    if (is_array($result)) {
+        echo $result1['image'] . "<br>";
+    } else {
+        $productImage = $result;
+    }
 
     // Update query
-    $updateQuery = "UPDATE productimagetb SET ProductType = '$updatedProductType', Description = '$updatedDescription' WHERE ProductTypeID = '$productTypeId'";
+    $updateQuery = "UPDATE productimagetb SET ImageAdminPath = '$productImage', ImageUserPath = '$productImage' WHERE ImageID = '$productImageID'";
 
     if ($connect->query($updateQuery)) {
         $updateProductImageSuccess = true;
@@ -283,21 +301,21 @@ if (isset($_POST['deleteproductimage'])) {
                             <img id="updateimagepath" class="w-full h-full object-cover" src="">
                         </div>
                         <input
-                            id="updateProductTypeInput"
+                            id="updateProductImageInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="file"
-                            name="updateimage" required>
-                        <small id="updateProductTypeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            name="updateimage">
+                        <small id="updateProductImageError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
                     <!-- Image Path Input -->
                     <div class="relative w-full">
                         <input
-                            id="updateProductTypeInput"
+                            id="updateProductImageAltInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="text"
                             name="updateimagealt"
                             placeholder="Enter image alt">
-                        <small id="updateProductTypeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                        <small id="updateProductImageAltError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
                     <!-- Product -->
                     <div class="relative">
@@ -347,7 +365,7 @@ if (isset($_POST['deleteproductimage'])) {
                         </div>
                         <button
                             type="submit"
-                            name="editproducttype"
+                            name="editproductimage"
                             class="bg-amber-500 text-white px-4 py-2 select-none hover:bg-amber-600 rounded-sm">
                             Save
                         </button>

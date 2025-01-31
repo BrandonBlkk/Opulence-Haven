@@ -32,13 +32,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
     // Current image from the database
     $currentProfile = $adminprofile;
 
-    // Simulate $_FILES array for three admin images
+    // Simulate $_FILES array for images
     $imageFile = $_FILES['AdminProfile'];
 
     // Upload Profile Image 
     $result = uploadProductImage($imageFile, $currentProfile);
     if (is_array($result)) {
-        echo $result1['image'] . "<br>";
+        echo $result['image'] . "<br>";
     } else {
         $adminProfile = $result;
     }

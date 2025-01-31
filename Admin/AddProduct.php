@@ -13,7 +13,7 @@ $updateProductSuccess = false;
 $deleteProductSuccess = false;
 $productID = AutoID('producttb', 'ProductID', 'PD-', 6);
 
-// Add Product Type
+// Add Product
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproduct'])) {
     $productTitle = mysqli_real_escape_string($connect, $_POST['productTitle']);
     $description = mysqli_real_escape_string($connect, $_POST['description']);
@@ -68,9 +68,9 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     exit;
 }
 
-// Update Product Type
+// Update Product
 if (isset($_POST['editproduct'])) {
-    $productTypeId = mysqli_real_escape_string($connect, $_POST['producttypeid']);
+    $productId = mysqli_real_escape_string($connect, $_POST['productid']);
     $productTitle = mysqli_real_escape_string($connect, $_POST['updateproductTitle']);
     $brand = mysqli_real_escape_string($connect, $_POST['updatebrand']);
     $description = mysqli_real_escape_string($connect, $_POST['updatedescription']);
@@ -79,23 +79,21 @@ if (isset($_POST['editproduct'])) {
     $delivery = mysqli_real_escape_string($connect, $_POST['updatedelivery']);
     $price = mysqli_real_escape_string($connect, $_POST['updateprice']);
     $discountPrice = mysqli_real_escape_string($connect, $_POST['updatediscountPrice']);
-    $productSize = mysqli_real_escape_string($connect, $_POST['updateproductsize']);
-    $stock = mysqli_real_escape_string($connect, $_POST['updatestock']);
     $sellingFast = mysqli_real_escape_string($connect, $_POST['updatesellingfast']);
     $productType = mysqli_real_escape_string($connect, $_POST['updateproductType']);
 
     // Update query
     $updateQuery = "UPDATE producttb SET Title = '$productTitle', Brand = '$brand', Description = '$description', Specification = '$specification', Information = '$information', DeliveryInfo = '$delivery', 
-    Price = '$price', DiscountPrice = '$discountPrice', ProductSize = '$productSize', Stock = '$stock', SellingFast = '$sellingFast', ProductTypeID = '$productType' WHERE ProductID = '$productId'";
+    Price = '$price', DiscountPrice = '$discountPrice', SellingFast = '$sellingFast', ProductTypeID = '$productType' WHERE ProductID = '$productId'";
 
     if ($connect->query($updateQuery)) {
         $updateProductSuccess = true;
     } else {
-        $alertMessage = "Failed to update product type. Please try again.";
+        $alertMessage = "Failed to update product. Please try again.";
     }
 }
 
-// Delete Product Type
+// Delete Product
 if (isset($_POST['deleteproduct'])) {
     $productId = mysqli_real_escape_string($connect, $_POST['productid']);
 
@@ -290,7 +288,7 @@ if (isset($_POST['deleteproduct'])) {
             <div class="bg-white w-full max-w-4xl p-6 rounded-md shadow-md mx-4 sm:mx-8 lg:mx-auto overflow-y-auto max-h-[92vh]">
                 <h2 class="text-xl text-center font-bold mb-4">Edit Product</h2>
                 <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" enctype="multipart/form-data" id="updateProductForm">
-                    <input type="hidden" name="producttypeid" id="updateProductID">
+                    <input type="hidden" name="productid" id="updateProductID">
                     <!-- Product Title Input -->
                     <div class="relative w-full">
                         <label class="block text-sm text-start font-medium text-gray-700 mb-1">Product Information</label>
