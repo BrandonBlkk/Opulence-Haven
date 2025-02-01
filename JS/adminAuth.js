@@ -238,6 +238,7 @@ const validatePhone = () => {
 const passwordInputs = [
     { input: document.getElementById('signupPasswordInput'), toggle: document.getElementById('togglePassword') },
     { input: document.getElementById('signinPasswordInput'), toggle: document.getElementById('togglePassword2') },
+    { input: document.getElementById('resetPasswordInput'), toggle: document.getElementById('toggleResetPassword') },
 ];
  
 passwordInputs.forEach(({ input, toggle }) => {

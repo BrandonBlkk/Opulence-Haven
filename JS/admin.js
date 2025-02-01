@@ -1874,7 +1874,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (deleteAdminSuccess) {
             // Show Alert
-            showAlert('The admin accouont has been successfully deleted.');
+            showAlert('The admin account has been successfully deleted.');
             setTimeout(() => {
                 window.location.href = 'RoleManagement.php';
             }, 5000);
@@ -2023,7 +2023,7 @@ if (adminProfileDeleteBtn && confirmDeleteModal && cancelDeleteBtn && confirmDel
     });
 }
 
-// Reset Password and Profile Update Form Validation
+// Profile Update Form Validation
 document.addEventListener("DOMContentLoaded", () => {
     const alertMessage = document.getElementById('alertMessage').value;
     const profileUpdate = document.getElementById('profileUpdate').value === 'true';
@@ -2053,6 +2053,62 @@ document.addEventListener("DOMContentLoaded", () => {
                 e.preventDefault();
             }
         });
+    }
+});
+
+// Admin Reset Password Modal
+document.addEventListener('DOMContentLoaded', () => {
+    const resetAdminPasswordModal = document.getElementById('resetAdminPasswordModal');
+    const adminResetPasswordCancelBtn = document.getElementById('adminResetPasswordCancelBtn');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const resetAdminPasswordSuccess = document.getElementById('resetAdminPasswordSuccess').value === 'true';
+
+    // Get all reset buttons
+    const resetBtns = document.querySelectorAll('.reset-btn');
+
+    if (resetAdminPasswordModal && adminResetPasswordCancelBtn && resetBtns) {
+        // Add click event to each delete button
+        resetBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const adminId = this.getAttribute('data-admin-id');
+
+                // Fetch admin details
+                fetch(`../Admin/RoleManagement.php?action=getAdminDetails&id=${adminId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('resetAdminID').value = adminId;
+                            document.getElementById('adminResetEmail').textContent = data.admin.AdminEmail;
+                        } else {
+                            console.error('Failed to load admin details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+
+                // Show modal
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+                resetAdminPasswordModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+            });
+        });
+
+        // Cancel button functionality
+        adminResetPasswordCancelBtn.addEventListener('click', () => {
+            resetAdminPasswordModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        if (resetAdminPasswordSuccess) {
+            // Show Alert
+            showAlert('The admin password has been successfully reset.');
+            setTimeout(() => {
+                window.location.href = 'RoleManagement.php';
+            }, 5000);
+        } else if (alertMessage) {
+            // Show Alert
+            showAlert(alertMessage);
+        }
     }
 });
 
@@ -2417,7 +2473,7 @@ const validateProductImageAlt = () => {
     return validateField(
         "productImageAltInput",
         "productImageAltError",
-        (input) => (!input ? "Image Alt is required." : null)
+        (input) => (!input ? "Image alt is required." : null)
     );
 }
 
@@ -2425,7 +2481,7 @@ const validateUpdateProductImageAlt = () => {
     return validateField(
         "updateProductImageAltInput",
         "updateProductImageAltError",
-        (input) => (!input ? "Image Alt is required." : null)
+        (input) => (!input ? "Image alt is required." : null)
     );
 }
 

@@ -111,7 +111,7 @@ if (isset($_POST['deleteproductimage'])) {
     $productImageId = mysqli_real_escape_string($connect, $_POST['productimageid']);
 
     // Build query based on action
-    $deleteQuery = "DELETE FROM productimagetb WHERE ProductImageID = '$productImageId'";
+    $deleteQuery = "DELETE FROM productimagetb WHERE ImageID = '$productImageId'";
 
     if ($connect->query($deleteQuery)) {
         $deleteProductImageSuccess = true;
@@ -291,7 +291,7 @@ if (isset($_POST['deleteproductimage'])) {
         <!-- Product Image Details Modal -->
         <div id="updateProductImageModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center w-full sm:max-w-[500px]">
-                <h2 class="text-xl font-bold mb-4">Edit Product Image</h2>
+                <h2 class="text-xl text-start text-gray-700 font-bold">Edit Product Image</h2>
                 <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="updateProductImageForm">
                     <input type="hidden" name="productimageid" id="updateProductImageID">
                     <!-- Image Input -->
@@ -406,7 +406,7 @@ if (isset($_POST['deleteproductimage'])) {
         <!-- Add Product Image Form -->
         <div id="addProductImageModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white w-full md:w-1/3 p-6 rounded-md shadow-md ">
-                <h2 class="text-xl font-bold mb-4">Add New Product Image</h2>
+                <h2 class="text-xl text-gray-700 font-bold mb-4">Add New Product Image</h2>
                 <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" enctype="multipart/form-data" method="post" id="productImageForm">
                     <!-- Image Input -->
                     <div class="relative w-full">

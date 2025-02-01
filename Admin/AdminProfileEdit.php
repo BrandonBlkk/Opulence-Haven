@@ -117,9 +117,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
                                         onchange="previewProfileImage(event)">
                                 </div>
                                 <div>
-                                    <div id="adminProfileDeleteBtn" class="flex items-center justify-start gap-2 cursor-pointer select-none">
-                                        <i class="ri-delete-bin-line text-xl text-red-500"></i>
-                                        <p class="font-semibold">Delete Account</p>
+                                    <div class="flex justify-start">
+                                        <div id="adminProfileDeleteBtn" class="flex items-center justify-center gap-2 p-2 rounded-md hover:bg-slate-100 transition-colors duration-300 cursor-pointer select-none">
+                                            <i class="ri-delete-bin-line text-xl text-red-500"></i>
+                                            <p class="font-semibold">Delete Account</p>
+                                        </div>
                                     </div>
                                     <p class="text-sm text-gray-500 mt-3">Recommended size is 160x160px.</p>
                                 </div>

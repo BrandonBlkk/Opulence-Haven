@@ -227,7 +227,7 @@ if (isset($_POST['deleterule'])) {
         <!-- Rule Details Modal -->
         <div id="updateRuleModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center w-full sm:max-w-[500px]">
-                <h2 class="text-xl font-bold mb-4">Edit Rule</h2>
+                <h2 class="text-xl text-start text-gray-700 font-bold">Edit Rule</h2>
                 <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="updateRuleForm">
                     <input type="hidden" name="ruleid" id="updateRuleID">
                     <!-- Rule Input -->
@@ -314,7 +314,7 @@ if (isset($_POST['deleterule'])) {
         <!-- Add Rule Form -->
         <div id="addRuleModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white w-full md:w-1/3 p-6 rounded-md shadow-md ">
-                <h2 class="text-xl font-bold mb-4">Add New Rule</h2>
+                <h2 class="text-xl text-gray-700 font-bold mb-4">Add New Rule</h2>
                 <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="ruleForm">
                     <!-- Rule Input -->
                     <div class="relative w-full">

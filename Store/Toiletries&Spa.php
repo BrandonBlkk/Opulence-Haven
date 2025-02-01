@@ -58,7 +58,7 @@ if ($productSelectQuery->num_rows > 0) {
             <span><i class="ri-arrow-right-s-fill"></i></span>
             <a href="Store.php" class="underline">Store</a>
             <span><i class="ri-arrow-right-s-fill"></i></span>
-            <a href="RoomEssentials.php" class="underline">Toiletries and Spa</a>
+            <a href="Toiletries&Spa.php" class="underline">Toiletries and Spa</a>
         </div>
 
         <section class="mt-3">

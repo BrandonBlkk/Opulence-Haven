@@ -9,6 +9,7 @@ if (!$connect) {
 $alertMessage = '';
 $addRoleSuccess = false;
 $deleteAdminSuccess = false;
+$resetAdminPasswordSuccess = false;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addrole'])) {
     $role = mysqli_real_escape_string($connect, $_POST['role']);
@@ -191,8 +192,8 @@ if (isset($_POST['deleteadmin'])) {
                                             <?= htmlspecialchars($admin['Status']) ?>
                                         </span>
                                     </td>
-                                    <td class="p-3 text-start space-x-1 hidden xl:table-cell">
-                                        <button>
+                                    <td class="reset-btn p-3 text-start space-x-1 hidden xl:table-cell">
+                                        <button data-admin-id="<?= htmlspecialchars($admin['AdminID']) ?>">
                                             <span class="rounded-md border-2"><i class="ri-arrow-left-line text-md"></i></span>
                                             <span>Reset</span>
                                         </button>
@@ -256,11 +257,50 @@ if (isset($_POST['deleteadmin'])) {
             </div>
         </div>
 
+        <!-- Reset Password Modal -->
+        <div id="resetAdminPasswordModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+            <form class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="resetPasswordForm">
+                <h2 class="text-xl font-semibold mb-4">Reset Admin Password</h2>
+                <p class="text-slate-600 mb-2">
+                    You are about to reset the password for:
+                    <span id="adminResetEmail" class="font-semibold"></span>
+                </p>
+                <p class="text-sm text-gray-500 mb-4">
+                    A new temporary password will be generated, and the admin will be required to change it upon login.
+                </p>
+
+                <input type="hidden" name="adminid" id="resetAdminID">
+
+                <div class="flex flex-col relative mb-4">
+                    <div class="flex items-center justify-between border rounded">
+                        <input
+                            id="resetPasswordInput"
+                            class="p-2 w-full rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            type="password"
+                            name="password"
+                            placeholder="Enter a new password">
+                        <i id="toggleResetPassword" class="ri-eye-line p-2 cursor-pointer"></i>
+                    </div>
+                    <small id="resetPasswordError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                </div>
+                <p class="text-xs text-red-500 mt-1 mb-4">Ensure you toggle password visibility only in a private and secure environment to protect your information from being seen by others.</p>
+
+                <div class="flex justify-end gap-4 select-none">
+                    <div id="adminResetPasswordCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm cursor-pointer">
+                        Cancel
+                    </div>
+                    <button type="submit" name="resetpassword" class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-sm">
+                        Reset Password
+                    </button>
+                </div>
+            </form>
+        </div>
+
         <!-- Admin Delete Modal -->
         <div id="adminConfirmDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <form class="bg-white max-w-lg p-6 rounded-md shadow-md text-center" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="adminDeleteForm">
                 <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Admin Deletion</h2>
-                <p class="text-slate-600 mb-2">You are about to delete the following Admin:</p>
+                <p class="text-slate-600 mb-2">You are about to delete the following Admin</p>
                 <div class="flex justify-center items-center gap-2 mb-2">
                     <div class="relative">
                         <div class="w-16 h-16 rounded-full select-none">
@@ -301,7 +341,7 @@ if (isset($_POST['deleteadmin'])) {
         <!-- Add Role Form -->
         <div id="addRoleModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white w-full md:w-1/3 p-6 rounded-md shadow-md ">
-                <h2 class="text-xl font-bold mb-4">Add New Role</h2>
+                <h2 class="text-xl text-gray-700 font-bold mb-4">Add New Role</h2>
                 <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="roleForm">
                     <!-- Role Input -->
                     <div class="relative w-full">
@@ -351,6 +391,7 @@ if (isset($_POST['deleteadmin'])) {
 
     <script src="//unpkg.com/alpinejs" defer></script>
     <script type="module" src="../JS/admin.js"></script>
+    <script type="module" src="../JS/adminAuth.js"></script>
 </body>
 
 </html>

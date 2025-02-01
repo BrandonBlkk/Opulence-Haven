@@ -216,7 +216,7 @@ if (isset($_POST['deletefacilitytype'])) {
         <!-- Facility Type Details Modal -->
         <div id="updateFacilityTypeModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center w-full sm:max-w-[500px]">
-                <h2 class="text-xl font-bold mb-4">Edit Facility Type</h2>
+                <h2 class="text-xl text-start text-gray-700 font-bold">Edit Facility Type</h2>
                 <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="updateFacilityTypeForm">
                     <input type="hidden" name="facilitytypeid" id="updateFacilityTypeID">
                     <!-- Facility Type Input -->
@@ -293,7 +293,7 @@ if (isset($_POST['deletefacilitytype'])) {
         <!-- Add Facility Type Form -->
         <div id="addFacilityTypeModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white w-full md:w-1/3 p-6 rounded-md shadow-md ">
-                <h2 class="text-xl font-bold mb-4">Add New Facility Type</h2>
+                <h2 class="text-xl text-gray-700 font-bold mb-4">Add New Facility Type</h2>
                 <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="facilityTypeForm">
                     <!-- Facility Type Input -->
                     <div class="relative w-full">

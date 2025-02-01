@@ -286,7 +286,7 @@ if (isset($_POST['deleteproduct'])) {
         <!-- Product Details Modal -->
         <div id="updateProductModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white w-full max-w-4xl p-6 rounded-md shadow-md mx-4 sm:mx-8 lg:mx-auto overflow-y-auto max-h-[92vh]">
-                <h2 class="text-xl text-center font-bold mb-4">Edit Product</h2>
+                <h2 class="text-xl font-bold text-gray-700 mb-4">Edit Product</h2>
                 <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" enctype="multipart/form-data" id="updateProductForm">
                     <input type="hidden" name="productid" id="updateProductID">
                     <!-- Product Title Input -->
@@ -448,7 +448,7 @@ if (isset($_POST['deleteproduct'])) {
         <!-- Add Produc Form -->
         <div id="addProductModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white w-full max-w-4xl p-6 rounded-md shadow-md mx-4 sm:mx-8 lg:mx-auto">
-                <h2 class="text-xl font-bold mb-4 text-center">Add New Product</h2>
+                <h2 class="text-xl font-bold text-gray-700 mb-4">Add New Product</h2>
                 <form class="flex flex-col space-y-4" action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post" enctype="multipart/form-data" id="productForm">
                     <!-- Product Title Input -->
                     <div class="relative w-full">
