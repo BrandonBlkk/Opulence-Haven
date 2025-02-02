@@ -105,7 +105,7 @@ if (isset($_POST['deleteproductsize'])) {
             <div class="flex justify-between items-end">
                 <div>
                     <h2 class="text-xl text-gray-700 font-bold mb-4">Add Product Size Overview</h2>
-                    <p>Add information about product images to showcase items, enhance visual appeal, and provide a better shopping experience for customers.</p>
+                    <p>Add information about product sizes to help customers find the right fit, improve shopping convenience, and enhance the overall purchasing experience.</p>
                 </div>
                 <button id="addProductSizeBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
                     <i class="ri-add-line text-xl"></i>
@@ -157,7 +157,7 @@ if (isset($_POST['deleteproductsize'])) {
                                 <th class="p-3 text-start">ID</th>
                                 <th class="p-3 text-start">Size</th>
                                 <th class="p-3 text-start">Price</th>
-                                <th class="p-3 text-start">Product</th>
+                                <th class="p-3 text-start hidden sm:table-cell">Product</th>
                                 <th class="p-3 text-start">Actions</th>
                             </tr>
                         </thead>
@@ -165,52 +165,60 @@ if (isset($_POST['deleteproductsize'])) {
                             <?php
                             $count = 1;
                             ?>
-                            <?php foreach ($productSizes as $productSize): ?>
-                                <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                    <td class="p-3 text-start whitespace-nowrap">
-                                        <div class="flex items-center gap-2 font-medium text-gray-500">
-                                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                            <span><?= $count ?></span>
-                                        </div>
-                                    </td>
-                                    <td class="p-3 text-start hidden sm:table-cell">
-                                        <?= htmlspecialchars($productSize['Size']) ?>
-                                    </td>
-                                    <td class="p-3 text-start hidden sm:table-cell">
-                                        <?= htmlspecialchars($productSize['PriceModifier']) ?>
-                                    </td>
-                                    <td class="p-3 text-start hidden sm:table-cell">
-                                        <?php
-                                        // Fetch the specific product type for the supplier
-                                        $productID = $productSize['ProductID'];
-                                        $productQuery = "SELECT ProductID, Title FROM producttb WHERE ProductID = '$productID'";
-                                        $productResult = mysqli_query($connect, $productQuery);
+                            <?php if (!empty($productSizes)): ?>
+                                <?php foreach ($productSizes as $productSize): ?>
+                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                        <td class="p-3 text-start whitespace-nowrap">
+                                            <div class="flex items-center gap-2 font-medium text-gray-500">
+                                                <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                                                <span><?= $count ?></span>
+                                            </div>
+                                        </td>
+                                        <td class="p-3 text-start">
+                                            <?= htmlspecialchars($productSize['Size']) ?>
+                                        </td>
+                                        <td class="p-3 text-start">
+                                            <?= htmlspecialchars($productSize['PriceModifier']) ?>
+                                        </td>
+                                        <td class="p-3 text-start hidden sm:table-cell">
+                                            <?php
+                                            // Fetch the specific product type for the supplier
+                                            $productID = $productSize['ProductID'];
+                                            $productQuery = "SELECT ProductID, Title FROM producttb WHERE ProductID = '$productID'";
+                                            $productResult = mysqli_query($connect, $productQuery);
 
-                                        if ($productResult && $productResult->num_rows > 0) {
-                                            $productRow = $productResult->fetch_assoc();
-                                            echo htmlspecialchars($productRow['ProductID'] . " (" . $productRow['Title'] . ")");
-                                        } else {
-                                            echo "Product not found"; // Fallback message
-                                        }
-                                        ?>
-                                    </td>
-                                    <td class="p-3 text-start space-x-1 select-none">
-                                        <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                            data-productsize-id="<?= htmlspecialchars($productSize['SizeID']) ?>"></i>
-                                        <button class="text-red-500">
-                                            <i class="delete-btn ri-delete-bin-7-line text-xl"
+                                            if ($productResult && $productResult->num_rows > 0) {
+                                                $productRow = $productResult->fetch_assoc();
+                                                echo htmlspecialchars($productRow['ProductID'] . " (" . $productRow['Title'] . ")");
+                                            } else {
+                                                echo "Product not found"; // Fallback message
+                                            }
+                                            ?>
+                                        </td>
+                                        <td class="p-3 text-start space-x-1 select-none">
+                                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
                                                 data-productsize-id="<?= htmlspecialchars($productSize['SizeID']) ?>"></i>
-                                        </button>
+                                            <button class="text-red-500">
+                                                <i class="delete-btn ri-delete-bin-7-line text-xl"
+                                                    data-productsize-id="<?= htmlspecialchars($productSize['SizeID']) ?>"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <?php $count++; ?>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="7" class="p-3 text-center text-gray-500 py-52">
+                                        No product sizes available.
                                     </td>
                                 </tr>
-                                <?php $count++; ?>
-                            <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
 
                 <!-- Pagination Controls -->
-                <div class="flex justify-center items-center mt-1">
+                <div class="flex justify-center items-center mt-1 <?= (!empty($productSize) ? 'flex' : 'hidden') ?>">
                     <?php if ($productTypeCurrentPage > 1) {
                     ?>
                         <a href="?producttypepage=<?= $productTypeCurrentPage - 1 ?>"

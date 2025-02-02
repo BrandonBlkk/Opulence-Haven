@@ -119,7 +119,7 @@ if (isset($_POST['deleterule'])) {
             <div class="flex justify-between items-end">
                 <div>
                     <h2 class="text-xl text-gray-700 font-bold mb-4">Add Rule Overview</h2>
-                    <p>Add information about rule to categorize items, track stock levels, and manage room details for efficient organization.</p>
+                    <p>Add information about room rules to categorize room types, track occupancy status, and manage room details for efficient organization.</p>
                 </div>
                 <button id="addRuleBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
                     <i class="ri-add-line text-xl"></i>
@@ -141,47 +141,55 @@ if (isset($_POST['deleterule'])) {
                             <tr class="bg-gray-100 text-gray-600 text-sm">
                                 <th class="p-3 text-start">ID</th>
                                 <th class="p-3 text-start">Title</th>
-                                <th class="p-3 text-start">Rule</th>
+                                <th class="p-3 text-start hidden sm:table-cell">Rule</th>
                                 <th class="p-3 text-start hidden sm:table-cell">Icon</th>
                                 <th class="p-3 text-start">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="text-gray-600 text-sm">
-                            <?php foreach ($rules as $rule): ?>
-                                <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                    <td class="p-3 text-start whitespace-nowrap">
-                                        <div class="flex items-center gap-2 font-medium text-gray-500">
-                                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                            <span><?= htmlspecialchars($rule['RuleID']) ?></span>
-                                        </div>
-                                    </td>
-                                    <td class="p-3 text-start">
-                                        <?= htmlspecialchars($rule['RuleTitle']) ?>
-                                    </td>
-                                    <td class="p-3 text-start hidden sm:table-cell">
-                                        <?= htmlspecialchars($rule['Rule']) ?>
-                                    </td>
-                                    <td class="p-3 text-start">
-                                        <?= !empty($rule['RuleIcon']) && !empty($rule['IconSize'])
-                                            ? '<i class="' . htmlspecialchars($rule['RuleIcon'], ENT_QUOTES, 'UTF-8') . ' ' . htmlspecialchars($rule['IconSize'], ENT_QUOTES, 'UTF-8') . '"></i>'
-                                            : 'None' ?>
-                                    </td>
-                                    <td class="p-3 text-start space-x-1 select-none">
-                                        <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                            data-rule-id="<?= htmlspecialchars($rule['RuleID']) ?>"></i>
-                                        <button class="text-red-500">
-                                            <i class="delete-btn ri-delete-bin-7-line text-xl"
+                            <?php if (!empty($rules)): ?>
+                                <?php foreach ($rules as $rule): ?>
+                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                        <td class="p-3 text-start whitespace-nowrap">
+                                            <div class="flex items-center gap-2 font-medium text-gray-500">
+                                                <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                                                <span><?= htmlspecialchars($rule['RuleID']) ?></span>
+                                            </div>
+                                        </td>
+                                        <td class="p-3 text-start">
+                                            <?= htmlspecialchars($rule['RuleTitle']) ?>
+                                        </td>
+                                        <td class="p-3 text-start hidden sm:table-cell">
+                                            <?= htmlspecialchars(mb_strimwidth($rule['Rule'], 0, 50, '...')) ?>
+                                        </td>
+                                        <td class="p-3 text-start hidden sm:table-cell">
+                                            <?= !empty($rule['RuleIcon']) && !empty($rule['IconSize'])
+                                                ? '<i class="' . htmlspecialchars($rule['RuleIcon'], ENT_QUOTES, 'UTF-8') . ' ' . htmlspecialchars($rule['IconSize'], ENT_QUOTES, 'UTF-8') . '"></i>'
+                                                : 'None' ?>
+                                        </td>
+                                        <td class="p-3 text-start space-x-1 select-none">
+                                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
                                                 data-rule-id="<?= htmlspecialchars($rule['RuleID']) ?>"></i>
-                                        </button>
+                                            <button class="text-red-500">
+                                                <i class="delete-btn ri-delete-bin-7-line text-xl"
+                                                    data-rule-id="<?= htmlspecialchars($rule['RuleID']) ?>"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="7" class="p-3 text-center text-gray-500 py-52">
+                                        No rules available.
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
 
                 <!-- Pagination Controls -->
-                <div class="flex justify-center items-center mt-1">
+                <div class="flex justify-center items-center mt-1 <?= (!empty($rules) ? 'flex' : 'hidden') ?>">
                     <!-- Previous Btn -->
                     <?php if ($roomTypeCurrentPage > 1) {
                     ?>
@@ -242,12 +250,11 @@ if (isset($_POST['deleterule'])) {
                         <small id="updateRuleTitleError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
                     <div class="relative w-full">
-                        <input
+                        <textarea
                             id="updateRuleInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                            type="text"
                             name="updaterule"
-                            placeholder="Enter rule">
+                            placeholder="Enter rule"></textarea>
                         <small id="updateRuleError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
                     <!-- Icon Input -->
@@ -328,12 +335,11 @@ if (isset($_POST['deleterule'])) {
                         <small id="ruleTitleError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
                     <div class="relative w-full">
-                        <input
+                        <textarea
                             id="ruleInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                            type="text"
                             name="rule"
-                            placeholder="Enter rule">
+                            placeholder="Enter rule"></textarea>
                         <small id="ruleError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
                     <!-- Icon Input -->

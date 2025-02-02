@@ -141,37 +141,45 @@ if (isset($_POST['deletefacilitytype'])) {
                             </tr>
                         </thead>
                         <tbody class="text-gray-600 text-sm">
-                            <?php foreach ($facilityTypes as $facilityType): ?>
-                                <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                    <td class="p-3 text-start whitespace-nowrap">
-                                        <div class="flex items-center gap-2 font-medium text-gray-500">
-                                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                            <span><?= htmlspecialchars($facilityType['FacilityTypeID']) ?></span>
-                                        </div>
-                                    </td>
-                                    <td class="p-3 text-start">
-                                        <?= htmlspecialchars($facilityType['FacilityType']) ?>
-                                    </td>
-                                    <td class="p-3 text-start hidden sm:table-cell">
-                                        <i class="<?= htmlspecialchars($facilityType['FacilityTypeIcon'], ENT_QUOTES, 'UTF-8') ?> <?= htmlspecialchars($facilityType['IconSize'], ENT_QUOTES, 'UTF-8') ?>"></i>
-                                    </td>
+                            <?php if (!empty($facilityTypes)): ?>
+                                <?php foreach ($facilityTypes as $facilityType): ?>
+                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                        <td class="p-3 text-start whitespace-nowrap">
+                                            <div class="flex items-center gap-2 font-medium text-gray-500">
+                                                <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                                                <span><?= htmlspecialchars($facilityType['FacilityTypeID']) ?></span>
+                                            </div>
+                                        </td>
+                                        <td class="p-3 text-start">
+                                            <?= htmlspecialchars($facilityType['FacilityType']) ?>
+                                        </td>
+                                        <td class="p-3 text-start hidden sm:table-cell">
+                                            <i class="<?= htmlspecialchars($facilityType['FacilityTypeIcon'], ENT_QUOTES, 'UTF-8') ?> <?= htmlspecialchars($facilityType['IconSize'], ENT_QUOTES, 'UTF-8') ?>"></i>
+                                        </td>
 
-                                    <td class="p-3 text-start space-x-1 select-none">
-                                        <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                            data-facilitytype-id="<?= htmlspecialchars($facilityType['FacilityTypeID']) ?>"></i>
-                                        <button class="text-red-500">
-                                            <i class="delete-btn ri-delete-bin-7-line text-xl"
+                                        <td class="p-3 text-start space-x-1 select-none">
+                                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
                                                 data-facilitytype-id="<?= htmlspecialchars($facilityType['FacilityTypeID']) ?>"></i>
-                                        </button>
+                                            <button class="text-red-500">
+                                                <i class="delete-btn ri-delete-bin-7-line text-xl"
+                                                    data-facilitytype-id="<?= htmlspecialchars($facilityType['FacilityTypeID']) ?>"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="7" class="p-3 text-center text-gray-500 py-52">
+                                        No facility types available.
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
 
                 <!-- Pagination Controls -->
-                <div class="flex justify-center items-center mt-1">
+                <div class="flex justify-center items-center mt-1 <?= (!empty($facilityTypes) ? 'flex' : 'hidden') ?>">
                     <?php if ($facilityTypeCurrentPage > 1) {
                     ?>
                         <a href="?facilitytypepage=<?= $facilityTypeCurrentPage - 1 ?>"

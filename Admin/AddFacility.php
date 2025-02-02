@@ -120,7 +120,7 @@ if (isset($_POST['deletefacility'])) {
             <div class="flex justify-between items-end">
                 <div>
                     <h2 class="text-xl text-gray-700 font-bold mb-4">Add Facility Overview</h2>
-                    <p>Add information about facility to categorize facilities, track usage, and manage facility details for efficient organization.</p>
+                    <p>Add information about room facilities to categorize room types, track usage, and manage facility details for efficient organization.</p>
                 </div>
                 <button id="addFacilityBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
                     <i class="ri-add-line text-xl"></i>
@@ -173,64 +173,72 @@ if (isset($_POST['deletefacility'])) {
                                 <th class="p-3 text-start">ID</th>
                                 <th class="p-3 text-start">Type</th>
                                 <th class="p-3 text-start">Icon</th>
-                                <th class="p-3 text-start">Additional Charge</th>
-                                <th class="p-3 text-start">Popular</th>
-                                <th class="p-3 text-start">Facility Type</th>
+                                <th class="p-3 text-start hidden md:table-cell">Additional Charge</th>
+                                <th class="p-3 text-start hidden md:table-cell">Popular</th>
+                                <th class="p-3 text-start hidden lg:table-cell">Facility Type</th>
                                 <th class="p-3 text-start">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="text-gray-600 text-sm">
-                            <?php foreach ($facilities as $facility): ?>
-                                <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                    <td class="p-3 text-start whitespace-nowrap">
-                                        <div class="flex items-center gap-2 font-medium text-gray-500">
-                                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                            <span><?= htmlspecialchars($facility['FacilityID']) ?></span>
-                                        </div>
-                                    </td>
-                                    <td class="p-3 text-start">
-                                        <?= htmlspecialchars($facility['Facility']) ?>
-                                    </td>
-                                    <td class="p-3 text-start">
-                                        <?= !empty($facility['FacilityIcon']) && !empty($facility['IconSize'])
-                                            ? '<i class="' . htmlspecialchars($facility['FacilityIcon'], ENT_QUOTES, 'UTF-8') . ' ' . htmlspecialchars($facility['IconSize'], ENT_QUOTES, 'UTF-8') . '"></i>'
-                                            : 'None' ?>
-                                    </td>
-                                    <td class="p-3 text-start">
-                                        <?= htmlspecialchars($facility['AdditionalCharge'] == 1 ? 'True' : 'False') ?>
-                                    </td>
-                                    <td class="p-3 text-start">
-                                        <?= htmlspecialchars($facility['Popular'] == 1 ? 'True' : 'False') ?>
-                                    </td>
-                                    <td class="p-3 text-start hidden md:table-cell">
-                                        <?php
-                                        // Fetch the specific facility type for the facility
-                                        $facilityTypeID = $facility['FacilityTypeID'];
-                                        $facilityTypeQuery = "SELECT FacilityType FROM facilitytypetb WHERE FacilityTypeID = '$facilityTypeID'";
-                                        $facilityTypeResult = mysqli_query($connect, $facilityTypeQuery);
+                            <?php if (!empty($facilities)): ?>
+                                <?php foreach ($facilities as $facility): ?>
+                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                        <td class="p-3 text-start whitespace-nowrap">
+                                            <div class="flex items-center gap-2 font-medium text-gray-500">
+                                                <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                                                <span><?= htmlspecialchars($facility['FacilityID']) ?></span>
+                                            </div>
+                                        </td>
+                                        <td class="p-3 text-start">
+                                            <?= htmlspecialchars($facility['Facility']) ?>
+                                        </td>
+                                        <td class="p-3 text-start">
+                                            <?= !empty($facility['FacilityIcon']) && !empty($facility['IconSize'])
+                                                ? '<i class="' . htmlspecialchars($facility['FacilityIcon'], ENT_QUOTES, 'UTF-8') . ' ' . htmlspecialchars($facility['IconSize'], ENT_QUOTES, 'UTF-8') . '"></i>'
+                                                : 'None' ?>
+                                        </td>
+                                        <td class="p-3 text-start hidden md:table-cell">
+                                            <?= htmlspecialchars($facility['AdditionalCharge'] == 1 ? 'True' : 'False') ?>
+                                        </td>
+                                        <td class="p-3 text-start hidden md:table-cell">
+                                            <?= htmlspecialchars($facility['Popular'] == 1 ? 'True' : 'False') ?>
+                                        </td>
+                                        <td class="p-3 text-start hidden lg:table-cell">
+                                            <?php
+                                            // Fetch the specific facility type for the facility
+                                            $facilityTypeID = $facility['FacilityTypeID'];
+                                            $facilityTypeQuery = "SELECT FacilityType FROM facilitytypetb WHERE FacilityTypeID = '$facilityTypeID'";
+                                            $facilityTypeResult = mysqli_query($connect, $facilityTypeQuery);
 
-                                        if ($facilityTypeResult && $facilityTypeResult->num_rows > 0) {
-                                            $facilityTypeRow = $facilityTypeResult->fetch_assoc();
-                                            echo htmlspecialchars($facilityTypeRow['FacilityType']);
-                                        }
-                                        ?>
-                                    </td>
-                                    <td class="p-3 text-start space-x-1 select-none">
-                                        <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                            data-facility-id="<?= htmlspecialchars($facility['FacilityID']) ?>"></i>
-                                        <button class="text-red-500">
-                                            <i class="delete-btn ri-delete-bin-7-line text-xl"
+                                            if ($facilityTypeResult && $facilityTypeResult->num_rows > 0) {
+                                                $facilityTypeRow = $facilityTypeResult->fetch_assoc();
+                                                echo htmlspecialchars($facilityTypeRow['FacilityType']);
+                                            }
+                                            ?>
+                                        </td>
+                                        <td class="p-3 text-start space-x-1 select-none">
+                                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
                                                 data-facility-id="<?= htmlspecialchars($facility['FacilityID']) ?>"></i>
-                                        </button>
+                                            <button class="text-red-500">
+                                                <i class="delete-btn ri-delete-bin-7-line text-xl"
+                                                    data-facility-id="<?= htmlspecialchars($facility['FacilityID']) ?>"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="7" class="p-3 text-center text-gray-500 py-52">
+                                        No facilities available.
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
 
                 <!-- Pagination Controls -->
-                <div class="flex justify-center items-center mt-1">
+                <div class="flex justify-center items-center mt-1 <?= (!empty($facilities) ? 'flex' : 'hidden') ?>">
                     <?php if ($facilityCurrentPage > 1) {
                     ?>
                         <a href="?facilitytypepage=<?= $facilityCurrentPage - 1 ?>"

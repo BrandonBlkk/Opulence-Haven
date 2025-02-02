@@ -190,7 +190,7 @@ if (isset($_POST['deleteproductimage'])) {
                         <thead>
                             <tr class="bg-gray-100 text-gray-600 text-sm">
                                 <th class="p-3 text-start">ID</th>
-                                <th class="p-3 text-start">Product</th>
+                                <th class="p-3 text-start hidden sm:table-cell">Product</th>
                                 <th class="p-3 text-start">Image Path</th>
                                 <th class="p-3 text-start hidden sm:table-cell">Image Alt</th>
                                 <th class="p-3 text-start">Actions</th>
@@ -210,7 +210,7 @@ if (isset($_POST['deleteproductimage'])) {
                                     </td>
                                     <td class="p-3 text-start hidden sm:table-cell">
                                         <?php
-                                        // Fetch the specific product type for the supplier
+                                        // Fetch the specific product for the image
                                         $productID = $productImage['ProductID'];
                                         $productQuery = "SELECT ProductID, Title FROM producttb WHERE ProductID = '$productID'";
                                         $productResult = mysqli_query($connect, $productQuery);
@@ -219,7 +219,7 @@ if (isset($_POST['deleteproductimage'])) {
                                             $productRow = $productResult->fetch_assoc();
                                             echo htmlspecialchars($productRow['ProductID'] . " (" . $productRow['Title'] . ")");
                                         } else {
-                                            echo "Product not found"; // Fallback message
+                                            echo "Product not found";
                                         }
                                         ?>
                                     </td>

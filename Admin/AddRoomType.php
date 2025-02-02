@@ -142,39 +142,47 @@ if (isset($_POST['deleteroomtype'])) {
                             </tr>
                         </thead>
                         <tbody class="text-gray-600 text-sm">
-                            <?php foreach ($roomTypes as $roomType): ?>
-                                <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                    <td class="p-3 text-start whitespace-nowrap">
-                                        <div class="flex items-center gap-2 font-medium text-gray-500">
-                                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                            <span><?= htmlspecialchars($roomType['RoomTypeID']) ?></span>
-                                        </div>
-                                    </td>
-                                    <td class="p-3 text-start">
-                                        <?= htmlspecialchars($roomType['RoomType']) ?>
-                                    </td>
-                                    <td class="p-3 text-start hidden sm:table-cell">
-                                        <?= htmlspecialchars($roomType['RoomDescription']) ?>
-                                    </td>
-                                    <td class="p-3 text-start hidden sm:table-cell">
-                                        <?= htmlspecialchars($roomType['RoomCapacity']) ?>
-                                    </td>
-                                    <td class="p-3 text-start space-x-1 select-none">
-                                        <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                            data-roomtype-id="<?= htmlspecialchars($roomType['RoomTypeID']) ?>"></i>
-                                        <button class="text-red-500">
-                                            <i class="delete-btn ri-delete-bin-7-line text-xl"
+                            <?php if (!empty($roomTypes)): ?>
+                                <?php foreach ($roomTypes as $roomType): ?>
+                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                        <td class="p-3 text-start whitespace-nowrap">
+                                            <div class="flex items-center gap-2 font-medium text-gray-500">
+                                                <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                                                <span><?= htmlspecialchars($roomType['RoomTypeID']) ?></span>
+                                            </div>
+                                        </td>
+                                        <td class="p-3 text-start">
+                                            <?= htmlspecialchars($roomType['RoomType']) ?>
+                                        </td>
+                                        <td class="p-3 text-start hidden sm:table-cell">
+                                            <?= htmlspecialchars($roomType['RoomDescription']) ?>
+                                        </td>
+                                        <td class="p-3 text-start hidden sm:table-cell">
+                                            <?= htmlspecialchars($roomType['RoomCapacity']) ?>
+                                        </td>
+                                        <td class="p-3 text-start space-x-1 select-none">
+                                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
                                                 data-roomtype-id="<?= htmlspecialchars($roomType['RoomTypeID']) ?>"></i>
-                                        </button>
+                                            <button class="text-red-500">
+                                                <i class="delete-btn ri-delete-bin-7-line text-xl"
+                                                    data-roomtype-id="<?= htmlspecialchars($roomType['RoomTypeID']) ?>"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="7" class="p-3 text-center text-gray-500 py-52">
+                                        No room types available.
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
 
                 <!-- Pagination Controls -->
-                <div class="flex justify-center items-center mt-1">
+                <div class="flex justify-center items-center mt-1 <?= (!empty($roomTypes) ? 'flex' : 'hidden') ?>">
                     <!-- Previous Btn -->
                     <?php if ($roomTypeCurrentPage > 1) {
                     ?>

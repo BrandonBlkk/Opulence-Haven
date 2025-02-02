@@ -148,7 +148,7 @@ if (isset($_POST['deleteproduct'])) {
             <!-- Product Table -->
             <div class="overflow-x-auto">
                 <!-- Product Search and Filter -->
-                <form method="GET" class="my-4 flex items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
+                <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
                     <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Products <span class="text-gray-400 text-sm ml-2"><?php echo $productCount ?></span></h1>
                     <div class="flex items-center w-full">
                         <input type="text" name="product_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full" placeholder="Search for product..." value="<?php echo isset($_GET['product_search']) ? htmlspecialchars($_GET['product_search']) : ''; ?>">
@@ -190,9 +190,9 @@ if (isset($_POST['deleteproduct'])) {
                             <tr class="bg-gray-100 text-gray-600 text-sm">
                                 <th class="p-3 text-start">ID</th>
                                 <th class="p-3 text-start">Title</th>
-                                <th class="p-3 text-start">Price</th>
+                                <th class="p-3 text-start hidden sm:table-cell">Price</th>
                                 <th class="p-3 text-start">Stock</th>
-                                <th class="p-3 text-start">Added Date</th>
+                                <th class="p-3 text-start hidden lg:table-cell">Added Date</th>
                                 <th class="p-3 text-start">Actions</th>
                             </tr>
                         </thead>
@@ -209,13 +209,13 @@ if (isset($_POST['deleteproduct'])) {
                                         <td class="p-3 text-start">
                                             <?= htmlspecialchars($product['Title']) ?>
                                         </td>
-                                        <td class="p-3 text-start">
+                                        <td class="p-3 text-start hidden sm:table-cell">
                                             $<?= htmlspecialchars(number_format($product['Price'], 2)) ?>
                                         </td>
                                         <td class="p-3 text-start">
                                             <?= htmlspecialchars($product['Stock']) ?>
                                         </td>
-                                        <td class="p-3 text-start">
+                                        <td class="p-3 text-start hidden lg:table-cell">
                                             <?= htmlspecialchars(date('d M Y', strtotime($product['AddedDate']))) ?>
                                         </td>
                                         <td class="p-3 text-start space-x-1 select-none">
@@ -230,7 +230,7 @@ if (isset($_POST['deleteproduct'])) {
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="7" class="p-3 text-center text-gray-500 py-32">
+                                    <td colspan="7" class="p-3 text-center text-gray-500 py-52">
                                         No products available.
                                     </td>
                                 </tr>

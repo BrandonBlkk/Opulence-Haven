@@ -7,7 +7,7 @@
     include('../includes/MoveRightLoader.php');
     ?>
     <nav class="flex items-center justify-between max-w-[1050px] mx-auto p-3">
-        <a href="Homepage.php">
+        <a href="../User/HomePage.php">
             <img src="../UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-28 select-none" alt="Logo">
         </a>
 

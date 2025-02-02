@@ -189,60 +189,68 @@ if (isset($_POST['deletesupplier'])) {
                             </tr>
                         </thead>
                         <tbody class="text-gray-600 text-sm">
-                            <?php foreach ($suppliers as $supplier): ?>
-                                <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                    <td class="p-3 text-start whitespace-nowrap">
-                                        <div class="flex items-center gap-2 font-medium text-gray-500">
-                                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                            <span><?= htmlspecialchars($supplier['SupplierID']) ?></span>
-                                        </div>
-                                    </td>
-                                    <td class="p-3">
-                                        <p class="font-bold"><?= htmlspecialchars($supplier['SupplierName']) ?></p>
-                                        <p><?= htmlspecialchars($supplier['SupplierEmail']) ?></p>
-                                    </td>
-                                    <td class="p-3 text-start hidden md:table-cell">
-                                        <?php
-                                        // Fetch the specific product type for the supplier
-                                        $productTypeID = $supplier['ProductTypeID'];
-                                        $productTypeQuery = "SELECT ProductType FROM producttypetb WHERE ProductTypeID = '$productTypeID'";
-                                        $productTypeResult = mysqli_query($connect, $productTypeQuery);
+                            <?php if (!empty($suppliers)): ?>
+                                <?php foreach ($suppliers as $supplier): ?>
+                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                        <td class="p-3 text-start whitespace-nowrap">
+                                            <div class="flex items-center gap-2 font-medium text-gray-500">
+                                                <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                                                <span><?= htmlspecialchars($supplier['SupplierID']) ?></span>
+                                            </div>
+                                        </td>
+                                        <td class="p-3">
+                                            <p class="font-bold"><?= htmlspecialchars($supplier['SupplierName']) ?></p>
+                                            <p><?= htmlspecialchars($supplier['SupplierEmail']) ?></p>
+                                        </td>
+                                        <td class="p-3 text-start hidden md:table-cell">
+                                            <?php
+                                            // Fetch the specific product type for the supplier
+                                            $productTypeID = $supplier['ProductTypeID'];
+                                            $productTypeQuery = "SELECT ProductType FROM producttypetb WHERE ProductTypeID = '$productTypeID'";
+                                            $productTypeResult = mysqli_query($connect, $productTypeQuery);
 
-                                        if ($productTypeResult && $productTypeResult->num_rows > 0) {
-                                            $productTypeRow = $productTypeResult->fetch_assoc();
-                                            echo htmlspecialchars($productTypeRow['ProductType']);
-                                        }
-                                        ?>
-                                    </td>
-                                    <td class="p-3 text-start hidden sm:table-cell">
-                                        <?= htmlspecialchars($supplier['SupplierContact']) ?>
-                                    </td>
-                                    <td class="p-3 text-start hidden lg:table-cell">
-                                        <?= htmlspecialchars($supplier['SupplierCompany']) ?>
-                                    </td>
-                                    <td class="p-3 text-start hidden lg:table-cell">
-                                        <p>
-                                            <?= htmlspecialchars($supplier['Address']) ?>,
-                                            <?= htmlspecialchars($supplier['City']) ?>,
-                                            <?= htmlspecialchars($supplier['Country']) ?>
-                                        </p>
-                                    </td>
-                                    <td class="p-3 text-start space-x-1 select-none">
-                                        <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                            data-supplier-id="<?= htmlspecialchars($supplier['SupplierID']) ?>"></i>
-                                        <button class="text-red-500">
-                                            <i class="delete-btn ri-delete-bin-7-line text-xl"
+                                            if ($productTypeResult && $productTypeResult->num_rows > 0) {
+                                                $productTypeRow = $productTypeResult->fetch_assoc();
+                                                echo htmlspecialchars($productTypeRow['ProductType']);
+                                            }
+                                            ?>
+                                        </td>
+                                        <td class="p-3 text-start hidden sm:table-cell">
+                                            <?= htmlspecialchars($supplier['SupplierContact']) ?>
+                                        </td>
+                                        <td class="p-3 text-start hidden lg:table-cell">
+                                            <?= htmlspecialchars($supplier['SupplierCompany']) ?>
+                                        </td>
+                                        <td class="p-3 text-start hidden lg:table-cell">
+                                            <p>
+                                                <?= htmlspecialchars($supplier['Address']) ?>,
+                                                <?= htmlspecialchars($supplier['City']) ?>,
+                                                <?= htmlspecialchars($supplier['Country']) ?>
+                                            </p>
+                                        </td>
+                                        <td class="p-3 text-start space-x-1 select-none">
+                                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
                                                 data-supplier-id="<?= htmlspecialchars($supplier['SupplierID']) ?>"></i>
-                                        </button>
+                                            <button class="text-red-500">
+                                                <i class="delete-btn ri-delete-bin-7-line text-xl"
+                                                    data-supplier-id="<?= htmlspecialchars($supplier['SupplierID']) ?>"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="7" class="p-3 text-center text-gray-500 py-52">
+                                        No suppliers available.
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
 
                 <!-- Pagination Controls -->
-                <div class="flex justify-center items-center mt-1">
+                <div class="flex justify-center items-center mt-1 <?php echo (!empty($suppliers) ? '' : 'hidden') ?>">
                     <!-- Previous Btn -->
                     <?php if ($supplierCurrentPage > 1) {
                     ?>
