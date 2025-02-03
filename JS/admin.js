@@ -1931,6 +1931,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             document.getElementById('contactMessage').textContent = data.contact.ContactMessage;
                             document.getElementById('username').textContent = data.contact.FullName;
                             document.getElementById('useremail').textContent = data.contact.UserEmail;
+                            document.getElementById('userphone').textContent = data.contact.UserPhone;
+                            document.getElementById('usercountry').textContent = data.contact.Country;
 
                             // Show the modal
                             confirmContactModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');

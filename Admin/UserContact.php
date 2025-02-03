@@ -208,35 +208,42 @@ if (isset($_POST['respondcontact'])) {
 
         <!-- Contact Details Modal -->
         <div id="confirmContactModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
-            <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center w-full sm:max-w-[500px]">
-                <h2 class="text-xl font-bold">User Contact</h2>
-                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="confirmContactForm">
+            <div class="bg-white max-w-5xl p-6 rounded-md shadow-lg text-center w-full sm:max-w-[500px]">
+                <!-- Modal Header -->
+                <h2 class="text-xl font-bold text-gray-800 border-b pb-3">User Contact Details</h2>
+
+                <!-- Form -->
+                <form class="flex flex-col space-y-4 mt-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="confirmContactForm">
                     <input type="hidden" name="contactid" id="confirmContactID">
-                    <div class="text-gray-600 text-sm text-left">
-                        <h1 class="font-medium text-gray-700 text-lg">Form</h1>
-                        <p class="font-bold" id="username"></p>
-                        <p id="useremail"></p>
+
+                    <!-- User Information -->
+                    <div class="text-gray-700 text-left space-y-2">
+                        <h3 class="text-lg font-medium text-gray-800">User Information</h3>
+                        <p><span class="font-semibold">Name:</span> <span id="username"></span></p>
+                        <p><span class="font-semibold">Email:</span> <span id="useremail"></span></p>
+                        <p><span class="font-semibold">Phone:</span> <span id="userphone"></span></p>
+                        <p><span class="font-semibold">Country:</span> <span id="usercountry"></span></p>
                     </div>
-                    <!-- Message Input -->
-                    <div class="w-full">
-                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">Message</label>
-                        <p id="contactMessage" class="text-start"></p>
+
+                    <!-- Message Display -->
+                    <div class="w-full text-left">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                        <div id="contactMessage" class="p-3 border border-gray-300 rounded-md bg-gray-50 text-gray-700"></div>
                     </div>
-                    <!-- Submit Button -->
-                    <div class="flex justify-end gap-4 select-none">
-                        <div id="confirmContactModalCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm">
+
+                    <!-- Action Buttons -->
+                    <div class="flex justify-end gap-4 select-none pt-3 border-t">
+                        <div id="confirmContactModalCancelBtn" class="px-4 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300 rounded-md cursor-pointer">
                             Cancel
                         </div>
-                        <button
-                            type="submit"
-                            name="respondcontact"
-                            class="bg-amber-500 text-white px-4 py-2 select-none hover:bg-amber-600 rounded-sm">
+                        <button type="submit" name="respondcontact" class="bg-amber-500 text-white px-4 py-2 hover:bg-amber-600 rounded-md">
                             Respond
                         </button>
                     </div>
                 </form>
             </div>
         </div>
+
 
         <!-- Date Filter -->
         <div id="contactDateFilterModal" class="fixed top-36 right-0 sm:right-5 z-50 w-full sm:max-w-[500px] flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
