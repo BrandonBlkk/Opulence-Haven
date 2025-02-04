@@ -219,7 +219,7 @@ if (!empty($searchFacilityTypeQuery)) {
     $facilityTypeSelect = "SELECT * FROM facilitytypetb LIMIT $rowsPerPage OFFSET $facilityTypeOffset";
 }
 
-$facilityTypeSelectQuery = mysqli_query($connect, $facilityTypeSelect);
+$facilityTypeSelectQuery = $connect->query($facilityTypeSelect);
 $facilityTypes = [];
 
 if (mysqli_num_rows($facilityTypeSelectQuery) > 0) {
@@ -288,20 +288,17 @@ $facilityCountQuery = "SELECT COUNT(*) as count FROM facilitytb";
 $facilityCountResult = $connect->query($facilityCountQuery);
 $allFacilityCount = $facilityCountResult->fetch_assoc()['count'];
 
-
-
-
-// Initialize search variables for facility type
+// Initialize search variables for rule
 $searchRuleQuery = isset($_GET['rule_search']) ? mysqli_real_escape_string($connect, $_GET['rule_search']) : '';
 
-// Construct the facility type query based on search
+// Construct the rule query based on search
 if (!empty($searchRuleQuery)) {
     $ruleSelect = "SELECT * FROM ruletb WHERE RuleTitle LIKE '%$searchRuleQuery%' OR Rule LIKE '%$searchRuleQuery%'";
 } else {
     $ruleSelect = "SELECT * FROM ruletb";
 }
 
-$ruleSelectQuery = mysqli_query($connect, $ruleSelect);
+$ruleSelectQuery = $connect->query($ruleSelect);
 $rules = [];
 
 if (mysqli_num_rows($ruleSelectQuery) > 0) {
@@ -310,7 +307,7 @@ if (mysqli_num_rows($ruleSelectQuery) > 0) {
     }
 }
 
-// Construct the facilitytype count query based on search
+// Construct the rule count query based on search
 if (!empty($searchRuleQuery)) {
     $ruleQuery = "SELECT COUNT(*) as count FROM ruletb WHERE RuleTitle LIKE '%$searchRuleQuery%' OR Rule LIKE '%$searchRuleQuery%'";
 } else {
@@ -321,10 +318,40 @@ if (!empty($searchRuleQuery)) {
 $ruleResult = $connect->query($ruleQuery);
 $ruleCount = $ruleResult->fetch_assoc()['count'];
 
-// Fetch facility type count
+// Fetch rule count
 $ruleCountQuery = "SELECT COUNT(*) as count FROM ruletb";
 $facilityTypeCountResult = $connect->query($ruleCountQuery);
 $allRuleCount = $facilityTypeCountResult->fetch_assoc()['count'];
+
+// Initialize search variables for user
+$searchUserQuery = isset($_GET['user_search']) ? mysqli_real_escape_string($connect, $_GET['user_search']) : '';
+
+// Construct the user query based on search
+if (!empty($searchUserQuery)) {
+    $userSelect = "SELECT * FROM usertb WHERE UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%'";
+} else {
+    $userSelect = "SELECT * FROM usertb";
+}
+
+$userSelectQuery = $connect->query($userSelect);
+$users = [];
+
+if (mysqli_num_rows($userSelectQuery) > 0) {
+    while ($row = $userSelectQuery->fetch_assoc()) {
+        $users[] = $row;
+    }
+}
+
+// Construct the user count query based on search
+if (!empty($searchUserQuery)) {
+    $userQuery = "SELECT COUNT(*) as count FROM usertb WHERE UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%'";
+} else {
+    $userQuery = "SELECT COUNT(*) as count FROM usertb";
+}
+
+// Execute the count query
+$userResult = $connect->query($userQuery);
+$userCount = $userResult->fetch_assoc()['count'];
 
 // Initialize search and filter variables for contact
 $searchContactQuery = isset($_GET['contact_search']) ? mysqli_real_escape_string($connect, $_GET['contact_search']) : '';
@@ -468,11 +495,11 @@ $productSizeCount = $productSizeResult->fetch_assoc()['count'];
 // Fetch all users
 $select = "SELECT * FROM usertb ORDER BY SignupDate DESC LIMIT 5";
 $query = $connect->query($select);
-$users = [];
+$allUsers = [];
 
 if (mysqli_num_rows($query) > 0) {
     while ($row = $query->fetch_assoc()) {
-        $users[] = $row;
+        $allUsers[] = $row;
     }
 }
 ?>

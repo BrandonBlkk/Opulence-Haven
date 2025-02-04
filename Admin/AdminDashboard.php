@@ -488,7 +488,7 @@ $outOfStock = $outOfStockResult->fetch_assoc()['OutOfStock'];
                     <h1 class="text-lg font-bold text-gray-700 mb-2">New Users</h1>
                     <a href="UserDetails.php" class="text-sm font-semibold text-blue-600 hover:text-blue-900 transition-colors duration-200 select-none">View all</a>
                 </div>
-                <?php foreach ($users as $user):
+                <?php foreach ($allUsers as $user):
                     // Extract initials from the UserName
                     $nameParts = explode(' ', trim($user['UserName'])); // Split the name by spaces
                     $initials = substr($nameParts[0], 0, 1); // First letter of the first name
