@@ -1,6 +1,6 @@
 <?php
 // Set the number of rows per page
-$rowsPerPage = 10;
+$rowsPerPage = 1;
 
 // Get the current page number from the URL or default to 1
 $currentPage = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -8,24 +8,35 @@ $contactCurrentPage = isset($_GET['contactpage']) && is_numeric($_GET['contactpa
 $productTypeCurrentPage = isset($_GET['producttypepage']) && is_numeric($_GET['producttypepage']) ? (int)$_GET['producttypepage'] : 1;
 $supplierCurrentPage = isset($_GET['supplierpage']) && is_numeric($_GET['supplierpage']) ? (int)$_GET['supplierpage'] : 1;
 $productCurrentPage = isset($_GET['productpage']) && is_numeric($_GET['productpage']) ? (int)$_GET['productpage'] : 1;
+$productSizeCurrentPage = isset($_GET['productsizepage']) && is_numeric($_GET['productsizepage']) ? (int)$_GET['productsizepage'] : 1;
+$productImageCurrentPage = isset($_GET['productimagepage']) && is_numeric($_GET['productimagepage']) ? (int)$_GET['productimagepage'] : 1;
 $roomTypeCurrentPage = isset($_GET['roomtypepage']) && is_numeric($_GET['roomtypepage']) ? (int)$_GET['roomtypepage'] : 1;
 $facilityTypeCurrentPage = isset($_GET['facilitytypepage']) && is_numeric($_GET['facilitytypepage']) ? (int)$_GET['facilitytypepage'] : 1;
 $facilityCurrentPage = isset($_GET['facilitypage']) && is_numeric($_GET['facilitypage']) ? (int)$_GET['facilitypage'] : 1;
+$ruleCurrentPage = isset($_GET['rulepage']) && is_numeric($_GET['rulepage']) ? (int)$_GET['rulepage'] : 1;
+$userCurrentPage = isset($_GET['userpage']) && is_numeric($_GET['userpage']) ? (int)$_GET['userpage'] : 1;
+
 
 // Calculate the offset for the query
 $offset = ($currentPage - 1) * $rowsPerPage;
 $contactOffset = ($contactCurrentPage - 1) * $rowsPerPage;
 $productTypeOffset = ($productTypeCurrentPage - 1) * $rowsPerPage;
 $productOffset = ($productCurrentPage - 1) * $rowsPerPage;
+$productSizeOffset = ($productSizeCurrentPage - 1) * $rowsPerPage;
+$productImageOffset = ($productImageCurrentPage - 1) * $rowsPerPage;
 $supplierOffset = ($supplierCurrentPage - 1) * $rowsPerPage;
 $roomTypeOffset = ($roomTypeCurrentPage - 1) * $rowsPerPage;
 $facilityTypeOffset = ($facilityTypeCurrentPage - 1) * $rowsPerPage;
 $facilityOffset = ($facilityCurrentPage - 1) * $rowsPerPage;
+$ruleOffset = ($ruleCurrentPage - 1) * $rowsPerPage;
+$userOffset = ($userCurrentPage - 1) * $rowsPerPage;
 
 $filterRoleID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterStatus = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterSupplierID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterProductID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
+$filterSizes = isset($_GET['sort']) ? $_GET['sort'] : 'random';
+$filterImages = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 
 $dateCondition = '';
 if (!empty($searchFromDate) && !empty($searchToDate)) {
@@ -76,6 +87,34 @@ $totalProductRows = $totalProductRowsResult->fetch_assoc()['total'];
 
 // Calculate the total number of pages
 $totalProductPages = ceil($totalProductRows / $rowsPerPage);
+
+// Fetch total number of rows for pagination calculation
+$totalProductSizeRowsQuery = "SELECT COUNT(*) as total FROM sizetb";
+if ($filterSizes !== 'random') {
+    $totalProductSizeRowsQuery = "SELECT COUNT(*) as total FROM sizetb WHERE ProductID = '$filterSizes'";
+} elseif (!empty($searchSizeQuery)) {
+    $totalProductSizeRowsQuery = "SELECT COUNT(*) as total FROM sizetb WHERE Size LIKE '%$searchSizeQuery%'";
+}
+$totalProductSizeRowsResult = $connect->query($totalProductSizeRowsQuery);
+$totalProductSizeRows = $totalProductSizeRowsResult->fetch_assoc()['total'];
+
+// Calculate the total number of pages
+$totalProductSizePages = ceil($totalProductSizeRows / $rowsPerPage);
+
+
+
+// Fetch total number of rows for pagination calculation
+$totalProductImageRowsQuery = "SELECT COUNT(*) as total FROM productimagetb";
+if ($filterImages !== 'random') {
+    $totalProductImageRowsQuery = "SELECT COUNT(*) as total FROM productimagetb WHERE ProductID LIKE '$filterImages'";
+}
+$totalProductImageRowsResult = $connect->query($totalProductImageRowsQuery);
+$totalProductImageRows = $totalProductImageRowsResult->fetch_assoc()['total'];
+
+// Calculate the total number of pages
+$totalProductImagePages = ceil($totalProductImageRows / $rowsPerPage);
+
+
 
 // Fetch total number of rows for pagination calculation
 $totalContactRowsQuery = "SELECT COUNT(*) as total FROM contacttb";
@@ -139,3 +178,25 @@ $totalFacilityRows = $totalFacilityRowsResult->fetch_assoc()['total'];
 
 // Calculate the total number of pages
 $totalFacilityPages = ceil($totalFacilityRows / $rowsPerPage);
+
+// Fetch total number of rows for pagination calculation
+$totalRuleRowsQuery = "SELECT COUNT(*) as total FROM ruletb";
+if (!empty($searchRuleQuery)) {
+    $totalRuleRowsQuery = "SELECT COUNT(*) as total FROM ruletb WHERE RuleTitle LIKE '%$searchRuleQuery%' OR Rule LIKE '%$searchRuleQuery%'";
+}
+$totalRuleRowsResult = $connect->query($totalRuleRowsQuery);
+$totalRuleRows = $totalRuleRowsResult->fetch_assoc()['total'];
+
+// Calculate the total number of pages
+$totalRulePages = ceil($totalRuleRows / $rowsPerPage);
+
+// Fetch total number of rows for pagination calculation
+$totalUserRowsQuery = "SELECT COUNT(*) as total FROM usertb";
+if (!empty($searchRuleQuery)) {
+    $totalUserRowsQuery = "SELECT COUNT(*) as total FROM usertb WHERE UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%'";
+}
+$totalUserRowsResult = $connect->query($totalUserRowsQuery);
+$totalUserRows = $totalUserRowsResult->fetch_assoc()['total'];
+
+// Calculate the total number of pages
+$totalUserPages = ceil($totalUserRows / $rowsPerPage);

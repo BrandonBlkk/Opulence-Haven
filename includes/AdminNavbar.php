@@ -293,9 +293,9 @@ $searchRuleQuery = isset($_GET['rule_search']) ? mysqli_real_escape_string($conn
 
 // Construct the rule query based on search
 if (!empty($searchRuleQuery)) {
-    $ruleSelect = "SELECT * FROM ruletb WHERE RuleTitle LIKE '%$searchRuleQuery%' OR Rule LIKE '%$searchRuleQuery%'";
+    $ruleSelect = "SELECT * FROM ruletb WHERE RuleTitle LIKE '%$searchRuleQuery%' OR Rule LIKE '%$searchRuleQuery%' LIMIT $rowsPerPage OFFSET $ruleOffset";
 } else {
-    $ruleSelect = "SELECT * FROM ruletb";
+    $ruleSelect = "SELECT * FROM ruletb LIMIT $rowsPerPage OFFSET $ruleOffset";
 }
 
 $ruleSelectQuery = $connect->query($ruleSelect);
@@ -328,9 +328,9 @@ $searchUserQuery = isset($_GET['user_search']) ? mysqli_real_escape_string($conn
 
 // Construct the user query based on search
 if (!empty($searchUserQuery)) {
-    $userSelect = "SELECT * FROM usertb WHERE UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%'";
+    $userSelect = "SELECT * FROM usertb WHERE UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%' LIMIT $rowsPerPage OFFSET $userOffset";
 } else {
-    $userSelect = "SELECT * FROM usertb";
+    $userSelect = "SELECT * FROM usertb LIMIT $rowsPerPage OFFSET $userOffset";
 }
 
 $userSelectQuery = $connect->query($userSelect);
@@ -428,9 +428,9 @@ $filterImages = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 
 // Construct the facility type query based on search
 if ($filterImages !== 'random') {
-    $productImageSelect = "SELECT * FROM productimagetb WHERE ProductID LIKE '$filterImages'";
+    $productImageSelect = "SELECT * FROM productimagetb WHERE ProductID LIKE '$filterImages' LIMIT $rowsPerPage OFFSET $productImageOffset";
 } else {
-    $productImageSelect = "SELECT * FROM productimagetb";
+    $productImageSelect = "SELECT * FROM productimagetb LIMIT $rowsPerPage OFFSET $productImageOffset";
 }
 
 $productImageSelectQuery = mysqli_query($connect, $productImageSelect);
@@ -459,13 +459,13 @@ $filterSizes = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 
 // Construct the facility type query based on search
 if ($filterSizes !== 'random' && !empty($searchSizeQuery)) {
-    $productSizeSelect = "SELECT * FROM sizetb WHERE ProductID = '$filterSizes' AND Size LIKE '%$searchSizeQuery%'";
+    $productSizeSelect = "SELECT * FROM sizetb WHERE ProductID = '$filterSizes' AND Size LIKE '%$searchSizeQuery%' LIMIT $rowsPerPage OFFSET $productSizeOffset";
 } elseif ($filterSizes !== 'random') {
-    $productSizeSelect = "SELECT * FROM sizetb WHERE ProductID = '$filterSizes'";
+    $productSizeSelect = "SELECT * FROM sizetb WHERE ProductID = '$filterSizes' LIMIT $rowsPerPage OFFSET $productSizeOffset";
 } elseif (!empty($searchSizeQuery)) {
-    $productSizeSelect = "SELECT * FROM sizetb WHERE Size LIKE '%$searchSizeQuery%'";
+    $productSizeSelect = "SELECT * FROM sizetb WHERE Size LIKE '%$searchSizeQuery%' LIMIT $rowsPerPage OFFSET $productSizeOffset";
 } else {
-    $productSizeSelect = "SELECT * FROM sizetb";
+    $productSizeSelect = "SELECT * FROM sizetb LIMIT $rowsPerPage OFFSET $productSizeOffset";
 }
 
 $productSizeSelectQuery = mysqli_query($connect, $productSizeSelect);

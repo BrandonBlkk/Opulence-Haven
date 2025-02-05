@@ -325,11 +325,6 @@ try {
 //     RoomDescription text,
 //     RoomPrice decimal(10, 2),
 //     RoomStatus varchar(15) default 'available',
-//     RoomImage1 text,
-//     RoomImage2 text,
-//     RoomImage3 text,
-//     RoomImage4 text,
-//     RoomImage5 text,
 //     RoomTypeID varchar(20),
 //     FOREIGN KEY (RoomTypeID) REFERENCES roomtypetb (RoomTypeID)
 //     ON DELETE CASCADE 
@@ -342,6 +337,19 @@ try {
 // } catch (mysqli_sql_exception) {
 //     echo "Data has been saved";
 // }
+
+// $roomimage = "CREATE TABLE roomimagetb
+// (
+//     ImageID int not null primary key auto_increment,
+//     ImageAdminPath text,
+//     ImageUserPath text,
+//     PrimaryImage boolean default false,
+//     ImageAlt text,
+//     RoomID varchar(20),
+//     FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE
+// )";
 
 // $roomimage = "CREATE TABLE roomimagetb
 // (

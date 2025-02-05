@@ -246,11 +246,12 @@ if (isset($_POST['deleteproductimage'])) {
                 </div>
 
                 <!-- Pagination Controls -->
-                <div class="flex justify-center items-center mt-1">
-                    <?php if ($productTypeCurrentPage > 1) {
+                <div class="flex justify-center items-center mt-1 <?= (!empty($productImages) ? 'flex' : 'hidden') ?>">
+                    <!-- Previous Btn -->
+                    <?php if ($productImageCurrentPage > 1) {
                     ?>
-                        <a href="?producttypepage=<?= $productTypeCurrentPage - 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $producttypepage == $productTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                        <a href="?productimagepage=<?= $productImageCurrentPage - 1 ?>"
+                            class="px-3 py-1 mx-1 border rounded <?= $productimagepage == $productImageCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-left-s-line"></i>
                         </a>
                     <?php
@@ -262,17 +263,17 @@ if (isset($_POST['deleteproductimage'])) {
                     <?php
                     }
                     ?>
-                    <?php for ($producttypepage = 1; $producttypepage <= $totalProductTypePages; $producttypepage++): ?>
-                        <a href="?producttypepage=<?= $producttypepage ?>&producttype_search=<?= htmlspecialchars($searchProductTypeQuery) ?>"
-                            class="px-3 py-1 mx-1 border rounded select-none <?= $producttypepage == $productTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <?= $producttypepage ?>
+                    <?php for ($productimagepage = 1; $productimagepage <= $totalProductImagePages; $productimagepage++): ?>
+                        <a href="?productimagepage=<?= $productimagepage ?>&sort=<?= htmlspecialchars($filterImages) ?>"
+                            class="px-3 py-1 mx-1 border rounded select-none <?= $productimagepage == $productImageCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                            <?= $productimagepage ?>
                         </a>
                     <?php endfor; ?>
                     <!-- Next Btn -->
-                    <?php if ($productTypeCurrentPage < $totalProductTypePages) {
+                    <?php if ($productImageCurrentPage < $totalProductImagePages) {
                     ?>
-                        <a href="?producttypepage=<?= $productTypeCurrentPage + 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $producttypepage == $productTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                        <a href="?productimagepage=<?= $productImageCurrentPage + 1 ?>"
+                            class="px-3 py-1 mx-1 border rounded <?= $productimagepage == $productImageCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-right-s-line"></i>
                         </a>
                     <?php

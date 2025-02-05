@@ -55,60 +55,68 @@ if (!$connect) {
                             </tr>
                         </thead>
                         <tbody class="text-gray-600 text-sm">
-                            <?php foreach ($users as $user):
-                                // Extract initials from the UserName
-                                $nameParts = explode(' ', trim($user['UserName'])); // Split the name by spaces
-                                $initials = substr($nameParts[0], 0, 1); // First letter of the first name
-                                if (count($nameParts) > 1) {
-                                    $initials .= substr(end($nameParts), 0, 1); // First letter of the last name
-                                }
-                            ?>
-                                <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                    <td class="p-3 text-start flex items-center gap-2 group">
-                                        <p
-                                            class="w-10 h-10 rounded-full bg-blue-100 text-blue-500 uppercase font-semibold flex items-center justify-center select-none">
-                                            <?= $initials ?>
-                                        </p>
-                                        <div>
-                                            <p class="font-bold"><?= htmlspecialchars($user['UserName']) ?></p>
-                                            <p><?= htmlspecialchars($user['UserEmail']) ?></p>
-                                        </div>
+                            <?php if (!empty($users)): ?>
+                                <?php foreach ($users as $user):
+                                    // Extract initials from the UserName
+                                    $nameParts = explode(' ', trim($user['UserName'])); // Split the name by spaces
+                                    $initials = substr($nameParts[0], 0, 1); // First letter of the first name
+                                    if (count($nameParts) > 1) {
+                                        $initials .= substr(end($nameParts), 0, 1); // First letter of the last name
+                                    }
+                                ?>
+                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                        <td class="p-3 text-start flex items-center gap-2 group">
+                                            <p
+                                                class="w-10 h-10 rounded-full bg-blue-100 text-blue-500 uppercase font-semibold flex items-center justify-center select-none">
+                                                <?= $initials ?>
+                                            </p>
+                                            <div>
+                                                <p class="font-bold"><?= htmlspecialchars($user['UserName']) ?></p>
+                                                <p><?= htmlspecialchars($user['UserEmail']) ?></p>
+                                            </div>
 
-                                        <a class="opacity-0 group-hover:opacity-100 transition-all duration-200" href="mailto:<?= htmlspecialchars($user['UserEmail']) ?>"><i class="ri-mail-fill text-lg"></i></a>
-                                    </td>
-                                    <td class="p-3 text-start hidden md:table-cell">
-                                        <?= htmlspecialchars($user['UserPhone']) ?>
-                                    </td>
-                                    <td class="p-3 text-start space-x-1 select-none hidden lg:table-cell">
-                                        <span><i class="ri-checkbox-circle-line text-green-500"></i> Email</span>
-                                    </td>
-                                    <td class="p-3 text-start hidden md:table-cell">
-                                        <?= htmlspecialchars(date('d M Y', strtotime($user['LastSignIn']))) ?>
-                                    </td>
-                                    <td class="p-3 text-start hidden md:table-cell">
-                                        <?= htmlspecialchars(date('d M Y', strtotime($user['LastSignIn']))) ?>
-                                    </td>
-                                    <td class="p-3 text-start space-x-1 select-none">
-                                        <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                            data-user-id="<?= htmlspecialchars($user['UserID']) ?>"></i>
-                                        <button class=" text-red-500">
-                                            <i class="delete-btn ri-delete-bin-7-line text-xl"
+                                            <a class="opacity-0 group-hover:opacity-100 transition-all duration-200" href="mailto:<?= htmlspecialchars($user['UserEmail']) ?>"><i class="ri-mail-fill text-lg"></i></a>
+                                        </td>
+                                        <td class="p-3 text-start hidden md:table-cell">
+                                            <?= htmlspecialchars($user['UserPhone']) ?>
+                                        </td>
+                                        <td class="p-3 text-start space-x-1 select-none hidden lg:table-cell">
+                                            <span><i class="ri-checkbox-circle-line text-green-500"></i> Email</span>
+                                        </td>
+                                        <td class="p-3 text-start hidden md:table-cell">
+                                            <?= htmlspecialchars(date('d M Y', strtotime($user['LastSignIn']))) ?>
+                                        </td>
+                                        <td class="p-3 text-start hidden md:table-cell">
+                                            <?= htmlspecialchars(date('d M Y', strtotime($user['LastSignIn']))) ?>
+                                        </td>
+                                        <td class="p-3 text-start space-x-1 select-none">
+                                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
                                                 data-user-id="<?= htmlspecialchars($user['UserID']) ?>"></i>
-                                        </button>
+                                            <button class=" text-red-500">
+                                                <i class="delete-btn ri-delete-bin-7-line text-xl"
+                                                    data-user-id="<?= htmlspecialchars($user['UserID']) ?>"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="7" class="p-3 text-center text-gray-500 py-52">
+                                        No users available.
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
 
                 <!-- Pagination Controls -->
-                <div class="flex justify-center items-center mt-1">
+                <div class="flex justify-center items-center mt-1 <?= (!empty($users) ? 'flex' : 'hidden') ?>">
                     <!-- Previous Btn -->
-                    <?php if ($currentPage > 1) {
+                    <?php if ($userCurrentPage > 1) {
                     ?>
-                        <a href="?page=<?= $currentPage - 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $page == $currentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                        <a href="?userpage=<?= $userCurrentPage - 1 ?>"
+                            class="px-3 py-1 mx-1 border rounded <?= $userpage == $userCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-left-s-line"></i>
                         </a>
                     <?php
@@ -120,17 +128,17 @@ if (!$connect) {
                     <?php
                     }
                     ?>
-                    <?php for ($page = 1; $page <= $totalPages; $page++): ?>
-                        <a href="?page=<?= $page ?>&sort=<?= htmlspecialchars($filterRoleID) ?>&acc_search=<?= htmlspecialchars($searchAdminQuery) ?>"
-                            class="px-3 py-1 mx-1 border rounded select-none <?= $page == $currentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <?= $page ?>
+                    <?php for ($userpage = 1; $userpage <= $totalUserPages; $userpage++): ?>
+                        <a href="?userpage=<?= $userpage ?>&user_search=<?= htmlspecialchars($searchUserQuery) ?>"
+                            class="px-3 py-1 mx-1 border rounded select-none <?= $userpage == $userCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                            <?= $userpage ?>
                         </a>
                     <?php endfor; ?>
                     <!-- Next Btn -->
-                    <?php if ($currentPage < $totalPages) {
+                    <?php if ($userCurrentPage < $totalUserPages) {
                     ?>
-                        <a href="?page=<?= $currentPage + 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $page == $currentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                        <a href="?userpage=<?= $userCurrentPage + 1 ?>"
+                            class="px-3 py-1 mx-1 border rounded <?= $userpage == $userCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-right-s-line"></i>
                         </a>
                     <?php

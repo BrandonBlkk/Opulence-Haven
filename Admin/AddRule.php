@@ -191,10 +191,10 @@ if (isset($_POST['deleterule'])) {
                 <!-- Pagination Controls -->
                 <div class="flex justify-center items-center mt-1 <?= (!empty($rules) ? 'flex' : 'hidden') ?>">
                     <!-- Previous Btn -->
-                    <?php if ($roomTypeCurrentPage > 1) {
+                    <?php if ($ruleCurrentPage > 1) {
                     ?>
-                        <a href="?roomtypepage=<?= $roomTypeCurrentPage - 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $roomtypepage == $roomTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                        <a href="?rulepage=<?= $ruleCurrentPage - 1 ?>"
+                            class="px-3 py-1 mx-1 border rounded <?= $rulepage == $ruleCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-left-s-line"></i>
                         </a>
                     <?php
@@ -206,17 +206,17 @@ if (isset($_POST['deleterule'])) {
                     <?php
                     }
                     ?>
-                    <?php for ($roomtypepage = 1; $roomtypepage <= $totalRoomTypePages; $roomtypepage++): ?>
-                        <a href="?roomtypepage=<?= $roomtypepage ?>&roomtype_search=<?= htmlspecialchars($searchRoomTypeQuery) ?>"
-                            class="px-3 py-1 mx-1 border rounded select-none <?= $roomtypepage == $roomTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <?= $roomtypepage ?>
+                    <?php for ($rulepage = 1; $rulepage <= $totalRulePages; $rulepage++): ?>
+                        <a href="?rulepage=<?= $rulepage ?>&rule_search=<?= htmlspecialchars($searchRuleQuery) ?>"
+                            class="px-3 py-1 mx-1 border rounded select-none <?= $rulepage == $ruleCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                            <?= $rulepage ?>
                         </a>
                     <?php endfor; ?>
                     <!-- Next Btn -->
-                    <?php if ($roomTypeCurrentPage < $totalRoomTypePages) {
+                    <?php if ($ruleCurrentPage < $totalRulePages) {
                     ?>
-                        <a href="?roomtypepage=<?= $roomTypeCurrentPage + 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $roomtypepage == $roomTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                        <a href="?rulepage=<?= $ruleCurrentPage + 1 ?>"
+                            class="px-3 py-1 mx-1 border rounded <?= $rulepage == $ruleCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-right-s-line"></i>
                         </a>
                     <?php

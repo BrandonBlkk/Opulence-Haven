@@ -218,11 +218,12 @@ if (isset($_POST['deleteproductsize'])) {
                 </div>
 
                 <!-- Pagination Controls -->
-                <div class="flex justify-center items-center mt-1 <?= (!empty($productSize) ? 'flex' : 'hidden') ?>">
-                    <?php if ($productTypeCurrentPage > 1) {
+                <div class="flex justify-center items-center mt-1 <?= (!empty($productSizes) ? 'flex' : 'hidden') ?>">
+                    <!-- Previous Btn -->
+                    <?php if ($productSizeCurrentPage > 1) {
                     ?>
-                        <a href="?producttypepage=<?= $productTypeCurrentPage - 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $producttypepage == $productTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                        <a href="?productsizepage=<?= $productSizeCurrentPage - 1 ?>"
+                            class="px-3 py-1 mx-1 border rounded <?= $productsizepage == $productSizeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-left-s-line"></i>
                         </a>
                     <?php
@@ -234,17 +235,17 @@ if (isset($_POST['deleteproductsize'])) {
                     <?php
                     }
                     ?>
-                    <?php for ($producttypepage = 1; $producttypepage <= $totalProductTypePages; $producttypepage++): ?>
-                        <a href="?producttypepage=<?= $producttypepage ?>&producttype_search=<?= htmlspecialchars($searchProductTypeQuery) ?>"
-                            class="px-3 py-1 mx-1 border rounded select-none <?= $producttypepage == $productTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <?= $producttypepage ?>
+                    <?php for ($productsizepage = 1; $productsizepage <= $totalProductSizePages; $productsizepage++): ?>
+                        <a href="?productsizepage=<?= $productsizepage ?>&size_search=<?= htmlspecialchars($searchRuleQuery) ?>"
+                            class="px-3 py-1 mx-1 border rounded select-none <?= $productsizepage == $productSizeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                            <?= $productsizepage ?>
                         </a>
                     <?php endfor; ?>
                     <!-- Next Btn -->
-                    <?php if ($productTypeCurrentPage < $totalProductTypePages) {
+                    <?php if ($productSizeCurrentPage < $totalProductSizePages) {
                     ?>
-                        <a href="?producttypepage=<?= $productTypeCurrentPage + 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $producttypepage == $productTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                        <a href="?productsizepage=<?= $productSizeCurrentPage + 1 ?>"
+                            class="px-3 py-1 mx-1 border rounded <?= $productsizepage == $productSizeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-right-s-line"></i>
                         </a>
                     <?php
