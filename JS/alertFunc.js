@@ -9,8 +9,7 @@ export const showAlert = (message) => {
 
     // Hide Alert
     setTimeout(() => {
-        alertBox.classList.add("-bottom-1", "opacity-0");
-        alertBox.classList.remove("opacity-100", "bottom-3");
+        alertBox.classList.add("translate-x-full", "-right-full");
     }, 5000);
 };
 
