@@ -678,7 +678,7 @@ if (mysqli_num_rows($query) > 0) {
                         :style="{ height: expanded ? height + 'px' : '0px' }"
                         class="overflow-hidden transition-all duration-300 select-none">
                         <div class="pl-3">
-                            <a href="../Admin/AddSupplier.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
+                            <a href="../Admin/ProductPurchase.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">
                                     <i class="ri-truck-line text-xl"></i>
                                     <span class="font-semibold text-sm">Purchase Product</span>
