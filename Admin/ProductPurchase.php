@@ -9,7 +9,7 @@ if (!$connect) {
 
 $alertMessage = '';
 $addFacilitySuccess = false;
-$facilityID = AutoID('facilitytb', 'FacilityID', 'F-', 6);
+// $facilityID = AutoID('facilitytb', 'PurchaseID', 'PUR-', 6);
 
 // Initialize session variable if not set
 if (!isset($_SESSION['cart'])) {
@@ -33,20 +33,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["addToList"])) {
     $quantity = $_POST["quantity"];
     $productPrice = $_POST["productprice"];
 
-    // Store product details in session cart
-    $_SESSION['cart'][] = [
-        "productID" => $productID,
-        "productTitle" => $productTitle,
-        "quantity" => $quantity,
-        "productPrice" => $productPrice,
-    ];
-}
+    $productExists = false;
 
-// Remove item from session cart
-if (isset($_POST["removeItem"])) {
-    $removeIndex = $_POST["removeIndex"];
-    unset($_SESSION['cart'][$removeIndex]);
-    $_SESSION['cart'] = array_values($_SESSION['cart']);
+    // Check if product already exists in the cart
+    foreach ($_SESSION['cart'] as &$existingProduct) {
+        if ($existingProduct["productID"] === $productID) {
+            $existingProduct["quantity"] += $quantity;
+            $existingProduct["productPrice"] = $existingProduct["quantity"] * $productPrice;
+            $productExists = true;
+            break;
+        }
+    }
+
+    // If product does not exist, add it to the session cart
+    if (!$productExists) {
+        $_SESSION['cart'][] = [
+            "productID" => $productID,
+            "productTitle" => $productTitle,
+            "quantity" => $quantity,
+            "productPrice" => $productPrice * $quantity,
+        ];
+    }
 }
 ?>
 
@@ -71,7 +78,7 @@ if (isset($_POST["removeItem"])) {
             <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="ruleForm">
                 <div>
                     <label for="productID" class="block text-sm font-medium text-gray-700">Select Product</label>
-                    <select name="productID" id="productID" required class="w-full p-2 border rounded mt-1">
+                    <select name="productID" id="productID" required class="w-full p-2 border rounded mt-1 outline-none">
                         <option value="" selected>Select a product</option>
                         <?php foreach ($allProducts as $id => $details): ?>
                             <option value="<?= $id ?>"
@@ -88,9 +95,9 @@ if (isset($_POST["removeItem"])) {
 
                 <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
                     <!-- Title -->
-                    <div class="relative flex-1">
+                    <div class="relative">
                         <label for="producttitle" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                        <input class="p-2 w-full border rounded" type="text" name="producttitle" id="producttitle" disabled placeholder="Choose product to get title">
+                        <input class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" type="text" name="producttitle" id="producttitle" required placeholder="Choose product to get title">
                     </div>
                     <!-- Brand -->
                     <div class="relative flex-1">
@@ -102,7 +109,7 @@ if (isset($_POST["removeItem"])) {
                 <!-- Price -->
                 <div class="relative">
                     <label for="productprice" class="block text-sm font-medium text-gray-700 mb-1">Price</label>
-                    <input class="p-2 w-full border rounded" type="number" name="productprice" id="productprice" step="0.01" disabled placeholder="Choose product to get price">
+                    <input class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" type="number" name="productprice" id="productprice" min="1" required placeholder="Choose product to get price">
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
@@ -128,24 +135,23 @@ if (isset($_POST["removeItem"])) {
                     <button type="submit" name="addToList" class="bg-blue-500 text-white px-4 py-2 hover:bg-blue-600 rounded-sm">
                         Add to List
                     </button>
-                    <button type="submit" name="addToList" class="bg-blue-500 text-white px-4 py-2 hover:bg-blue-600 rounded-sm">
-                        Complete Purchase
-                    </button>
                 </div>
             </form>
 
             <!-- Display Product List Before Purchase Button -->
-            <h3 class="text-lg font-semibold mt-6">Products Added:</h3>
-            <table class="w-full mt-2 border-collapse border border-gray-200">
-                <tr class="bg-gray-100">
-                    <th class="border p-2">Product</th>
-                    <th class="border p-2">Quantity</th>
-                    <th class="border p-2">Price</th>
-                    <th class="border p-2">Remove</th>
+            <table class="w-full mt-4 border-collapse border border-gray-200">
+                <tr class="bg-gray-100 text-gray-600 text-sm">
+                    <th class="border p-2 text-start">No</th>
+                    <th class="border p-2 text-start">Product</th>
+                    <th class="border p-2 text-start">Quantity</th>
+                    <th class="border p-2 text-start">Price</th>
+                    <th class="border p-2 text-start">Remove</th>
                 </tr>
                 <?php if (!empty($_SESSION['cart'])): ?>
+                    <?php $count = 1; ?>
                     <?php foreach ($_SESSION['cart'] as $index => $item): ?>
                         <tr>
+                            <td class="border p-2"><?= $count ?></td>
                             <td class="border p-2"><?= htmlspecialchars($item['productTitle']) ?></td>
                             <td class="border p-2"><?= htmlspecialchars($item['quantity']) ?></td>
                             <td class="border p-2">$<?= number_format($item['productPrice'], 2) ?></td>
@@ -156,6 +162,7 @@ if (isset($_POST["removeItem"])) {
                                 </form>
                             </td>
                         </tr>
+                        <?php $count++; ?>
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
@@ -164,11 +171,11 @@ if (isset($_POST["removeItem"])) {
                 <?php endif; ?>
             </table>
 
-            <form method="post" action="completePurchase.php">
+            <form method="post" action="<?php echo $_SERVER["PHP_SELF"]; ?>">
                 <!-- Supplier -->
-                <div>
+                <div class="mt-4">
                     <label for="supplierID" class="block text-sm font-medium text-gray-700">Select Supplier</label>
-                    <select name="supplierID" id="supplierID" required class="w-full p-2 border rounded mt-1">
+                    <select name="supplierID" id="supplierID" required class="w-full p-2 border rounded mt-1 outline-none">
                         <option value="" disabled selected>Select a supplier</option>
                         <?php
                         $supplierQuery = "SELECT s.SupplierID, s.SupplierName, p.ProductType 
