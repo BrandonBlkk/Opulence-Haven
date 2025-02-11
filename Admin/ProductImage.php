@@ -76,33 +76,39 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
 // Update Product Image
 if (isset($_POST['editproductimage'])) {
     $productImageID = mysqli_real_escape_string($connect, $_POST['productimageid']);
+    $updateImageAlt = mysqli_real_escape_string($connect, $_POST['updateimagealt']);
+    $updatePrimary = mysqli_real_escape_string($connect, $_POST['updateprimary']);
+    $updateSecondary = mysqli_real_escape_string($connect, $_POST['updatesecondary']);
+    $updateProduct = mysqli_real_escape_string($connect, $_POST['updateproduct']);
 
-    // Fetch product image
-    $productImageery = "SELECT ImageAdminPath FROM productimagetb WHERE ImageID = '$productImageID'";
+    // Fetch current product image
+    $productImageQuery = "SELECT ImageAdminPath FROM productimagetb WHERE ImageID = '$productImageID'";
     $productImageRow = $connect->query($productImageQuery)->fetch_assoc();
     $currentProductImage = $productImageRow['ImageAdminPath'];
 
-    // Current image from the database
-    $currentImage = $currentProductImage;
-
     // Simulate $_FILES array for images
-    $imageFile = $_FILES['AdminProfile'];
+    $imageFile = $_FILES['updateimage'];
 
-    // Change Product Image 
-    $result = uploadProductImage($imageFile, $currentImage);
-    if (is_array($result)) {
-        echo $result1['image'] . "<br>";
+    // Change Product Image
+    $result = uploadProductImage($imageFile, $currentProductImage);
+
+    if (isset($result['image'])) {
+        echo $result['image'] . "<br>";
     } else {
-        $productImage = $result;
-    }
+        $adminImagePath = $result['adminPath'];
+        $userImagePath = $result['userPath'];
 
-    // Update query
-    $updateQuery = "UPDATE productimagetb SET ImageAdminPath = '$productImage', ImageUserPath = '$productImage' WHERE ImageID = '$productImageID'";
+        // Update database with both image paths
+        $updateQuery = "UPDATE productimagetb 
+                        SET ImageAdminPath = '$adminImagePath', ImageUserPath = '$userImagePath', ImageAlt = '$updateImageAlt',
+                            PrimaryImage = '$updatePrimary', SecondaryImage = '$updateSecondary', ProductID = '$updateProduct'
+                        WHERE ImageID = '$productImageID'";
 
-    if ($connect->query($updateQuery)) {
-        $updateProductImageSuccess = true;
-    } else {
-        $alertMessage = "Failed to update product image. Please try again.";
+        if ($connect->query($updateQuery)) {
+            $updateProductImageSuccess = true;
+        } else {
+            $alertMessage = "Failed to update product image. Please try again.";
+        }
     }
 }
 
@@ -150,7 +156,7 @@ if (isset($_POST['deleteproductimage'])) {
                 </button>
             </div>
 
-            <!-- Prooduct Image Table -->
+            <!-- Product Image Table -->
             <div class="overflow-x-auto">
                 <!-- Product Image Filter -->
                 <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
@@ -293,7 +299,7 @@ if (isset($_POST['deleteproductimage'])) {
         <div id="updateProductImageModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center w-full sm:max-w-[500px]">
                 <h2 class="text-xl text-start text-gray-700 font-bold">Edit Product Image</h2>
-                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="updateProductImageForm">
+                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" enctype="multipart/form-data" method="post" id="updateProductImageForm">
                     <input type="hidden" name="productimageid" id="updateProductImageID">
                     <!-- Image Input -->
                     <div class="relative w-full">
