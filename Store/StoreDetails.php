@@ -104,7 +104,7 @@ if ($productReviewSelectQuery->num_rows > 0) {
             <span><i class="ri-arrow-right-s-fill"></i></span>
             <a href="Store.php" class="underline">Store</a>
             <span><i class="ri-arrow-right-s-fill"></i></span>
-            <a href="StoreDetails.php" class="underline">Store Details</a>
+            <a href="StoreDetails.php?product_ID=<?= urlencode($product_id) ?> class=" underline">Store Details</a>
         </div>
 
         <form action="<?php $_SERVER["PHP_SELF"] ?>" method="post" enctype="multipart/form-data" class="flex flex-col md:flex-row justify-center gap-3 mt-3">
