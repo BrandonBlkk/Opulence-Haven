@@ -17,7 +17,7 @@
 </section>
 
 <!-- Search Bar -->
-<div id="search-bar" class="fixed -top-full w-full bg-white py-5 px-4 shadow-lg transition-all duration-300 z-50">
+<form method="get" action="../Store/ProductSearch.php" id="search-bar" class="fixed -top-full w-full bg-white py-5 px-4 shadow-lg transition-all duration-300 z-50">
     <h1 class="text-xl font-semibold pb-4">Find Your Favorites</h1>
     <div class="flex items-center bg-gray-100 rounded-lg p-2">
         <!-- Search Icon -->
@@ -26,6 +26,7 @@
         <!-- Search Input -->
         <input
             type="text"
+            name="search"
             placeholder="Search for products..."
             class="w-full bg-transparent border-none focus:outline-none text-gray-800 text-sm placeholder-gray-500" />
 
@@ -36,7 +37,7 @@
             </svg>
         </button>
     </div>
-</div>
+</form>
 
 
 <!-- Overlay -->
