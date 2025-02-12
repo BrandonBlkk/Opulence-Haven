@@ -333,20 +333,34 @@ if ($productReviewSelectQuery->num_rows > 0) {
 
                 <!-- Review -->
                 <div id="review" class="tab-content hidden">
-                    <form class="w-24">
-                        <select id="options" class="block w-full py-1 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none">
-                            <option value="option1">Oldest</option>
-                            <option value="option2">Newest</option>
+                    <form class="w-24" method="get">
+                        <!-- Hidden input to preserve the product_ID -->
+                        <input type="hidden" name="product_ID" value="<?= htmlspecialchars($_GET['product_ID'] ?? '') ?>">
+
+                        <!-- Sorting dropdown -->
+                        <select id="options" name="sort" class="block w-full py-1 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none" onchange="this.form.submit()">
+                            <option value="oldest" <?= (isset($_GET['sort']) && $_GET['sort'] === 'oldest') ? 'selected' : '' ?>>Oldest</option>
+                            <option value="newest" <?= (isset($_GET['sort']) && $_GET['sort'] === 'newest') ? 'selected' : '' ?>>Newest</option>
                         </select>
                     </form>
 
                     <?php
-                    // SQL query to fetch reviews for the product
+                    // Determine the sorting order based on the selected option
+                    $sortOrder = 'ASC';
+                    if (isset($_GET['sort']) && $_GET['sort'] === 'newest') {
+                        $sortOrder = 'DESC';
+                    }
+
+                    // Fetch the product_ID from the URL
+                    $product_id = $_GET['product_ID'] ?? '';
+
+                    // SQL query to fetch reviews for the product with sorting
                     $productReviewSelect = "SELECT productreviewtb.*, usertb.*
-                    FROM productreviewtb
-                    JOIN usertb 
-                    ON productreviewtb.UserID = usertb.UserID 
-                    WHERE productreviewtb.ProductID = '$product_id'";
+                             FROM productreviewtb
+                             JOIN usertb 
+                             ON productreviewtb.UserID = usertb.UserID 
+                             WHERE productreviewtb.ProductID = '$product_id'
+                             ORDER BY productreviewtb.AddedDate $sortOrder";
 
                     // Execute the query
                     $productReviewSelectQuery = $connect->query($productReviewSelect);
@@ -383,8 +397,7 @@ if ($productReviewSelectQuery->num_rows > 0) {
                                 ?>
                                 <div>
                                     <div class="flex items-center gap-2">
-                                        <p
-                                            class="w-10 h-10 rounded-full bg-blue-100 text-blue-500 uppercase font-semibold flex items-center justify-center select-none">
+                                        <p class="w-10 h-10 rounded-full bg-blue-100 text-blue-500 uppercase font-semibold flex items-center justify-center select-none">
                                             <?= $initials ?>
                                         </p>
                                         <div class="flex items-center flex-wrap space-x-2">
@@ -424,10 +437,10 @@ if ($productReviewSelectQuery->num_rows > 0) {
                                     <?php if ($full_comment): ?>
                                         <p class="text-indigo-600 text-sm cursor-pointer mt-1 read-less hidden">
                                             <i class="ri-arrow-up-s-line"></i> Read Less
-                                        </p>s
+                                        </p>
                                     <?php endif; ?>
 
-                                    <!-- React -->
+                                    <!-- Reaction -->
                                     <div class="mt-1 flex gap-2 text-slate-600 select-none">
                                         <span class="text-xs cursor-pointer">
                                             <i class="ri-thumb-up-line text-base"></i>
