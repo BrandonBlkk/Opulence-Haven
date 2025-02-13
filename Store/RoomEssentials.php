@@ -93,7 +93,7 @@ if ($productSelectQuery->num_rows > 0) {
     include('../includes/StoreNavbar.php');
     ?>
 
-    <main class="max-w-[1310px] mx-auto px-4 py-5">
+    <main class="max-w-[1310px] min-w-[380px] mx-auto px-4 py-5">
         <div class="flex text-sm text-slate-600">
             <a href="../User/HomePage.php" class="underline">Home</a>
             <span><i class="ri-arrow-right-s-fill"></i></span>

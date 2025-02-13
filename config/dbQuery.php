@@ -179,6 +179,27 @@ if (!$connect) {
 //     echo "Data has been saved";
 // }
 
+$productfavorite = "CREATE TABLE productfavoritetb
+(
+    FavoriteID int not null primary key auto_increment,
+    UserID varchar(30),
+    ProductID varchar(20),
+    FavoritedAt datetime DEFAULT current_timestamp,
+    FOREIGN KEY (UserID) REFERENCES usertb (UserID)
+    ON DELETE CASCADE 
+    ON UPDATE CASCADE,
+    FOREIGN KEY (ProductID) REFERENCES producttb (ProductID)
+    ON DELETE CASCADE 
+    ON UPDATE CASCADE
+)";
+
+try {
+    $query = mysqli_query($connect, $productfavorite);
+    echo "Data Successfully saved";
+} catch (mysqli_sql_exception) {
+    echo "Data has been saved";
+}
+
 // $productreview = "CREATE TABLE productreviewtb
 // (
 //     ReviewID int not null primary key auto_increment,
@@ -260,23 +281,23 @@ if (!$connect) {
 //     echo "Data has been saved";
 // }
 
-$rule = "CREATE TABLE ruletb
-(
-    RuleID varchar(20) not null primary key,
-    RuleTitle text,
-    Rule text,
-    RuleIcon text,
-    IconSize varchar(10),
-    AddedDate datetime default current_timestamp,
-    LastUpdate datetime default current_timestamp on update current_timestamp
-)";
+// $rule = "CREATE TABLE ruletb
+// (
+//     RuleID varchar(20) not null primary key,
+//     RuleTitle text,
+//     Rule text,
+//     RuleIcon text,
+//     IconSize varchar(10),
+//     AddedDate datetime default current_timestamp,
+//     LastUpdate datetime default current_timestamp on update current_timestamp
+// )";
 
-try {
-    $query = mysqli_query($connect, $rule);
-    echo "Data Successfully saved";
-} catch (mysqli_sql_exception) {
-    echo "Data has been saved";
-}
+// try {
+//     $query = mysqli_query($connect, $rule);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
 
 // $facility = "CREATE TABLE facilitytb
 // (
@@ -377,7 +398,7 @@ try {
 //     FOREIGN KEY (UserID) REFERENCES usertb (UserID)
 //     ON DELETE CASCADE 
 //     ON UPDATE CASCADE,
-//     FOREIGN KEY (RoomID) REFERENCES producttb (RoomID)
+//     FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
 //     ON DELETE CASCADE 
 //     ON UPDATE CASCADE 
 // )";
