@@ -37,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve'])) {
     $phone = mysqli_real_escape_string($connect, $_POST['phone']);
 
     $reservationQuery = "INSERT INTO diningreservationtb (Date, Time, NumberOfGuests, SpecialRequest, Name, Email, PhoneNumber, UserID)
-    VALUES ('$date', '$time', '$guests', '$specialrequests', '$name', '$email', '$phone', '$session_userID')";
+    VALUES ('$date', '$time', '$guests', '$specialrequests', '$name', '$email', '$phone', " . ($session_userID ? "'$session_userID'" : "NULL") . ")";
 
     if ($connect->query($reservationQuery)) {
         $reservationSuccess = true;
