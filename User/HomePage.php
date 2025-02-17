@@ -34,22 +34,22 @@ if (!$connect) {
             <div class="swiper-wrapper">
                 <div class="swiper-slide">
                     <img src="../UserImages/hotel-room-5858069_1280.jpg"
-                        class="w-full h-full lg:max-h-[620px] object-cover object-bottom clip-custom"
+                        class="w-full h-full lg:max-h-[620px] object-cover object-bottom clip-custom select-none"
                         alt="Hotel Room">
                 </div>
                 <div class="swiper-slide">
                     <img src="../UserImages/slide_image_2.jpg"
-                        class="w-full h-full lg:max-h-[620px] object-cover object-bottom clip-custom"
+                        class="w-full h-full lg:max-h-[620px] object-cover object-bottom clip-custom select-none"
                         alt="Another Room">
                 </div>
                 <div class="swiper-slide">
                     <img src="../UserImages/slide_image_3.jpg"
-                        class="w-full h-full lg:max-h-[620px] object-cover object-bottom clip-custom"
+                        class="w-full h-full lg:max-h-[620px] object-cover object-bottom clip-custom select-none"
                         alt="Yet Another Room">
                 </div>
                 <div class="swiper-slide">
                     <img src="../UserImages/slide_image_4.jpg"
-                        class="w-full h-full lg:max-h-[620px] object-cover object-top clip-custom"
+                        class="w-full h-full lg:max-h-[620px] object-cover object-top clip-custom select-none"
                         alt="Yet Another Room">
                 </div>
             </div>
@@ -92,7 +92,7 @@ if (!$connect) {
                 </div>
 
                 <!-- Search Button -->
-                <div class="flex items-center space-x-2">
+                <div class="flex items-center space-x-2 select-none">
                     <button class="p-3 bg-blue-900 text-white rounded-sm hover:bg-blue-950 uppercase font-semibold transition-colors duration-300">Check Availability</button>
                 </div>
             </form>
@@ -124,7 +124,8 @@ if (!$connect) {
                 <i class="ri-arrow-right-line text-xl group-hover:translate-x-2 transition-all duration-200"></i>
             </a>
         </div>
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-4 px-4 max-w-[1310px] mx-auto">
+
+        <section id="fade-in-section-once" class="grid grid-cols-1 md:grid-cols-3 gap-4 px-4 max-w-[1310px] mx-auto">
             <!-- Card 1 -->
             <a href="#" class="block w-full md:max-w-[450px] mx-auto group">
                 <div class="h-auto sm:h-[280px] select-none overflow-hidden">
@@ -144,7 +145,7 @@ if (!$connect) {
             </a>
 
             <!-- Card 2 -->
-            <a href="#" class="block w-full md:max-w-[450px] mx-auto group">
+            <a href="Dining.php" class="block w-full md:max-w-[450px] mx-auto group">
                 <div class="h-auto sm:h-[280px] select-none overflow-hidden">
                     <img src="../UserImages/FORMAT-16-9E---1920-X-1080-PX (1)_3by2.webp" class="w-full h-full object-cover rounded-sm transform group-hover:scale-105 transition-transform duration-200" alt="Image">
                 </div>
@@ -179,12 +180,14 @@ if (!$connect) {
                 </div>
             </a>
         </section>
+
         <div class="flex flex-col items-center justify-center py-16 px-3 text-center">
             <p class="text-slate-600 mb-3">YOUR OPULENCE</p>
             <h1 class="text-2xl sm:text-4xl mb-5 text-blue-900 font-semibold">Inspirational Hotels</h1>
             <p class="text-slate-600 mb-3">Intuitive stays in destination hotels</p>
         </div>
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-4 px-4 pb-10 border-b max-w-[1310px] mx-auto">
+
+        <section id="fade-in-section-once" class="grid grid-cols-1 md:grid-cols-3 gap-4 px-4 pb-10 border-b max-w-[1310px] mx-auto">
             <!-- Card 1 -->
             <div class="block w-full md:max-w-[450px] mx-auto group">
                 <div class="h-auto sm:h-[280px] select-none">

@@ -179,26 +179,26 @@ if (!$connect) {
 //     echo "Data has been saved";
 // }
 
-$productfavorite = "CREATE TABLE productfavoritetb
-(
-    FavoriteID int not null primary key auto_increment,
-    UserID varchar(30),
-    ProductID varchar(20),
-    FavoritedAt datetime DEFAULT current_timestamp,
-    FOREIGN KEY (UserID) REFERENCES usertb (UserID)
-    ON DELETE CASCADE 
-    ON UPDATE CASCADE,
-    FOREIGN KEY (ProductID) REFERENCES producttb (ProductID)
-    ON DELETE CASCADE 
-    ON UPDATE CASCADE
-)";
+// $productfavorite = "CREATE TABLE productfavoritetb
+// (
+//     FavoriteID int not null primary key auto_increment,
+//     UserID varchar(30),
+//     ProductID varchar(20),
+//     FavoritedAt datetime DEFAULT current_timestamp,
+//     FOREIGN KEY (UserID) REFERENCES usertb (UserID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE,
+//     FOREIGN KEY (ProductID) REFERENCES producttb (ProductID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE
+// )";
 
-try {
-    $query = mysqli_query($connect, $productfavorite);
-    echo "Data Successfully saved";
-} catch (mysqli_sql_exception) {
-    echo "Data has been saved";
-}
+// try {
+//     $query = mysqli_query($connect, $productfavorite);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
 
 // $productreview = "CREATE TABLE productreviewtb
 // (
@@ -447,3 +447,29 @@ try {
 // } catch (mysqli_sql_exception) {
 //     echo "Data has been saved";
 // }
+
+$dining = "CREATE TABLE diningreservationtb
+(
+    ReservationID int not null primary key auto_increment,
+    Date varchar(20),
+    Time varchar(20),
+    NumberOfGuests int,
+    SpecialRequest text,
+    Name varchar(50),
+    Email varchar(50),
+    PhoneNumber varchar(20),
+    Status varchar(20) default 'Pending',
+    UserID varchar(30) DEFAULT NULL, 
+    FOREIGN KEY (UserID) REFERENCES usertb (UserID)
+    ON DELETE CASCADE 
+    ON UPDATE CASCADE,
+    ReservationDate datetime default current_timestamp,
+    UpdatedAt datetime default current_timestamp
+)";
+
+try {
+    $query = mysqli_query($connect, $dining);
+    echo "Data Successfully saved";
+} catch (mysqli_sql_exception) {
+    echo "Data has been saved";
+}
