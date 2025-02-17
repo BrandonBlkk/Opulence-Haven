@@ -113,6 +113,32 @@ if (menubar) {
     });
 }
 
+// Dining Reservation Modal
+const diningBtn = document.getElementById('diningBtn');
+if (diningBtn) {
+    const closeBtn = document.getElementById('closeBtn');
+    const diningAside = document.getElementById('diningAside');
+    const darkOverlay = document.getElementById('darkOverlay');
+
+    diningBtn.addEventListener('click', () => {
+        diningAside.style.right = '0%';
+        darkOverlay.classList.remove('hidden');
+        darkOverlay.classList.add('flex');
+    });
+
+    closeBtn.addEventListener('click', () => {
+        diningAside.style.right = '-100%';
+        darkOverlay.classList.add('hidden');
+        darkOverlay.classList.remove('flex');
+    });
+
+    darkOverlay.addEventListener('click', () => {
+        diningAside.style.right = '-100%';
+        darkOverlay.classList.add('hidden');
+        darkOverlay.classList.remove('flex');
+    });
+}
+
 // MoveUp Btn
 const moveUpBtn = document.getElementById('moveUpBtn');
 if (moveUpBtn) {
@@ -123,6 +149,20 @@ if (moveUpBtn) {
         } else {
             moveUpBtn.classList.remove('right-0');
             moveUpBtn.classList.add('-right-full');
+        }
+    });
+}
+
+// Phone Btn
+const phoneBtn = document.getElementById('phoneBtn');
+if (phoneBtn) {
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 1000) {
+            phoneBtn.classList.remove('-right-full');
+            phoneBtn.classList.add('right-2');
+        } else {
+            phoneBtn.classList.remove('right-2');
+            phoneBtn.classList.add('-right-full');
         }
     });
 }
@@ -158,23 +198,34 @@ if (logoutBtn && confirmModal && cancelBtn && confirmLogoutBtn && darkOverlay2) 
 
     // Handle Logout Action
     confirmLogoutBtn.addEventListener('click', () => {
+        // Hide the modal and overlay
         confirmModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
         confirmModal.classList.remove('opacity-100', 'translate-y-0');
         darkOverlay2.classList.add('opacity-0', 'invisible');
         darkOverlay2.classList.remove('opacity-100');
         aside.style.right = '-100%';
         menubar.classList.remove('-rotate-90');
-        loader.style.display = 'flex';
+    
+        // Show the loader
+        const loader = document.getElementById('loader');
+        if (loader) {
+            loader.style.display = 'flex'; // Show the loader
+        }
     
         // Notify the server to destroy the session
-        fetch('UserLogout.php', { method: 'POST' })
+        fetch('../User/UserLogout.php', { method: 'POST' })
             .then(() => {
                 // Redirect after logout
                 setTimeout(() => {
                     window.location.href = 'HomePage.php';
                 }, 1000);
             })
-            .catch((error) => console.error('Logout failed:', error));
+            .catch((error) => {
+                console.error('Logout failed:', error);
+                if (loader) {
+                    loader.style.display = 'none'; 
+                }
+            });
     });
 }
 
@@ -519,3 +570,40 @@ const getDate = new Date();
 const getYear = getDate.getFullYear();
 
 document.getElementById('year').textContent = getYear;
+
+// Animation
+ScrollReveal().reveal('#fade-in-section', {
+    duration: 500, // Duration of the animation
+    easing: 'ease-in-out', // Smooth easing
+    opacity: 0, // Start fully transparent
+    delay: 50, // Delay before animation starts
+    reset: true // Reset animation on scroll up
+});
+
+ScrollReveal().reveal('#fade-in-section-once', {
+    duration: 500, // Duration of the animation
+    easing: 'ease-in-out', // Smooth easing
+    opacity: 0, // Start fully transparent
+    delay: 50, // Delay before animation starts
+    reset: false // Reset animation on scroll up
+});
+
+ScrollReveal().reveal('#fade-in-section-top', {
+    origin: 'top', // The text will come from the top
+    distance: '50px', // Distance it moves when revealed
+    duration: 500, // Duration of the animation
+    easing: 'ease-out', // Easing function
+    opacity: 0, // Start with opacity 0 for a fade-in effect
+    delay: 50, // Optional delay before starting the animation
+    reset: true // Reset the animation when the element is out of view
+});
+
+ScrollReveal().reveal('#image-section', {
+    origin: 'right',
+    distance: '20px',
+    duration: 500,
+    easing: 'ease-out',
+    opacity: 0,
+    delay: 50,
+    reset: true
+});

@@ -6,6 +6,7 @@ if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
+$alertMessage = "";
 $session_userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
 
 if (isset($_GET["product_ID"])) {
@@ -62,6 +63,46 @@ if (isset($_GET["product_ID"])) {
     }
 }
 
+// Check if CustomerID is set in session
+if (isset($session_userID) && !empty($_SESSION['UserID'])) {
+
+    // Process form submission if favoriteBtn is set
+    if (isset($_POST['addtofavorites'])) {
+
+        $check_query = "SELECT COUNT(*) as count FROM productfavoritetb WHERE UserID = '$session_userID' AND ProductID = '$product_id'";
+        $result = $connect->query($check_query);
+        $count = $result->fetch_assoc()['count'];
+
+        // If the product is not already in favorites, insert it
+        if ($count == 0) {
+            $insert_query = "INSERT INTO productfavoritetb (UserID, ProductID) VALUES ('$session_userID', '$product_id')";
+            $connect->query($insert_query);
+        }
+    }
+} else {
+    if (isset($_POST['addtofavorites'])) {
+
+        // If user not logged in
+        $alertMessage = "Login first to add to favorites";
+    }
+}
+
+// Remove specified product from favorite
+if (isset($_POST['removefromfavorites'])) {
+
+    $delete_query = "DELETE FROM productfavoritetb WHERE ProductID = '$product_id'";
+    $connect->query($delete_query);
+}
+
+if (isset($_POST['addtobag'])) {
+    $product_size = isset($_POST['size']) ? $_POST['size'] : null;
+
+    if (empty($product_size)) {
+        // Size not selected
+        $alertMessage = "Choose one size";
+    }
+}
+
 // Product Review
 $productReviewQuery = "SELECT COUNT(*) as count FROM productreviewtb WHERE ProductID = '$product_id'";
 
@@ -107,10 +148,9 @@ if ($productReviewSelectQuery->num_rows > 0) {
             <a href="StoreDetails.php?product_ID=<?= urlencode($product_id) ?>" class=" underline">Store Details</a>
         </div>
 
-        <form action="<?php $_SERVER["PHP_SELF"] ?>" method="post" enctype="multipart/form-data" class="flex flex-col md:flex-row justify-center gap-3 mt-3">
+        <form id="addToBagForm" action="<?php $_SERVER["PHP_SELF"] ?>" method="post" enctype="multipart/form-data" class="flex flex-col md:flex-row justify-center gap-3 mt-3">
 
             <input type="hidden" name="product_Id" value="<?php echo $product_id; ?>">
-            <!-- <input type="hidden" name="product_size" value="<?php echo $product_size; ?>"> -->
 
             <!-- Product Showcase -->
             <div class="flex flex-col-reverse sm:flex-row gap-3 select-none">
@@ -138,7 +178,6 @@ if ($productReviewSelectQuery->num_rows > 0) {
                     </div>
                 </div>
             </div>
-
 
             <script>
                 let originalImage = document.getElementById('mainImage').src;
@@ -180,11 +219,42 @@ if ($productReviewSelectQuery->num_rows > 0) {
 
             <div class="w-full md:max-w-[290px] py-3 px-0 sm:py-0 sm:px-3">
                 <div class="mb-4">
-                    <p class="text-base sm:text-lg font-bold mb-2" id="priceDisplay">$ <?= $price; ?></p>
+                    <div class="flex justify-between items-center">
+                        <p class="text-base sm:text-lg font-bold mb-2" id="priceDisplay">$ <?= $price; ?></p>
+                        <?php
+                        $check = "SELECT * FROM productfavoritetb 
+                        WHERE ProductID = '$product_id'
+                        And UserID = '$session_userID'";
+
+                        $check_query = $connect->query($check);
+                        $rowCount = $check_query->num_rows;
+
+                        $buttonHtml = $rowCount > 0
+                            ? '
+                             <button name="removefromfavorites" class="bg-slate-100 p-2 rounded-md hover:bg-slate-200 transition-colors duration-200 relative group">
+                                <i class="ri-heart-fill text-xl text-amber-500"></i>
+                                <!-- Tooltip -->
+                                <span class="absolute top-12 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    Add to Favorites
+                                </span>
+                            </button>
+                            '
+                            : '
+                             <button name="addtofavorites" class="bg-slate-100 p-2 rounded-md hover:bg-slate-200 transition-colors duration-200 relative group">
+                                <i class="ri-heart-line text-xl text-gray-400"></i>
+                                <!-- Tooltip -->
+                                <span class="absolute top-12 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    Add to Favorites
+                                </span>
+                            </button>
+                            ';
+                        echo $buttonHtml;
+                        ?>
+                    </div>
                     <div class="flex gap-1 items-center">
                         <p class="text-sm text-gray-500">(<?= $stock; ?> <?= ($stock > 1) ? 'availablies' : 'available'  ?>)</p>
                         <?php if ($selling_fast == 1): ?>
-                            <div class="inline-block bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-sm">
+                            <div class="inline-block bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-sm select-none">
                                 Selling Fast
                             </div>
                         <?php endif; ?>
@@ -243,24 +313,29 @@ if ($productReviewSelectQuery->num_rows > 0) {
                 <!-- Size Dropdown -->
                 <div class="mb-4">
                     <div class="mt-4">
-                        <select id="size" name="size" class="block w-full p-2 border border-gray-300 rounded-md text-gray-700 bg-white cursor-pointer focus:border-amber-500 focus:ring-amber-500 outline-none transition-colors duration-200">
+                        <select id="size" name="size" class="block w-full p-2 border border-gray-300 rounded-md text-gray-700 bg-white cursor-pointer focus:border-amber-500 focus:ring-amber-500 outline-none transition-colors duration-75">
                             <option value="" disabled selected>Choose a size</option>
-                            <?php if (!empty($sizes)) : ?>
-                                <?php
-                                $query_sizes = "SELECT SizeID, Size, PriceModifier FROM sizetb WHERE ProductID = '$product_id'";
-                                $result_sizes = $connect->query($query_sizes);
+
+                            <?php
+                            $query_sizes = "SELECT SizeID, Size, PriceModifier FROM sizetb WHERE ProductID = '$product_id'";
+                            $result_sizes = $connect->query($query_sizes);
+                            if ($result_sizes->num_rows > 0) :
                                 while ($size = $result_sizes->fetch_assoc()) :
-                                ?>
+                            ?>
                                     <option value="<?php echo $size['SizeID']; ?>" data-modifier="<?php echo $size['PriceModifier']; ?>">
                                         <?php echo $size['Size']; ?>
                                     </option>
-                                <?php endwhile; ?>
-                            <?php else: ?>
+                                <?php endwhile;
+                            else : ?>
                                 <option value="" disabled>No size available right now</option>
                             <?php endif; ?>
                         </select>
+
+                        <!-- Validation message -->
+                        <p id="sizeError" class="text-red-500 text-sm mt-1 hidden">Please select a size.</p>
                     </div>
                 </div>
+
                 <script>
                     // Dynamically update price
                     document.getElementById("size").addEventListener("change", function() {

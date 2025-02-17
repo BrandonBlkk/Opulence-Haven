@@ -103,6 +103,26 @@ darkOverlay.addEventListener('click', () => {
     storeMenubar.classList.remove('-rotate-90');
 });
 
+// Product Size Select
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById('addToBagForm');
+    const sizeDropdown = document.getElementById('size');
+    const sizeError = document.getElementById('sizeError');
+
+    if (form && sizeDropdown && sizeError) {
+        form.addEventListener('submit', (e) => {
+            if (sizeDropdown.value === '') {
+                e.preventDefault();
+                sizeError.classList.remove('hidden');
+                sizeDropdown.classList.add('border-red-500');
+            } else {
+                sizeError.classList.add('hidden');
+                sizeDropdown.classList.remove('border-red-500');
+            }
+        });
+    }
+});
+
 // Purchase step
 const line = document.getElementById('line');
 const step = document.getElementById('step');

@@ -1,7 +1,22 @@
-<section class="bg-gray-100 px-3 min-w-[350px]">
+<section class="bg-gray-100 px-3 min-w-[380px]">
     <div class="flex items-center justify-end max-w-[1050px] mx-auto gap-5 select-none">
+        <!-- Search Icon -->
         <i id="search-icon" class="ri-search-line text-xl cursor-pointer"></i>
-        <a href="../User/UserSignIn.php" class="font-semibold text-slate-500 hover:bg-gray-200 p-2 rounded-sm transition-colors duration-200"><?php echo !empty($_SESSION['UserName']) ? $_SESSION['UserName'] : 'My account'; ?></a>
+
+        <!-- Account and Favorites -->
+        <div class="flex items-center">
+            <!-- My Account -->
+            <a href="../User/UserSignIn.php" class="font-semibold text-slate-500 hover:bg-gray-200 p-2 rounded-sm transition-colors duration-200">
+                <?php echo !empty($_SESSION['UserName']) ? $_SESSION['UserName'] : 'My account'; ?>
+            </a>
+            <!-- Favorites -->
+            <a href="Favorite.php" class="flex items-center gap-2 font-semibold text-slate-500 hover:bg-gray-200 p-2 rounded-sm transition-colors duration-200">
+                <i class="ri-heart-line text-xl"></i>
+                <span>Favorites</span>
+            </a>
+        </div>
+
+        <!-- Shopping Cart -->
         <div class="relative group">
             <a href="../Store/AddToCart.php" class="bg-blue-900 text-white py-1 px-3 cursor-pointer flex items-center gap-2">
                 <i class="ri-shopping-cart-2-line text-xl"></i>
@@ -49,7 +64,7 @@ include('MoveRightLoader.php');
 include('MaintenanceAlert.php');
 ?>
 
-<div class="sticky top-0 w-full bg-white border-b z-30 min-w-[350px]">
+<div class="sticky top-0 w-full bg-white border-b z-30 min-w-[380px]">
     <nav class="flex items-center justify-between max-w-[1050px] mx-auto p-3">
         <div class="flex items-end gap-1 select-none">
             <a href="Store.php">
@@ -64,6 +79,9 @@ include('MaintenanceAlert.php');
                 </a>
                 <a href="Toiletries&Spa.php" class="flex items-center gap-1 font-semibold hover:bg-gray-100 p-2 rounded-sm transition-colors duration-200">
                     Toiletries and Spa
+                </a>
+                <a href="Traditional.php" class="flex items-center gap-1 font-semibold hover:bg-gray-100 p-2 rounded-sm transition-colors duration-200">
+                    Traditional Products
                 </a>
             </div>
             <i id="storeMenubar" class="ri-menu-4-line text-3xl cursor-pointer transition-transform duration-300 block sm:hidden"></i>
@@ -81,6 +99,9 @@ include('MaintenanceAlert.php');
                     </a>
                     <a href="../Store/Toiletries&Spa.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
                         <p class="font-semibold text-2xl sm:text-sm">Toiletries and Spa</p>
+                    </a>
+                    <a href="../Store/Traditional.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
+                        <p class="font-semibold text-2xl sm:text-sm">Traditional Products</p>
                     </a>
                 </div>
         </aside>

@@ -1,4 +1,4 @@
-<footer class="bg-gray-100 text-gray-400 flex flex-col justify-center gap-10">
+<footer class="bg-gray-100 min-w-[380px] text-gray-400 flex flex-col justify-center gap-10">
     <section class="max-w-[1400px] mx-auto">
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5 pt-20 px-5 sm:px-10">
             <div>

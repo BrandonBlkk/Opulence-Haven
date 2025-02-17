@@ -6,19 +6,20 @@ if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-// Initialize search query
-$searchQuery = '';
-$showAllProducts = false;
+// Check if the user is logged in
+if (!isset($_SESSION['UserID'])) {
+    die("User not logged in.");
+}
 
-if (isset($_GET['search'])) {
-    $searchQuery = trim($_GET['search']);
-    // Only fetch products if the search query is not empty
-    if (!empty($searchQuery)) {
-        // Fetch all products with optional search filter
-        $productSelect = "SELECT p.*, 
+$userId = $_SESSION['UserID'];
+
+// Fetch all products favorited by the logged-in user
+$productSelect = "SELECT p.*, 
                 pt.ProductType, 
                 pi_primary.ImageUserPath AS PrimaryImagePath, 
-                pi_secondary.ImageUserPath AS SecondaryImagePath
+                pi_secondary.ImageUserPath AS SecondaryImagePath,
+                pf.FavoritedAt, -- Include the FavoritedAt timestamp
+                1 AS IsFavorite -- Since we're filtering by favorites, all products here are favorited
             FROM producttb p
             INNER JOIN producttypetb pt 
                 ON p.ProductTypeID = pt.ProductTypeID
@@ -26,21 +27,25 @@ if (isset($_GET['search'])) {
                 ON p.ProductID = pi_primary.ProductID AND pi_primary.PrimaryImage = 1
             LEFT JOIN productimagetb pi_secondary
                 ON p.ProductID = pi_secondary.ProductID AND pi_secondary.SecondaryImage = 1
-            WHERE p.Title LIKE '%$searchQuery%' OR pt.ProductType LIKE '%$searchQuery%' OR p.Brand LIKE '%$searchQuery%'
+            INNER JOIN productfavoritetb pf
+                ON p.ProductID = pf.ProductID AND pf.UserID = '$userId'
             GROUP BY p.ProductID";
 
-        $productSelectQuery = $connect->query($productSelect);
-        $products = [];
+$productSelectQuery = $connect->query($productSelect);
+$favoriteProducts = [];
 
-        if ($productSelectQuery->num_rows > 0) {
-            while ($row = $productSelectQuery->fetch_assoc()) {
-                $products[] = $row;
-            }
-        }
-    } else {
-        // If search query is empty, set a flag to show a message
-        $showAllProducts = false;
+if ($productSelectQuery->num_rows > 0) {
+    while ($row = $productSelectQuery->fetch_assoc()) {
+        $favoriteProducts[] = $row;
     }
+}
+
+// Filtering
+if (isset($_GET['sort']) && $_GET['sort'] === 'recent') {
+    // Sort favorite products by FavoritedAt in descending order (most recent first)
+    usort($favoriteProducts, function ($a, $b) {
+        return strtotime($b['FavoritedAt']) - strtotime($a['FavoritedAt']);
+    });
 }
 ?>
 
@@ -50,16 +55,14 @@ if (isset($_GET['search'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search Results - Opulence Haven</title>
+    <title>Favorites - Opulence Haven</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../CSS/output.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
 </head>
 
 <body>
-    <?php
-    include('../includes/StoreNavbar.php');
-    ?>
+    <?php include('../includes/StoreNavbar.php'); ?>
 
     <main class="max-w-[1310px] min-w-[380px] mx-auto px-4 py-5">
         <!-- Breadcrumb -->
@@ -68,25 +71,28 @@ if (isset($_GET['search'])) {
             <span><i class="ri-arrow-right-s-fill"></i></span>
             <a href="Store.php" class="underline">Store</a>
             <span><i class="ri-arrow-right-s-fill"></i></span>
-            <a href="ProductSearch.php?search=<?= urlencode($searchQuery) ?>" class="underline">Product Search</a>
+            <a href="Favorite.php" class="underline">Favorites</a>
         </div>
 
-        <!-- Search Results -->
+        <!-- Favorite Products Section -->
         <section class="mt-5">
-            <h1 class="text-xl sm:text-2xl text-blue-900 font-semibold mb-5">
-                <?php if (!empty($searchQuery)): ?>
-                    Search Results for "<?= htmlspecialchars($searchQuery) ?>"
-                <?php else: ?>
-                    Please enter a search term
-                <?php endif; ?>
-            </h1>
-            <?php if (empty($searchQuery)): ?>
-                <p class="text-center text-gray-500 my-36">Enter a search term to find products.</p>
-            <?php elseif (empty($products)): ?>
-                <p class="text-center text-gray-500 my-36">No products found.</p>
+            <div class="flex justify-between items-center mb-5">
+                <h1 class="text-xl sm:text-2xl text-blue-900 font-semibold">
+                    Your Favorite Products (<?= count($favoriteProducts) ?>)
+                </h1>
+                <!-- Filter Dropdown -->
+                <div class="relative">
+                    <select id="sortFilter" onchange="applyFilter()" class="block w-full p-2 border border-gray-300 rounded-md text-gray-700 bg-white cursor-pointer focus:border-amber-500 focus:ring-amber-500 outline-none transition-colors duration-75">
+                        <option value="default" <?= !isset($_GET['sort']) ? 'selected' : '' ?>>Default</option>
+                        <option value="recent" <?= isset($_GET['sort']) && $_GET['sort'] === 'recent' ? 'selected' : '' ?>>Most Recent</option>
+                    </select>
+                </div>
+            </div>
+            <?php if (empty($favoriteProducts)): ?>
+                <p class="text-center text-gray-500 my-36">You have no favorite products yet.</p>
             <?php else: ?>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 border-t pt-5">
-                    <?php foreach ($products as $product): ?>
+                    <?php foreach ($favoriteProducts as $product): ?>
                         <a href="StoreDetails.php?product_ID=<?php echo htmlspecialchars($product['ProductID']) ?>" class="block w-full <?= $product['SecondaryImagePath'] ? 'group' : '' ?>">
                             <div class="relative">
                                 <div class="relative w-full h-auto md:h-[350px] lg:h-[300px] select-none mb-4">
@@ -130,6 +136,15 @@ if (isset($_GET['search'])) {
     ?>
 
     <script src="../JS/store.js"></script>
+
+    <script>
+        // Apply filter when the dropdown changes
+        function applyFilter() {
+            const sortFilter = document.getElementById('sortFilter');
+            const selectedValue = sortFilter.value;
+            window.location.href = `Favorite.php?sort=${selectedValue}`;
+        }
+    </script>
 </body>
 
 </html>

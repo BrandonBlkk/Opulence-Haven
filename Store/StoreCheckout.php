@@ -32,7 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order'])) {
     include('../includes/StoreNavbar.php');
     ?>
 
-    <main class="max-w-[1310px] mx-auto p-4">
+    <main class="max-w-[1310px] min-w-[380px] mx-auto p-4">
         <section>
             <div class="flex items-center">
                 <!-- Step 1: Store -->
@@ -67,7 +67,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order'])) {
     </main>
 
     <!-- Display products in a styled list -->
-    <section class="max-w-[1370px] mx-auto px-4 pb-4">
+    <section class="max-w-[1370px] min-w-[380px] mx-auto px-4 pb-4">
         <div class="flex justify-between items-center">
             <p class="text-2xl">Cart <span>(2)</span></p>
             <a href="AddToCart.php" class="text-sm text-gray-500">
