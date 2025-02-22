@@ -152,7 +152,7 @@ $outOfStock = $outOfStockResult->fetch_assoc()['OutOfStock'];
             }
         </script>
 
-        <section class="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
             <!-- Total Booking -->
             <div class="bg-white rounded-sm p-3">
                 <h2 class="text-lg font-bold text-gray-700">Total Booking</h2>
@@ -221,7 +221,7 @@ $outOfStock = $outOfStockResult->fetch_assoc()['OutOfStock'];
             </div>
         </section>
 
-        <section class="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-3">
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <!-- Sales Revenue -->
             <div class="bg-white rounded-sm p-3 mt-3">
                 <h2 class="text-lg font-bold text-gray-700">Sales Revenue</h2>
@@ -247,7 +247,7 @@ $outOfStock = $outOfStockResult->fetch_assoc()['OutOfStock'];
             </div>
 
             <!-- Room Booking Chart -->
-            <div class="bg-white rounded-sm p-3 mt-2">
+            <div class="bg-white rounded-sm p-3 mt-3">
                 <div class="flex justify-between items-center">
                     <h2 class="text-lg font-bold text-gray-700">Room Booking Chart</h2>
                     <button class="text-xs bg-gray-200 px-2 py-1 rounded text-gray-700">30 Days</button>

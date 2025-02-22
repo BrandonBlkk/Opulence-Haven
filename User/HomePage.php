@@ -125,7 +125,7 @@ if (!$connect) {
             </a>
         </div>
 
-        <section id="fade-in-section-once" class="grid grid-cols-1 md:grid-cols-3 gap-4 px-4 max-w-[1310px] mx-auto">
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-4 px-4 max-w-[1310px] mx-auto" data-aos="fade">
             <!-- Card 1 -->
             <a href="#" class="block w-full md:max-w-[450px] mx-auto group">
                 <div class="h-auto sm:h-[280px] select-none overflow-hidden">
@@ -187,7 +187,7 @@ if (!$connect) {
             <p class="text-slate-600 mb-3">Intuitive stays in destination hotels</p>
         </div>
 
-        <section id="fade-in-section-once" class="grid grid-cols-1 md:grid-cols-3 gap-4 px-4 pb-10 border-b max-w-[1310px] mx-auto">
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-4 px-4 pb-10 border-b max-w-[1310px] mx-auto" data-aos="fade">
             <!-- Card 1 -->
             <div class="block w-full md:max-w-[450px] mx-auto group">
                 <div class="h-auto sm:h-[280px] select-none">
@@ -264,8 +264,17 @@ if (!$connect) {
     include('../includes/MoveUpBtn.php');
     include('../includes/Footer.php');
     ?>
+
+    <!-- AOS JS -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 600,
+            once: false,
+        });
+    </script>
     <script src="//unpkg.com/alpinejs" defer></script>
-    <script src="../JS/index.js"></script>
+    <script type="module" src="../JS/index.js"></script>
 </body>
 
 </html>

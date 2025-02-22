@@ -1,3 +1,5 @@
+import { showAlert, validateField } from './alertFunc.js';
+
 // Move Right Loader
 let moveRight = document.getElementById("move-right");
 
@@ -116,7 +118,7 @@ if (menubar) {
 // Dining Reservation Modal
 const diningBtn = document.getElementById('diningBtn');
 if (diningBtn) {
-    const closeBtn = document.getElementById('closeBtn');
+    const diningCloseBtn = document.getElementById('diningCloseBtn');
     const diningAside = document.getElementById('diningAside');
     const darkOverlay = document.getElementById('darkOverlay');
 
@@ -126,7 +128,7 @@ if (diningBtn) {
         darkOverlay.classList.add('flex');
     });
 
-    closeBtn.addEventListener('click', () => {
+    diningCloseBtn.addEventListener('click', () => {
         diningAside.style.right = '-100%';
         darkOverlay.classList.add('hidden');
         darkOverlay.classList.remove('flex');
@@ -138,6 +140,43 @@ if (diningBtn) {
         darkOverlay.classList.remove('flex');
     });
 }
+
+// Dining Reservation Form
+document.addEventListener("DOMContentLoaded", () => {
+    const loader = document.getElementById('loader');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const reservationSuccess = document.getElementById('reservationSuccess').value === 'true';
+
+    if (reservationSuccess) {
+        loader.style.display = 'flex';
+
+        // Show Alert
+        setTimeout(() => {
+            loader.style.display = 'none';
+            showAlert('A dining table has been successfully reserved.');
+            setTimeout(() => {
+                window.location.href = '../User/Dining.php';
+            }, 5000);
+        }, 1000);
+    } else if (alertMessage) {
+        // Show Alert
+        showAlert(alertMessage);
+    }
+
+    // Add keyup event listeners for real-time validation
+    document.getElementById("diningNameInput").addEventListener("keyup", validateDiningName);
+    document.getElementById("diningEmailInput").addEventListener("keyup", validateDiningEmail);
+    document.getElementById("diningPhoneInput").addEventListener("keyup", validateDiningPhone);
+
+    const diningForm = document.getElementById("diningForm");
+    if (diningForm) {
+        diningForm.addEventListener("submit", (e) => {
+            if (!validateDiningForm()) {
+                e.preventDefault();
+            }
+        });
+    }
+});
 
 // MoveUp Btn
 const moveUpBtn = document.getElementById('moveUpBtn');
@@ -394,7 +433,40 @@ const validateResetForm = () => {
     return isResetPasswordValid && isNewPasswordValid && isConfirmPasswordValid;
 };
 
+const validateDiningForm = () => {
+    const isDiningNameValid = validateDiningName();
+    const isDiningEmailValid = validateDiningEmail();
+    const isDiningPhoneValid = validateDiningPhone();
+
+
+    return isDiningNameValid && isDiningEmailValid && isDiningPhoneValids;
+};
+
 // Individual validation functions
+
+const validateDiningName = () => {
+    return validateField(
+        "diningNameInput",
+        "diningNameError",
+        (input) => (!input ? "Name is required." : null)
+    );
+}
+
+const validateDiningEmail = () => {
+    return validateField(
+        "diningEmailInput",
+        "diningEmailError",
+        (input) => (!input ? "Email is required." : null)
+    );
+}
+
+const validateDiningPhone = () => {
+    return validateField(
+        "diningPhoneInput",
+        "diningPhoneError",
+        (input) => (!input ? "Phone is required." : null)
+    );
+}
 const validateUsername = () => {
     const usernameInput = document.getElementById("usernameInput").value.trim();
     const usernameError = document.getElementById("usernameError");

@@ -217,7 +217,7 @@ if ($productReviewSelectQuery->num_rows > 0) {
                 });
             </script>
 
-            <div class="w-full md:max-w-[290px] py-3 px-0 sm:py-0 sm:px-3">
+            <div class="w-full md:max-w-[290px] py-3 sm:py-0">
                 <div class="mb-4">
                     <div class="flex justify-between items-center">
                         <p class="text-base sm:text-lg font-bold mb-2" id="priceDisplay">$ <?= $price; ?></p>
