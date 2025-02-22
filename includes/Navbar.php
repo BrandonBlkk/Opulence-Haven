@@ -47,7 +47,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <div class="max-w-[300px]">
             <span class="text-2xl font-semibold">Dining Request</span>
         </div>
-        <i id="closeBtn" class="ri-close-line text-2xl cursor-pointer rounded transition-colors duration-300"></i>
+        <i id="diningCloseBtn" class="ri-close-line text-2xl cursor-pointer rounded transition-colors duration-300"></i>
     </div>
     <div class="flex flex-col justify-between gap-3 h-full">
         <div>
@@ -83,7 +83,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         <?php
                         $guests = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
                         ?>
-                        <select name="guests" class="p-2 w-full border rounded">
+                        <select name="guests" class="p-2 w-full border rounded" required>
                             <?php foreach ($guests as $guest): ?>
                                 <option value="<?php echo $guest; ?>"><?php echo $guest; ?></option>
                             <?php endforeach; ?>
@@ -99,20 +99,23 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Contact Details</label>
                     <!-- Name -->
-                    <div class="flex flex-col gap-2">
+                    <div class="relative flex flex-col gap-2">
                         <label for="name" class="font-semibold">Name</label>
-                        <input type="text" id="name" name="name" placeholder="Enter your name" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" required>
+                        <input type="text" id="diningNameInput" name="name" placeholder="Enter your name" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out">
+                        <small id="diningNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
                     <!-- Email -->
-                    <div class="flex flex-col gap-2">
+                    <div class="relative flex flex-col gap-2">
                         <label for="email" class="font-semibold">Email</label>
-                        <input type="email" id="email" name="email" value="<?php echo $session_userID ? htmlspecialchars($email) : ''; ?>" placeholder="Enter your email" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" required>
-                    </div>
+                        <input type="email" id="diningEmailInput" name="email" value="<?php echo $session_userID ? htmlspecialchars($email) : ''; ?>" placeholder="Enter your email" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out">
+                        <small id="diningEmailError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
 
+                    </div>
                     <!-- Phone -->
-                    <div class="flex flex-col gap-2">
+                    <div class="relative flex flex-col gap-2">
                         <label for="phone" class="font-semibold">Phone Number</label>
-                        <input type="tel" id="phone" name="phone" value="<?php echo $session_userID ? htmlspecialchars($phone) : ''; ?>" placeholder="Enter your phone" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" required>
+                        <input type="tel" id="diningPhoneInput" name="phone" value="<?php echo $session_userID ? htmlspecialchars($phone) : ''; ?>" placeholder="Enter your phone" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out">
+                        <small id="diningPhoneError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
                 </div>
                 <button type="submit" name="reserve" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold text-center p-2 select-none transition-colors duration-300">Reserve Table</button>

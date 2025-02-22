@@ -59,7 +59,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve'])) {
     <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
     <!-- Swiper JS -->
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-
 </head>
 
 <body class="relative">
@@ -138,16 +137,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve'])) {
         });
     </script>
 
-    <section id="fade-in-section" class="py-10 pb-16 px-5 sm:px-10 md:px-20 lg:px-40 xl:px-60 2xl:px-80 text-center">
+    <section class="py-10 pb-16 px-5 sm:px-10 md:px-20 lg:px-40 xl:px-60 2xl:px-80 text-center" data-aos="fade-up">
         <h1 class="text-2xl mb-5 text-blue-900 font-semibold">Discover the Taste of Tradition</h1>
         <p class="text-2xl sm:text-3xl font-light">Experience the authentic flavors of our region with dishes inspired by local traditions and ingredients. Our chefs bring the essence of the destination to your plate, creating a dining experience that connects you to the culture and heritage of the area. Every bite tells a story, and every meal is a celebration of local cuisine.</p>
     </section>
 
-    <section id="fade-in-section" class="flex flex-col py-0 sm:py-16 px-4 max-w-[1310px] mx-auto">
+    <section class="flex flex-col py-0 sm:py-16 px-4 max-w-[1310px] mx-auto" data-aos="fade-up">
         <h1 class="text-slate-600 mb-10">DISCOVER THE ART OF DINING</h1>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-16 border-b">
             <!-- Card 1 -->
-            <div class="block w-full group">
+            <div class="block w-full group" data-aos="fade-right">
                 <div class="h-auto sm:h-[380px] select-none">
                     <img src="../UserImages/photo-1565895405227-31cffbe0cf86.avif" class="w-full h-full object-cover rounded-sm" alt="Image">
                 </div>
@@ -160,7 +159,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve'])) {
             </div>
 
             <!-- Card 2 -->
-            <div class="block w-full group">
+            <div class="block w-full group" data-aos="fade-left">
                 <div class="h-auto sm:h-[380px] select-none">
                     <img src="../UserImages/photo-1662982692115-743f9e716b98.avif" class="w-full h-full object-cover rounded-sm" alt="Image">
                 </div>
@@ -175,7 +174,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve'])) {
     </section>
 
     <section class="p-4 py-10 pb-16 sm:pb-24 max-w-[1310px] mx-auto flex flex-col-reverse md:flex-row gap-5">
-        <div class="flex-1 flex flex-col justify-between gap-3" id="fade-in-section-top">
+        <div class="flex-1 flex flex-col justify-between gap-3" data-aos="fade-right">
             <div class="flex flex-col">
                 <h1 class="text-2xl sm:text-4xl mb-5 text-blue-900 font-semibold">Echoes of Culinary Excellence</h1>
                 <p class="text-slate-600 mb-5">
@@ -188,7 +187,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve'])) {
                 <p>459 Pyay Road, Kamayut Township , 11041, Yangon, Myanmar</p>
             </div>
         </div>
-        <div class="flex-1 select-none" id="image-section">
+        <div class="flex-1 select-none" id="image-section" data-aos="fade-left">
             <img src="../UserImages/photo-1532250327408-9bd6e0ce2c49.avif" class="w-full h-full object-cover rounded-sm" alt="Hotel Image">
         </div>
     </section>
@@ -248,15 +247,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve'])) {
 
 </html>
 
-
 <!-- MoveUp Btn -->
 <?php
 include('../includes/MoveUpBtn.php');
+include('../includes/Alert.php');
 include('../includes/Footer.php');
 ?>
+
+<!-- AOS JS -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    AOS.init({
+        duration: 600,
+        once: false,
+    });
+</script>
 <script src="//unpkg.com/alpinejs" defer></script>
-<script src="https://unpkg.com/scrollreveal"></script>
-<script src="../JS/index.js"></script>
+<script type="module" src="../JS/index.js"></script>
 </body>
 
 </html>
