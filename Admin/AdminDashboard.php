@@ -195,7 +195,7 @@ $outOfStock = $outOfStockResult->fetch_assoc()['OutOfStock'];
             </div>
 
             <!-- Stock Available -->
-            <div class="bg-white rounded-sm p-3">
+            <div class="bg-white md:col-span-2 lg:col-span-1 rounded-sm p-3">
                 <h2 class="text-lg font-bold text-gray-700">Stock Available</h2>
                 <p class="text-sm text-gray-500 mb-4">Current stock status across product types.</p>
                 <div class="grid grid-cols-3 gap-4 mb-4">

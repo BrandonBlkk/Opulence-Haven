@@ -111,8 +111,8 @@
                 </div>
                 <div class="border-l-0 lg:border-l pl-0 lg:pl-16">
                     <h1 class="text-2xl font-semibold mb-3">Newsletter Sign Up</h1>
-                    <form class="flex flex-col gap-6 sm:gap-0 sm:flex-row" action="">
-                        <input class="border w-full p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" type="text" placeholder="Your email please" required>
+                    <form class="flex flex-col gap-6 sm:gap-0 sm:flex-row" method="POST" action="../User/Subscribe.php">
+                        <input class="border w-full p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" type="email" name="email" placeholder="Your email please" required>
                         <input class="bg-black py-2 px-5 text-white select-none cursor-pointer" type="submit" value="SUBSCRIBE">
                     </form>
                 </div>
