@@ -5,6 +5,13 @@ include('../config/dbConnection.php');
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
+
+// Check if there's a welcome message to display
+if (isset($_SESSION['welcome_message']) && isset($_SESSION['UserName'])) {
+    $welcomeMessage = $_SESSION['welcome_message'];
+    $username = $_SESSION['UserName'];
+    unset($_SESSION['welcome_message']); //Show the message only once
+}
 ?>
 
 <!DOCTYPE html>
@@ -27,6 +34,46 @@ if (!$connect) {
     include('../includes/Navbar.php');
     include('../includes/Cookies.php');
     ?>
+
+    <!-- Welcome message -->
+    <?php if (isset($welcomeMessage)): ?>
+        <div id="welcomeAlert" class="fixed -top-1 opacity-0 right-3 z-50 transition-all duration-200">
+            <div class="flex items-center gap-3 p-3 rounded-lg shadow-lg bg-white backdrop-blur-sm border border-gray-200">
+                <a href="../User/HomePage.php">
+                    <img src="../UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-16 select-none" alt="Logo">
+                </a>
+                <div>
+                    <p class="font-medium text-gray-800"><?php echo htmlspecialchars($welcomeMessage); ?> to <span class="font-bold text-amber-600">Opulence Haven</span></p>
+                    <p class="text-sm text-gray-600"><?php echo htmlspecialchars($username); ?></p>
+                </div>
+                <button onclick="closeWelcomeAlert()" class="ml-2 text-gray-400 hover:text-amber-600 transition-colors">
+                    <i class="ri-close-line text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <script>
+            // Show welcome alert with animation
+            const welcomeAlert = document.getElementById('welcomeAlert');
+
+            // Trigger the animation after a small delay to allow DOM to render
+            setTimeout(() => {
+                welcomeAlert.classList.remove("-top-1", "opacity-0");
+                welcomeAlert.classList.add("opacity-100", "top-3");
+
+                // Hide after 5 seconds
+                setTimeout(() => {
+                    welcomeAlert.classList.add("translate-x-full", "-right-full");
+                    setTimeout(() => welcomeAlert.remove(), 200);
+                }, 5000);
+            }, 100);
+
+            function closeWelcomeAlert() {
+                welcomeAlert.classList.add("translate-x-full", "-right-full");
+                setTimeout(() => welcomeAlert.remove(), 200);
+            }
+        </script>
+    <?php endif; ?>
 
     <main class="pb-4">
         <div class="relative swiper-container">

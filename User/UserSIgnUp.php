@@ -1,4 +1,5 @@
 <?php
+session_start();
 include('../config/dbConnection.php');
 include('../includes/AutoIDFunc.php');
 
@@ -12,6 +13,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     $password = mysqli_real_escape_string($connect, trim($_POST['password']));
     $phone = mysqli_real_escape_string($connect, trim($_POST['phone']));
 
+    // Predefined set colors
+    $googleColors = [
+        '#4285F4', // Blue
+        '#EA4335', // Red
+        '#FBBC05', // Yellow
+        '#34A853', // Green
+        '#673AB7', // Purple
+        '#FF6D00', // Orange
+        '#00ACC1', // Teal
+        '#D81B60', // Pink
+        '#8E24AA', // Deep Purple
+        '#039BE5', // Light Blue
+        '#7CB342', // Light Green
+        '#F4511E', // Deep Orange
+        '#546E7A', // Blue Grey
+        '#E53935', // Dark Red
+        '#00897B', // Dark Teal
+        '#5E35B1'  // Dark Purple
+    ];
+
+    // Randomly pick one color from the array
+    $profileBgColor = $googleColors[array_rand($googleColors)];
+
     // Check if the email already exists using prepared statement
     $checkEmailQuery = "SELECT UserEmail FROM usertb WHERE UserEmail = '$email'";
     $count = $connect->query($checkEmailQuery)->num_rows;
@@ -20,11 +44,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
         $alertMessage = 'Email you signed up with is already taken.';
     } else {
         // Insert the new user data using prepared statement
-        $insertQuery = "INSERT INTO usertb (UserID, UserName, UserEmail, UserPassword, UserPhone) 
-                        VALUES ('$userID', '$username', '$email', '$password', '$phone')";
+        $insertQuery = "INSERT INTO usertb (UserID, UserName, UserEmail, UserPassword, UserPhone, ProfileBgColor) 
+                        VALUES ('$userID', '$username', '$email', '$password', '$phone', '$profileBgColor')";
         $insert_Query = $connect->query($insertQuery);
 
         if ($insert_Query) {
+            $_SESSION["welcome_message"] = "Welcome";
+            $_SESSION["UserID"] = $userID;
+            $_SESSION["UserName"] = $username;
             $signupSuccess = true;
         }
     }

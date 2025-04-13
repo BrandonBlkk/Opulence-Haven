@@ -63,11 +63,13 @@ if (!$connect) {
                                     if (count($nameParts) > 1) {
                                         $initials .= substr(end($nameParts), 0, 1); // First letter of the last name
                                     }
+
+                                    $bgColor = $user['ProfileBgColor'];
                                 ?>
                                     <tr class="border-b border-gray-200 hover:bg-gray-50">
                                         <td class="p-3 text-start flex items-center gap-2 group">
                                             <p
-                                                class="w-10 h-10 rounded-full bg-blue-100 text-blue-500 uppercase font-semibold flex items-center justify-center select-none">
+                                                class="w-10 h-10 rounded-full bg-[<?= $bgColor ?>] text-white uppercase font-semibold flex items-center justify-center select-none">
                                                 <?= $initials ?>
                                             </p>
                                             <div>

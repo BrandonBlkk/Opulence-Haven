@@ -111,10 +111,51 @@
                 </div>
                 <div class="border-l-0 lg:border-l pl-0 lg:pl-16">
                     <h1 class="text-2xl font-semibold mb-3">Newsletter Sign Up</h1>
-                    <form class="flex flex-col gap-6 sm:gap-0 sm:flex-row" method="POST" action="../User/Subscribe.php">
+                    <!-- Newsletter Form -->
+                    <form id="newsletterForm" class="flex flex-col gap-6 sm:gap-0 sm:flex-row" method="POST" action="../User/Subscribe.php">
                         <input class="border w-full p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" type="email" name="email" placeholder="Your email please" required>
                         <input class="bg-black py-2 px-5 text-white select-none cursor-pointer" type="submit" value="SUBSCRIBE">
                     </form>
+
+                    <!-- Loader -->
+                    <?php
+                    include('../includes/Loader.php');
+                    ?>
+
+                    <script>
+                        document.getElementById('newsletterForm').addEventListener('submit', function(e) {
+                            e.preventDefault(); // Prevent the default form submission
+
+                            // Show the loader
+                            document.getElementById('loader').classList.remove('hidden');
+                            document.getElementById('loader').classList.add('flex');
+
+                            // Get form data
+                            const formData = new FormData(this);
+
+                            // Send the form data using AJAX
+                            fetch('../User/Subscribe.php', {
+                                    method: 'POST',
+                                    body: formData
+                                })
+                                .then(response => response.text()) // Parse the response as text
+                                .then(data => {
+                                    // Hide the loader
+                                    document.getElementById('loader').classList.remove('flex');
+                                    document.getElementById('loader').classList.add('hidden');
+
+                                    // Redirect back to the previous page
+                                    window.history.back();
+                                })
+                                .catch(error => {
+                                    // Hide the loader and show an error message
+                                    document.getElementById('loader').classList.remove('flex');
+                                    document.getElementById('loader').classList.add('hidden');
+                                    alert('There was an error sending the email. Please try again later.');
+                                    console.error('Error:', error);
+                                });
+                        });
+                    </script>
                 </div>
             </div>
         </div>

@@ -40,11 +40,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
             $admin_username = $array["UserName"];
             $admin_email = $array["AdminEmail"];
             $role = $array["RoleID"];
+            $last_signin = $array["LastSignIn"];
 
+            $_SESSION["UserName"] = $admin_username;
             $_SESSION["AdminID"] = $admin_id;
             $_SESSION["UserName"] = $admin_username;
             $_SESSION["AdminEmail"] = $admin_email;
             $_SESSION["RoleID"] = $role;
+            // Determine welcome message
+            if ($last_signin === null) {
+                $_SESSION["welcome_message"] = "Welcome, " . $admin_username . "!";
+            } else {
+                $_SESSION["welcome_message"] = "Welcome back, " . $admin_username . "!";
+            }
 
             $updateSignInQuery = "UPDATE admintb SET Status = 'active' 
             WHERE AdminID = '$admin_id'";

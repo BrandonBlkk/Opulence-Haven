@@ -35,10 +35,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
             $user_id = $array["UserID"];
             $user_username = $array["UserName"];
             $user_email = $array["UserEmail"];
+            $last_signin = $array["LastSignIn"];
 
             $_SESSION["UserID"] = $user_id;
             $_SESSION["UserName"] = $user_username;
             $_SESSION["UserEmail"] = $user_email;
+
+            // Determine welcome message
+            if ($last_signin === null) {
+                $_SESSION["welcome_message"] = "Welcome";
+            } else {
+                $_SESSION["welcome_message"] = "Welcome back";
+            }
 
             $updateSignInQuery = "UPDATE usertb SET Status = 'active' 
             WHERE UserID = '$user_id'";

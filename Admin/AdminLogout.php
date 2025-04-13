@@ -6,7 +6,10 @@ if (isset($_SESSION['AdminID'])) {
     $admin_id = $_SESSION['AdminID'];
 
     // Update the user's status to inactive
-    $updateSignInQuery = "UPDATE admintb SET Status = 'inactive' WHERE AdminID = '$admin_id'";
+    $updateSignInQuery = "UPDATE admintb SET 
+                     Status = 'active', 
+                     LastSignIn = NOW() 
+                     WHERE AdminID = '$admin_id'";
     if (!$connect->query($updateSignInQuery)) {
         http_response_code(500);
         exit("Failed to update admin status.");

@@ -6,9 +6,17 @@ if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
+$username = $_SESSION["UserName"];
+
 if (!isset($_SESSION["AdminEmail"])) {
     echo "<script>window.alert('Login first! You cannot direct access the admin info.')</script>";
     echo "<script>window.location = 'AdminSignIn.php'</script>";
+}
+
+// Check if there's a welcome message to display
+if (isset($_SESSION['welcome_message'])) {
+    $welcomeMessage = $_SESSION['welcome_message'];
+    unset($_SESSION['welcome_message']); //Show the message only once
 }
 
 // Query for total stock
@@ -45,6 +53,46 @@ $outOfStock = $outOfStockResult->fetch_assoc()['OutOfStock'];
     <?php
     include('../includes/AdminNavbar.php');
     ?>
+
+    <!-- Welcome message -->
+    <?php if (isset($welcomeMessage)): ?>
+        <div id="welcomeAlert" class="fixed -top-1 opacity-0 right-3 z-50 transition-all duration-200">
+            <div class="flex items-center gap-3 p-3 rounded-lg shadow-lg bg-white backdrop-blur-sm border border-gray-200">
+                <a href="../User/HomePage.php">
+                    <img src="../UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-16 select-none" alt="Logo">
+                </a>
+                <div>
+                    <p class="font-medium text-gray-800"><?php echo htmlspecialchars($welcomeMessage); ?> to <span class="font-bold text-amber-600">Opulence Haven</span></p>
+                    <p class="text-sm text-gray-600"><?php echo htmlspecialchars($username); ?></p>
+                </div>
+                <button onclick="closeWelcomeAlert()" class="ml-2 text-gray-400 hover:text-amber-600 transition-colors">
+                    <i class="ri-close-line text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <script>
+            // Show welcome alert with animation
+            const welcomeAlert = document.getElementById('welcomeAlert');
+
+            // Trigger the animation after a small delay to allow DOM to render
+            setTimeout(() => {
+                welcomeAlert.classList.remove("-top-1", "opacity-0");
+                welcomeAlert.classList.add("opacity-100", "top-3");
+
+                // Hide after 5 seconds
+                setTimeout(() => {
+                    welcomeAlert.classList.add("translate-x-full", "-right-full");
+                    setTimeout(() => welcomeAlert.remove(), 200);
+                }, 5000);
+            }, 100);
+
+            function closeWelcomeAlert() {
+                welcomeAlert.classList.add("translate-x-full", "-right-full");
+                setTimeout(() => welcomeAlert.remove(), 200);
+            }
+        </script>
+    <?php endif; ?>
 
     <div class="p-3 ml-0 md:ml-[250px] min-w-[350px]">
         <!-- Left Side Content -->
@@ -495,11 +543,13 @@ $outOfStock = $outOfStockResult->fetch_assoc()['OutOfStock'];
                     if (count($nameParts) > 1) {
                         $initials .= substr(end($nameParts), 0, 1); // First letter of the last name
                     }
+
+                    $bgColor = $user['ProfileBgColor'];
                 ?>
                     <div class="p-2">
                         <div class="flex items-center gap-2">
                             <p
-                                class="w-10 h-10 rounded-full bg-blue-100 text-blue-500 uppercase font-semibold flex items-center justify-center select-none">
+                                class="w-10 h-10 rounded-full bg-[<?= $bgColor ?>] text-white uppercase font-semibold flex items-center justify-center select-none">
                                 <?= $initials ?>
                             </p>
                             <div class="text-gray-600 text-sm">
@@ -515,7 +565,7 @@ $outOfStock = $outOfStockResult->fetch_assoc()['OutOfStock'];
                 <h1 class="text-lg font-bold text-gray-700 mb-2">Recent Activities</h1>
                 <div class="p-2">
                     <div class="flex items-center gap-2">
-                        <p class="w-10 h-10 rounded-full bg-blue-100 text-blue-500 font-semibold flex items-center justify-center select-none">B</p>
+                        <p class="w-10 h-10 rounded-full bg-[<?= $bgColor ?>] text-white font-semibold flex items-center justify-center select-none">B</p>
                         <div class="text-gray-600 text-sm">
                             <h1 class="font-semibold">Brandon requested for room.</h1>
                             <p>2 hours ago</p>
@@ -524,7 +574,7 @@ $outOfStock = $outOfStockResult->fetch_assoc()['OutOfStock'];
                 </div>
                 <div class="p-2">
                     <div class="flex items-center gap-2">
-                        <p class="w-10 h-10 rounded-full bg-blue-100 text-blue-500 font-semibold flex items-center justify-center select-none">F</p>
+                        <p class="w-10 h-10 rounded-full bg-[<?= $bgColor ?>] text-white font-semibold flex items-center justify-center select-none">F</p>
                         <div class="text-gray-600 text-sm">
                             <h1 class="font-semibold">Franco cancelled booking.</h1>
                             <p>1 hour ago</p>

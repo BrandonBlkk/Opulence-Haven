@@ -469,10 +469,12 @@ if ($productReviewSelectQuery->num_rows > 0) {
                                 if (count($nameParts) > 1) {
                                     $initials .= substr(end($nameParts), 0, 1); // First letter of the last name
                                 }
+
+                                $bgColor = $row['ProfileBgColor'];
                                 ?>
                                 <div>
                                     <div class="flex items-center gap-2">
-                                        <p class="w-10 h-10 rounded-full bg-blue-100 text-blue-500 uppercase font-semibold flex items-center justify-center select-none">
+                                        <p class="w-10 h-10 rounded-full bg-[<?= $bgColor ?>] text-white uppercase font-semibold flex items-center justify-center select-none">
                                             <?= $initials ?>
                                         </p>
                                         <div class="flex items-center flex-wrap space-x-2">
@@ -560,11 +562,19 @@ if ($productReviewSelectQuery->num_rows > 0) {
                     activeBar.style.width = `${tabRect.width}px`;
                     activeBar.style.left = `${tabRect.left - parentRect.left}px`;
                 }
+
+                // Store the active tab in localStorage
+                localStorage.setItem('activeTab', tabId);
             };
 
-            // Set a default tab to show and position the bar on page load
+            // Set the active tab on page load
             document.addEventListener('DOMContentLoaded', () => {
-                showTab('description');
+                // Get the stored tab or use default if none exists
+                const savedTab = localStorage.getItem('activeTab');
+                const initialTab = savedTab || 'description';
+
+                // Show the tab
+                showTab(initialTab);
             });
         </script>
 

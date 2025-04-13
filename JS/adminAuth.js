@@ -20,9 +20,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Add keyup event listeners for real-time validation
-    document.getElementById("firstname").addEventListener("keyup", validateFirstname);
-    document.getElementById("lastname").addEventListener("keyup", validateLastname);
-    document.getElementById("username").addEventListener("keyup", validateUsername);
+    document.getElementById("firstnameInput").addEventListener("keyup", validateFirstname);
+    document.getElementById("lastnameInput").addEventListener("keyup", validateLastname);
+    document.getElementById("usernameInput").addEventListener("keyup", validateUsername);
     document.getElementById("emailInput").addEventListener("keyup", validateEmail);
     document.getElementById("signupPasswordInput").addEventListener("keyup", validatePassword);
     document.getElementById("phone").addEventListener("keyup", validatePhone);
@@ -70,12 +70,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Full form validation function
 const validateSignUpForm = () => {
+    const isFirstnameValid = validateFirstname();
+    const isLastnameValid = validateLastname();
     const isUsernameValid = validateUsername();
     const isEmailValid = validateEmail();
     const isPasswordValid = validatePassword();
     const isPhoneValid = validatePhone();
 
-    return isUsernameValid && isEmailValid && isPasswordValid && isPhoneValid;
+    return isFirstnameValid && isLastnameValid && isUsernameValid && isEmailValid && isPasswordValid && isPhoneValid;
 };
 
 const validateSignInForm = () => {
@@ -87,7 +89,7 @@ const validateSignInForm = () => {
 
 // Individual validation functions
 const validateFirstname = () => {
-    const firstname = document.getElementById("firstname").value.trim();
+    const firstname = document.getElementById("firstnameInput").value.trim();
     const firstnameError = document.getElementById("firstnameError");
 
     const getUserNameError = (firstname) => {
@@ -109,7 +111,7 @@ const validateFirstname = () => {
 };
 
 const validateLastname = () => {
-    const lastname = document.getElementById("lastname").value.trim();
+    const lastname = document.getElementById("lastnameInput").value.trim();
     const lastnameError = document.getElementById("lastnameError");
 
     const getUserNameError = (lastname) => {
@@ -130,7 +132,7 @@ const validateLastname = () => {
     }
 };
 const validateUsername = () => {
-    const username = document.getElementById("username").value.trim();
+    const username = document.getElementById("usernameInput").value.trim();
     const usernameError = document.getElementById("usernameError");
 
     const getUserNameError = (username) => {

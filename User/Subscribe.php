@@ -18,13 +18,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $mail->isSMTP(); // Send using SMTP
             $mail->Host       = 'smtp.gmail.com'; // Gmail's SMTP server
             $mail->SMTPAuth   = true; // Enable SMTP authentication
-            $mail->Username   = 'kyawzayartun0527@gmail.com'; // Your Gmail address
-            $mail->Password   = 'oabw mtlt fkzs dwmi'; // Your Gmail app password
+            $mail->Username   = 'opulencehaven25@gmail.com'; // Your Gmail address
+            $mail->Password   = 'xzjd xttt bhwd gilx'; // Your Gmail app password
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Enable TLS encryption
             $mail->Port       = 587; // TCP port to connect to
 
             // Recipients
-            $mail->setFrom('kyawzayartun0527@gmail.com', 'Opulence Haven'); // Sender
+            $mail->setFrom('opulencehaven25@gmail.com', 'Opulence Haven'); // Sender
             $mail->addAddress($email); // Recipient
 
             // Content
@@ -62,8 +62,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <p>The Opulence Haven Team</p>
                     </div>
                     <div class="footer">
-                        <p>&copy; 2023 Opulence Haven. All rights reserved.</p>
-                        <p><a href="http://localhost/OpulenceHaven/User/HomePage.php">Visit our website</a> | <a href="http://localhost/OpulenceHaven/User/HomePage.php/unsubscribe">Unsubscribe</a></p>
+                        <p>&copy; 2025 Opulence Haven. All rights reserved.</p>
+                        <p><a href="http://localhost/OpulenceHaven/User/HomePage.php">Visit our website</a></p>
                     </div>
                 </body>
                 </html>
@@ -71,7 +71,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Send the email
             $mail->send();
-            echo 'Thank you for subscribing! A confirmation email has been sent to your email address.';
+            // Redirect back to the previous page
+            header('Location: ' . $_SERVER['HTTP_REFERER']);
+            exit(); // Ensure no further code is executed
         } catch (Exception $e) {
             echo "There was an error sending the email. Please try again later. Error: {$mail->ErrorInfo}";
         }

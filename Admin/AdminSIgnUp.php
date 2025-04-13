@@ -18,33 +18,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     $email = mysqli_real_escape_string($connect, trim($_POST['email']));
     $password = mysqli_real_escape_string($connect, trim($_POST['password']));
     $phone = mysqli_real_escape_string($connect, trim($_POST['phone']));
-    $role = mysqli_real_escape_string($connect, $_POST['role']);
+    $role = isset($_POST['roleSelect']) ? mysqli_real_escape_string($connect, $_POST['roleSelect']) : '';
 
-    // Admin image upload 
-    $adminProfile = $_FILES["adminprofile"]["name"];
-    $copyFile = "AdminImages/";
-    $fileName = $copyFile . uniqid() . "_" . $adminProfile;
-    $copy = copy($_FILES["adminprofile"]["tmp_name"], $fileName);
-
-    if (!$copy) {
-        echo "<p>Cannot upload Profile Image.</p>";
-        exit();
-    }
-
-    // Check if the email already exists using prepared statement
+    // Check if the email already exists
     $checkEmailQuery = "SELECT AdminEmail FROM admintb WHERE AdminEmail = '$email'";
     $count = $connect->query($checkEmailQuery)->num_rows;
 
     if ($count > 0) {
         $alertMessage = 'Email you signed up with is already taken.';
+    } else if (empty($role)) {
+        $alertMessage = 'Please select a role to create an account.';
     } else {
-        // Insert the new user data using prepared statement
-        $insertQuery = "INSERT INTO admintb (AdminID ,AdminProfile, FirstName, LastName, UserName, AdminEmail, AdminPassword, AdminPhone, RoleID) 
-                        VALUES ('$adminID', '$fileName', '$firstname', '$lastname', '$username', '$email', '$password', '$phone', '$role')";
+        // Insert the new user data
+        $insertQuery = "INSERT INTO admintb (AdminID, FirstName, LastName, UserName, AdminEmail, AdminPassword, AdminPhone, RoleID) 
+                        VALUES ('$adminID', '$firstname', '$lastname', '$username', '$email', '$password', '$phone', '$role')";
         $insert_Query = $connect->query($insertQuery);
 
         if ($insert_Query) {
             $signupSuccess = true;
+        } else {
+            $alertMessage = 'Error creating account. Please try again.';
         }
     }
 }
@@ -72,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
             <p class="text-amber-500 text-sm font-semibold">ADMIN</p>
         </div>
         <h1 class="text-2xl font-bold mt-3 max-w-96">Create your admin account to manage operations</h1>
-        <form class="flex flex-col space-y-4 w-full mt-5" action="<?php $_SERVER["PHP_SELF"] ?>" method="post" enctype="multipart/form-data" id="signupForm">
+        <form class="flex flex-col space-y-4 w-full mt-5" action="<?php $_SERVER["PHP_SELF"] ?>" method="post" id="signupForm">
 
             <div class="flex flex-col">
                 <p class="font-semibold text-xs mb-1">Sign up with your email</p>
@@ -150,7 +143,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
 
             <div class="flex flex-col sm:flex-row items-end gap-3 sm:gap-1">
                 <!-- Profile -->
-                <div class="relative w-full">
+                <!-- <div class="relative w-full">
                     <label for="adminprofile" class="block text-sm font-medium text-gray-700 mb-1">Profile Picture</label>
                     <input
                         type="file"
@@ -158,10 +151,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                         id="adminprofile"
                         class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out">
                     <small id="profileError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                </div>
+                </div> -->
                 <!-- Position Input -->
-                <div class="flex flex-col space-y-1 w-full">
-                    <select name="role" class="p-2 border rounded">
+                <div class="flex flex-col space-y-1 w-full relative">
+                    <select name="roleSelect" class="p-2 border rounded">
                         <option value="" disabled selected>Select your role</option>
                         <?php
                         $select = "SELECT * FROM roletb";
@@ -181,6 +174,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                         }
                         ?>
                     </select>
+                    <small id="roleError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                 </div>
             </div>
 

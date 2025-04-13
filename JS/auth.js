@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Show Alert
         setTimeout(() => {
             loader.style.display = 'none';
-            showAlert('You have successfully created an account.');
+            window.location.href = '../User/HomePage.php';
         }, 1000);
     } else if (alertMessage) {
         // Show Alert

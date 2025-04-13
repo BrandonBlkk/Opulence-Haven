@@ -34,7 +34,7 @@ if (!$connect) {
 //     ON DELETE CASCADE 
 //     ON UPDATE CASCADE,
 //     SignupDate datetime default current_timestamp,
-//     LastSignIn datetime default current_timestamp on update current_timestamp,
+//     LastSignIn datetime default null,
 //     Status varchar(10) default 'inactive'
 // )";
 
@@ -53,7 +53,7 @@ if (!$connect) {
 //     UserPassword varchar(30),
 //     UserPhone varchar(15),
 //     SignupDate datetime default current_timestamp,
-//     LastSignIn datetime default current_timestamp on update current_timestamp,
+//     LastSignIn datetime default null,
 //     Status varchar(10) default 'inactive'
 // )";
 
