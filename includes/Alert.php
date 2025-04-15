@@ -39,7 +39,7 @@
 <input type="hidden" id="reservationSuccess" value="<?php echo $reservationSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="passwordChangeSuccess" value="<?php echo $passwordChangeSuccess ? 'true' : 'false'; ?>">
 
-<div id="alertBox" class="fixed -bottom-1 opacity-0 right-3 items-center rounded-md shadow-lg z-40 p-3 transition-all duration-200 <?php echo $alertMessage ? 'bg-red-400' : 'bg-green-400'; ?>">
+<div id="alertBox" class="fixed -bottom-1 hidden opacity-0 right-3 items-center rounded-md shadow-lg z-40 p-3 transition-all duration-200 <?php echo $alertMessage ? 'bg-red-400' : 'bg-green-400'; ?>">
     <div class="flex items-center justify-center gap-2 select-none">
         <div>
             <i class="text-2xl text-white <?php echo $alertMessage ? 'ri-error-warning-line' : 'ri-checkbox-circle-fill'; ?>"></i>

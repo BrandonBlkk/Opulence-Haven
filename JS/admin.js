@@ -94,6 +94,8 @@ document.addEventListener("DOMContentLoaded", () => {
             addRoleModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
+            hideError(document.getElementById('roleError'));
+            hideError(document.getElementById('roleDescriptionError'));
         });
     }
 
@@ -149,6 +151,14 @@ document.addEventListener("DOMContentLoaded", () => {
             addSupplierModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
+
+            // Clear error messages
+            const errors = ['supplierNameError', 'companyNameError', 'emailError', 'contactNumberError', 'addressError', 'cityError', 'stateError', 'postalCodeError', 'countryError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
+
+            document.getElementById('productType').value = '';
         });
     }
 
@@ -239,6 +249,12 @@ document.addEventListener('DOMContentLoaded', () => {
             updateSupplierModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
+
+            // Clear error messages
+            const errors = ['updateSupplierNameError', 'updateCompanyNameError', 'updateEmailError', 'updateContactNumberError', 'updateAddressError', 'updateCityError', 'updateStateError', 'updatePostalCodeError', 'updateCountryError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
         });
 
         if (updateSupplierSuccess) {
@@ -354,6 +370,12 @@ document.addEventListener("DOMContentLoaded", () => {
             addProductTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
+
+            // Clear error messages
+            const errors = ['productTypeError', 'descriptionError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
         });
     }
 
@@ -428,6 +450,12 @@ document.addEventListener('DOMContentLoaded', () => {
             updateProductTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
+
+            // Clear error messages
+            const errors = ['updateProductTypeError', 'updateProductTypeDescriptionError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
         });
 
         if (updateProductTypeSuccess) {
@@ -535,6 +563,12 @@ document.addEventListener("DOMContentLoaded", () => {
             addProductModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
+
+            // Clear error messages
+            const errors = ['productTitleError', 'brandError', 'productDescriptionError', 'specificationError', 'informationError', 'deliveryError', 'priceError', 'discountPriceError', 'stockError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
         });
     }
 
@@ -624,6 +658,12 @@ document.addEventListener('DOMContentLoaded', () => {
             updateProductModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
+
+            // Clear error messages
+            const errors = ['updateProductTitleError', 'updateBrandError', 'updateDescriptionError', 'updateSpecificationError', 'updateInformationError', 'updateDeliveryError', 'updatePriceError', 'updateDiscountPriceError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
         });
 
         if (updateProductSuccess) {
@@ -737,6 +777,12 @@ document.addEventListener("DOMContentLoaded", () => {
             addRoomTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
+
+            // Clear error messages
+            const errors = ['roomTypeError', 'roomTypeDescriptionError', 'roomCapacityError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
         });
     }
 
@@ -813,6 +859,12 @@ document.addEventListener('DOMContentLoaded', () => {
             updateRoomTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
+
+            // Clear error messages
+            const errors = ['updateRoomTypeError', 'updateRoomTypeDescriptionError', 'updateRoomCapacityError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
         });
 
         if (updateRoomTypeSuccess) {
@@ -921,6 +973,12 @@ document.addEventListener("DOMContentLoaded", () => {
             addFacilityTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
+     
+            // Clear error messages
+            const errors = ['facilityTypeError', 'facilityTypeIconError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
         });
     }
 
@@ -996,6 +1054,12 @@ document.addEventListener('DOMContentLoaded', () => {
             updateFacilityTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
+
+            // Clear error messages
+            const errors = ['updateFacilityTypeError', 'updateFacilityTypeIconError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
         });
 
         if (updateFacilityTypeSuccess) {
@@ -1103,6 +1167,14 @@ document.addEventListener("DOMContentLoaded", () => {
             addFacilityModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
+
+            // Clear error messages
+            const errors = ['facilityError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
+
+            document.getElementById('FacilityType').value = '';
         });
     }
 
@@ -1180,6 +1252,12 @@ document.addEventListener('DOMContentLoaded', () => {
             updateFacilityModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
+
+            // Clear error messages
+            const errors = ['updateFacilityError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
         });
 
         if (updateFacilitySuccess) {
@@ -1286,6 +1364,12 @@ document.addEventListener("DOMContentLoaded", () => {
             addRuleModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
+
+            // Clear error messages
+            const errors = ['ruleTitleError', 'ruleError', 'ruleIconError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
         });
     }
 
@@ -1363,6 +1447,12 @@ document.addEventListener('DOMContentLoaded', () => {
             updateRuleModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
+
+            // Clear error messages
+            const errors = ['updateRuleTitleError', 'updateRuleError', 'updateRuleIconError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
         });
 
         if (updateRuleSuccess) {
@@ -1471,6 +1561,14 @@ document.addEventListener("DOMContentLoaded", () => {
             addProductImageModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
+
+            // Clear error messages
+            const errors = ['productImageAltError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
+
+            document.getElementById('product').value = '';
         });
     }
 
@@ -1546,6 +1644,12 @@ document.addEventListener('DOMContentLoaded', () => {
             updateProductImageModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
+
+            // Clear error messages
+            const errors = ['updateProductImageAltError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
         });
 
         if (updateProductImageSuccess) {
@@ -1652,6 +1756,14 @@ document.addEventListener("DOMContentLoaded", () => {
             addProductSizeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
+
+            // Clear error messages
+            const errors = ['sizeError', 'priceModifierError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
+
+            document.getElementById('product').value = '';
         });
     }
 
@@ -1727,6 +1839,12 @@ document.addEventListener('DOMContentLoaded', () => {
             updateProductSizeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
+
+            // Clear error messages
+            const errors = ['updateSizeError', 'updatePriceModifierError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
         });
 
         if (updateProductSizeSuccess) {
