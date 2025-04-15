@@ -96,7 +96,7 @@ if (isset($_POST['respondcontact'])) {
                     <table class="min-w-full bg-white rounded-lg">
                         <thead>
                             <tr class="bg-gray-100 text-gray-600 text-sm">
-                                <th class="p-3 text-start">ID</th>
+                                <th class="p-3 text-start">No</th>
                                 <th class="p-3 text-start hidden sm:table-cell">UserID</th>
                                 <th class="p-3 text-start">User</th>
                                 <th class="p-3 text-start hidden xl:table-cell">Phone</th>
@@ -109,11 +109,14 @@ if (isset($_POST['respondcontact'])) {
                         </thead>
                         <tbody class="text-gray-600 text-sm">
                             <?php if (!empty($contacts)): ?>
+                                <?php
+                                $count = 1;
+                                ?>
                                 <?php foreach ($contacts as $contact): ?>
                                     <tr class="border-b border-gray-200 hover:bg-gray-50">
                                         <td class="p-3 text-start whitespace-nowrap">
                                             <div class="flex items-center gap-2 font-medium text-gray-500">
-                                                <span><?= htmlspecialchars($contact['ContactID']) ?></span>
+                                                <span><?= htmlspecialchars($count) ?></span>
                                             </div>
                                         </td>
                                         <td class="p-3 text-start whitespace-nowrap hidden sm:table-cell">
@@ -150,6 +153,7 @@ if (isset($_POST['respondcontact'])) {
                                             </i>
                                         </td>
                                     </tr>
+                                    <?php $count++; ?>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>

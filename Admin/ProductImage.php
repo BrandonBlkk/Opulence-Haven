@@ -195,7 +195,7 @@ if (isset($_POST['deleteproductimage'])) {
                     <table class="min-w-full bg-white rounded-lg">
                         <thead>
                             <tr class="bg-gray-100 text-gray-600 text-sm">
-                                <th class="p-3 text-start">ID</th>
+                                <th class="p-3 text-start">No</th>
                                 <th class="p-3 text-start hidden sm:table-cell">Product</th>
                                 <th class="p-3 text-start">Image Path</th>
                                 <th class="p-3 text-start hidden sm:table-cell">Image Alt</th>

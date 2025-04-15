@@ -316,7 +316,7 @@ if (isset($_POST['deleteproduct'])) {
                                 id="updateDescriptionInput"
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 name="updatedescription"
-                                placeholder="Enter product description"></textarea>
+                                placeholder="Enter product description" rows="4"></textarea>
                             <small id="updateDescriptionError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
                         <!-- Specification -->
@@ -325,7 +325,7 @@ if (isset($_POST['deleteproduct'])) {
                                 id="updateSpecificationInput"
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 name="updatespecification"
-                                placeholder="Enter product specification"></textarea>
+                                placeholder="Enter product specification" rows="4"></textarea>
                             <small id="updateSpecificationError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
                     </div>
@@ -336,7 +336,7 @@ if (isset($_POST['deleteproduct'])) {
                                 id="updateInformationInput"
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 name="updateinformation"
-                                placeholder="Enter product information"></textarea>
+                                placeholder="Enter product information" rows="4"></textarea>
                             <small id="updateInformationError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
                         <!-- DeliveryInfo -->
@@ -345,7 +345,7 @@ if (isset($_POST['deleteproduct'])) {
                                 id="updateDeliveryInput"
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 name="updatedelivery"
-                                placeholder="Enter delivery information"></textarea>
+                                placeholder="Enter delivery information" rows="4"></textarea>
                             <small id="updateDeliveryError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
                     </div>

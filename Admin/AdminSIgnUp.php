@@ -20,6 +20,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     $phone = mysqli_real_escape_string($connect, trim($_POST['phone']));
     $role = isset($_POST['roleSelect']) ? mysqli_real_escape_string($connect, $_POST['roleSelect']) : '';
 
+    // Predefined set colors
+    $googleColors = [
+        '#4285F4', // Blue
+        '#EA4335', // Red
+        '#FBBC05', // Yellow
+        '#34A853', // Green
+        '#673AB7', // Purple
+        '#FF6D00', // Orange
+        '#00ACC1', // Teal
+        '#D81B60', // Pink
+        '#8E24AA', // Deep Purple
+        '#039BE5', // Light Blue
+        '#7CB342', // Light Green
+        '#F4511E', // Deep Orange
+        '#546E7A', // Blue Grey
+        '#E53935', // Dark Red
+        '#00897B', // Dark Teal
+        '#5E35B1'  // Dark Purple
+    ];
+
+    // Randomly pick one color from the array
+    $profileBgColor = $googleColors[array_rand($googleColors)];
+
     // Check if the email already exists
     $checkEmailQuery = "SELECT AdminEmail FROM admintb WHERE AdminEmail = '$email'";
     $count = $connect->query($checkEmailQuery)->num_rows;
@@ -30,11 +53,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
         $alertMessage = 'Please select a role to create an account.';
     } else {
         // Insert the new user data
-        $insertQuery = "INSERT INTO admintb (AdminID, FirstName, LastName, UserName, AdminEmail, AdminPassword, AdminPhone, RoleID) 
-                        VALUES ('$adminID', '$firstname', '$lastname', '$username', '$email', '$password', '$phone', '$role')";
+        $insertQuery = "INSERT INTO admintb (AdminID, ProfileBgColor, FirstName, LastName, UserName, AdminEmail, AdminPassword, AdminPhone, RoleID) 
+                        VALUES ('$adminID', '$profileBgColor', '$firstname', '$lastname', '$username', '$email', '$password', '$phone', '$role')";
         $insert_Query = $connect->query($insertQuery);
 
         if ($insert_Query) {
+            $_SESSION["welcome_message"] = "Welcome";
+            $_SESSION["AdminID"] = $adminID;
+            $_SESSION["UserName"] = $username;
+            $_SESSION["AdminEmail"] = $email;
             $signupSuccess = true;
         } else {
             $alertMessage = 'Error creating account. Please try again.';
@@ -120,11 +147,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                 <div class="flex flex-col relative w-full">
                     <div class="flex items-center justify-between border rounded">
                         <input id="signupPasswordInput"
-                            class="p-2 w-full rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            class="p-2 w-full pr-10 rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="password"
                             name="password"
                             placeholder="Enter your password">
-                        <i id="togglePassword" class="ri-eye-line p-2 cursor-pointer"></i>
+                        <i id="togglePassword" class="absolute right-1 ri-eye-line p-2 cursor-pointer"></i>
                     </div>
                     <small id="signupPasswordError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                 </div>
@@ -142,16 +169,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
             </div>
 
             <div class="flex flex-col sm:flex-row items-end gap-3 sm:gap-1">
-                <!-- Profile -->
-                <!-- <div class="relative w-full">
-                    <label for="adminprofile" class="block text-sm font-medium text-gray-700 mb-1">Profile Picture</label>
-                    <input
-                        type="file"
-                        name="adminprofile"
-                        id="adminprofile"
-                        class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out">
-                    <small id="profileError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                </div> -->
                 <!-- Position Input -->
                 <div class="flex flex-col space-y-1 w-full relative">
                     <select name="roleSelect" class="p-2 border rounded">

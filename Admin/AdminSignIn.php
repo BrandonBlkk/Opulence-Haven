@@ -122,11 +122,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
                 <div class="flex items-center justify-between border rounded">
                     <input
                         id="signinPasswordInput"
-                        class="p-2 w-full rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                        class="p-2 w-full pr-10 rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                         type="password"
                         name="password"
                         placeholder="Enter your password">
-                    <i id="togglePassword2" class="ri-eye-line p-2 cursor-pointer"></i>
+                    <i id="togglePassword2" class="absolute right-1 ri-eye-line p-2 cursor-pointer"></i>
                 </div>
                 <small id="signinPasswordError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
             </div>

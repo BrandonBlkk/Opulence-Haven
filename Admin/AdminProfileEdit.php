@@ -9,13 +9,16 @@ if (!$connect) {
 
 $adminID = $_SESSION['AdminID'];
 
-// Fetch admin profile
-$adminProfileQuery = "SELECT AdminProfile FROM admintb WHERE AdminID = '$adminID'";
-$adminProfileRow = $connect->query($adminProfileQuery)->fetch_assoc();
-$adminprofile = $adminProfileRow['AdminProfile'];
+// Fetch admin data
+$adminQuery = "SELECT * FROM admintb WHERE AdminID = '$adminID'";
+$adminRow = $connect->query($adminQuery)->fetch_assoc();
+$adminprofile = $adminRow['AdminProfile'] ?? null;
+$admin_username = $adminRow['UserName'];
+$profile_color = $adminRow['ProfileBgColor'];
 
 $alertMessage = '';
 $profileUpdate = false;
+$passwordChangeSuccess = false;
 
 // Fetch admin profile
 $adminQuery = "SELECT * FROM admintb WHERE AdminID = '$adminID'";
@@ -25,33 +28,75 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
     $firstname = mysqli_real_escape_string($connect, $_POST['firstname']);
     $lastname = mysqli_real_escape_string($connect, $_POST['lastname']);
     $username = mysqli_real_escape_string($connect, $_POST['username']);
-    $email = mysqli_real_escape_string($connect, $_POST['email']);
     $phone = mysqli_real_escape_string($connect, $_POST['phone']);
     $role = mysqli_real_escape_string($connect, $_POST['role']);
 
-    // Current image from the database
-    $currentProfile = $adminprofile;
+    // Initialize with current profile
+    $adminProfile = $adminprofile;
 
-    // Simulate $_FILES array for images
-    $imageFile = $_FILES['AdminProfile'];
+    // Process image upload if file was provided
+    if (isset($_FILES['AdminProfile']) && $_FILES['AdminProfile']['error'] == UPLOAD_ERR_OK) {
+        $imageFile = $_FILES['AdminProfile'];
+        $result = uploadProductImage($imageFile, $adminprofile);
 
-    // Upload Profile Image 
-    $result = uploadProductImage($imageFile, $currentProfile);
-    if (is_array($result)) {
-        echo $result['image'] . "<br>";
-    } else {
-        $adminProfile = $result;
+        if (isset($result['adminPath'])) {
+            $adminProfile = $result['adminPath'];
+        } elseif (isset($result['image'])) {
+            $alertMessage = $result['image'];
+        } else {
+            $alertMessage = 'Error processing profile image upload';
+        }
     }
 
-    $updateProfileQuery = "UPDATE admintb SET AdminProfile = '$adminProfile', FirstName = '$firstname', 
-    LastName = '$lastname', UserName = '$username', AdminEmail = '$email', AdminPhone ='$phone',  RoleID = '$role' 
-    WHERE AdminID = '$adminID'";
-    $updateProfileQueryResult = $connect->query($updateProfileQuery);
+    // Handle profile removal
+    if (isset($_POST['removeProfile']) && $_POST['removeProfile'] == '1') {
+        // Delete the old profile image if it exists
+        if (!empty($adminprofile) && file_exists($adminprofile)) {
+            @unlink($adminprofile);
+        }
+        $adminProfile = 'NULL';
+    }
 
-    if ($updateProfileQueryResult) {
-        $profileUpdate = true;
+    if (empty($alertMessage)) {
+        // Build the query with proper NULL handling
+        $updateProfileQuery = "UPDATE admintb SET 
+            AdminProfile = " . ($adminProfile === null ? 'NULL' : "'$adminProfile'") . ", 
+            FirstName = '$firstname', 
+            LastName = '$lastname', 
+            UserName = '$username', 
+            AdminPhone = '$phone',  
+            RoleID = '$role' 
+            WHERE AdminID = '$adminID'";
+
+        $updateProfileQueryResult = $connect->query($updateProfileQuery);
+
+        if ($updateProfileQueryResult) {
+            $profileUpdate = true;
+            // Update session with new profile if needed
+            if ($adminID == $_SESSION['AdminID']) {
+                $_SESSION['admin_profile'] = ($adminProfile === 'NULL' ? 'NULL' : $adminProfile);
+            }
+        } else {
+            $alertMessage = 'Error updating profile: ' . $connect->error;
+        }
+    }
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['changePassword'])) {
+    $oldPassword = mysqli_real_escape_string($connect, $_POST['oldPassword']);
+    $newPassword = mysqli_real_escape_string($connect, $_POST['newPassword']);
+    $confirmPassword = mysqli_real_escape_string($connect, $_POST['confirmPassword']);
+
+    $updatePasswordQuery = "UPDATE admintb SET AdminPassword = '$newPassword' WHERE AdminID = '$adminID' AND AdminPassword = '$oldPassword'";
+    $updatePasswordQueryResult = $connect->query($updatePasswordQuery);
+
+    if ($updatePasswordQueryResult) {
+        header("Location: AdminProfileEdit.php?passwordChangeSuccess=true");
+        exit();
     } else {
-        $alertMessage = 'Error updating password. Please try again.';
+        $error = urlencode('Error updating password: ' . $connect->error);
+        header("Location: AdminProfileEdit.php?alertMessage=$error");
+        exit();
     }
 }
 ?>
@@ -91,30 +136,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
                             <div class="flex flex-col sm:flex-row items-center justify-center sm:justify-start mb-3 gap-5">
                                 <div class="relative w-40 h-40 rounded-full my-3 select-none group">
                                     <!-- Profile Image -->
-                                    <img
-                                        id="profilePreview"
-                                        class="w-full h-full object-cover rounded-full"
-                                        src="<?php echo htmlspecialchars($adminRow['AdminProfile']); ?>"
-                                        alt="Profile">
+                                    <?php if (empty($adminprofile)): ?>
+                                        <div id="profilePreview" class="w-full h-full object-cover rounded-full bg-[<?php echo $profile_color ?>] text-white select-none">
+                                            <p class="w-full h-full flex items-center justify-center text-5xl font-semibold"><?php echo strtoupper(substr($admin_username, 0, 1)); ?></p>
+                                        </div>
+                                    <?php else: ?>
+                                        <img id="profilePreview" class="w-full h-full object-cover rounded-full" src="<?php echo htmlspecialchars($adminprofile); ?>" alt="Profile">
+                                    <?php endif; ?>
+
                                     <!-- Camera Icon Overlay -->
-                                    <div
-                                        class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                                        onclick="document.getElementById('AdminProfile').click()">
+                                    <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300" onclick="document.getElementById('AdminProfile').click()">
                                         <i class="ri-camera-line text-white text-3xl"></i>
                                     </div>
+
+                                    <!-- Remove Profile Button (only shown when profile exists) -->
+                                    <?php if (!empty($adminprofile)): ?>
+                                        <div class="absolute top-2 left-3 bg-red-500 text-white text-xs font-semibold w-7 h-7 flex items-center justify-center p-2 rounded-full cursor-pointer opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all duration-300" onclick="removeProfile()">
+                                            <i class="ri-close-line"></i>
+                                        </div>
+                                    <?php endif; ?>
+
                                     <!-- Alert Box -->
-                                    <div
-                                        id="unsavedAlert"
-                                        class="absolute -top-2 right-0 bg-yellow-500 text-black text-xs font-semibold py-1 px-3 rounded shadow-md opacity-0 pointer-events-none transition-opacity duration-300">
+                                    <div id="unsavedAlert" class="absolute -top-2 right-0 bg-yellow-500 text-black text-xs font-semibold py-1 px-3 rounded shadow-md opacity-0 pointer-events-none transition-opacity duration-300">
                                         Profile unsaved
                                     </div>
+
                                     <!-- Hidden File Input -->
-                                    <input
-                                        type="file"
-                                        id="AdminProfile"
-                                        name="AdminProfile"
-                                        class="hidden"
-                                        onchange="previewProfileImage(event)">
+                                    <input type="file" id="AdminProfile" name="AdminProfile" class="hidden" onchange="previewProfileImage(event)" accept="image/*">
+                                    <!-- Hidden input for profile removal -->
+                                    <input type="hidden" id="removeProfileFlag" name="removeProfile" value="0">
                                 </div>
                                 <div>
                                     <div class="flex justify-start">
@@ -133,19 +183,53 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
                                     if (file) {
                                         const reader = new FileReader();
                                         reader.onload = (e) => {
-                                            const previewImg = document.getElementById('profilePreview');
-                                            if (previewImg) {
-                                                previewImg.src = e.target.result;
-                                            }
+                                            const previewContainer = document.getElementById('profilePreview');
+
+                                            // Always create/replace with img element when new image is selected
+                                            const img = document.createElement('img');
+                                            img.id = 'profilePreview';
+                                            img.className = 'w-full h-full object-cover rounded-full';
+                                            img.src = e.target.result;
+                                            img.alt = 'Profile';
+
+                                            // Replace the existing element (whether div or img)
+                                            previewContainer.parentNode.replaceChild(img, previewContainer);
+
                                             // Show alert with transition
                                             const alertBox = document.getElementById('unsavedAlert');
                                             if (alertBox) {
                                                 alertBox.classList.remove('opacity-0', 'pointer-events-none');
                                             }
+
+                                            // Reset remove profile flag if new image is selected
+                                            document.getElementById('removeProfileFlag').value = '0';
                                         };
                                         reader.readAsDataURL(file);
                                     }
                                 };
+
+                                function removeProfile() {
+                                    if (confirm('Are you sure you want to remove your profile picture?')) {
+                                        // Create the initial div with first letter
+                                        const previewContainer = document.getElementById('profilePreview');
+                                        const div = document.createElement('div');
+                                        div.id = 'profilePreview';
+                                        div.className = 'w-full h-full object-cover rounded-full bg-[<?php echo $profile_color ?>] text-white select-none';
+                                        div.innerHTML = `<p class="w-full h-full flex items-center justify-center text-5xl font-semibold"><?php echo strtoupper(substr($admin_username, 0, 1)); ?></p>`;
+
+                                        // Replace the image with the div
+                                        previewContainer.parentNode.replaceChild(div, previewContainer);
+
+                                        // Set the remove profile flag
+                                        document.getElementById('removeProfileFlag').value = '1';
+
+                                        // Show alert
+                                        const alertBox = document.getElementById('unsavedAlert');
+                                        if (alertBox) {
+                                            alertBox.classList.remove('opacity-0', 'pointer-events-none');
+                                        }
+                                    }
+                                }
                             </script>
 
                             <div class="space-y-4">
@@ -197,7 +281,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
                                             type="email"
                                             name="email"
                                             value="<?php echo $adminRow['AdminEmail'] ?>"
-                                            placeholder="Enter your email">
+                                            placeholder="Enter your email" disabled>
                                         <small id="emailError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                                     </div>
                                     <!-- Password Input -->
@@ -215,6 +299,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
                                         </div>
                                     </div>
                                 </div>
+                                <div class="flex justify-start sm:justify-end">
+                                    <a id="changePasswordBtn" class="text-sm text-gray-400 hover:text-gray-500" href="#">Change Password</a>
+                                </div>
                                 <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
                                     <!-- Phone Input -->
                                     <div class="relative flex-1">
@@ -231,7 +318,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
                                     <div class="flex-1">
                                         <div class="flex flex-col relative">
                                             <label for="roleSelect" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                                            <select name="role" class="border rounded p-2 bg-gray-50" <?= ($role !== '1') ? 'disabled' : ''; ?>>
+                                            <select name="role" class="border rounded p-2 bg-gray-50 outline-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" <?= ($role !== '1') ? 'disabled' : ''; ?>>
                                                 <?php
                                                 // Fetch roles for the dropdown
                                                 $rolesQuery = "SELECT * FROM roletb";
@@ -274,18 +361,90 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
         </div>
     </div>
 
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible -translate-y-5 transition-all duration-300">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Change Password</h3>
+
+            <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="changePasswordForm">
+                <!-- Old Password -->
+                <div class="flex flex-col relative">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Old Password</label>
+                    <div class="flex items-center justify-between border rounded">
+                        <input
+                            type="password"
+                            name="oldPassword"
+                            id="oldPasswordInput"
+                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            placeholder="Enter your old password">
+                        <i id="togglePassword" class="absolute right-2 ri-eye-line p-2 cursor-pointer"></i>
+                    </div>
+                    <small id="oldPasswordError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                </div>
+
+                <!-- New Password -->
+                <div class="flex flex-col relative mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                    <div class="flex items-center justify-between border rounded">
+                        <input
+                            type="password"
+                            name="newPassword"
+                            id="newPasswordInput"
+                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            placeholder="Enter your new password">
+                        <i id="togglePassword2" class="absolute right-2 ri-eye-line p-2 cursor-pointer"></i>
+                    </div>
+                    <small id="newPasswordError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                </div>
+
+                <!-- Confirm New Password -->
+                <div class="flex flex-col relative mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                    <div class="flex items-center justify-between border rounded">
+                        <input
+                            type="password"
+                            name="confirmPassword"
+                            id="confirmPasswordInput"
+                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            placeholder="Confirm your new password">
+                        <i id="togglePassword3" class="absolute right-2 ri-eye-line p-2 cursor-pointer"></i>
+                    </div>
+                    <small id="confirmPasswordError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 select-none">
+                    <button id="cancelChangeBtn" type="button" class="px-4 py-2 rounded-sm bg-gray-200 text-black hover:bg-gray-300 rounded-sm transition duration-300 ease-in-out">Cancel</button>
+                    <button id="confirmChangeBtn" type="submit" name="changePassword" class="px-4 py-2 rounded-sm bg-amber-500 text-white hover:bg-amber-600 transition duration-300 ease-in-out">Change Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Delete Confirmation Modal -->
     <div id="confirmDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
         <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center">
             <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Account Delete</h2>
             <p class="text-slate-600 mb-2">You are currently signed in as:</p>
             <div class="flex justify-center items-center gap-2 mb-2">
-                <div class="relative">
-                    <div class="w-16 h-16 rounded-full select-none">
-                        <img src="<?php echo htmlspecialchars($adminRow['AdminProfile']); ?>" alt="Admin Profile" class="w-full h-full object-cover rounded-full mx-auto">
+                <?php
+                if ($admin_profile === null) {
+                ?>
+                    <div class="relative">
+                        <p class="w-16 h-16 bg-[<?php echo $profile_color ?>] text-white text-xl font-semibold flex items-center justify-center rounded-full select-none"><?php echo substr($admin_username, 0, 1); ?></p>
+                        <i class="ri-alert-line bg-slate-200 bg-opacity-55 text-red-500 text-lg absolute -bottom-1 -right-1 rounded-full flex items-center justify-center w-6 h-6 p-1"></i>
                     </div>
-                    <i class="ri-alert-line bg-slate-200 bg-opacity-55 text-red-500 text-lg absolute -bottom-1 -right-1 rounded-full flex items-center justify-center w-6 h-6 p-1"></i>
-                </div>
+                <?php
+                } else {
+                ?>
+                    <div class="relative">
+                        <div class="w-16 h-16 rounded-full select-none">
+                            <img src="<?php echo htmlspecialchars($adminRow['AdminProfile']); ?>" alt="Admin Profile" class="w-full h-full object-cover rounded-full mx-auto">
+                        </div>
+                        <i class="ri-alert-line bg-slate-200 bg-opacity-55 text-red-500 text-lg absolute -bottom-1 -right-1 rounded-full flex items-center justify-center w-6 h-6 p-1"></i>
+                    </div>
+                <?php
+                }
+                ?>
                 <div class="text-left text-gray-600 text-sm">
                     <p class="text-gray-800 font-bold text-base">
                         <?php echo $adminRow['UserName']; ?>

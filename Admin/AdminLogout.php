@@ -7,7 +7,7 @@ if (isset($_SESSION['AdminID'])) {
 
     // Update the user's status to inactive
     $updateSignInQuery = "UPDATE admintb SET 
-                     Status = 'active', 
+                     Status = 'inactive', 
                      LastSignIn = NOW() 
                      WHERE AdminID = '$admin_id'";
     if (!$connect->query($updateSignInQuery)) {

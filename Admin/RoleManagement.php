@@ -153,11 +153,23 @@ if (isset($_POST['deleteadmin'])) {
                                             </div>
                                         </td>
                                         <td class="p-3 text-start flex items-center gap-2">
-                                            <div class="w-10 h-10 rounded-full select-none">
-                                                <img class="w-full h-full object-cover rounded-full"
-                                                    src="<?= htmlspecialchars($admin['AdminProfile']) ?>"
-                                                    alt="Profile">
-                                            </div>
+                                            <?php
+                                            if ($admin['AdminProfile'] === null) {
+                                            ?>
+                                                <div id="profilePreview" class="w-10 h-10 object-cover rounded-full bg-[<?php echo $admin['ProfileBgColor'] ?>] text-white select-none">
+                                                    <p class="w-full h-full flex items-center justify-center font-semibold"><?php echo strtoupper(substr($admin['UserName'], 0, 1)); ?></p>
+                                                </div>
+                                            <?php
+                                            } else {
+                                            ?>
+                                                <div class="w-10 h-10 rounded-full select-none">
+                                                    <img class="w-full h-full object-cover rounded-full"
+                                                        src="<?= htmlspecialchars($admin['AdminProfile']) ?>"
+                                                        alt="Profile">
+                                                </div>
+                                            <?php
+                                            }
+                                            ?>
                                             <div>
                                                 <p class="font-bold"><?= htmlspecialchars($admin['FirstName'] . ' ' . $admin['LastName']) ?>
                                                     <?php
@@ -283,11 +295,11 @@ if (isset($_POST['deleteadmin'])) {
                     <div class="flex items-center justify-between border rounded">
                         <input
                             id="resetPasswordInput"
-                            class="p-2 w-full rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            class="p-2 w-full pr-10 rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="password"
                             name="password"
                             placeholder="Enter a new password">
-                        <i id="toggleResetPassword" class="ri-eye-line p-2 cursor-pointer"></i>
+                        <i id="toggleResetPassword" class="absolute right-1 ri-eye-line p-2 cursor-pointer"></i>
                     </div>
                     <small id="resetPasswordError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                 </div>
@@ -311,10 +323,19 @@ if (isset($_POST['deleteadmin'])) {
                 <p class="text-slate-600 mb-2">You are about to delete the following Admin</p>
                 <div class="flex justify-center items-center gap-2 mb-2">
                     <div class="relative">
-                        <div class="w-16 h-16 rounded-full select-none">
-                            <img id="adminDeleteProfile" src="" alt="Admin Profile" class="w-full h-full object-cover rounded-full mx-auto">
+                        <!-- Text version (shown when no profile image) -->
+                        <div id="textProfileContainer" class="rounded-full" style="display: none;">
+                            <p id="adminDeleteProfileText" class="w-16 h-16 text-white text-xl font-semibold flex items-center justify-center rounded-full select-none"></p>
+                            <i class="ri-alert-line bg-slate-200 bg-opacity-55 text-red-500 text-lg absolute -bottom-1 -right-1 rounded-full flex items-center justify-center w-6 h-6 p-1"></i>
                         </div>
-                        <i class="ri-alert-line bg-slate-200 bg-opacity-55 text-red-500 text-lg absolute -bottom-1 -right-1 rounded-full flex items-center justify-center w-6 h-6 p-1"></i>
+
+                        <!-- Image version (shown when profile image exists) -->
+                        <div id="imageProfileContainer" style="display: none;">
+                            <div class="w-16 h-16 rounded-full select-none">
+                                <img id="adminDeleteProfile" src="" alt="Admin Profile" class="w-full h-full object-cover rounded-full mx-auto">
+                            </div>
+                            <i class="ri-alert-line bg-slate-200 bg-opacity-55 text-red-500 text-lg absolute -bottom-1 -right-1 rounded-full flex items-center justify-center w-6 h-6 p-1"></i>
+                        </div>
                     </div>
                     <div class="text-left text-gray-600 text-sm">
                         <p id="adminDeleteUsername" class="font-bold text-base"></p>

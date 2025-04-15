@@ -370,13 +370,13 @@ if (!empty($searchFromDate) && !empty($searchToDate)) {
 
 // Construct the contact query based on search and status filter
 if ($filterStatus !== 'random' && !empty($searchContactQuery)) {
-    $contactSelect = "SELECT * FROM contacttb WHERE Status = '$filterStatus' AND (FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%') LIMIT $rowsPerPage OFFSET $contactOffset $dateCondition";
+    $contactSelect = "SELECT * FROM contacttb WHERE Status = '$filterStatus' AND (FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%') $dateCondition ORDER BY ContactID DESC LIMIT $rowsPerPage OFFSET $contactOffset";
 } elseif ($filterStatus !== 'random') {
-    $contactSelect = "SELECT * FROM contacttb WHERE Status = '$filterStatus' LIMIT $rowsPerPage OFFSET $contactOffset $dateCondition";
+    $contactSelect = "SELECT * FROM contacttb WHERE Status = '$filterStatus' $dateCondition ORDER BY ContactID DESC LIMIT $rowsPerPage OFFSET $contactOffset";
 } elseif (!empty($searchContactQuery)) {
-    $contactSelect = "SELECT * FROM contacttb WHERE FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%' LIMIT $rowsPerPage OFFSET $contactOffset $dateCondition";
+    $contactSelect = "SELECT * FROM contacttb WHERE FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%' $dateCondition ORDER BY ContactID DESC LIMIT $rowsPerPage OFFSET $contactOffset";
 } else {
-    $contactSelect = "SELECT * FROM contacttb WHERE 1 $dateCondition LIMIT $rowsPerPage OFFSET $contactOffset";
+    $contactSelect = "SELECT * FROM contacttb WHERE 1 $dateCondition ORDER BY ContactID DESC LIMIT $rowsPerPage OFFSET $contactOffset";
 }
 
 $contactSelectQuery = $connect->query($contactSelect);
@@ -417,6 +417,8 @@ $query = $connect->query($select);
 if (mysqli_num_rows($query) > 0) {
     while ($row = $query->fetch_assoc()) {
         $admin_id = $row['AdminID'];
+        $admin_profile = $row['AdminProfile'];
+        $profile_color = $row['ProfileBgColor'];
         $admin_username = $row['UserName'];
         $role_id = $row['RoleID'];
         $admin_role = $row['Role'];
@@ -525,10 +527,22 @@ if (mysqli_num_rows($query) > 0) {
             <div x-data="{ expanded: false, height: 0 }" class="flex flex-col">
                 <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex justify-between items-center p-1 rounded">
                     <div class="flex items-center gap-2">
-                        <div class="w-14 h-14 rounded-full my-3 p-1 bg-slate-200 relative select-none">
-                            <img class="w-full h-full object-cover rounded-full" src="<?php echo $adminprofile ?>" alt="Profile">
-                            <div class="w-3 h-3 bg-green-500 rounded-full absolute bottom-1 right-1"></div>
-                        </div>
+                        <?php
+                        if ($admin_profile == null) {
+                        ?>
+                            <div class="w-14 h-14 rounded-full my-3 p-1 bg-[<?php echo $profile_color ?>] text-white relative select-none">
+                                <p class="w-full h-full flex items-center justify-center text-lg font-semibold"><?php echo substr($admin_username, 0, 1); ?></p>
+                                <div class="w-3 h-3 bg-green-500 rounded-full absolute bottom-1 right-1"></div>
+                            </div>
+                        <?php
+                        } else { ?>
+                            <div class="w-14 h-14 rounded-full my-3 p-1 bg-slate-200 relative select-none">
+                                <img class="w-full h-full object-cover rounded-full" src="<?php echo $adminprofile ?>" alt="Profile">
+                                <div class="w-3 h-3 bg-green-500 rounded-full absolute bottom-1 right-1"></div>
+                            </div>
+                        <?php
+                        }
+                        ?>
                         <div class="text-start">
                             <p class="font-semibold"><?php echo $admin_username ?></p>
                             <p class="text-xs text-gray-400">Welcome</p>

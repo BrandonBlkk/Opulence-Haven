@@ -1,4 +1,4 @@
-import { showAlert, validateField } from './alertFunc.js';
+import { showError, hideError, showAlert, validateField } from './alertFunc.js';
 
 const menu_toggle = document.getElementById('menu-toggle');
 if (menu_toggle) {
@@ -1838,13 +1838,28 @@ document.addEventListener('DOMContentLoaded', () => {
                             document.getElementById('deleteAdminID').value = adminId;
                             document.getElementById('adminDeleteEmail').textContent = data.admin.AdminEmail;
                             document.getElementById('adminDeleteUsername').textContent = data.admin.UserName;
-                            document.getElementById('adminDeleteProfile').src = data.admin.AdminProfile;
+                            
+                            // Handle both cases (with profile image and without)
+                            if (data.admin.AdminProfile) {
+                                // If admin has profile image
+                                document.getElementById('adminDeleteProfile').src = data.admin.AdminProfile;
+                                // Show image container and hide text container
+                                document.getElementById('adminDeleteProfile').parentElement.parentElement.style.display = 'block';
+                                document.getElementById('adminDeleteProfileText').parentElement.style.display = 'none';
+                            } else {
+                                // If admin doesn't have profile image
+                                document.getElementById('adminDeleteProfileText').textContent = data.admin.UserName.charAt(0).toUpperCase();
+                                // Show text container and hide image container
+                                document.getElementById('adminDeleteProfileText').parentElement.style.backgroundColor = data.admin.ProfileBgColor;
+                                document.getElementById('adminDeleteProfileText').parentElement.style.display = 'block';
+                                document.getElementById('adminDeleteProfile').parentElement.parentElement.style.display = 'none';
+                            }
                         } else {
                             console.error('Failed to load admin details');
                         }
                     })
                     .catch(error => console.error('Fetch error:', error));
-
+                
                 // Show modal
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
@@ -1964,6 +1979,72 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+// Change Password Modal
+const changePasswordBtn = document.getElementById("changePasswordBtn");
+const changePasswordModal = document.getElementById("changePasswordModal");
+const cancelChangeBtn = document.getElementById("cancelChangeBtn");
+
+if (changePasswordBtn && changePasswordModal && cancelChangeBtn && darkOverlay2) {
+    // Show Change Password Modal
+    changePasswordBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        changePasswordModal.classList.remove("opacity-0", "invisible", "-translate-y-5");
+        changePasswordModal.classList.add("opacity-100", "translate-y-0");
+        darkOverlay2.classList.remove("opacity-0", "invisible");
+        darkOverlay2.classList.add("opacity-100");
+    });
+
+    // Close Change Password Modal on Cancel
+    cancelChangeBtn.addEventListener("click", () => {
+        changePasswordModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+        changePasswordModal.classList.remove("opacity-100", "translate-y-0");
+        darkOverlay2.classList.add("opacity-0", "invisible");
+        darkOverlay2.classList.remove("opacity-100");
+        
+        // Clear inputs and errors
+        document.getElementById("oldPasswordInput").value = "";
+        document.getElementById("newPasswordInput").value = "";
+        document.getElementById("confirmPasswordInput").value = "";
+        hideError(document.getElementById("oldPasswordError"));
+        hideError(document.getElementById("newPasswordError"));
+        hideError(document.getElementById("confirmPasswordError"));
+    });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const passwordChangeSuccess = urlParams.get('passwordChangeSuccess') === 'true';
+    const alertMessage = urlParams.get('alertMessage');
+    
+    if (passwordChangeSuccess) {
+        showAlert('You have successfully changed a password.');
+    
+        // Remove the query params after showing the alert
+        urlParams.delete('passwordChangeSuccess');
+        const newUrl = window.location.pathname + '?' + urlParams.toString();
+        window.history.replaceState({}, '', newUrl);
+    } else if (alertMessage) {
+        showAlert(decodeURIComponent(alertMessage));
+        
+        // Remove error message after displaying
+        urlParams.delete('alertMessage');
+        const newUrl = window.location.pathname + '?' + urlParams.toString();
+        window.history.replaceState({}, '', newUrl);
+    }
+    
+    // Add keyup event listeners for real-time validation
+    document.getElementById("oldPasswordInput").addEventListener("keyup", validateOldPassword);
+    document.getElementById("newPasswordInput").addEventListener("keyup", validateNewPassword);
+    document.getElementById("confirmPasswordInput").addEventListener("keyup", validateConfirmPassword);
+
+    const changePasswordForm = document.getElementById("changePasswordForm");
+    if (changePasswordForm) {
+        changePasswordForm.addEventListener("submit", (e) => {
+            if (!validateChangePasswordForm()) {
+                e.preventDefault();
+            }
+        });
+    }
+}
 
 // Profile Delete Modal
 const adminProfileDeleteBtn = document.getElementById("adminProfileDeleteBtn");
@@ -2284,6 +2365,14 @@ const validateProfileUpdateForm = () => {
     const isPhoneValid = validatePhone();
 
     return isFirstnameValid && isLastnameValid && isUsernameValid && isEmailValid && isPhoneValid;
+}
+
+const validateChangePasswordForm = () => {
+    const isCurrentPasswordValid = validateOldPassword();
+    const isNewPasswordValid = validateNewPassword();
+    const isConfirmPasswordValid = validateConfirmPassword();
+
+    return isCurrentPasswordValid && isNewPasswordValid && isConfirmPasswordValid;
 }
 
 // Individual validation functions
@@ -2831,6 +2920,76 @@ const validateUpdateRuleIcon = () => {
     );
 }
 
+function validateOldPassword() {
+    const oldPassword = document.getElementById("oldPasswordInput").value.trim();
+    const errorElement = document.getElementById("oldPasswordError");
+    
+    if (!oldPassword) {
+        showError(errorElement, "Old password is required");
+        return false;
+    }
+    hideError(errorElement);
+    return true;
+}
+
+function validateNewPassword() {
+    const newPassword = document.getElementById("newPasswordInput").value.trim();
+    const errorElement = document.getElementById("newPasswordError");
+    
+    if (!newPassword) {
+        showError(errorElement, "New password is required");
+        return false;
+    } else if (newPassword.length < 8) {
+        showError(errorElement, "Must be at least 8 characters");
+        return false;
+    } else if (!/[A-Z]/.test(newPassword)) {
+        showError(errorElement, "Must contain an uppercase letter");
+        return false;
+    } else if (!/[0-9]/.test(newPassword)) {
+        showError(errorElement, "Must contain a number");
+        return false;
+    } else if (!/[^A-Za-z0-9]/.test(newPassword)) {
+        showError(errorElement, "Must contain a special character");
+        return false;
+    }
+    hideError(errorElement);
+    return true;
+}
+
+function validateConfirmPassword() {
+    const newPassword = document.getElementById("newPasswordInput").value.trim();
+    const confirmPassword = document.getElementById("confirmPasswordInput").value.trim();
+    const errorElement = document.getElementById("confirmPasswordError");
+    
+    if (!confirmPassword) {
+        showError(errorElement, "Please confirm your password");
+        return false;
+    } else if (confirmPassword !== newPassword) {
+        showError(errorElement, "Passwords don't match");
+        return false;
+    }
+    hideError(errorElement);
+    return true;
+}
+
+const passwordInputs = [
+    { input: document.getElementById('oldPasswordInput'), toggle: document.getElementById('togglePassword') },
+    { input: document.getElementById('newPasswordInput'), toggle: document.getElementById('togglePassword2') },
+    { input: document.getElementById('confirmPasswordInput'), toggle: document.getElementById('togglePassword3') },
+];
+ 
+passwordInputs.forEach(({ input, toggle }) => {
+    if (input && toggle) {
+        toggle.addEventListener('click', () => {
+            const type = input.type === 'password' ? 'text' : 'password';
+            input.type = type;
+
+            // Toggle the icon
+            toggle.classList.toggle('ri-eye-line');
+            toggle.classList.toggle('ri-eye-off-line');
+        });
+    }
+});
 
 
 

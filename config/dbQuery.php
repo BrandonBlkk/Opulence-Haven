@@ -342,6 +342,7 @@ if (!$connect) {
 // $room = "CREATE TABLE roomtb
 // (
 //     RoomID varchar(20) not null primary key,
+//     RoomCoverImage text,
 //     RoomName varchar(50),
 //     RoomDescription text,
 //     RoomPrice decimal(10, 2),
@@ -364,8 +365,6 @@ if (!$connect) {
 //     ImageID int not null primary key auto_increment,
 //     ImageAdminPath text,
 //     ImageUserPath text,
-//     PrimaryImage boolean default false,
-//     ImageAlt text,
 //     RoomID varchar(20),
 //     FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
 //     ON DELETE CASCADE 
