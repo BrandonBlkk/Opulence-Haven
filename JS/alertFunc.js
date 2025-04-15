@@ -4,7 +4,7 @@ export const showAlert = (message) => {
     const alertText = document.getElementById("alertText");
     alertText.textContent = message;
 
-    alertBox.classList.remove("-bottom-1", "opacity-0");
+    alertBox.classList.remove("-bottom-1", "opacity-0", "hidden");
     alertBox.classList.add("opacity-100", "bottom-3");
 
     // Hide Alert
