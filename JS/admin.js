@@ -951,6 +951,68 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Add Room Form
+document.addEventListener("DOMContentLoaded", () => {
+    const addRoomModal = document.getElementById('addRoomModal');
+    const addRoomBtn = document.getElementById('addRoomBtn');
+    const addRoomCancelBtn = document.getElementById('addRoomCancelBtn');
+    const loader = document.getElementById('loader');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const addRoomSuccess = document.getElementById('addRoomSuccess').value === 'true';
+
+    if (addRoomModal && addRoomBtn && addRoomCancelBtn) {
+        // Show modal
+        addRoomBtn.addEventListener('click', () => {
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
+            addRoomModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+        });
+
+        // Cancel button functionality
+        addRoomCancelBtn.addEventListener('click', () => {
+            addRoomModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+
+            // Clear error messages
+            // const errors = ['roomTypeError', 'roomTypeDescriptionError', 'roomCapacityError'];
+            // errors.forEach(error => {
+            //     hideError(document.getElementById(error));
+            // });
+        });
+    }
+
+    // if (addRoomSuccess) {
+    //     loader.style.display = 'flex';
+
+    //     // Show Alert
+    //     setTimeout(() => {
+    //         loader.style.display = 'none';
+    //         showAlert('A new room type has been successfully added.');
+    //         setTimeout(() => {
+    //             window.location.href = 'AddRoomType.php';
+    //         }, 5000);
+    //     }, 1000);
+    // } else if (alertMessage) {
+    //     // Show Alert
+    //     showAlert(alertMessage);
+    // }
+
+    // Add keyup event listeners for real-time validation
+    // document.getElementById("roomTypeInput").addEventListener("keyup", validateRoomType);
+    // document.getElementById("roomTypeDescriptionInput").addEventListener("keyup", validateRoomTypeDescription);
+    // document.getElementById("roomCapacityInput").addEventListener("keyup", validateRoomCapacity);
+
+    // const roomForm = document.getElementById("roomForm");
+    // if (roomForm) {
+    //     roomForm.addEventListener("submit", (e) => {
+    //         if (!validateRoomTypeForm()) {
+    //             e.preventDefault();
+    //         }
+    //     });
+    // }
+});
+
 // Add Facility Type Form
 document.addEventListener("DOMContentLoaded", () => {
     const addFacilityTypeModal = document.getElementById('addFacilityTypeModal');

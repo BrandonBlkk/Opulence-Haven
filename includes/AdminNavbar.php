@@ -370,13 +370,42 @@ if (!empty($searchFromDate) && !empty($searchToDate)) {
 
 // Construct the contact query based on search and status filter
 if ($filterStatus !== 'random' && !empty($searchContactQuery)) {
-    $contactSelect = "SELECT * FROM contacttb WHERE Status = '$filterStatus' AND (FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%') $dateCondition ORDER BY ContactID DESC LIMIT $rowsPerPage OFFSET $contactOffset";
+    $contactSelect = "SELECT c.*, u.ProfileBgColor, u.UserName
+                      FROM contacttb c 
+                      LEFT JOIN usertb u ON c.UserID = u.UserID 
+                      WHERE c.Status = '$filterStatus' 
+                      AND (c.FullName LIKE '%$searchContactQuery%' 
+                           OR c.UserEmail LIKE '%$searchContactQuery%' 
+                           OR c.Country LIKE '%$searchContactQuery%') 
+                      $dateCondition 
+                      ORDER BY c.ContactID DESC 
+                      LIMIT $rowsPerPage OFFSET $contactOffset";
 } elseif ($filterStatus !== 'random') {
-    $contactSelect = "SELECT * FROM contacttb WHERE Status = '$filterStatus' $dateCondition ORDER BY ContactID DESC LIMIT $rowsPerPage OFFSET $contactOffset";
+    $contactSelect = "SELECT c.*, u.ProfileBgColor, u.UserName
+                      FROM contacttb c 
+                      LEFT JOIN usertb u ON c.UserID = u.UserID 
+                      WHERE c.Status = '$filterStatus' 
+                      $dateCondition 
+                      ORDER BY c.ContactID DESC 
+                      LIMIT $rowsPerPage OFFSET $contactOffset";
 } elseif (!empty($searchContactQuery)) {
-    $contactSelect = "SELECT * FROM contacttb WHERE FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%' $dateCondition ORDER BY ContactID DESC LIMIT $rowsPerPage OFFSET $contactOffset";
+    $contactSelect = "SELECT c.*, u.ProfileBgColor, u.UserName
+                      FROM contacttb c 
+                      LEFT JOIN usertb u ON c.UserID = u.UserID 
+                      WHERE (c.FullName LIKE '%$searchContactQuery%' 
+                             OR c.UserEmail LIKE '%$searchContactQuery%' 
+                             OR c.Country LIKE '%$searchContactQuery%') 
+                      $dateCondition 
+                      ORDER BY c.ContactID DESC 
+                      LIMIT $rowsPerPage OFFSET $contactOffset";
 } else {
-    $contactSelect = "SELECT * FROM contacttb WHERE 1 $dateCondition ORDER BY ContactID DESC LIMIT $rowsPerPage OFFSET $contactOffset";
+    $contactSelect = "SELECT c.*, u.ProfileBgColor, u.UserName
+                      FROM contacttb c 
+                      LEFT JOIN usertb u ON c.UserID = u.UserID 
+                      WHERE 1 
+                      $dateCondition 
+                      ORDER BY c.ContactID DESC 
+                      LIMIT $rowsPerPage OFFSET $contactOffset";
 }
 
 $contactSelectQuery = $connect->query($contactSelect);
@@ -643,7 +672,7 @@ if (mysqli_num_rows($query) > 0) {
                             </div>
                             <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allRoomTypeCount ?></p>
                         </a>
-                        <a href="../Admin/AddSupplier.php"
+                        <a href="../Admin/AddRoom.php"
                             class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?>">
                             <div class="flex items-center gap-1">
                                 <i class="ri-hotel-bed-line text-xl"></i>
