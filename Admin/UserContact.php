@@ -74,7 +74,7 @@ if (isset($_POST['respondcontact'])) {
                 <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
                     <h1 class="text-lg font-semibold text-nowrap">All Contacts <span class="text-gray-400 text-sm ml-2"><?php echo $contactCount ?></span></h1>
                     <div class="flex flex-col sm:flex-row items-start sm:items-center w-full gap-2 sm:gap-0">
-                        <input type="text" name="contact_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full" placeholder="Search for user contact..." value="<?php echo isset($_GET['contact_search']) ? htmlspecialchars($_GET['contact_search']) : ''; ?>">
+                        <input type="text" name="contact_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full outline-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" placeholder="Search for user contact..." value="<?php echo isset($_GET['contact_search']) ? htmlspecialchars($_GET['contact_search']) : ''; ?>">
                         <div class="flex items-center">
                             <label for="sort" class="ml-4 mr-2 flex items-center cursor-pointer select-none">
                                 <i class="ri-filter-2-line text-xl"></i>
@@ -123,6 +123,9 @@ if (isset($_POST['respondcontact'])) {
                                             <span><?= htmlspecialchars($contact['UserID']) ?></span>
                                         </td>
                                         <td class="p-3 text-start flex items-center gap-2">
+                                            <div id="profilePreview" class="w-10 h-10 object-cover rounded-full bg-[<?php echo $contact['ProfileBgColor'] ?>] text-white select-none">
+                                                <p class="w-full h-full flex items-center justify-center font-semibold"><?php echo strtoupper(substr($contact['UserName'], 0, 1)); ?></p>
+                                            </div>
                                             <div>
                                                 <p class="font-bold"><?= htmlspecialchars($contact['FullName']) ?></p>
                                                 <p><?= htmlspecialchars($contact['UserEmail']) ?></p>
