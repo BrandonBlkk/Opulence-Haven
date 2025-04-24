@@ -62,6 +62,10 @@
   background-color: #dcdcdc;
 }
 
+.adminNav::-webkit-scrollbar {
+  width: 0px;
+}
+
 .adminNav::-webkit-scrollbar-thumb {
   background-color: #eaeaea;
 }

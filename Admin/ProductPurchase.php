@@ -26,6 +26,17 @@ while ($row = $result->fetch_assoc()) {
     $allProducts[$row['ProductID']] = $row;
 }
 
+// Purchase product
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["completePurchase"])) {
+    if (!isset($_POST["supplierID"]) || empty($_POST["supplierID"])) {
+        $alertMessage = "Please select a supplier.";
+    } else {
+        $supplierID = $_POST["supplierID"];
+        // Process the purchase here
+        // Your purchase logic goes here...
+    }
+}
+
 // Add product to session cart
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["addToList"])) {
     $productID = $_POST["productID"];
@@ -45,15 +56,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["addToList"])) {
         }
     }
 
-    // If product does not exist, add it to the session cart
-    if (!$productExists) {
-        $_SESSION['cart'][] = [
-            "productID" => $productID,
-            "productTitle" => $productTitle,
-            "quantity" => $quantity,
-            "productPrice" => $productPrice * $quantity,
-        ];
+    // If product does not exist, validate and add to cart
+    if (!isset($_POST["productID"]) || empty($_POST["productID"])) { {
+            $alertMessage = "Please select a product to purchase.";
+        }
+    } elseif (!$productExists) {
+        if ($quantity > 0) {
+            if (isset($allProducts[$productID]) && $allProducts[$productID]['Stock'] >= $quantity) {
+                $_SESSION['cart'][] = [
+                    "productID" => $productID,
+                    "productTitle" => $productTitle,
+                    "quantity" => $quantity,
+                    "productPrice" => $productPrice * $quantity,
+                ];
+            } else {
+                $alertMessage = "Insufficient stock for the selected product. Only " . $allProducts[$productID]['Stock'] . " available.";
+            }
+        } else {
+            $alertMessage = "Choose a quantity greater than 0.";
+        }
     }
+}
+
+// Remove product from session cart
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["removeItem"])) {
+    $removeIndex = $_POST["removeIndex"];
+
+    if (isset($_SESSION['cart'][$removeIndex])) {
+        array_splice($_SESSION['cart'], $removeIndex, 1);
+    }
+
+    // Optional: Redirect to prevent form resubmission
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
 }
 ?>
 
@@ -78,7 +113,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["addToList"])) {
             <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="ruleForm">
                 <div>
                     <label for="productID" class="block text-sm font-medium text-gray-700">Select Product</label>
-                    <select name="productID" id="productID" required class="w-full p-2 border rounded mt-1 outline-none">
+                    <select name="productID" id="productID" class="w-full p-2 border rounded mt-1 outline-none">
                         <option value="" selected>Select a product</option>
                         <?php foreach ($allProducts as $id => $details): ?>
                             <option value="<?= $id ?>"
@@ -97,7 +132,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["addToList"])) {
                     <!-- Title -->
                     <div class="relative">
                         <label for="producttitle" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                        <input class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" type="text" name="producttitle" id="producttitle" required placeholder="Choose product to get title">
+                        <input class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" type="text" name="producttitle" id="producttitle" placeholder="Choose product to get title">
                     </div>
                     <!-- Brand -->
                     <div class="relative flex-1">
@@ -109,7 +144,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["addToList"])) {
                 <!-- Price -->
                 <div class="relative">
                     <label for="productprice" class="block text-sm font-medium text-gray-700 mb-1">Price</label>
-                    <input class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" type="number" name="productprice" id="productprice" min="1" required placeholder="Choose product to get price">
+                    <input class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" type="number" name="productprice" id="productprice" min="1" placeholder="Choose product to get price">
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
@@ -128,7 +163,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["addToList"])) {
                 <!-- Quantity -->
                 <div class="relative">
                     <label for="quantity" class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                    <input class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" type="number" name="quantity" id="quantity" min="1" required placeholder="Enter quantity">
+                    <input class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" type="number" name="quantity" id="quantity" min="1" placeholder="Enter quantity">
                 </div>
 
                 <div class="flex flex-col sm:flex-row justify-end gap-4 sm:gap-2">
@@ -145,7 +180,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["addToList"])) {
                     <th class="border p-2 text-start">Product</th>
                     <th class="border p-2 text-start">Quantity</th>
                     <th class="border p-2 text-start">Price</th>
-                    <th class="border p-2 text-start">Remove</th>
+                    <th class="border p-2 text-start">Action</th>
                 </tr>
                 <?php if (!empty($_SESSION['cart'])): ?>
                     <?php $count = 1; ?>
@@ -175,7 +210,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["addToList"])) {
                 <!-- Supplier -->
                 <div class="mt-4">
                     <label for="supplierID" class="block text-sm font-medium text-gray-700">Select Supplier</label>
-                    <select name="supplierID" id="supplierID" required class="w-full p-2 border rounded mt-1 outline-none">
+                    <select name="supplierID" id="supplierID" class="w-full p-2 border rounded mt-1 outline-none">
                         <option value="" disabled selected>Select a supplier</option>
                         <?php
                         $supplierQuery = "SELECT s.SupplierID, s.SupplierName, p.ProductType 
@@ -191,7 +226,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["addToList"])) {
                     </select>
                 </div>
 
-                <button type="submit" class="bg-green-500 text-white px-4 py-2 mt-4 rounded w-full">
+                <button type="submit" name="completePurchase" class="bg-green-500 text-white px-4 py-2 mt-4 rounded w-full">
                     Complete Purchase
                 </button>
             </form>
