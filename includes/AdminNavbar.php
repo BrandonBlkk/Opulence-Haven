@@ -1,6 +1,8 @@
 <?php
 include('../includes/AdminPagination.php');
 
+// Get the current file name
+$current_page = basename($_SERVER['PHP_SELF']);
 $adminID = $_SESSION['AdminID'];
 
 // Fetch admin profile
@@ -597,12 +599,12 @@ if (mysqli_num_rows($query) > 0) {
             <div class="flex flex-col pt-2">
                 <div class="mb-2">
                     <h1 class="text-xs font-semibold text-gray-500">MAIN HOME</h1>
-                    <a href="AdminDashboard.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none">
+                    <a href="AdminDashboard.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= $current_page === 'AdminDashboard.php' || $current_page === 'UserDetails.php' ? 'bg-slate-100' : '' ?>">
                         <i class="ri-dashboard-3-line text-xl"></i>
                         <span class="font-semibold text-sm">Dashboard</span>
                     </a>
                 </div>
-                <a href="RoleManagement.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1') ? 'flex' : 'hidden'; ?>">
+                <a href="RoleManagement.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1') ? 'flex' : 'hidden'; ?> <?= $current_page === 'RoleManagement.php' ? 'bg-slate-100' : '' ?>">
                     <i class="ri-settings-3-line text-xl relative">
                         <p class="bg-red-500 rounded-full text-sm text-white w-5 h-5 text-center absolute -top-1 -right-2 select-none <?php echo ($orderCount != 0) ? 'block' : 'hidden'; ?>"><?php echo $orderCount ?></p>
                     </i>
@@ -612,7 +614,7 @@ if (mysqli_num_rows($query) > 0) {
                 <!-- Product Menu -->
                 <div x-data="{ expanded: false, height: 0 }" class="flex flex-col">
                     <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0"
-                        class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
+                        class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?> <?= $current_page === 'AddSupplier.php' || $current_page === 'AddProduct.php' || $current_page === 'AddProductType.php' ? 'bg-slate-100' : '' ?>">
                         <div class="flex items-center gap-4">
                             <i class="ri-stock-line text-xl"></i>
                             <span class="font-semibold text-sm">Product</span>
@@ -653,7 +655,7 @@ if (mysqli_num_rows($query) > 0) {
                 <!-- Room Menu -->
                 <div x-data="{ roomExpanded: false, subHeight: 0 }" class="flex flex-col">
                     <button @click="roomExpanded = !roomExpanded; subHeight = roomExpanded ? $refs.subDropdown.scrollHeight : 0"
-                        class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-gray-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?>">
+                        class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-gray-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?> <?= $current_page === 'AddRoomType.php' || $current_page === 'AddRoom.php' || $current_page === 'AddRule.php' || $current_page === 'AddFacility.php' || $current_page === 'AddFacilityType.php' ? 'bg-slate-100' : '' ?>">
                         <div class="flex items-center gap-4">
                             <i class="ri-hotel-bed-line text-xl"></i>
                             <span class="font-semibold text-sm">Room</span>
@@ -709,7 +711,7 @@ if (mysqli_num_rows($query) > 0) {
 
                 <!-- Purchase Menu -->
                 <div x-data="{ expanded: false, height: 0 }" class="flex flex-col">
-                    <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
+                    <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?> <?= $current_page === 'ProductPurchase.php' ? 'bg-slate-100' : '' ?>">
                         <div class="flex items-center gap-4">
                             <i class="ri-shopping-cart-line text-xl"></i>
                             <span class="font-semibold text-sm">Purchase Menu</span>
@@ -770,7 +772,7 @@ if (mysqli_num_rows($query) > 0) {
                         </div>
                     </div>
                 </div>
-                <a href="UserContact.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none">
+                <a href="UserContact.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= $current_page === 'UserContact.php' ? 'bg-slate-100' : '' ?>">
                     <i class="ri-message-3-line text-xl relative">
                         <p class="bg-red-500 rounded-full text-sm text-white w-5 h-5 text-center absolute -top-1 -right-2 select-none <?php echo ($allContactCount != 0) ? 'block' : 'hidden'; ?>"><?php echo $allContactCount ?></p>
                     </i>
