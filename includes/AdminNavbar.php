@@ -614,7 +614,7 @@ if (mysqli_num_rows($query) > 0) {
                 <!-- Product Menu -->
                 <div x-data="{ expanded: false, height: 0 }" class="flex flex-col">
                     <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0"
-                        class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?> <?= $current_page === 'AddSupplier.php' || $current_page === 'AddProduct.php' || $current_page === 'AddProductType.php' ? 'bg-slate-100' : '' ?>">
+                        class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?> <?= $current_page === 'AddSupplier.php' || $current_page === 'AddProduct.php' || $current_page === 'ProductImage.php' || $current_page === 'AddSize.php' || $current_page === 'AddProductType.php' ? 'bg-slate-100' : '' ?>">
                         <div class="flex items-center gap-4">
                             <i class="ri-stock-line text-xl"></i>
                             <span class="font-semibold text-sm">Product</span>

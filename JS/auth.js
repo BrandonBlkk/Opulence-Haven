@@ -9,11 +9,37 @@ document.addEventListener("DOMContentLoaded", () => {
     if (signupSuccess) {
         loader.style.display = 'flex';
 
-        // Show Alert
-        setTimeout(() => {
+        // Send email
+        fetch('../Mail/sendWelcomeEmail.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Redirect after email is sent
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    window.location.href = '../User/HomePage.php';
+                }, 1000);
+            } else {
+                // Handle email sending error
+                loader.style.display = 'none';
+                showAlert('Account created but failed to send welcome email. Please contact support.');
+                setTimeout(() => {
+                    window.location.href = '../User/HomePage.php';
+                }, 3000);
+            }
+        })
+        .catch(error => {
             loader.style.display = 'none';
-            window.location.href = '../User/HomePage.php';
-        }, 1000);
+            showAlert('Account created but failed to send welcome email. Please contact support.');
+            setTimeout(() => {
+                window.location.href = '../User/HomePage.php';
+            }, 3000);
+        });
     } else if (alertMessage) {
         // Show Alert
         showAlert(alertMessage);

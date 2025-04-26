@@ -33,17 +33,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
         '#5E35B1'  // Dark Purple
     ];
 
-    // Randomly pick one color from the array
     $profileBgColor = $googleColors[array_rand($googleColors)];
 
-    // Check if the email already exists using prepared statement
+    // Check if the email already exists
     $checkEmailQuery = "SELECT UserEmail FROM usertb WHERE UserEmail = '$email'";
     $count = $connect->query($checkEmailQuery)->num_rows;
 
     if ($count > 0) {
         $alertMessage = 'Email you signed up with is already taken.';
     } else {
-        // Insert the new user data using prepared statement
+        // Insert the new user data
         $insertQuery = "INSERT INTO usertb (UserID, UserName, UserEmail, UserPassword, UserPhone, ProfileBgColor) 
                         VALUES ('$userID', '$username', '$email', '$password', '$phone', '$profileBgColor')";
         $insert_Query = $connect->query($insertQuery);
@@ -53,6 +52,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
             $_SESSION["UserID"] = $userID;
             $_SESSION["UserName"] = $username;
             $signupSuccess = true;
+
+            // Store email data in session to send after page reload
+            $_SESSION['email_data'] = [
+                'email' => $email,
+                'username' => $username
+            ];
         }
     }
 }
@@ -68,6 +73,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../CSS/output.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
+    <!-- Add the following line to include Remix Icon -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 </head>
 
 <body class="flex justify-center items-center min-h-screen">
@@ -179,6 +186,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
             <script src="https://www.google.com/recaptcha/api.js" async defer></script>
         </div>
     </div>
+
+    <!-- Hidden fields for JavaScript -->
+    <input type="hidden" id="alertMessage" value="<?php echo htmlspecialchars($alertMessage); ?>">
+    <input type="hidden" id="signupSuccess" value="<?php echo $signupSuccess ? 'true' : 'false'; ?>">
 
     <!-- Loader -->
     <?php

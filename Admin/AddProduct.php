@@ -199,7 +199,13 @@ if (isset($_POST['deleteproduct'])) {
                         <tbody class="text-gray-600 text-sm">
                             <?php if (!empty($products)): ?>
                                 <?php foreach ($products as $product): ?>
-                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                    <?php
+                                    $isLowStock = $product['Stock'] < 10;
+                                    $isCriticalStock = $product['Stock'] < 3;
+                                    $isOutOfStock = $product['Stock'] == 0;
+                                    ?>
+                                    <tr class="hover:bg-gray-50 transition-colors 
+                                   <?= $isCriticalStock ? 'bg-red-50' : ($isLowStock ? 'bg-yellow-50' : '') ?>">
                                         <td class="p-3 text-start whitespace-nowrap">
                                             <div class="flex items-center gap-2 font-medium text-gray-500">
                                                 <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
@@ -212,8 +218,32 @@ if (isset($_POST['deleteproduct'])) {
                                         <td class="p-3 text-start hidden sm:table-cell">
                                             $<?= htmlspecialchars(number_format($product['Price'], 2)) ?>
                                         </td>
-                                        <td class="p-3 text-start">
-                                            <?= htmlspecialchars($product['Stock']) ?>
+                                        <td class="p-4 text-start">
+                                            <div class="flex items-center gap-2">
+                                                <?php if ($isOutOfStock): ?>
+                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                                        Out of Stock
+                                                    </span>
+                                                <?php elseif ($isCriticalStock): ?>
+                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                                        Critical (<?= $product['Stock'] ?> left)
+                                                    </span>
+                                                <?php elseif ($isLowStock): ?>
+                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                        Low (<?= $product['Stock'] ?> left)
+                                                    </span>
+                                                <?php else: ?>
+                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                                        In Stock (<?= $product['Stock'] ?>)
+                                                    </span>
+                                                <?php endif; ?>
+
+                                                <?php if ($isLowStock): ?>
+                                                    <a href="ProductPurchase.php?ProductID=<?= $product['ProductID'] ?>" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">
+                                                        Reorder
+                                                    </a>
+                                                <?php endif; ?>
+                                            </div>
                                         </td>
                                         <td class="p-3 text-start hidden lg:table-cell">
                                             <?= htmlspecialchars(date('d M Y', strtotime($product['AddedDate']))) ?>
