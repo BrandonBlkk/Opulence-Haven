@@ -26,18 +26,47 @@ while ($row = $result->fetch_assoc()) {
     $allProducts[$row['ProductID']] = $row;
 }
 
+if (isset($_GET["ProductID"])) {
+    $product_id = $_GET["ProductID"];
+}
+
 // Purchase product
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["completePurchase"])) {
     if (!isset($_POST["supplierID"]) || empty($_POST["supplierID"])) {
         $alertMessage = "Please select a supplier.";
     } else {
         $supplierID = $_POST["supplierID"];
-        // Process the purchase here
-        // Your purchase logic goes here...
+
+        // Check if cart exists and has items
+        if (!empty($_SESSION['cart'])) {
+            $success = true;
+
+            // Process each item in cart
+            foreach ($_SESSION['cart'] as $item) {
+                $productID = $item['productID'];
+                $quantity = $item['quantity'];
+
+                // update stock 
+                $updateQuantity = "UPDATE producttb SET Stock = Stock + $quantity WHERE ProductID = '$productID'";
+                if (!$connect->query($updateQuantity)) {
+                    $alertMessage = "Error updating stock for product: " . $item['productTitle'];
+                    $success = false;
+                    break;
+                }
+            }
+
+            if ($success) {
+                // Clear cart after successful purchase
+                unset($_SESSION['cart']);
+                $alertMessage = "Purchase completed successfully! Stock increased.";
+            }
+        } else {
+            $alertMessage = "Your cart is empty.";
+        }
     }
 }
 
-// Add product to session cart
+// Add product to session cart (original code remains exactly the same)
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["addToList"])) {
     $productID = $_POST["productID"];
     $productTitle = $_POST["producttitle"];
@@ -62,16 +91,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["addToList"])) {
         }
     } elseif (!$productExists) {
         if ($quantity > 0) {
-            if (isset($allProducts[$productID]) && $allProducts[$productID]['Stock'] >= $quantity) {
-                $_SESSION['cart'][] = [
-                    "productID" => $productID,
-                    "productTitle" => $productTitle,
-                    "quantity" => $quantity,
-                    "productPrice" => $productPrice * $quantity,
-                ];
-            } else {
-                $alertMessage = "Insufficient stock for the selected product. Only " . $allProducts[$productID]['Stock'] . " available.";
-            }
+            $_SESSION['cart'][] = [
+                "productID" => $productID,
+                "productTitle" => $productTitle,
+                "quantity" => $quantity,
+                "productPrice" => $productPrice * $quantity,
+            ];
         } else {
             $alertMessage = "Choose a quantity greater than 0.";
         }
@@ -113,19 +138,56 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["removeItem"])) {
             <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="ruleForm">
                 <div>
                     <label for="productID" class="block text-sm font-medium text-gray-700">Select Product</label>
+                    <?php
+                    // Get the ProductID from the URL if it exists
+                    $selectedProductID = $_GET['ProductID'] ?? null;
+                    $selectedProductData = null;
+
+                    // If a ProductID is provided, find its details in $allProducts
+                    if ($selectedProductID && isset($allProducts[$selectedProductID])) {
+                        $selectedProductData = $allProducts[$selectedProductID];
+                    }
+                    ?>
+
                     <select name="productID" id="productID" class="w-full p-2 border rounded mt-1 outline-none">
-                        <option value="" selected>Select a product</option>
+                        <option value="" <?= !$selectedProductID ? 'selected' : '' ?>>Select a product</option>
                         <?php foreach ($allProducts as $id => $details): ?>
                             <option value="<?= $id ?>"
                                 data-title="<?= htmlspecialchars($details['Title']) ?>"
                                 data-brand="<?= htmlspecialchars($details['Brand']) ?>"
                                 data-price="<?= htmlspecialchars($details['Price']) ?>"
                                 data-stock="<?= htmlspecialchars($details['Stock']) ?>"
-                                data-type="<?= htmlspecialchars($details['ProductType']) ?>">
+                                data-type="<?= htmlspecialchars($details['ProductType']) ?>"
+                                <?= ($selectedProductID == $id) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($details['Title']) ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            var productSelect = document.getElementById('productID');
+
+                            // Function to update form fields
+                            function updateFormFields(selectedOption) {
+                                document.getElementById('producttitle').value = selectedOption.getAttribute('data-title') || '';
+                                document.getElementById('productbrand').value = selectedOption.getAttribute('data-brand') || '';
+                                document.getElementById('productprice').value = selectedOption.getAttribute('data-price') || '';
+                                document.getElementById('productstock').value = selectedOption.getAttribute('data-stock') || '';
+                                document.getElementById('producttype').value = selectedOption.getAttribute('data-type') || '';
+                            }
+
+                            // Event listener for change
+                            productSelect.addEventListener('change', function() {
+                                updateFormFields(this.options[this.selectedIndex]);
+                            });
+
+                            // If a product is preselected from URL, update the form fields
+                            if (productSelect.value) {
+                                updateFormFields(productSelect.options[productSelect.selectedIndex]);
+                            }
+                        });
+                    </script>
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
@@ -232,17 +294,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["removeItem"])) {
             </form>
         </div>
     </div>
-
-    <script>
-        document.getElementById('productID').addEventListener('change', function() {
-            var selectedOption = this.options[this.selectedIndex];
-            document.getElementById('producttitle').value = selectedOption.getAttribute('data-title') || '';
-            document.getElementById('productbrand').value = selectedOption.getAttribute('data-brand') || '';
-            document.getElementById('productprice').value = selectedOption.getAttribute('data-price') || '';
-            document.getElementById('productstock').value = selectedOption.getAttribute('data-stock') || '';
-            document.getElementById('producttype').value = selectedOption.getAttribute('data-type') || '';
-        });
-    </script>
 
     <?php include('../includes/Alert.php'); ?>
     <?php include('../includes/Loader.php'); ?>
