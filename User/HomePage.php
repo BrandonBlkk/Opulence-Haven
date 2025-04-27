@@ -115,6 +115,20 @@ if (isset($_SESSION['welcome_message']) && isset($_SESSION['UserName'])) {
                             <label class="font-semibold text-blue-900">Check-Out Date</label>
                             <input type="date" id="checkout-date" class="p-3 border border-gray-300 rounded-sm" placeholder="Check-out Date">
                         </div>
+
+                        <script>
+                            document.addEventListener('DOMContentLoaded', () => {
+                                // Get the current date in YYYY-MM-DD format
+                                const today = new Date().toISOString().split('T')[0];
+
+                                // Set the min attribute of the date input to today
+                                const checkInDateInput = document.getElementById('checkin-date');
+                                const checkOutDateInput = document.getElementById('checkout-date');
+
+                                checkInDateInput.setAttribute('min', today);
+                                checkOutDateInput.setAttribute('min', today);
+                            });
+                        </script>
                     </div>
                     <div class="flex">
                         <!-- Adults -->
