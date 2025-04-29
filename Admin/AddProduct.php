@@ -249,6 +249,9 @@ if (isset($_POST['deleteproduct'])) {
                                             <?= htmlspecialchars(date('d M Y', strtotime($product['AddedDate']))) ?>
                                         </td>
                                         <td class="p-3 text-start space-x-1 select-none">
+                                            <a href="ProductPurchase.php?ProductID=<?= $product['ProductID'] ?>" class="text-xs text-amber-600">
+                                                <i class="ri-store-line text-lg cursor-pointer"></i>
+                                            </a>
                                             <i class="details-btn ri-eye-line text-lg cursor-pointer"
                                                 data-product-id="<?= htmlspecialchars($product['ProductID']) ?>"></i>
                                             <button class="text-red-500">

@@ -8,8 +8,8 @@ if (!$connect) {
 }
 
 $alertMessage = '';
-$addFacilitySuccess = false;
-// $facilityID = AutoID('facilitytb', 'PurchaseID', 'PUR-', 6);
+$purchaseSuccess = false;
+$purchaseID = AutoID('purchasetb', 'PurchaseID', 'PUR-', 6);
 
 // Initialize session variable if not set
 if (!isset($_SESSION['cart'])) {
@@ -56,9 +56,52 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["completePurchase"])) {
             }
 
             if ($success) {
-                // Clear cart after successful purchase
-                unset($_SESSION['cart']);
-                $alertMessage = "Purchase completed successfully! Stock increased.";
+                $adminID = $_SESSION["AdminID"];
+                $supplierID = $_POST["supplierID"];
+                $purchaseTax = 0.10; // 10% tax
+                $status = 'Pending';
+
+                // Calculate subtotal (sum of all unit prices)
+                $subtotal = 0;
+                foreach ($_SESSION['cart'] as $item) {
+                    $productPrice = $item['productPrice'];
+                    $quantity = $item['quantity'];
+                    $subtotal += ($productPrice * $quantity);
+                }
+
+                // Calculate total amount with tax
+                $totalAmount = $subtotal * (1 + $purchaseTax); // Subtotal + 10% tax
+
+                $purchaseQuery = "INSERT INTO purchasetb (PurchaseID, AdminID, SupplierID, TotalAmount, PurchaseTax, Status)
+                VALUES ('$purchaseID', '$adminID', '$supplierID', '$totalAmount', '$purchaseTax', '$status')";
+
+                if ($connect->query($purchaseQuery)) {
+                    // Save cart items before clearing the cart
+                    $cartItems = $_SESSION['cart'];
+
+                    // Clear cart after saving items to variable
+                    unset($_SESSION['cart']);
+
+                    foreach ($cartItems as $item) {
+                        $productID = $item['productID'];
+                        $quantity = $item['quantity'];
+                        $productPrice = $item['productPrice'];
+                        $unitPrice = $productPrice * $quantity;
+
+                        $purchaseItemQuery = "INSERT INTO purchasedetailtb (PurchaseID, ProductID, PurchaseUnitQuantity, PurchaseUnitPrice)
+                        VALUES ('$purchaseID', '$productID', '$quantity', '$unitPrice')";
+
+                        if (!$connect->query($purchaseItemQuery)) {
+                            $alertMessage = "Error saving purchase item: " . $item['productTitle'];
+                            $success = false;
+                            break;
+                        }
+                    }
+                }
+
+                if ($success) {
+                    $purchaseSuccess = true;
+                }
             }
         } else {
             $alertMessage = "Your cart is empty.";

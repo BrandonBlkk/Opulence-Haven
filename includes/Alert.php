@@ -38,6 +38,7 @@
 <input type="hidden" id="contactSuccess" value="<?php echo $contactSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="reservationSuccess" value="<?php echo $reservationSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="passwordChangeSuccess" value="<?php echo $passwordChangeSuccess ? 'true' : 'false'; ?>">
+<input type="hidden" id="purchaseSuccess" value="<?php echo $purchaseSuccess ? 'true' : 'false'; ?>">
 
 <div id="alertBox" class="fixed -bottom-20 right-3 items-center rounded-md shadow-lg z-40 p-3 transition-all duration-150 ease-out transform <?php echo $alertMessage ? 'bg-red-400' : 'bg-green-400'; ?>">
     <div class="flex items-center justify-center gap-2 select-none">
