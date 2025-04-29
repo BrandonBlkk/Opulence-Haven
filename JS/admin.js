@@ -2375,6 +2375,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Product Purchase 
+document.addEventListener("DOMContentLoaded", () => {
+    const loader = document.getElementById('loader');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const purchaseSuccess = document.getElementById('purchaseSuccess').value === 'true';
+
+    if (purchaseSuccess) {
+        loader.style.display = 'flex';
+
+        // Show Alert
+        setTimeout(() => {
+            loader.style.display = 'none';
+            showAlert('Purchase completed successfully! Stock increased.');
+            setTimeout(() => {
+                window.location.href = '../Admin/ProductPurchase.php';
+            }, 5000);
+        }, 1000);
+    } else if (alertMessage) {
+        // Show Alert
+        showAlert(alertMessage);
+    }
+});
+
 // Full form validation function
 const validateProductTypeForm = () => {
     const isTypeValid = validateProductType();

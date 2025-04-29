@@ -95,6 +95,7 @@ $outOfStock = $outOfStockResult->fetch_assoc()['OutOfStock'];
     <?php endif; ?>
 
     <div class="p-3 ml-0 md:ml-[250px] min-w-[350px]">
+
         <!-- Left Side Content -->
         <div class="w-full bg-white p-3 rounded-sm">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end">
@@ -448,10 +449,45 @@ $outOfStock = $outOfStockResult->fetch_assoc()['OutOfStock'];
                             <p class="text-gray-500 text-xs">Income</p>
                             <p class="text-red-500 text-sm">↓ 12.37%</p>
                         </div>
+                        <?php
+                        // Fetch total expenses for the current month
+                        $currentMonth = date('Y-m');
+                        $expenseQuery = $connect->query("
+    SELECT SUM(TotalAmount) AS totalExpenses 
+    FROM purchasetb 
+    WHERE DATE_FORMAT(PurchaseDate, '%Y-%m') = '$currentMonth'
+");
+                        $expenseData = $expenseQuery->fetch_assoc();
+                        $totalExpenses = $expenseData['totalExpenses'] ?? 0;
+
+                        // Fetch total expenses for the last month
+                        $lastMonth = date('Y-m', strtotime('-1 month'));
+                        $lastMonthQuery = $connect->query("
+    SELECT SUM(TotalAmount) AS lastMonthExpenses
+    FROM purchasetb 
+    WHERE DATE_FORMAT(PurchaseDate, '%Y-%m') = '$lastMonth'
+");
+                        $lastMonthData = $lastMonthQuery->fetch_assoc();
+                        $lastMonthExpenses = $lastMonthData['lastMonthExpenses'] ?? 0;
+
+                        // Calculate percentage change
+                        $percentageChange = 0;
+                        if ($lastMonthExpenses > 0) {
+                            $percentageChange = (($totalExpenses - $lastMonthExpenses) / $lastMonthExpenses) * 100;
+                        }
+                        $isIncrease = $percentageChange >= 0;
+                        ?>
+
+                        <!-- Dynamic Expense Display -->
                         <div>
-                            <h3 class="text-2xl font-semibold text-red-600">3.5K</h3>
+                            <h3 class="text-2xl font-semibold text-red-600">
+                                <?= number_format($totalExpenses / 1000, 1) ?>K
+                            </h3>
                             <p class="text-gray-500 text-xs">Expenses</p>
-                            <p class="text-green-500 text-sm">↑ 8.37%</p>
+                            <p class="<?= $isIncrease ? 'text-green-500' : 'text-red-500' ?> text-sm">
+                                <?= $isIncrease ? '↑' : '↓' ?>
+                                <?= number_format(abs($percentageChange), 2) ?>%
+                            </p>
                         </div>
                     </div>
 
