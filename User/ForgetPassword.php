@@ -167,7 +167,7 @@ if (isset($_POST['reset'])) {
     <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
 </head>
 
-<body class="relative">
+<body class="relative min-w-[380px]">
     <!DOCTYPE html>
     <html lang="en">
 
@@ -193,7 +193,7 @@ if (isset($_POST['reset'])) {
                 <!-- Submit Button -->
                 <button
                     type="submit" name="reset"
-                    class="w-full bg-amber-500 text-white font-semibold py-2 rounded-md hover:bg-amber-600 transition duration-300">
+                    class="w-full bg-amber-500 text-white font-semibold py-2 rounded-md hover:bg-amber-600 transition duration-300 select-none">
                     Send Reset Email
                 </button>
             </form>
