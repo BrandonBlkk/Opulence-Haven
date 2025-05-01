@@ -221,7 +221,9 @@ const passwordInputs = [
     { input: document.getElementById('passwordInput2'), toggle: document.getElementById('togglePassword2') },
     { input: document.getElementById('resetpasswordInput'), toggle: document.getElementById('resettogglePassword') },
     { input: document.getElementById('newpasswordInput'), toggle: document.getElementById('newtogglePassword') },
-    { input: document.getElementById('confirmpasswordInput'), toggle: document.getElementById('confirmtogglePassword') }
+    { input: document.getElementById('confirmpasswordInput'), toggle: document.getElementById('confirmtogglePassword') },
+    { input: document.getElementById('new_password'), toggle: document.getElementById('confirmtogglePassword3') },
+    { input: document.getElementById('confirm_password'), toggle: document.getElementById('confirmtogglePassword4') }
 ];
  
 passwordInputs.forEach(({ input, toggle }) => {
