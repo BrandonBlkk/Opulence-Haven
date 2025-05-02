@@ -473,40 +473,59 @@ if (!$connect) {
 //     echo "Data has been saved";
 // }
 
-$purchase = "CREATE TABLE purchasetb
-(
-    PurchaseID varchar(30) not null primary key,
-    AdminID varchar(30),
-    SupplierID varchar(30),
-    TotalAmount decimal(10, 2),
-    PurchaseTax decimal(10, 2),
-    Status varchar(30),
-    PurchaseDate datetime default current_timestamp,
-    FOREIGN KEY (AdminID) REFERENCES admintb (AdminID),
-    FOREIGN KEY (SupplierID) REFERENCES suppliertb (SupplierID)
-)";
+// $purchase = "CREATE TABLE purchasetb
+// (
+//     PurchaseID varchar(30) not null primary key,
+//     AdminID varchar(30),
+//     SupplierID varchar(30),
+//     TotalAmount decimal(10, 2),
+//     PurchaseTax decimal(10, 2),
+//     Status varchar(30),
+//     PurchaseDate datetime default current_timestamp,
+//     FOREIGN KEY (AdminID) REFERENCES admintb (AdminID),
+//     FOREIGN KEY (SupplierID) REFERENCES suppliertb (SupplierID)
+// )";
 
-try {
-    $query = mysqli_query($connect, $purchase);
-    echo "Data Successfully saved";
-} catch (mysqli_sql_exception) {
-    echo "Data has been saved";
-}
+// try {
+//     $query = mysqli_query($connect, $purchase);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
 
-$purchasedetail = "CREATE TABLE purchasedetailtb
+// $purchasedetail = "CREATE TABLE purchasedetailtb
+// (
+//     PurchaseID varchar(30) not null,
+//     ProductID varchar(20),
+//     PurchaseUnitQuantity int,
+//     PurchaseUnitPrice decimal(10, 2),
+//     PurchaseDate datetime default current_timestamp,
+//     PRIMARY KEY (PurchaseID, ProductID),
+//     FOREIGN KEY (PurchaseID) REFERENCES purchasetb(PurchaseID),
+//     FOREIGN KEY (ProductID) REFERENCES producttb(ProductID)
+// )";
+
+// try {
+//     $query = mysqli_query($connect, $purchasedetail);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
+
+$cart = "CREATE TABLE carttb
 (
-    PurchaseID varchar(30) not null,
+    CartID int NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    UserID varchar(30),
     ProductID varchar(20),
-    PurchaseUnitQuantity int,
-    PurchaseUnitPrice decimal(10, 2),
-    PurchaseDate datetime default current_timestamp,
-    PRIMARY KEY (PurchaseID, ProductID),
-    FOREIGN KEY (PurchaseID) REFERENCES purchasetb(PurchaseID),
-    FOREIGN KEY (ProductID) REFERENCES producttb(ProductID)
+    SizeID int,
+    Quantity int,
+    FOREIGN KEY (UserID) REFERENCES usertb (UserID),
+    FOREIGN KEY (SizeID) REFERENCES sizetb (SizeID),
+    FOREIGN KEY (ProductID) REFERENCES producttb (ProductID)
 )";
 
 try {
-    $query = mysqli_query($connect, $purchasedetail);
+    $query = mysqli_query($connect, $cart);
     echo "Data Successfully saved";
 } catch (mysqli_sql_exception) {
     echo "Data has been saved";

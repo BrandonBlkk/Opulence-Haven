@@ -1,3 +1,5 @@
+import { showAlert } from './alertFunc.js';
+
 // Move Right Loader
 let moveRight = document.getElementById("move-right");
 
@@ -106,20 +108,46 @@ darkOverlay.addEventListener('click', () => {
 // Product Size Select
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById('addToBagForm');
+    const productId = document.getElementById('product_ID')?.value;
     const sizeDropdown = document.getElementById('size');
     const sizeError = document.getElementById('sizeError');
+    const addToBagSuccess = document.getElementById('addToBagSuccess')?.value === 'true';
+    const alertMessage = document.getElementById('alertMessage')?.value;
+    const loader = document.getElementById('loader');
 
     if (form && sizeDropdown && sizeError) {
         form.addEventListener('submit', (e) => {
-            if (sizeDropdown.value === '') {
-                e.preventDefault();
-                sizeError.classList.remove('hidden');
-                sizeDropdown.classList.add('border-red-500');
-            } else {
-                sizeError.classList.add('hidden');
-                sizeDropdown.classList.remove('border-red-500');
+            // Check if the submit button pressed was 'addtobag'
+            const submitter = e.submitter;
+            if (submitter && submitter.name === 'addtobag') {
+                if (sizeDropdown.value === '') {
+                    e.preventDefault();
+                    sizeError.classList.remove('hidden');
+                    sizeDropdown.classList.add('border-red-500');
+                } else {
+                    sizeError.classList.add('hidden');
+                    sizeDropdown.classList.remove('border-red-500');
+                }
             }
         });
+    }
+
+    // Handle success case after page load
+    if (addToBagSuccess && loader) {
+        loader.style.display = 'flex';
+   
+        setTimeout(() => {
+            loader.style.display = 'none';
+            showAlert('Product added to bag successfully!');
+            setTimeout(() => {
+                window.location.href = `../Store/StoreDetails.php?product_ID=${encodeURIComponent(productId)}`;
+            }, 5000);
+        }, 1000);
+    }
+
+    // Handle alert message if present
+    if (alertMessage) {
+        showAlert(alertMessage);
     }
 });
 

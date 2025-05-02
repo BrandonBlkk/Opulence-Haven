@@ -7,6 +7,7 @@ if (!$connect) {
 }
 
 $alertMessage = "";
+$addToBagSuccess = false;
 $session_userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
 
 if (isset($_GET["product_ID"])) {
@@ -77,6 +78,9 @@ if (isset($session_userID) && !empty($_SESSION['UserID'])) {
         if ($count == 0) {
             $insert_query = "INSERT INTO productfavoritetb (UserID, ProductID) VALUES ('$session_userID', '$product_id')";
             $connect->query($insert_query);
+
+            // Refresh the page
+            header("Location: ../Store/StoreDetails.php?product_ID=$product_id");
         }
     }
 } else {
@@ -92,14 +96,51 @@ if (isset($_POST['removefromfavorites'])) {
 
     $delete_query = "DELETE FROM productfavoritetb WHERE ProductID = '$product_id'";
     $connect->query($delete_query);
+
+    // Refresh the page
+    header("Location: ../Store/StoreDetails.php?product_ID=$product_id");
 }
 
+// // Add product to cart
 if (isset($_POST['addtobag'])) {
-    $product_size = isset($_POST['size']) ? $_POST['size'] : null;
+    $product_size = $_POST['size'];
 
-    if (empty($product_size)) {
-        // Size not selected
-        $alertMessage = "Choose one size";
+    // Get stock from database for this product and size
+    $stock_query = "SELECT Stock FROM producttb WHERE ProductID = '$product_id'";
+    $stock_result = $connect->query($stock_query);
+    $stock_data = $stock_result->fetch_assoc();
+    $stock = isset($stock_data['Stock']) ? (int)$stock_data['Stock'] : 0;
+
+    if ($stock > 0) {
+        // Reduce stock in the database
+        $new_stock = $stock - 1;
+        $update_stock = "UPDATE producttb SET Stock = '$new_stock' WHERE ProductID = '$product_id'";
+        $connect->query($update_stock);
+
+        // Initialize cart in session if it doesn't exist
+        if (!isset($_SESSION['cart'])) {
+            $_SESSION['cart'] = array();
+        }
+
+        // Create a unique key for this product+size combination
+        $cart_item_key = $product_id . '_' . $product_size;
+
+        // Check if item already exists in cart
+        if (isset($_SESSION['cart'][$cart_item_key])) {
+            // Increment quantity if item exists
+            $_SESSION['cart'][$cart_item_key]['quantity'] += 1;
+        } else {
+            // Add new item to cart
+            $_SESSION['cart'][$cart_item_key] = array(
+                'product_id' => $product_id,
+                'size_id' => $product_size,
+                'quantity' => 1
+            );
+        }
+
+        $addToBagSuccess = true;
+    } else {
+        $addToBagError = "Out of stock.";
     }
 }
 
@@ -150,7 +191,7 @@ if ($productReviewSelectQuery->num_rows > 0) {
 
         <form id="addToBagForm" action="<?php $_SERVER["PHP_SELF"] ?>" method="post" enctype="multipart/form-data" class="flex flex-col md:flex-row justify-center gap-3 mt-3">
 
-            <input type="hidden" name="product_Id" value="<?php echo $product_id; ?>">
+            <input type="hidden" name="product_Id" id="product_ID" value="<?php echo $product_id; ?>">
 
             <!-- Product Showcase -->
             <div class="flex flex-col-reverse sm:flex-row gap-3 select-none">
@@ -221,6 +262,7 @@ if ($productReviewSelectQuery->num_rows > 0) {
                 <div class="mb-4">
                     <div class="flex justify-between items-center">
                         <p class="text-base sm:text-lg font-bold mb-2" id="priceDisplay">$ <?= $price; ?></p>
+
                         <?php
                         $check = "SELECT * FROM productfavoritetb 
                         WHERE ProductID = '$product_id'
@@ -252,7 +294,7 @@ if ($productReviewSelectQuery->num_rows > 0) {
                         ?>
                     </div>
                     <div class="flex gap-1 items-center">
-                        <p class="text-sm text-gray-500">(<?= $stock; ?> <?= ($stock > 1) ? 'availablies' : 'available'  ?>)</p>
+                        <p class="text-sm text-gray-500">(<?= $stock; ?> <?= ($stock > 1) ? 'available' : 'available' ?>)</p>
                         <?php if ($selling_fast == 1): ?>
                             <div class="inline-block bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-sm select-none">
                                 Selling Fast
@@ -641,10 +683,12 @@ if ($productReviewSelectQuery->num_rows > 0) {
 
     <!-- MoveUp Btn -->
     <?php
+    include('../includes/Alert.php');
+    include('../includes/Loader.php');
     include('../includes/Footer.php');
     ?>
 
-    <script src="../JS/store.js"></script>
+    <script type="module" src="../JS/store.js"></script>
 </body>
 
 </html>
