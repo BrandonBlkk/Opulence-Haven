@@ -16,17 +16,171 @@
             </a>
         </div>
 
+        <?php
+        if (isset($_POST['remove_from_cart']) && isset($_POST['remove_key'])) {
+            $key = $_POST['remove_key'];
+
+            if (isset($_SESSION['cart'][$key])) {
+                $product_id = $_SESSION['cart'][$key]['product_id'];
+                $size_id = $_SESSION['cart'][$key]['size_id'];
+                $quantity = $_SESSION['cart'][$key]['quantity'];
+
+                // Restore stock in database
+                $stock_query = "SELECT Stock FROM producttb WHERE ProductID = '$product_id'";
+                $stock_result = $connect->query($stock_query);
+                $stock_row = $stock_result->fetch_assoc();
+                $current_stock = isset($stock_row['Stock']) ? (int)$stock_row['Stock'] : 0;
+
+                $new_stock = $current_stock + $quantity;
+                $update_stock = "UPDATE producttb SET Stock = '$new_stock' WHERE ProductID = '$product_id'";
+                $connect->query($update_stock);
+
+                // Remove item from cart
+                unset($_SESSION['cart'][$key]);
+                $_SESSION['cart'] = array_values($_SESSION['cart']);
+            }
+
+            header("Location: " . $_SERVER['REQUEST_URI']);
+            exit();
+        }
+
+        if (isset($_POST['update_quantity']) && isset($_POST['update_key'])) {
+            $key = $_POST['update_key'];
+            $action = $_POST['update_quantity'];
+
+            if (isset($_SESSION['cart'][$key])) {
+                $product_id = $_SESSION['cart'][$key]['product_id'];
+                $size_id = $_SESSION['cart'][$key]['size_id'];
+
+                // Fetch current stock from database
+                $stock_query = "SELECT Stock FROM producttb WHERE ProductID = '$product_id'";
+                $stock_result = $connect->query($stock_query);
+                $stock_row = $stock_result->fetch_assoc();
+                $current_stock = isset($stock_row['Stock']) ? (int)$stock_row['Stock'] : 0;
+
+                if ($action === 'increase') {
+                    if ($current_stock > 0) {
+                        // Increase quantity in cart and reduce stock in database
+                        $_SESSION['cart'][$key]['quantity']++;
+                        $new_stock = $current_stock - 1;
+                        $update_stock = "UPDATE producttb SET Stock = '$new_stock' WHERE ProductID = '$product_id'";
+                        $connect->query($update_stock);
+                    }
+                } elseif ($action === 'decrease') {
+                    // Decrease quantity in cart
+                    $_SESSION['cart'][$key]['quantity']--;
+                    // Restore stock in database
+                    $new_stock = $current_stock + 1;
+                    $update_stock = "UPDATE producttb SET Stock = '$new_stock' WHERE ProductID = '$product_id'";
+                    $connect->query($update_stock);
+
+                    // Remove item if quantity is zero or less
+                    if ($_SESSION['cart'][$key]['quantity'] <= 0) {
+                        unset($_SESSION['cart'][$key]);
+                    }
+                }
+
+                // Reindex cart array
+                $_SESSION['cart'] = array_values($_SESSION['cart']);
+            }
+
+            header("Location: " . $_SERVER['REQUEST_URI']);
+            exit();
+        }
+        ?>
+
         <!-- Shopping Cart -->
         <div class="relative group">
             <a href="../Store/AddToCart.php" class="bg-blue-900 text-white py-1 px-3 cursor-pointer flex items-center gap-2">
                 <i class="ri-shopping-cart-2-line text-xl"></i>
-                <span>0 item</span>
+                <span>
+                    <?php
+                    $cartCount = 0;
+                    if (!empty($_SESSION['cart'])) {
+                        foreach ($_SESSION['cart'] as $item) {
+                            $cartCount += $item['quantity'];
+                            $productID = $item['product_id'];
+                        }
+                    }
+                    echo $cartCount . ' item' . ($cartCount != 1 ? 's' : '');
+                    ?>
+                </span>
             </a>
 
             <!-- Dropdown Cart -->
             <div class="absolute top-full right-0 bg-gray-100 p-3 z-40 w-96 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-300">
-                <p class="font-semibold text-gray-600 text-center">You have no items in your cart.</p>
+                <?php if (!empty($_SESSION['cart'])): ?>
+                    <div class="space-y-3">
+                        <h3 class="font-semibold text-lg text-center mb-2">Your Cart Items</h3>
+
+                        <?php
+                        $total = 0;
+                        foreach ($_SESSION['cart'] as $key => $item):
+                            $product_query = "SELECT p.*, pi.ImageUserPath, s.Size 
+                    FROM producttb p
+                    LEFT JOIN productimagetb pi ON p.ProductID = pi.ProductID AND pi.PrimaryImage = 1
+                    LEFT JOIN sizetb s ON s.SizeID = '" . $item['size_id'] . "'
+                    WHERE p.ProductID = '" . $item['product_id'] . "'";
+                            $product_result = $connect->query($product_query);
+                            $product = $product_result->fetch_assoc();
+
+                            $price = (!empty($product['DiscountPrice']) && $product['DiscountPrice'] > 0) ? $product['DiscountPrice'] : $product['Price'];
+                            if (!empty($product['PriceModifier'])) {
+                                $price += $product['PriceModifier'];
+                            }
+
+                            $subtotal = $price * $item['quantity'];
+                            $total += $subtotal;
+                        ?>
+                            <div class="flex items-start gap-3 p-2 bg-white rounded">
+                                <img src="<?= !empty($product['ImageUserPath']) ? '../UserImages/' . $product['ImageUserPath'] : '../UserImages/default.jpg' ?>"
+                                    alt="<?= !empty($product['ImageAlt']) ? $product['ImageAlt'] : $product['Title'] ?>"
+                                    class="w-16 h-16 object-cover rounded border">
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-sm"><?= $product['Title'] ?></h4>
+                                    <p class="text-xs text-gray-500">Size: <?= $product['Size'] ?? 'N/A' ?></p>
+                                    <div class="flex items-center justify-between mt-1">
+                                        <div class="flex items-center gap-1">
+                                            <form method="post" action="">
+                                                <input type="hidden" name="update_key" value="<?= $key ?>">
+                                                <button type="submit" name="update_quantity" value="decrease"
+                                                    class="px-2 text-sm font-bold text-gray-600 hover:text-red-600">−</button>
+                                            </form>
+                                            <span class="text-sm"><?= $item['quantity'] ?></span>
+                                            <form method="post" action="">
+                                                <input type="hidden" name="update_key" value="<?= $key ?>">
+                                                <button type="submit" name="update_quantity" value="increase"
+                                                    class="px-2 text-sm font-bold text-gray-600 hover:text-green-600">+</button>
+                                            </form>
+                                        </div>
+                                        <span class="font-medium text-sm">$<?= number_format($subtotal, 2) ?></span>
+                                    </div>
+                                </div>
+                                <form action="" method="post" class="ml-2">
+                                    <input type="hidden" name="remove_key" value="<?= $key ?>">
+                                    <button type="submit" name="remove_from_cart" class="text-red-500 hover:text-red-700 text-sm">
+                                        <i class="ri-close-line"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        <?php endforeach; ?>
+
+                        <div class="bg-white p-3 rounded border-t">
+                            <div class="flex justify-between font-semibold">
+                                <span>Total:</span>
+                                <span>$<?= number_format($total, 2) ?></span>
+                            </div>
+                            <a href="../Store/checkout.php"
+                                class="block mt-3 bg-blue-900 text-white text-center py-1 text-sm rounded hover:bg-blue-800 transition-colors">
+                                Checkout
+                            </a>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <p class="font-semibold text-gray-600 text-center py-4">You have no items in your cart.</p>
+                <?php endif; ?>
             </div>
+
         </div>
     </div>
 </section>
