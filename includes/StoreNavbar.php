@@ -116,18 +116,20 @@
                         <?php
                         $total = 0;
                         foreach ($_SESSION['cart'] as $key => $item):
-                            $product_query = "SELECT p.*, pi.ImageUserPath, s.Size 
-                    FROM producttb p
-                    LEFT JOIN productimagetb pi ON p.ProductID = pi.ProductID AND pi.PrimaryImage = 1
-                    LEFT JOIN sizetb s ON s.SizeID = '" . $item['size_id'] . "'
-                    WHERE p.ProductID = '" . $item['product_id'] . "'";
+                            $product_query = "
+                                SELECT p.*, pi.ImageUserPath, s.Size, s.PriceModifier 
+                                FROM producttb p
+                                LEFT JOIN productimagetb pi ON p.ProductID = pi.ProductID AND pi.PrimaryImage = 1
+                                LEFT JOIN sizetb s ON s.SizeID = '" . $item['size_id'] . "' AND s.ProductID = p.ProductID
+                                WHERE p.ProductID = '" . $item['product_id'] . "'
+                                LIMIT 1
+                            ";
                             $product_result = $connect->query($product_query);
                             $product = $product_result->fetch_assoc();
 
-                            $price = (!empty($product['DiscountPrice']) && $product['DiscountPrice'] > 0) ? $product['DiscountPrice'] : $product['Price'];
-                            if (!empty($product['PriceModifier'])) {
-                                $price += $product['PriceModifier'];
-                            }
+                            $base_price = (!empty($product['DiscountPrice']) && $product['DiscountPrice'] > 0) ? $product['DiscountPrice'] : $product['Price'];
+                            $modifier = isset($product['PriceModifier']) ? (float)$product['PriceModifier'] : 0;
+                            $price = $base_price + $modifier;
 
                             $subtotal = $price * $item['quantity'];
                             $total += $subtotal;

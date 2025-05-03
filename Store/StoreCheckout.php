@@ -6,6 +6,8 @@ if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
+$userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
+
 $alertMessage = '';
 $signinSuccess = false;
 
@@ -13,6 +15,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order'])) {
     $signinSuccess = true;
     $alertMessage = "No account found with the provided email. Please try again.";
 }
+
+$user = "SELECT * FROM usertb WHERE UserID = '$userID'";
+$userData = $connect->query($user)->fetch_assoc();
 ?>
 
 <!DOCTYPE html>
@@ -69,7 +74,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order'])) {
     <!-- Display products in a styled list -->
     <section class="max-w-[1370px] min-w-[380px] mx-auto px-4 pb-4">
         <div class="flex justify-between items-center">
-            <p class="text-2xl">Cart <span>(2)</span></p>
+            <div>
+                <p class="text-2xl">Cart <span>(<?php echo $cartCount; ?>)</span></p>
+            </div>
             <a href="AddToCart.php" class="text-sm text-gray-500">
                 <i class="ri-arrow-left-line"></i>
                 Back to cart
@@ -78,45 +85,91 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order'])) {
 
         <div class="flex flex-col md:flex-row justify-between">
             <div class="md:w-2/3 overflow-y-scroll h-[500px]">
-                <form action="#" method="post" class="px-4 py-2 rounded-md flex flex-col md:flex-row justify-between cursor-pointer">
-                    <input type="hidden" name="cart_id" value="1">
-                    <div class="flex items-center">
-                        <div class="w-36">
-                            <img class="w-full h-full object-cover select-none" src="../UserImages/white-pillow.jpg" alt="Product Image">
-                        </div>
-                        <div class="ml-4">
-                            <h1 class="text-md sm:text-xl mb-1">Sample Product Title</h1>
-                            <p class="text-xs sm:text-sm text-gray-400">Size: <span class="text-black">M</span></p>
-                            <input type="number" name="new_quantity" value="2" min="1" class="mt-2 w-16 px-2 py-1 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:border-indigo-500" disabled>
-                        </div>
-                    </div>
-                    <div class="text-right flex flex-row-reverse md:flex-col items-center">
-                        <div class="mb-2">
-                            <span class="text-xs text-gray-500 line-through">$25.00</span>
-                            <span class="font-bold text-sm text-red-500">$20.00</span>
-                        </div>
-                    </div>
-                </form>
+                <?php
+                if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0) {
+                    foreach ($_SESSION['cart'] as $key => $item) {
+                        $product_id = $item['product_id'];
+                        $size_id = $item['size_id'];
+                        $quantity = $item['quantity'];
 
-                <form action="#" method="post" class="px-4 py-2 rounded-md flex flex-col md:flex-row justify-between cursor-pointer">
-                    <input type="hidden" name="cart_id" value="2">
-                    <div class="flex items-center">
-                        <div class="w-36">
-                            <img class="w-full h-full object-cover select-none" src="../UserImages/bed-945881_1280.jpg" alt="Product Image">
-                        </div>
-                        <div class="ml-4">
-                            <h1 class="text-md sm:text-xl mb-1">Another Sample Product</h1>
-                            <p class="text-xs sm:text-sm text-gray-400">Size: <span class="text-black">L</span></p>
-                            <input type="number" name="new_quantity" value="1" min="1" class="mt-2 w-16 px-2 py-1 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:border-indigo-500" disabled>
-                        </div>
-                    </div>
-                    <div class="text-right flex flex-row-reverse md:flex-col items-center">
-                        <div class="mb-2">
-                            <span class="text-xs text-gray-500 line-through">$30.00</span>
-                            <span class="font-bold text-sm text-red-500">$25.00</span>
-                        </div>
-                    </div>
-                </form>
+                        // Get product details with PriceModifier
+                        $query = "
+                SELECT 
+                    p.Title AS ProductName, 
+                    s.Size, 
+                    s.PriceModifier,
+                    p.Price, 
+                    p.DiscountPrice, 
+                    pi.ImageUserPath AS ProductImage 
+                FROM producttb p
+                JOIN sizetb s ON p.ProductID = s.ProductID AND s.SizeID = '$size_id'
+                LEFT JOIN productimagetb pi ON pi.ProductID = p.ProductID AND pi.PrimaryImage = 1
+                WHERE p.ProductID = '$product_id'
+                LIMIT 1
+            ";
+                        $result = $connect->query($query);
+
+                        if ($result && $result->num_rows > 0) {
+                            $row = $result->fetch_assoc();
+                            $title = $row['ProductName'];
+                            $image = $row['ProductImage'];
+                            $size = $row['Size'];
+                            $modifier = isset($row['PriceModifier']) ? (float)$row['PriceModifier'] : 0;
+                            $basePrice = isset($row['Price']) ? (float)$row['Price'] : 0;
+                            $discount = isset($row['DiscountPrice']) ? (float)$row['DiscountPrice'] : 0;
+
+                            $originalPrice = $basePrice + $modifier;
+                            $finalPrice = ($discount > 0) ? ($discount + $modifier) : $originalPrice;
+                ?>
+                            <div class="flex flex-col md:flex-row justify-between mb-4">
+                                <form action="#" method="post" class="px-4 py-2 rounded-md flex flex-col md:flex-row justify-between cursor-pointer">
+                                    <input type="hidden" name="cart_id" value="<?= $key ?>">
+                                    <div class="flex items-center flex-1">
+                                        <div class="w-36">
+                                            <img class="w-full h-full object-cover select-none" src="../UserImages/<?= htmlspecialchars($image) ?>" alt="Product Image">
+                                        </div>
+                                        <div class="ml-4">
+                                            <h1 class="text-md sm:text-xl mb-1"><?= htmlspecialchars($title) ?></h1>
+                                            <div class="mt-2 flex items-center space-x-2">
+                                                <form method="post" action="">
+                                                    <input type="hidden" name="update_key" value="<?= $key ?>">
+                                                    <button type="submit" name="update_quantity" value="decrease" class="px-2 text-sm font-bold text-gray-600 hover:text-red-600">−</button>
+                                                </form>
+                                                <span class="text-sm"><?= $item['quantity'] ?></span>
+                                                <form method="post" action="">
+                                                    <input type="hidden" name="update_key" value="<?= $key ?>">
+                                                    <button type="submit" name="update_quantity" value="increase" class="px-2 text-sm font-bold text-gray-600 hover:text-green-600">+</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between md:justify-end md:space-x-8">
+                                        <div class="text-right">
+                                            <?php if ($discount > 0): ?>
+                                                <span class="text-xs text-gray-500 line-through">$<?= number_format($originalPrice, 2) ?></span>
+                                                <span class="font-bold text-sm text-red-500 ml-1">$<?= number_format($finalPrice, 2) ?></span>
+                                            <?php else: ?>
+                                                <span class="font-bold text-sm text-black">$<?= number_format($originalPrice, 2) ?></span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="py-2 w-[90px] select-none">
+                                            <form action="" method="post" class="ml-2">
+                                                <input type="hidden" name="remove_key" value="<?= $key ?>">
+                                                <button type="submit" name="remove_from_cart" class="text-red-500 hover:text-red-700 text-sm">
+                                                    <i class="ri-delete-bin-6-line text-lg"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                <?php
+                        }
+                    }
+                } else {
+                    echo '<p class="text-center text-gray-500 py-32">Your cart is empty.</p>';
+                }
+                ?>
             </div>
 
             <!-- Payment Summary -->
@@ -174,7 +227,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order'])) {
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 type="email"
                                 name="email"
-                                placeholder="Enter your email">
+                                value="<?php echo $userData['UserEmail']; ?>"
+                                placeholder="Enter your email" disabled>
                             <small id="emailError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">Email is required.</small>
                         </div>
 
@@ -185,6 +239,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order'])) {
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 type="phone"
                                 name="phone"
+                                value="<?php echo $userData['UserPhone']; ?>"
                                 placeholder="Enter your phone">
                             <small id="phoneError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">Phone is required.</small>
                         </div>
@@ -274,7 +329,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order'])) {
     include('../includes/Footer.php');
     ?>
 
-    <script src="../JS/store.js"></script>
+    <script type="module" src="../JS/store.js"></script>
 </body>
 
 </html>
