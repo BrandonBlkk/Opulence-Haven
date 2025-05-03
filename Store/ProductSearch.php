@@ -129,7 +129,7 @@ if (isset($_GET['search'])) {
     include('../includes/Footer.php');
     ?>
 
-    <script src="../JS/store.js"></script>
+    <script type="module" src="../JS/store.js"></script>
 </body>
 
 </html>

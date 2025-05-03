@@ -135,7 +135,7 @@ if (isset($_GET['sort']) && $_GET['sort'] === 'recent') {
     include('../includes/Footer.php');
     ?>
 
-    <script src="../JS/store.js"></script>
+    <script type="module" src="../JS/store.js"></script>
 
     <script>
         // Apply filter when the dropdown changes
