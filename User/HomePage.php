@@ -12,6 +12,27 @@ if (isset($_SESSION['welcome_message']) && isset($_SESSION['UserName'])) {
     $username = $_SESSION['UserName'];
     unset($_SESSION['welcome_message']); //Show the message only once
 }
+
+if (isset($_SESSION['UserID'])) {
+    $userID = $_SESSION['UserID'];
+
+    if ($connect->connect_error) {
+        die('Connection failed');
+    }
+
+    $stmt = $connect->prepare("UPDATE usertb SET Membership = 1, PointsBalance = 500 WHERE UserID = ?");
+    $stmt->bind_param("s", $userID);
+
+    if ($stmt->execute()) {
+    } else {
+        echo "Failed to update membership.";
+    }
+
+    $stmt->close();
+    $connect->close();
+} else {
+    echo "No UserID provided.";
+}
 ?>
 
 <!DOCTYPE html>
@@ -20,6 +41,7 @@ if (isset($_SESSION['welcome_message']) && isset($_SESSION['UserName'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
     <title>Opulence Haven</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../CSS/output.css?v=<?php echo time(); ?>">
@@ -34,6 +56,186 @@ if (isset($_SESSION['welcome_message']) && isset($_SESSION['UserName'])) {
     include('../includes/Navbar.php');
     include('../includes/Cookies.php');
     ?>
+
+    <!-- Side Popup Container -->
+    <div id="membershipPopup" class="fixed right-[-320px] top-1/2 -translate-y-1/2 w-80 bg-white shadow-lg rounded-l-md z-50 transition-all duration-300 ease-out">
+        <!-- Header -->
+        <div class="flex justify-between items-center bg-orange-500 text-white p-3 rounded-tl-md">
+            <h3 class="font-bold text-lg">Unlock Rewards!</h3>
+            <button id="closePopup" type="button" class="text-xl hover:text-gray-200">×</button>
+        </div>
+
+        <!-- Body with Form -->
+        <form id="membershipForm" class="p-4">
+            <input type="hidden" id="userID" value="<?php echo $userID; ?>">
+            <p class="text-gray-600 mb-4">Join our free membership and earn 500 bonus points today.</p>
+
+            <div class="mb-4">
+                <label for="newsletterOptIn" class="flex items-center">
+                    <input type="checkbox" id="newsletterOptIn" name="newsletterOptIn" class="mr-2">
+                    <span class="text-sm text-gray-600">Receive exclusive offers via email</span>
+                </label>
+            </div>
+
+            <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md transition-colors">
+                Join Now
+            </button>
+        </form>
+
+        <!-- Add this inside #membershipPopup after the form -->
+        <div id="confettiSuccess" class="hidden text-center relative overflow-hidden p-4">
+            <div class="mx-auto relative flex items-center justify-center h-16 w-16 z-10">
+                <!-- Background Circle -->
+                <div class="absolute h-16 w-16 rounded-full"></div>
+
+                <!-- Animated Border -->
+                <svg class="absolute h-16 w-16 -rotate-90" viewBox="0 0 100 100">
+                    <circle
+                        cx="50"
+                        cy="50"
+                        r="45"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="4"
+                        stroke-linecap="round"
+                        stroke-dasharray="283"
+                        stroke-dashoffset="283"
+                        class="text-green-500 animate-[borderFill_0.6s_ease-out_0.3s_1_forwards]" />
+                </svg>
+
+                <!-- Checkmark -->
+                <svg class="h-8 w-8 text-green-600 opacity-0 animate-[appearAndSpin_0.5s_ease-out_0.9s_1_forwards]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    id="success-checkmark">
+                    <path stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+
+            <h3 class="mt-4 text-lg font-semibold text-gray-800 relative z-20">Membership Activated!</h3>
+        </div>
+        <style>
+            @keyframes borderFill {
+                0% {
+                    stroke-dashoffset: 283;
+                }
+
+                100% {
+                    stroke-dashoffset: 0;
+                }
+            }
+
+            @keyframes appearAndSpin {
+                0% {
+                    opacity: 0;
+                    transform: scale(0.5) rotate(-90deg);
+                }
+
+                70% {
+                    opacity: 1;
+                    transform: scale(1.1) rotate(10deg);
+                }
+
+                100% {
+                    opacity: 1;
+                    transform: scale(1) rotate(0deg);
+                }
+            }
+
+            .confetti {
+                position: fixed;
+                width: 10px;
+                height: 10px;
+                opacity: 0;
+                animation: confetti-fall 3s ease-in-out forwards;
+                top: -10px;
+                z-index: 50;
+            }
+
+            @keyframes confetti-fall {
+                0% {
+                    transform: translateY(0) rotate(0deg);
+                    opacity: 1;
+                }
+
+                100% {
+                    transform: translateY(100vh) rotate(360deg);
+                    opacity: 0;
+                }
+            }
+        </style>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userID = document.getElementById('userID');
+            const popup = document.getElementById('membershipPopup');
+            const form = document.getElementById('membershipForm');
+            const closeBtn = document.getElementById('closePopup');
+
+            // Auto-show popup after 5 seconds
+            setTimeout(() => {
+                popup.classList.replace('right-[-320px]', 'right-0');
+            }, 3000);
+
+            // Close popup
+            closeBtn.addEventListener('click', () => {
+                popup.classList.replace('right-0', 'right-[-320px]');
+            });
+
+            // Submit form and update membership
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData();
+                formData.append('UserID', userID.value);
+
+                fetch('../User/HomePage.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(res => res.text())
+                    .then(data => {
+                        // Hide form and show animation
+                        form.classList.add('hidden');
+                        document.getElementById('confettiSuccess').classList.remove('hidden');
+
+                        // Start confetti
+                        createConfetti();
+
+                        // Auto-close popup after 4 seconds
+                        setTimeout(() => {
+                            popup.classList.replace('right-0', 'right-[-320px]');
+                        }, 4000);
+                    })
+                    .catch(err => {
+                        alert('Error: ' + err);
+                    });
+            });
+
+            // Confetti Generator
+            function createConfetti() {
+                const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#4CAF50', '#FF9800', '#FFC107'];
+                for (let i = 0; i < 50; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.width = `${Math.random() * 8 + 4}px`;
+                    confetti.style.height = `${Math.random() * 8 + 4}px`;
+                    confetti.style.left = `${Math.random() * 100}%`;
+                    confetti.style.animationDuration = `${Math.random() * 2 + 2}s`;
+                    confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                    document.body.appendChild(confetti);
+                    confetti.addEventListener('animationend', () => confetti.remove());
+                }
+            }
+        });
+    </script>
 
     <!-- Welcome message -->
     <?php if (isset($welcomeMessage)): ?>
