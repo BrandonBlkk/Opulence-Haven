@@ -92,6 +92,46 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// Reset Password
+document.addEventListener("DOMContentLoaded", () => {
+    const loader = document.getElementById('loader');
+    const resetPasswordSuccess = document.getElementById('resetPasswordSuccess').value === 'true';
+
+    if (resetPasswordSuccess) {
+        loader.style.display = 'flex'; 
+
+        // fetch('../User/ForgetPassword.php', {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //     }
+        // })
+        // .then(response => response.json())
+        // .then(data => {
+        //     if (data.success) {
+        //         // Handle email sending error
+        //         loader.style.display = 'none';
+        //         showAlert('Password reset link has been sent to your email. The link will expire in 1 hour.');
+        //     } 
+        // })
+        // .catch(error => {
+        //     loader.style.display = 'none';
+        //     showAlert('Error sending password reset link. Please contact support.');
+        //     setTimeout(() => {
+        //         window.location.href = '../User/ForgetPassword.php';
+        //     }, 3000);
+        // });
+
+        setTimeout(() => {
+            loader.style.display = 'none';
+                showAlert('Password reset link has been sent to your email. The link will expire in 1 hour.');
+            setTimeout(() => {
+                window.location.href = '../User/ForgetPassword.php';
+            }, 5000);
+        }, 1000);
+    } 
+});
+
 // Full form validation function
 const validateSignUpForm = () => {
     const isUsernameValid = validateUsername();

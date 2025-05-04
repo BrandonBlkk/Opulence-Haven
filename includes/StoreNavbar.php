@@ -172,8 +172,8 @@
                                 <span>Total:</span>
                                 <span>$<?= number_format($total, 2) ?></span>
                             </div>
-                            <a href="../Store/checkout.php"
-                                class="block mt-3 bg-blue-900 text-white text-center py-1 text-sm rounded hover:bg-blue-800 transition-colors">
+                            <a href="../Store/AddToCart.php"
+                                class="block mt-3 bg-blue-900 text-white text-center py-2 text-sm rounded hover:bg-blue-800 transition-colors">
                                 Checkout
                             </a>
                         </div>

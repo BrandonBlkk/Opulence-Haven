@@ -6,6 +6,8 @@ if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
+$userID = $_SESSION['UserID'];
+
 // Check if there's a welcome message to display
 if (isset($_SESSION['welcome_message']) && isset($_SESSION['UserName'])) {
     $welcomeMessage = $_SESSION['welcome_message'];
@@ -13,25 +15,38 @@ if (isset($_SESSION['welcome_message']) && isset($_SESSION['UserName'])) {
     unset($_SESSION['welcome_message']); //Show the message only once
 }
 
-if (isset($_SESSION['UserID'])) {
-    $userID = $_SESSION['UserID'];
-
-    if ($connect->connect_error) {
-        die('Connection failed');
-    }
+// Update membership
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
 
     $stmt = $connect->prepare("UPDATE usertb SET Membership = 1, PointsBalance = 500 WHERE UserID = ?");
     $stmt->bind_param("s", $userID);
 
     if ($stmt->execute()) {
+        echo "Membership updated successfully.";
     } else {
         echo "Failed to update membership.";
     }
 
     $stmt->close();
-    $connect->close();
-} else {
-    echo "No UserID provided.";
+    exit;
+}
+
+// Checking Room Availability
+if (isset($_POST['roomType']) && isset($_POST['checkin_date']) && isset($_POST['checkout_date'])) {
+    $roomType = $_POST['roomType'];
+    $checkIn = $_POST['checkin_date'];
+    $checkOut = $_POST['checkout_date'];
+    $adults = $_POST['adults'];
+    $children = $_POST['children'];
+
+    $stmt = $connect->prepare("SELECT RoomID FROM roomtb WHERE RoomTypeID = ? AND RoomAvailability = 'Available'");
+    $stmt->bind_param("s", $roomType);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $rooms = $result->fetch_all(MYSQLI_ASSOC);
+
+    echo json_encode($rooms);
+    exit;
 }
 ?>
 
@@ -46,8 +61,6 @@ if (isset($_SESSION['UserID'])) {
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../CSS/output.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
-    <!-- Swiper JS -->
-    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 
 </head>
 
@@ -57,164 +70,175 @@ if (isset($_SESSION['UserID'])) {
     include('../includes/Cookies.php');
     ?>
 
-    <!-- Side Popup Container -->
-    <div id="membershipPopup" class="fixed right-[-320px] top-1/2 -translate-y-1/2 w-80 bg-white shadow-lg rounded-l-md z-50 transition-all duration-300 ease-out">
-        <!-- Header -->
-        <div class="flex justify-between items-center bg-orange-500 text-white p-3 rounded-tl-md">
-            <h3 class="font-bold text-lg">Unlock Rewards!</h3>
-            <button id="closePopup" type="button" class="text-xl hover:text-gray-200">×</button>
-        </div>
+    <?php
+    $user = "SELECT * FROM usertb WHERE UserID = '$userID'";
+    $result = $connect->query($user);
+    $row = $result->fetch_assoc();
+    $Membership = $row['Membership'];
+    ?>
 
-        <!-- Body with Form -->
-        <form id="membershipForm" class="p-4">
-            <input type="hidden" id="userID" value="<?php echo $userID; ?>">
-            <p class="text-gray-600 mb-4">Join our free membership and earn 500 bonus points today.</p>
-
-            <div class="mb-4">
-                <label for="newsletterOptIn" class="flex items-center">
-                    <input type="checkbox" id="newsletterOptIn" name="newsletterOptIn" class="mr-2">
-                    <span class="text-sm text-gray-600">Receive exclusive offers via email</span>
-                </label>
+    <?php if ($Membership == 0): ?>
+        <!-- Side Popup Container -->
+        <div id="membershipPopup" class="fixed right-[-320px] top-1/2 -translate-y-1/2 w-80 bg-white shadow-lg rounded-l-md z-50 transition-all duration-300 ease-out">
+            <!-- Header -->
+            <div class="flex justify-between items-center bg-orange-500 text-white p-3 rounded-tl-md">
+                <h3 class="font-bold text-lg">Unlock Rewards!</h3>
+                <button id="closePopup" type="button" class="text-xl hover:text-gray-200">×</button>
             </div>
 
-            <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md transition-colors">
-                Join Now
-            </button>
-        </form>
+            <!-- Body with Form -->
+            <form id="membershipForm" class="p-4">
+                <input type="hidden" id="userID" value="<?php echo $userID; ?>">
+                <p class="text-gray-600 mb-4">Join our free membership and earn 500 bonus points today.</p>
 
-        <!-- Add this inside #membershipPopup after the form -->
-        <div id="confettiSuccess" class="hidden text-center relative overflow-hidden p-4">
-            <div class="mx-auto relative flex items-center justify-center h-16 w-16 z-10">
-                <!-- Background Circle -->
-                <div class="absolute h-16 w-16 rounded-full"></div>
+                <div class="mb-4">
+                    <label for="newsletterOptIn" class="flex items-center">
+                        <input type="checkbox" id="newsletterOptIn" name="newsletterOptIn" class="mr-2">
+                        <span class="text-sm text-gray-600">Receive exclusive offers via email</span>
+                    </label>
+                </div>
 
-                <!-- Animated Border -->
-                <svg class="absolute h-16 w-16 -rotate-90" viewBox="0 0 100 100">
-                    <circle
-                        cx="50"
-                        cy="50"
-                        r="45"
+                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white py-2 px-4 rounded-md transition-colors">
+                    Join Now
+                </button>
+            </form>
+
+            <!-- Add this inside #membershipPopup after the form -->
+            <div id="confettiSuccess" class="hidden text-center relative overflow-hidden p-4">
+                <div class="mx-auto relative flex items-center justify-center h-16 w-16 z-10">
+                    <!-- Background Circle -->
+                    <div class="absolute h-16 w-16 rounded-full"></div>
+
+                    <!-- Animated Border -->
+                    <svg class="absolute h-16 w-16 -rotate-90" viewBox="0 0 100 100">
+                        <circle
+                            cx="50"
+                            cy="50"
+                            r="45"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="4"
+                            stroke-linecap="round"
+                            stroke-dasharray="283"
+                            stroke-dashoffset="283"
+                            class="text-green-500 animate-[borderFill_0.6s_ease-out_0.3s_1_forwards]" />
+                    </svg>
+
+                    <!-- Checkmark -->
+                    <svg class="h-8 w-8 text-green-600 opacity-0 animate-[appearAndSpin_0.5s_ease-out_0.9s_1_forwards]"
                         fill="none"
                         stroke="currentColor"
-                        stroke-width="4"
-                        stroke-linecap="round"
-                        stroke-dasharray="283"
-                        stroke-dashoffset="283"
-                        class="text-green-500 animate-[borderFill_0.6s_ease-out_0.3s_1_forwards]" />
-                </svg>
+                        viewBox="0 0 24 24"
+                        id="success-checkmark">
+                        <path stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
 
-                <!-- Checkmark -->
-                <svg class="h-8 w-8 text-green-600 opacity-0 animate-[appearAndSpin_0.5s_ease-out_0.9s_1_forwards]"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    id="success-checkmark">
-                    <path stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M5 13l4 4L19 7"></path>
-                </svg>
+                <h3 class="mt-4 text-lg font-semibold text-gray-800 relative z-20">Membership Activated!</h3>
+                <p class="mt-2 text-sm text-amber-500 relative z-20">You earned 500 bonus points!</p>
             </div>
 
-            <h3 class="mt-4 text-lg font-semibold text-gray-800 relative z-20">Membership Activated!</h3>
+            <style>
+                @keyframes borderFill {
+                    0% {
+                        stroke-dashoffset: 283;
+                    }
+
+                    100% {
+                        stroke-dashoffset: 0;
+                    }
+                }
+
+                @keyframes appearAndSpin {
+                    0% {
+                        opacity: 0;
+                        transform: scale(0.5) rotate(-90deg);
+                    }
+
+                    70% {
+                        opacity: 1;
+                        transform: scale(1.1) rotate(10deg);
+                    }
+
+                    100% {
+                        opacity: 1;
+                        transform: scale(1) rotate(0deg);
+                    }
+                }
+
+                .confetti {
+                    position: fixed;
+                    width: 10px;
+                    height: 10px;
+                    opacity: 0;
+                    animation: confetti-fall 3s ease-in-out forwards;
+                    top: -10px;
+                    z-index: 50;
+                }
+
+                @keyframes confetti-fall {
+                    0% {
+                        transform: translateY(0) rotate(0deg);
+                        opacity: 1;
+                    }
+
+                    100% {
+                        transform: translateY(100vh) rotate(360deg);
+                        opacity: 0;
+                    }
+                }
+            </style>
         </div>
-        <style>
-            @keyframes borderFill {
-                0% {
-                    stroke-dashoffset: 283;
-                }
 
-                100% {
-                    stroke-dashoffset: 0;
-                }
-            }
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const userID = document.getElementById('userID');
+                const popup = document.getElementById('membershipPopup');
+                const form = document.getElementById('membershipForm');
+                const closeBtn = document.getElementById('closePopup');
 
-            @keyframes appearAndSpin {
-                0% {
-                    opacity: 0;
-                    transform: scale(0.5) rotate(-90deg);
-                }
+                // Auto-show popup after 3 seconds
+                setTimeout(() => {
+                    popup.classList.replace('right-[-320px]', 'right-0');
+                }, 3000);
 
-                70% {
-                    opacity: 1;
-                    transform: scale(1.1) rotate(10deg);
-                }
+                // Close popup
+                closeBtn.addEventListener('click', () => {
+                    popup.classList.replace('right-0', 'right-[-320px]');
+                });
 
-                100% {
-                    opacity: 1;
-                    transform: scale(1) rotate(0deg);
-                }
-            }
+                // Submit form and update membership
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
 
-            .confetti {
-                position: fixed;
-                width: 10px;
-                height: 10px;
-                opacity: 0;
-                animation: confetti-fall 3s ease-in-out forwards;
-                top: -10px;
-                z-index: 50;
-            }
+                    const formData = new FormData();
+                    formData.append('UserID', userID.value);
 
-            @keyframes confetti-fall {
-                0% {
-                    transform: translateY(0) rotate(0deg);
-                    opacity: 1;
-                }
+                    fetch('../User/HomePage.php', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(res => res.text())
+                        .then(data => {
+                            // Hide form and show animation
+                            form.classList.add('hidden');
+                            document.getElementById('confettiSuccess').classList.remove('hidden');
 
-                100% {
-                    transform: translateY(100vh) rotate(360deg);
-                    opacity: 0;
-                }
-            }
-        </style>
-    </div>
+                            // Start confetti
+                            createConfetti();
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const userID = document.getElementById('userID');
-            const popup = document.getElementById('membershipPopup');
-            const form = document.getElementById('membershipForm');
-            const closeBtn = document.getElementById('closePopup');
-
-            // Auto-show popup after 5 seconds
-            setTimeout(() => {
-                popup.classList.replace('right-[-320px]', 'right-0');
-            }, 3000);
-
-            // Close popup
-            closeBtn.addEventListener('click', () => {
-                popup.classList.replace('right-0', 'right-[-320px]');
-            });
-
-            // Submit form and update membership
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                const formData = new FormData();
-                formData.append('UserID', userID.value);
-
-                fetch('../User/HomePage.php', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(res => res.text())
-                    .then(data => {
-                        // Hide form and show animation
-                        form.classList.add('hidden');
-                        document.getElementById('confettiSuccess').classList.remove('hidden');
-
-                        // Start confetti
-                        createConfetti();
-
-                        // Auto-close popup after 4 seconds
-                        setTimeout(() => {
-                            popup.classList.replace('right-0', 'right-[-320px]');
-                        }, 4000);
-                    })
-                    .catch(err => {
-                        alert('Error: ' + err);
-                    });
+                            // Auto-close popup after 4 seconds
+                            setTimeout(() => {
+                                popup.classList.replace('right-0', 'right-[-320px]');
+                            }, 4000);
+                        })
+                        .catch(err => {
+                            alert('Error: ' + err);
+                        });
+                });
             });
 
             // Confetti Generator
@@ -234,8 +258,8 @@ if (isset($_SESSION['UserID'])) {
                     confetti.addEventListener('animationend', () => confetti.remove());
                 }
             }
-        });
-    </script>
+        </script>
+    <?php endif; ?>
 
     <!-- Welcome message -->
     <?php if (isset($welcomeMessage)): ?>
@@ -304,18 +328,18 @@ if (isset($_SESSION['UserID'])) {
             </div>
 
             <!-- Search Form at Bottom Center -->
-            <form class="absolute bottom-10 left-1/2 transform -translate-x-1/2 w-full sm:max-w-[1030px] z-10 p-4 bg-white rounded-sm shadow-lg flex justify-between items-center space-x-4">
+            <form action="<?php echo $_SERVER['PHP_SELF']; ?>" class="absolute bottom-10 left-1/2 transform -translate-x-1/2 w-full sm:max-w-[1030px] z-10 p-4 bg-white rounded-sm shadow-lg flex justify-between items-center space-x-4">
                 <div class="flex items-center space-x-4">
                     <div class="flex gap-3">
                         <!-- Check-in Date -->
                         <div>
                             <label class="font-semibold text-blue-900">Check-In Date</label>
-                            <input type="date" id="checkin-date" class="p-3 border border-gray-300 rounded-sm" placeholder="Check-in Date">
+                            <input type="date" id="checkin-date" name="checkin_date" class="p-3 border border-gray-300 rounded-sm" placeholder="Check-in Date">
                         </div>
                         <!-- Check-out Date -->
                         <div>
                             <label class="font-semibold text-blue-900">Check-Out Date</label>
-                            <input type="date" id="checkout-date" class="p-3 border border-gray-300 rounded-sm" placeholder="Check-out Date">
+                            <input type="date" id="checkout-date" name="checkout_date" class="p-3 border border-gray-300 rounded-sm" placeholder="Check-out Date">
                         </div>
 
                         <script>
@@ -334,7 +358,7 @@ if (isset($_SESSION['UserID'])) {
                     </div>
                     <div class="flex">
                         <!-- Adults -->
-                        <select id="adults" class="p-3 border border-gray-300 rounded-sm">
+                        <select id="adults" name="adults" class="p-3 border border-gray-300 rounded-sm">
                             <option value="1">1 Adult</option>
                             <option value="2">2 Adults</option>
                             <option value="3">3 Adults</option>
@@ -343,7 +367,7 @@ if (isset($_SESSION['UserID'])) {
                             <option value="6">6 Adults</option>
                         </select>
                         <!-- Children -->
-                        <select id="children" class="p-3 border border-gray-300 rounded-sm">
+                        <select id="children" name="children" class="p-3 border border-gray-300 rounded-sm">
                             <option value="0">0 Children</option>
                             <option value="1">1 Child</option>
                             <option value="2">2 Children</option>
@@ -355,9 +379,13 @@ if (isset($_SESSION['UserID'])) {
                 </div>
 
                 <!-- Search Button -->
-                <div class="flex items-center space-x-2 select-none">
-                    <button class="p-3 bg-blue-900 text-white rounded-sm hover:bg-blue-950 uppercase font-semibold transition-colors duration-300">Check Availability</button>
-                </div>
+                <!-- <div class="flex items-center space-x-2 select-none">
+                    <button type="submit" name="check_availability" class="p-3 bg-blue-900 text-white rounded-sm hover:bg-blue-950 uppercase font-semibold transition-colors duration-300">Check Availability</button>
+                </div> -->
+                <a href="../User/RoomBooking.php" class="flex items-center space-x-2 select-none">
+                    <p class="p-3 bg-blue-900 text-white rounded-sm hover:bg-blue-950 uppercase font-semibold transition-colors duration-300">Check Availability</p>
+                    <!-- <button type="submit" name="check_availability" class="p-3 bg-blue-900 text-white rounded-sm hover:bg-blue-950 uppercase font-semibold transition-colors duration-300">Check Availability</button> -->
+                </a>
             </form>
         </div>
 
