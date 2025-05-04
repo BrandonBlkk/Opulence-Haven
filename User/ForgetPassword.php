@@ -15,6 +15,7 @@ use PHPMailer\PHPMailer\Exception;
 date_default_timezone_set('Asia/Yangon');
 
 $alertMessage = '';
+$resetPasswordSuccess = false;
 
 if (isset($_POST['reset'])) {
     $email = $_POST['email'];
@@ -145,12 +146,12 @@ if (isset($_POST['reset'])) {
                 ";
 
             $mail->send();
-            echo "<script>alert('Password reset link has been sent to your email. The link will expire in 1 hour.')</script>";
+            $resetPasswordSuccess = true;
         } catch (Exception $e) {
-            echo "<script>alert('Message could not be sent. Mailer Error: {$mail->ErrorInfo}')</script>";
+            $alertMessage = "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
         }
     } else {
-        echo "<script>alert('Invalid email address. Please enter a valid email address.')</script>";
+        $alertMessage = "Invalid email address. Please enter a valid email address";
     }
 }
 ?>
@@ -210,6 +211,7 @@ if (isset($_POST['reset'])) {
 
     <!-- Loader -->
     <?php
+    include('../includes/Loader.php');
     include('../includes/Alert.php');
     ?>
 

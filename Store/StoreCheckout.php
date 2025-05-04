@@ -317,7 +317,7 @@ $userData = $connect->query($user)->fetch_assoc();
                     }
                 </script>
 
-                <button type="submit" name="order" class="block w-full text-center font-semibold bg-blue-900 text-white py-2 hover:bg-blue-950 transition duration-300">Place Order</button>
+                <button type="submit" name="order" class="block w-full text-center font-semibold bg-blue-900 text-white py-2 hover:bg-blue-950 transition duration-300 select-none">Place Order</button>
             </form>
         </div>
     </section>
