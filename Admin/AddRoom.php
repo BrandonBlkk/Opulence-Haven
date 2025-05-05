@@ -11,28 +11,50 @@ $alertMessage = '';
 $addRoomSuccess = false;
 $updateRoomSuccess = false;
 $deleteRoomSuccess = false;
-$roomTypeID = AutoID('roomtypetb', 'RoomTypeID', 'R-', 6);
+$roomID = AutoID('roomtb', 'RoomID', 'R-', 6);
 
 // Add Room Type
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addroom'])) {
+    $roomname = mysqli_real_escape_string($connect, $_POST['roomname']);
+    $description = mysqli_real_escape_string($connect, $_POST['roomdescription']);
+    $roomprice = mysqli_real_escape_string($connect, $_POST['roomprice']);
+    $roomstatus = mysqli_real_escape_string($connect, $_POST['roomstatus']);
     $roomtype = mysqli_real_escape_string($connect, $_POST['roomtype']);
-    $description = mysqli_real_escape_string($connect, $_POST['description']);
-    $roomcapacity = mysqli_real_escape_string($connect, $_POST['roomcapacity']);
+
+    // Product image upload 
+    $productImage = $_FILES["roomcoverimage"]["name"];
+    $copyFile = "AdminImages/";
+    $fileName = $copyFile . uniqid() . "_" . $productImage;
+    $copy = copy($_FILES["roomcoverimage"]["tmp_name"], $fileName);
+
+    if (!$copy) {
+        echo "<p>Cannot upload Product Image.</p>";
+        exit();
+    }
+    $userProductImage = $_FILES["roomcoverimage"]["name"];
+    $copyFile = "../UserImages/";
+    $userFileName = $copyFile . uniqid() . "_" . $userProductImage;
+    $copy = copy($_FILES["roomcoverimage"]["tmp_name"], $userFileName);
+
+    if (!$copy) {
+        echo "<p>Cannot upload Product Image.</p>";
+        exit();
+    }
 
     // Check if the product type already exists using prepared statement
-    $checkQuery = "SELECT RoomType FROM roomtypetb WHERE RoomType = '$roomtype'";
+    $checkQuery = "SELECT RoomName FROM roomtb WHERE RoomName = '$roomname'";
     $count = $connect->query($checkQuery)->num_rows;
 
     if ($count > 0) {
-        $alertMessage = 'Room type you added is already existed.';
+        $alertMessage = 'Room you added is already existed.';
     } else {
-        $RoomTypeQuery = "INSERT INTO roomtypetb (RoomTypeID, RoomType, RoomDescription, RoomCapacity)
-        VALUES ('$roomTypeID', '$roomtype', '$description', '$roomcapacity')";
+        $RoomQuery = "INSERT INTO roomtb (RoomID, RoomCoverImage, RoomName, RoomDescription, RoomPrice, RoomStatus, RoomTypeID)
+        VALUES ('$roomID', '$userFileName', '$roomname', '$description', '$roomprice', '$roomstatus', '$roomtype')";
 
-        if ($connect->query($RoomTypeQuery)) {
-            $addRoomTypeSuccess = true;
+        if ($connect->query($RoomQuery)) {
+            $addRoomSuccess = true;
         } else {
-            $alertMessage = "Failed to add room type. Please try again.";
+            $alertMessage = "Failed to add room. Please try again.";
         }
     }
 }
@@ -125,7 +147,7 @@ if (isset($_POST['deleteroomtype'])) {
             <div class="overflow-x-auto">
                 <!-- Room Search and Filter -->
                 <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
-                    <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Rooms <span class="text-gray-400 text-sm ml-2"><?php echo $roomTypeCount ?></span></h1>
+                    <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Rooms <span class="text-gray-400 text-sm ml-2"><?php echo $allRoomCount ?></span></h1>
                     <div class="flex items-center w-full">
                         <input type="text" name="room_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full outline-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" placeholder="Search for room..." value="<?php echo isset($_GET['room_search']) ? htmlspecialchars($_GET['room_search']) : ''; ?>">
                     </div>
@@ -135,37 +157,59 @@ if (isset($_POST['deleteroomtype'])) {
                         <thead>
                             <tr class="bg-gray-100 text-gray-600 text-sm">
                                 <th class="p-3 text-start">ID</th>
-                                <th class="p-3 text-start">Type</th>
+                                <th class="p-3 text-start">Cover Image</th>
+                                <th class="p-3 text-start hidden sm:table-cell">Room</th>
                                 <th class="p-3 text-start hidden sm:table-cell">Description</th>
-                                <th class="p-3 text-start hidden sm:table-cell">Capacity</th>
+                                <th class="p-3 text-start hidden sm:table-cell">Price</th>
+                                <th class="p-3 text-start hidden sm:table-cell">Status</th>
+                                <th class="p-3 text-start hidden sm:table-cell">Room Type</th>
                                 <th class="p-3 text-start">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="text-gray-600 text-sm">
-                            <?php if (!empty($roomTypes)): ?>
-                                <?php foreach ($roomTypes as $roomType): ?>
+                            <?php if (!empty($rooms)): ?>
+                                <?php foreach ($rooms as $room): ?>
                                     <tr class="border-b border-gray-200 hover:bg-gray-50">
                                         <td class="p-3 text-start whitespace-nowrap">
                                             <div class="flex items-center gap-2 font-medium text-gray-500">
                                                 <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                                <span><?= htmlspecialchars($roomType['RoomTypeID']) ?></span>
+                                                <span><?= htmlspecialchars($room['RoomTypeID']) ?></span>
                                             </div>
                                         </td>
                                         <td class="p-3 text-start">
-                                            <?= htmlspecialchars($roomType['RoomType']) ?>
+                                            <?= htmlspecialchars($room['RoomCoverImage']) ?>
+                                        </td>
+                                        <td class="p-3 text-start">
+                                            <?= htmlspecialchars($room['RoomName']) ?>
                                         </td>
                                         <td class="p-3 text-start hidden sm:table-cell">
-                                            <?= htmlspecialchars($roomType['RoomDescription']) ?>
+                                            <?= htmlspecialchars($room['RoomDescription']) ?>
                                         </td>
                                         <td class="p-3 text-start hidden sm:table-cell">
-                                            <?= htmlspecialchars($roomType['RoomCapacity']) ?>
+                                            <?= htmlspecialchars($room['RoomPrice']) ?>
+                                        </td>
+                                        <td class="p-3 text-start hidden sm:table-cell">
+                                            <?= htmlspecialchars($room['RoomStatus']) ?>
+                                        </td>
+                                        <td class="p-3 text-start hidden md:table-cell">
+                                            <?php
+                                            // Fetch the specific product type for the supplier
+                                            $roomTypeID = $room['RoomTypeID'];
+                                            $roomTypeQuery = "SELECT RoomType FROM roomtypetb WHERE RoomTypeID = '$roomTypeID'";
+                                            $roomTypeResult = mysqli_query($connect, $roomTypeQuery);
+
+                                            if ($roomTypeResult && $roomTypeResult->num_rows > 0) {
+                                                $roomTypeRow = $roomTypeResult->fetch_assoc();
+                                                echo htmlspecialchars($roomTypeRow['RoomType']);
+                                            }
+                                            ?>
                                         </td>
                                         <td class="p-3 text-start space-x-1 select-none">
                                             <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                                data-roomtype-id="<?= htmlspecialchars($roomType['RoomTypeID']) ?>"></i>
+                                                data-roomtype-id="<?= htmlspecialchars($room['RoomTypeID']) ?>"></i>
                                             <button class="text-red-500">
                                                 <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                                    data-roomtype-id="<?= htmlspecialchars($roomType['RoomTypeID']) ?>"></i>
+                                                    data-roomtype-id="<?= htmlspecialchars($room['RoomTypeID']) ?>"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -173,7 +217,7 @@ if (isset($_POST['deleteroomtype'])) {
                             <?php else: ?>
                                 <tr>
                                     <td colspan="7" class="p-3 text-center text-gray-500 py-52">
-                                        No room types available.
+                                        No rooms available.
                                     </td>
                                 </tr>
                             <?php endif; ?>
@@ -303,39 +347,102 @@ if (isset($_POST['deleteroomtype'])) {
 
         <!-- Add Room Form -->
         <div id="addRoomModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
-            <div class="bg-white w-full md:w-1/3 p-6 rounded-md shadow-md ">
+            <div class="bg-white w-full md:w-1/3 p-6 rounded-md shadow-md">
                 <h2 class="text-xl text-gray-700 font-bold mb-4">Add New Room</h2>
-                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="roomForm">
+                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="roomForm" enctype="multipart/form-data">
+
+                    <!-- Cover Image Upload - Updated Section -->
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Cover Image (High-Quality JPG/PNG/JPEG)</label>
+
+                        <div id="cover-preview-container" class="hidden mb-4">
+                            <div class="relative group">
+                                <img id="cover-preview" class="w-full h-40 object-cover rounded-lg border border-gray-200">
+                                <button type="button" onclick="removeCoverImage()"
+                                    class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 shadow-md transition-opacity opacity-0 group-hover:opacity-100">
+                                    ×
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="relative">
+                            <div id="upload-area" class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                                <div class="flex flex-col items-center justify-center space-y-2 py-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <p class="text-sm text-gray-600">Click to upload or drag and drop</p>
+                                    <p class="text-xs text-gray-500">PNG, JPG, JPEG (Max. 5MB)</p>
+                                </div>
+                                <input type="file" name="roomcoverimage" id="cover-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/jpeg,image/png,image/jpg">
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Room Input -->
                     <div class="relative w-full">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Room Information</label>
                         <input
-                            id="roomInput"
+                            id="roomNameInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="text"
-                            name="roomtype"
-                            placeholder="Enter room type">
-                        <small id="roomTypeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            name="roomname"
+                            placeholder="Enter room name">
+                        <small id="roomNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
+
                     <!-- Description Input -->
                     <div class="relative">
                         <textarea
-                            id="roomTypeDescriptionInput"
+                            id="roomDescriptionInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="text"
-                            name="description"
-                            placeholder="Enter room type description"></textarea>
-                        <small id="roomTypeDescriptionError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            name="roomdescription"
+                            placeholder="Enter room description"></textarea>
+                        <small id="roomDescriptionError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
-                    <!-- Capacity Input -->
-                    <div class="relative w-full">
+
+                    <!-- Price Input -->
+                    <div class="relative">
                         <input
-                            id="roomCapacityInput"
+                            id="roomPriceInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="number"
-                            name="roomcapacity"
-                            placeholder="Enter room capacity">
-                        <small id="roomCapacityError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            name="roomprice"
+                            placeholder="Enter room price">
+                        <small id="roomPriceError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
+                        <!-- Status -->
+                        <div class="relative flex-1">
+                            <select name="roomstatus" id="roomstatus" class="p-2 w-full border rounded outline-none" required>
+                                <option value="" disabled selected>Status</option>
+                                <option value="available">Available</option>
+                                <option value="unavailable">Unavailable</option>
+                            </select>
+                        </div>
+                        <!-- Room Type -->
+                        <div class="relative flex-1">
+                            <select name="roomtype" id="roomtype" class="p-2 w-full border rounded outline-none" required>
+                                <option value="" disabled selected>Select type of rooms</option>
+                                <?php
+                                $select = "SELECT * FROM roomtypetb";
+                                $query = $connect->query($select);
+                                $count = $query->num_rows;
+                                if ($count) {
+                                    for ($i = 0; $i < $count; $i++) {
+                                        $row = $query->fetch_assoc();
+                                        $room_type_id = $row['RoomTypeID'];
+                                        $room_type = $row['RoomType'];
+                                        echo "<option value='$room_type_id'>$room_type</option>";
+                                    }
+                                } else {
+                                    echo "<option value='' disabled>No data yet</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="flex justify-end gap-4 select-none">
@@ -353,6 +460,75 @@ if (isset($_POST['deleteroomtype'])) {
                 </form>
             </div>
         </div>
+
+        <script>
+            // JavaScript to handle image preview
+            const coverInput = document.getElementById('cover-input');
+            const coverPreview = document.getElementById('cover-preview');
+            const coverPreviewContainer = document.getElementById('cover-preview-container');
+            const uploadArea = document.getElementById('upload-area');
+
+            // Handle file selection
+            coverInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('File size exceeds 5MB limit');
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        coverPreview.src = e.target.result;
+                        coverPreviewContainer.classList.remove('hidden');
+                        uploadArea.classList.add('hidden');
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Handle drag and drop
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight() {
+                uploadArea.classList.add('border-blue-400', 'bg-blue-50');
+            }
+
+            function unhighlight() {
+                uploadArea.classList.remove('border-blue-400', 'bg-blue-50');
+            }
+
+            uploadArea.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                coverInput.files = files;
+                const event = new Event('change');
+                coverInput.dispatchEvent(event);
+            }
+
+            function removeCoverImage() {
+                coverInput.value = '';
+                coverPreviewContainer.classList.add('hidden');
+                uploadArea.classList.remove('hidden');
+            }
+        </script>
     </div>
 
     <!-- Loader -->

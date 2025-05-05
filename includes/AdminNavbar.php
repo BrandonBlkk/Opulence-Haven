@@ -211,6 +211,41 @@ $roomTypeCountQuery = "SELECT COUNT(*) as count FROM roomtypetb";
 $roomTypeCountResult = $connect->query($roomTypeCountQuery);
 $allRoomTypeCount = $roomTypeCountResult->fetch_assoc()['count'];
 
+// Initialize search variables for room type
+$searchRoomQuery = isset($_GET['room_search']) ? mysqli_real_escape_string($connect, $_GET['room_search']) : '';
+
+// Construct the room type query based on search
+if (!empty($searchRoomQuery)) {
+    $roomSelect = "SELECT * FROM roomtb WHERE RoomName LIKE '%$searchRoomQuery%' OR RoomDescription LIKE '%$searchRoomQuery%'";
+} else {
+    $roomSelect = "SELECT * FROM roomtb";
+}
+
+$roomSelectQuery = $connect->query($roomSelect);
+$rooms = [];
+
+if (mysqli_num_rows($roomSelectQuery) > 0) {
+    while ($row = $roomSelectQuery->fetch_assoc()) {
+        $rooms[] = $row;
+    }
+}
+
+// Construct the roomtype count query based on search
+if (!empty($searchRoomQuery)) {
+    $roomQuery = "SELECT COUNT(*) as count FROM roomtb WHERE RoomName LIKE '%$searchRoomQuery%' OR RoomDescription LIKE '%$searchRoomQuery%'";
+} else {
+    $roomQuery = "SELECT COUNT(*) as count FROM roomtb";
+}
+
+// Execute the count query
+$roomResult = $connect->query($roomQuery);
+$roomCount = $roomResult->fetch_assoc()['count'];
+
+// Fetch room type count
+$roomCountQuery = "SELECT COUNT(*) as count FROM roomtb";
+$roomCountResult = $connect->query($roomCountQuery);
+$allRoomCount = $roomCountResult->fetch_assoc()['count'];
+
 // Initialize search variables for facility type
 $searchFacilityTypeQuery = isset($_GET['facilitytype_search']) ? mysqli_real_escape_string($connect, $_GET['facilitytype_search']) : '';
 

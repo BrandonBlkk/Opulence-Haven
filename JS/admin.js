@@ -956,9 +956,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const addRoomModal = document.getElementById('addRoomModal');
     const addRoomBtn = document.getElementById('addRoomBtn');
     const addRoomCancelBtn = document.getElementById('addRoomCancelBtn');
-    const loader = document.getElementById('loader');
-    const alertMessage = document.getElementById('alertMessage').value;
-    const addRoomSuccess = document.getElementById('addRoomSuccess').value === 'true';
+    // const loader = document.getElementById('loader');
+    // const alertMessage = document.getElementById('alertMessage').value;
+    // const addRoomSuccess = document.getElementById('addRoomSuccess').value === 'true';
 
     if (addRoomModal && addRoomBtn && addRoomCancelBtn) {
         // Show modal
