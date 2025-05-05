@@ -360,16 +360,29 @@ if (!$connect) {
 //     echo "Data has been saved";
 // }
 
-// $roomimage = "CREATE TABLE roomimagetb
-// (
-//     ImageID int not null primary key auto_increment,
-//     ImageAdminPath text,
-//     ImageUserPath text,
-//     RoomID varchar(20),
-//     FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
-//     ON DELETE CASCADE 
-//     ON UPDATE CASCADE
-// )";
+$roomview = "CREATE TABLE roomviewtb
+(
+    ReviewID int not null primary key auto_increment,
+    Rating int,
+    Comment text,
+    AddedDate datetime default current_timestamp,
+    LastUpdate datetime default current_timestamp on update current_timestamp,
+    UserID varchar(30),
+    RoomID varchar(20),
+    FOREIGN KEY (UserID) REFERENCES usertb (UserID)
+    ON DELETE CASCADE 
+    ON UPDATE CASCADE,
+    FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
+    ON DELETE CASCADE 
+    ON UPDATE CASCADE
+)";
+
+try {
+    $query = mysqli_query($connect, $roomview);
+    echo "Data Successfully saved";
+} catch (mysqli_sql_exception) {
+    echo "Data has been saved";
+}
 
 // $roomimage = "CREATE TABLE roomimagetb
 // (
@@ -512,21 +525,21 @@ if (!$connect) {
 //     echo "Data has been saved";
 // }
 
-$cart = "CREATE TABLE carttb
-(
-    CartID int NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    UserID varchar(30),
-    ProductID varchar(20),
-    SizeID int,
-    Quantity int,
-    FOREIGN KEY (UserID) REFERENCES usertb (UserID),
-    FOREIGN KEY (SizeID) REFERENCES sizetb (SizeID),
-    FOREIGN KEY (ProductID) REFERENCES producttb (ProductID)
-)";
+// $cart = "CREATE TABLE carttb
+// (
+//     CartID int NOT NULL PRIMARY KEY AUTO_INCREMENT,
+//     UserID varchar(30),
+//     ProductID varchar(20),
+//     SizeID int,
+//     Quantity int,
+//     FOREIGN KEY (UserID) REFERENCES usertb (UserID),
+//     FOREIGN KEY (SizeID) REFERENCES sizetb (SizeID),
+//     FOREIGN KEY (ProductID) REFERENCES producttb (ProductID)
+// )";
 
-try {
-    $query = mysqli_query($connect, $cart);
-    echo "Data Successfully saved";
-} catch (mysqli_sql_exception) {
-    echo "Data has been saved";
-}
+// try {
+//     $query = mysqli_query($connect, $cart);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }

@@ -30,24 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
     $stmt->close();
     exit;
 }
-
-// Checking Room Availability
-if (isset($_POST['roomType']) && isset($_POST['checkin_date']) && isset($_POST['checkout_date'])) {
-    $roomType = $_POST['roomType'];
-    $checkIn = $_POST['checkin_date'];
-    $checkOut = $_POST['checkout_date'];
-    $adults = $_POST['adults'];
-    $children = $_POST['children'];
-
-    $stmt = $connect->prepare("SELECT RoomID FROM roomtb WHERE RoomTypeID = ? AND RoomAvailability = 'Available'");
-    $stmt->bind_param("s", $roomType);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $rooms = $result->fetch_all(MYSQLI_ASSOC);
-
-    echo json_encode($rooms);
-    exit;
-}
 ?>
 
 <!DOCTYPE html>
@@ -61,7 +43,8 @@ if (isset($_POST['roomType']) && isset($_POST['checkin_date']) && isset($_POST['
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../CSS/output.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
-
+    <!-- Swiper JS -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 </head>
 
 <body class="relative">
@@ -325,21 +308,39 @@ if (isset($_POST['roomType']) && isset($_POST['checkin_date']) && isset($_POST['
                         class="w-full h-full lg:max-h-[620px] object-cover object-top clip-custom select-none"
                         alt="Yet Another Room">
                 </div>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const swiper = new Swiper('.swiper-container', {
+                            effect: 'fade',
+                            loop: true,
+                            autoplay: {
+                                delay: 6000,
+                                disableOnInteraction: false,
+                            },
+                            pagination: {
+                                el: '.swiper-pagination',
+                                clickable: true,
+                            },
+                            allowTouchMove: true,
+                        });
+                    });
+                </script>
             </div>
 
             <!-- Search Form at Bottom Center -->
-            <form action="<?php echo $_SERVER['PHP_SELF']; ?>" class="absolute bottom-10 left-1/2 transform -translate-x-1/2 w-full sm:max-w-[1030px] z-10 p-4 bg-white rounded-sm shadow-lg flex justify-between items-center space-x-4">
+            <form action="../User/RoomBooking.php" method="GET" class="absolute bottom-10 left-1/2 transform -translate-x-1/2 w-full sm:max-w-[1030px] z-10 p-4 bg-white rounded-sm shadow-lg flex justify-between items-center space-x-4">
                 <div class="flex items-center space-x-4">
                     <div class="flex gap-3">
                         <!-- Check-in Date -->
                         <div>
                             <label class="font-semibold text-blue-900">Check-In Date</label>
-                            <input type="date" id="checkin-date" name="checkin_date" class="p-3 border border-gray-300 rounded-sm" placeholder="Check-in Date">
+                            <input type="date" id="checkin-date" name="checkin_date" class="p-3 border border-gray-300 rounded-sm outline-none" placeholder="Check-in Date" required>
                         </div>
                         <!-- Check-out Date -->
                         <div>
                             <label class="font-semibold text-blue-900">Check-Out Date</label>
-                            <input type="date" id="checkout-date" name="checkout_date" class="p-3 border border-gray-300 rounded-sm" placeholder="Check-out Date">
+                            <input type="date" id="checkout-date" name="checkout_date" class="p-3 border border-gray-300 rounded-sm outline-none" placeholder="Check-out Date" required>
                         </div>
 
                         <script>
@@ -353,12 +354,26 @@ if (isset($_POST['roomType']) && isset($_POST['checkin_date']) && isset($_POST['
 
                                 checkInDateInput.setAttribute('min', today);
                                 checkOutDateInput.setAttribute('min', today);
+
+                                // Set checkout date to be at least 1 day after checkin
+                                checkInDateInput.addEventListener('change', function() {
+                                    if (this.value) {
+                                        const nextDay = new Date(this.value);
+                                        nextDay.setDate(nextDay.getDate() + 1);
+                                        checkOutDateInput.min = nextDay.toISOString().split('T')[0];
+
+                                        // Reset checkout date if it's now invalid
+                                        if (checkOutDateInput.value && checkOutDateInput.value < checkOutDateInput.min) {
+                                            checkOutDateInput.value = '';
+                                        }
+                                    }
+                                });
                             });
                         </script>
                     </div>
                     <div class="flex">
                         <!-- Adults -->
-                        <select id="adults" name="adults" class="p-3 border border-gray-300 rounded-sm">
+                        <select id="adults" name="adults" class="p-3 border border-gray-300 rounded-sm outline-none">
                             <option value="1">1 Adult</option>
                             <option value="2">2 Adults</option>
                             <option value="3">3 Adults</option>
@@ -367,7 +382,7 @@ if (isset($_POST['roomType']) && isset($_POST['checkin_date']) && isset($_POST['
                             <option value="6">6 Adults</option>
                         </select>
                         <!-- Children -->
-                        <select id="children" name="children" class="p-3 border border-gray-300 rounded-sm">
+                        <select id="children" name="children" class="p-3 border border-gray-300 rounded-sm outline-none">
                             <option value="0">0 Children</option>
                             <option value="1">1 Child</option>
                             <option value="2">2 Children</option>
@@ -379,33 +394,11 @@ if (isset($_POST['roomType']) && isset($_POST['checkin_date']) && isset($_POST['
                 </div>
 
                 <!-- Search Button -->
-                <!-- <div class="flex items-center space-x-2 select-none">
-                    <button type="submit" name="check_availability" class="p-3 bg-blue-900 text-white rounded-sm hover:bg-blue-950 uppercase font-semibold transition-colors duration-300">Check Availability</button>
-                </div> -->
-                <a href="../User/RoomBooking.php" class="flex items-center space-x-2 select-none">
-                    <p class="p-3 bg-blue-900 text-white rounded-sm hover:bg-blue-950 uppercase font-semibold transition-colors duration-300">Check Availability</p>
-                    <!-- <button type="submit" name="check_availability" class="p-3 bg-blue-900 text-white rounded-sm hover:bg-blue-950 uppercase font-semibold transition-colors duration-300">Check Availability</button> -->
-                </a>
+                <button type="submit" name="check_availability" class="p-3 bg-blue-900 text-white rounded-sm hover:bg-blue-950 uppercase font-semibold transition-colors duration-300 select-none">
+                    Check Availability
+                </button>
             </form>
         </div>
-
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const swiper = new Swiper('.swiper-container', {
-                    effect: 'fade',
-                    loop: true,
-                    autoplay: {
-                        delay: 6000,
-                        disableOnInteraction: false,
-                    },
-                    pagination: {
-                        el: '.swiper-pagination',
-                        clickable: true,
-                    },
-                    allowTouchMove: true,
-                });
-            });
-        </script>
 
         <div class="flex flex-col items-center justify-center py-16 px-3 text-center">
             <h1 class="text-2xl sm:text-4xl mb-5 text-blue-900 font-semibold">Get away at the best price</h1>
