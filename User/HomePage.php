@@ -6,7 +6,7 @@ if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-$userID = $_SESSION['UserID'];
+$userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
 
 // Check if there's a welcome message to display
 if (isset($_SESSION['welcome_message']) && isset($_SESSION['UserName'])) {
@@ -54,13 +54,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
     ?>
 
     <?php
-    $user = "SELECT * FROM usertb WHERE UserID = '$userID'";
-    $result = $connect->query($user);
-    $row = $result->fetch_assoc();
-    $Membership = $row['Membership'];
+    if ($userID) {
+        $user = "SELECT * FROM usertb WHERE UserID = '$userID'";
+        $result = $connect->query($user);
+
+        if ($result && $result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            $Membership = $row['Membership'] ?? null;
+        } else {
+            $Membership = null; // No user found
+        }
+    } else {
+        $Membership = null; // No user signed in
+    }
     ?>
 
-    <?php if ($Membership == 0): ?>
+    <?php if ($Membership == 0 && $userID): ?>
         <!-- Side Popup Container -->
         <div id="membershipPopup" class="fixed right-[-320px] top-1/2 -translate-y-1/2 w-80 bg-white shadow-lg rounded-l-md z-50 transition-all duration-300 ease-out">
             <!-- Header -->
