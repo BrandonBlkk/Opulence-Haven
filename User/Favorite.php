@@ -5,6 +5,48 @@ include('../config/dbConnection.php');
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
+
+// Initialize array to store favorite rooms
+$favorite_rooms = [];
+$userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
+
+// Check if user is logged in
+if (isset($_SESSION['UserID'])) {
+    $favorite_query = "SELECT r.*, rt.RoomType , rt.RoomCapacity
+                      FROM roomfavoritetb f
+                      JOIN roomtb r ON f.RoomID = r.RoomID
+                      JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
+                      WHERE f.UserID = '$userID'";
+
+    $favorite_result = $connect->query($favorite_query);
+
+    if ($favorite_result->num_rows > 0) {
+        while ($room = $favorite_result->fetch_assoc()) {
+            $favorite_rooms[] = $room;
+        }
+    }
+}
+
+// Add room to favorites
+if (isset($_POST['room_favourite'])) {
+    $roomID = $_POST['roomID'];
+
+    $check = "SELECT COUNT(*) as count FROM roomfavoritetb WHERE UserID = '$userID' AND RoomID = '$roomID'";
+    $result = $connect->query($check);
+    $count = $result->fetch_assoc()['count'];
+
+    if ($count == 0) {
+        $insert = "INSERT INTO roomfavoritetb (UserID, RoomID) VALUES ('$userID', '$roomID')";
+        $connect->query($insert);
+    } else {
+        $delete = "DELETE FROM roomfavoritetb WHERE UserID = '$userID' AND RoomID = '$roomID'";
+        $connect->query($delete);
+    }
+
+    // Refresh page
+    header("Location: Favorite.php");
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -36,71 +78,117 @@ if (!$connect) {
             </div>
         </section>
 
-        <h1 class="uppercase text-xl sm:text-2xl text-blue-900 font-semibold my-5">Your Favorites <span class="text-amber-500">(3)</span></h1>
+        <div class="my-5">
+            <h1 class="uppercase text-xl sm:text-2xl text-blue-900 font-semibold">Your Favorites</h1>
+            <span class="text-amber-500">(<?php echo count($favorite_rooms); ?>) saved <?php echo count($favorite_rooms) > 1 ? 'rooms' : 'room'; ?></span>
+        </div>
         <?php
-        if (isset($_SESSION['UserID']) && $_SESSION['UserID']) {
+        if (isset($_SESSION['UserID']) && $_SESSION['UserID'] && !empty($favorite_rooms)) {
         ?>
-            <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- Card 1 -->
-                <a href="../Store/StoreDetails.php" class="block w-full group">
-                    <div class="relative">
-                        <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
-                            <img src="../UserImages/white-comfortable-pillow-blanket-decoration-bed-interior-bedroom.jpg" class="w-full h-full object-cover rounded-sm" alt="Hotel Room">
-                        </div>
-                        <div class="absolute bottom-0 bg-opacity-45 text-white p-3 w-full z-20 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all duration-300">
-                            <h1 class="font-semibold mt-3">Black Friday Limited Offer</h1>
-                            <p class="mt-2 text-sm">
-                                Book on ALL.com to get 3x Reward points for your stay, across Europe and North Africa.
-                                Choose from a variety of brands, and find your dream destination for your perfect trip.
-                            </p>
-                            <div class="flex items-center text-amber-500 group mt-1">
-                                <span class="select-none">Book now</span>
-                                <i class="ri-arrow-right-line text-xl group-hover:translate-x-2 transition-all duration-200"></i>
+            <section class="grid grid-cols-1 gap-6">
+                <?php foreach ($favorite_rooms as $room):
+                    // Check if room is favorited
+                    $check_favorite = "SELECT COUNT(*) as count FROM roomfavoritetb WHERE UserID = '$userID' AND RoomID = '" . $room['RoomID'] . "'";
+                    $favorite_result = $connect->query($check_favorite);
+                    $is_favorited = $favorite_result->fetch_assoc()['count'] > 0;
+                ?>
+                    <!-- Card -->
+                    <div class="border rounded-lg overflow-hidden">
+                        <div class="flex flex-col md:flex-row">
+                            <!-- Image -->
+                            <div class="md:w-[28%] h-64 overflow-hidden select-none rounded-l-md relative">
+                                <img src="<?= htmlspecialchars($room['RoomCoverImage']) ?>" alt="<?= htmlspecialchars($room['RoomName']) ?>" class="w-full h-full object-cover">
+                                <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post">
+                                    <input type="hidden" name="roomID" value="<?= $room['RoomID'] ?>">
+                                    <button type="submit" name="room_favourite">
+                                        <!-- Changed this line to use $is_favorited -->
+                                        <i class="absolute top-3 right-3 ri-heart-fill text-xl cursor-pointer flex items-center justify-center bg-white w-9 h-9 rounded-full hover:bg-slate-100 transition-colors duration-300 <?= $is_favorited ? 'text-red-500 hover:text-red-600' : 'text-slate-400 hover:text-red-300' ?>"></i>
+                                    </button>
+                                </form>
                             </div>
-                        </div>
-                        <div class="absolute bottom-0 left-0 right-0 h-44 bg-gradient-to-t from-blue-950/75 lg:from-amber-900/65 via-blue-950/65 lg:via-amber-900/45 to-transparent z-10 group-hover:h-48 transition-all duration-300"></div>
-                    </div>
-                </a>
 
-                <a href="../Store/StoreDetails.php" class="block w-full group">
-                    <div class="relative">
-                        <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
-                            <img src="../UserImages/white-pillow.jpg" class="w-full h-full object-cover rounded-sm" alt="Hotel Room">
-                        </div>
-                        <div class="absolute bottom-0 bg-opacity-45 text-white p-3 w-full z-20 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all duration-300">
-                            <h1 class="font-semibold mt-3">Black Friday Limited Offer</h1>
-                            <p class="mt-2 text-sm">
-                                Book on ALL.com to get 3x Reward points for your stay, across Europe and North Africa.
-                                Choose from a variety of brands, and find your dream destination for your perfect trip.
-                            </p>
-                            <div class="flex items-center text-amber-500 group mt-1">
-                                <span class="select-none">Book now</span>
-                                <i class="ri-arrow-right-line text-xl group-hover:translate-x-2 transition-all duration-200"></i>
-                            </div>
-                        </div>
-                        <div class="absolute bottom-0 left-0 right-0 h-44 bg-gradient-to-t from-blue-950/75 lg:from-amber-900/65 via-blue-950/65 lg:via-amber-900/45 to-transparent z-10 group-hover:h-48 transition-all duration-300"></div>
-                    </div>
-                </a>
+                            <!-- Details -->
+                            <div class="md:w-2/3 p-5">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h2 class="text-xl font-bold text-gray-800"><?= htmlspecialchars($room['RoomType']) ?> <?= htmlspecialchars($room['RoomName']) ?></h2>
+                                        <?php
+                                        $review_select = "SELECT Rating FROM roomviewtb WHERE RoomID = '" . $room['RoomID'] . "'";
+                                        $select_query = $connect->query($review_select);
 
-                <a href="../Store/StoreDetails.php" class="block w-full group">
-                    <div class="relative">
-                        <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
-                            <img src="../UserImages/novotel-pillow-protector-pair-nov_lrg.jpg" class="w-full h-full object-cover rounded-sm" alt="Hotel Room">
-                        </div>
-                        <div class="absolute bottom-0 bg-opacity-45 text-white p-3 w-full z-20 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all duration-300">
-                            <h1 class="font-semibold mt-3">Black Friday Limited Offer</h1>
-                            <p class="mt-2 text-sm">
-                                Book on ALL.com to get 3x Reward points for your stay, across Europe and North Africa.
-                                Choose from a variety of brands, and find your dream destination for your perfect trip.
-                            </p>
-                            <div class="flex items-center text-amber-500 group mt-1">
-                                <span class="select-none">Book now</span>
-                                <i class="ri-arrow-right-line text-xl group-hover:translate-x-2 transition-all duration-200"></i>
+                                        // Check if there are any reviews
+                                        $totalReviews = $select_query->num_rows;
+                                        if ($totalReviews > 0) {
+                                            $totalRating = 0;
+
+                                            // Sum all ratings
+                                            while ($review = $select_query->fetch_assoc()) {
+                                                $totalRating += $review['Rating'];
+                                            }
+
+                                            // Calculate the average rating
+                                            $averageRating = $totalRating / $totalReviews;
+                                        } else {
+                                            $averageRating = 0;
+                                        }
+                                        ?>
+
+                                        <div class="flex items-center gap-3">
+                                            <div class="select-none space-x-1 cursor-pointer">
+                                                <?php
+                                                $fullStars = floor($averageRating);
+                                                $halfStar = ($averageRating - $fullStars) >= 0.5 ? 1 : 0;
+                                                $emptyStars = 5 - ($fullStars + $halfStar);
+
+                                                // Display full stars
+                                                for ($i = 0; $i < $fullStars; $i++) {
+                                                    echo '<i class="ri-star-fill text-amber-500"></i>';
+                                                }
+
+                                                // Display half star if needed
+                                                if ($halfStar) {
+                                                    echo '<i class="ri-star-half-line text-amber-500"></i>';
+                                                }
+
+                                                // Display empty stars
+                                                for ($i = 0; $i < $emptyStars; $i++) {
+                                                    echo '<i class="ri-star-line text-amber-500"></i>';
+                                                }
+                                                ?>
+                                            </div>
+                                            <p class="text-gray-500 text-sm">
+                                                (<?php echo $totalReviews; ?> review<?php echo ($totalReviews > 1) ? 's' : ''; ?>)
+                                            </p>
+                                        </div>
+                                        <p class="text-sm text-gray-600 mt-2 flex items-center">
+                                            <i class="ri-map-pin-line mr-1"></i> <?php echo $room['Location'] ?? 'Yangon downtown, Yangon' ?>
+                                            <span class="mx-2">•</span>
+                                            <span>2.2 km from centre</span>
+                                        </p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-sm text-gray-500">1 night: <?php echo $room['RoomCapacity'] ?> adults</p>
+                                        <p class="text-lg font-bold text-blue-600">USD <?php echo number_format($room['RoomPrice'], 0) ?></p>
+                                        <p class="text-xs text-gray-500">Includes taxes and charges</p>
+                                        <p class="text-xs text-green-600 mt-1">✔ Free cancellation</p>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 pt-4 border-t">
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <p class="text-sm text-gray-600">Tue 6 May - Wed 7 May</p>
+                                            <p class="text-sm text-gray-600">2 adults - 0 children - 1 room</p>
+                                        </div>
+                                        <a href="../User/RoomDetails.php?RoomID=<?php echo $room['RoomID'] ?>" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                                            View Details
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="absolute bottom-0 left-0 right-0 h-44 bg-gradient-to-t from-blue-950/75 lg:from-amber-900/65 via-blue-950/65 lg:via-amber-900/45 to-transparent z-10 group-hover:h-48 transition-all duration-300"></div>
                     </div>
-                </a>
+                <?php endforeach; ?>
             </section>
         <?php
         } else {
@@ -108,12 +196,6 @@ if (!$connect) {
             <p class="mt-10 py-36 flex justify-center text-center text-base text-gray-400">
                 You have no favorite items yet.
             </p>
-            <!-- No Booking -->
-            <!-- <div class="flex justify-center">
-                <div class="max-w-sm">
-                    <img src="./UserImages/Screenshot 2024-12-01 002052.png" class="w-full h-full object-cover" alt="Image">
-                </div>
-            </div> -->
         <?php
         }
         ?>
@@ -124,7 +206,7 @@ if (!$connect) {
     ?>
 
     <script src="//unpkg.com/alpinejs" defer></script>
-    <script src="../JS/index.js"></script>
+    <script type="module" src="../JS/index.js"></script>
 </body>
 
 </html>

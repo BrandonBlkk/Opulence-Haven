@@ -176,8 +176,8 @@ if (isset($_POST['deleteroomtype'])) {
                                                 <span><?= htmlspecialchars($room['RoomTypeID']) ?></span>
                                             </div>
                                         </td>
-                                        <td class="p-3 text-start">
-                                            <?= htmlspecialchars($room['RoomCoverImage']) ?>
+                                        <td class="p-3 text-start select-none">
+                                            <img src="<?= htmlspecialchars($room['RoomCoverImage']) ?>" alt="Product Image" class="w-12 h-12 object-cover rounded-sm">
                                         </td>
                                         <td class="p-3 text-start">
                                             <?= htmlspecialchars($room['RoomName']) ?>

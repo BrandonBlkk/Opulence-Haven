@@ -6,7 +6,9 @@ if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-$userID = $_SESSION['UserID'];
+$userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
+$alertMessage = '';
+$showLoginModal = false;
 
 // Get search parameters from URL
 $checkin_date = isset($_GET['checkin_date']) ? $_GET['checkin_date'] : '';
@@ -52,6 +54,31 @@ $stmt->execute();
 $result = $stmt->get_result();
 $available_rooms = $result->fetch_all(MYSQLI_ASSOC);
 $foundProperties = count($available_rooms);
+
+// Add room to favorites
+if (isset($_POST['room_favourite'])) {
+    if ($userID) {
+        $roomID = $_POST['roomID'];
+
+        $check = "SELECT COUNT(*) as count FROM roomfavoritetb WHERE UserID = '$userID' AND RoomID = '$roomID'";
+        $result = $connect->query($check);
+        $count = $result->fetch_assoc()['count'];
+
+        if ($count == 0) {
+            $insert = "INSERT INTO roomfavoritetb (UserID, RoomID) VALUES ('$userID', '$roomID')";
+            $connect->query($insert);
+        } else {
+            $delete = "DELETE FROM roomfavoritetb WHERE UserID = '$userID' AND RoomID = '$roomID'";
+            $connect->query($delete);
+        }
+
+        // Refresh page
+        header("Location: RoomBooking.php");
+        exit();
+    } else {
+        $showLoginModal = true;
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -72,6 +99,97 @@ $foundProperties = count($available_rooms);
     include('../includes/Navbar.php');
     include('../includes/Cookies.php');
     ?>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 z-50 flex items-center justify-center <?php echo !empty($showLoginModal) ? '' : 'hidden'; ?>">
+        <!-- Overlay -->
+        <div class="absolute inset-0 bg-black opacity-50"></div>
+
+        <!-- Modal Container -->
+        <div class="relative bg-white rounded-md shadow-2xl max-w-md w-full mx-4 z-10 overflow-hidden">
+            <!-- Modal Header -->
+            <div class="bg-blue-950 p-6 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+
+                    <h3 class="text-xl font-semibold text-white">Sign In for Full Access</h3>
+                </div>
+
+                <button
+                    type="button"
+                    onclick="closeModal()"
+                    class="text-white">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-6">
+                <div class="flex items-start mb-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-500 mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div>
+                        <p class="text-gray-700 font-medium">To save favorite rooms and access all features:</p>
+                        <ul class="list-disc list-inside text-gray-600 mt-2 space-y-1 pl-4">
+                            <li>Save unlimited favorite rooms</li>
+                            <li>Get personalized recommendations</li>
+                            <li>Access booking history</li>
+                            <li>Receive exclusive member deals</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <div class="flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-800 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clip-rule="evenodd" />
+                        </svg>
+                        <p class="text-sm text-blue-800">New to our site? Creating an account only takes 30 seconds!</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col space-y-2 my-3">
+                    <a
+                        href="../User/UserSignIn.php"
+                        class="px-6 py-2.5 bg-amber-500 text-white rounded-md hover:from-indigo-700 hover:to-purple-700 transition-colors font-medium text-center shadow-sm select-none">
+                        Sign In
+                    </a>
+                    <a
+                        href="../User/UserSignUp.php"
+                        class="text-xs text-center text-blue-900 hover:text-blue-800 hover:underline transition-colors">
+                        Don't have an account? Register
+                    </a>
+                </div>
+
+                <!-- Footer matching the site's advisory note style -->
+                <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
+                    <p class="text-xs text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Remember to review any travel advisories before booking.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function closeModal() {
+            document.getElementById('loginModal').classList.add('hidden');
+            // Remove the favorite POST parameter from URL if page was refreshed
+            if (window.history.replaceState) {
+                window.history.replaceState(null, null, window.location.pathname);
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('loginModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
 
     <main class="pb-4">
         <div class="relative swiper-container flex justify-center">
@@ -295,15 +413,26 @@ $foundProperties = count($available_rooms);
                         </div>
 
                         <!-- Hotel Listings -->
-                        <?php foreach ($available_rooms as $room): ?>
+                        <?php foreach ($available_rooms as $room):
+                            // Check if room is favorited
+                            $check_favorite = "SELECT COUNT(*) as count FROM roomfavoritetb WHERE UserID = '$userID' AND RoomID = '" . $room['RoomID'] . "'";
+                            $favorite_result = $connect->query($check_favorite);
+                            $is_favorited = $favorite_result->fetch_assoc()['count'] > 0;
+                        ?>
                             <div class="bg-white overflow-hidden">
-                                <a href="../User/RoomDetails.php?room_id=<?= $room['RoomID'] ?>&checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="flex flex-col md:flex-row items-center rounded-md shadow-sm border">
+                                <a href="../User/RoomDetails.php?room_id=<?= $room['RoomID'] ?>&checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="flex flex-col md:flex-row rounded-md shadow-sm border">
                                     <div class="md:w-[28%] h-64 overflow-hidden select-none rounded-l-md relative">
                                         <img src="<?= htmlspecialchars($room['RoomCoverImage']) ?>" alt="<?= htmlspecialchars($room['RoomName']) ?>" class="w-full h-full object-cover">
-                                        <i class="absolute top-3 right-3 ri-heart-line text-xl cursor-pointer flex items-center justify-center bg-white text-slate-400 w-9 h-9 rounded-full hover:bg-slate-100 transition-colors duration-300"></i>
+                                        <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post">
+                                            <input type="hidden" name="roomID" value="<?= $room['RoomID'] ?>">
+                                            <button type="submit" name="room_favourite">
+                                                <!-- Changed this line to use $is_favorited -->
+                                                <i class="absolute top-3 right-3 ri-heart-fill text-xl cursor-pointer flex items-center justify-center bg-white w-9 h-9 rounded-full hover:bg-slate-100 transition-colors duration-300 <?= $is_favorited ? 'text-red-500 hover:text-red-600' : 'text-slate-400 hover:text-red-300' ?>"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                     <div class="md:w-2/3 p-4">
-                                        <div class="flex justify-between">
+                                        <div class="flex justify-between items-start">
                                             <div class="flex items-center gap-4">
                                                 <h2 class="text-xl font-bold text-gray-800"><?= htmlspecialchars($room['RoomType']) ?> <?= htmlspecialchars($room['RoomName']) ?></h2>
                                                 <?php
@@ -364,9 +493,7 @@ $foundProperties = count($available_rooms);
                                                                                                                                                                                                                                 else echo 'guest'; ?></span> <span class="text-gray-400">•</span> Show on map</div>
                                         <p class="text-sm text-gray-700 mt-3"><?= htmlspecialchars($room['RoomDescription']) ?></p>
                                         <div class="flex flex-wrap gap-2 mt-4 select-none">
-                                            <?php if (strpos($room['RoomDescription'], 'air conditioning') !== false): ?>
-                                                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Air conditioning</span>
-                                            <?php endif; ?>
+                                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Air conditioning</span>
                                         </div>
                                     </div>
                                 </a>
@@ -396,6 +523,7 @@ $foundProperties = count($available_rooms);
     <!-- MoveUp Btn -->
     <?php
     include('../includes/MoveUpBtn.php');
+    include('../includes/Alert.php');
     include('../includes/Footer.php');
     ?>
 
