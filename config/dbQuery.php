@@ -402,25 +402,25 @@ if (!$connect) {
 //     echo "Data has been saved";
 // }
 
-$roomfavorite = "CREATE TABLE roomfavoritetb
-(
-    FavoriteID int not null primary key auto_increment,
-    UserID varchar(30),
-    RoomID varchar(20),
-    FOREIGN KEY (UserID) REFERENCES usertb (UserID)
-    ON DELETE CASCADE 
-    ON UPDATE CASCADE,
-    FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
-    ON DELETE CASCADE 
-    ON UPDATE CASCADE 
-)";
+// $roomfavorite = "CREATE TABLE roomfavoritetb
+// (
+//     FavoriteID int not null primary key auto_increment,
+//     UserID varchar(30),
+//     RoomID varchar(20),
+//     FOREIGN KEY (UserID) REFERENCES usertb (UserID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE,
+//     FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE 
+// )";
 
-try {
-    $query = mysqli_query($connect, $roomfavorite);
-    echo "Data Successfully saved";
-} catch (mysqli_sql_exception) {
-    echo "Data has been saved";
-}
+// try {
+//     $query = mysqli_query($connect, $roomfavorite);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
 
 // $roomrule = "CREATE TABLE roomruletb
 // (
@@ -441,24 +441,25 @@ try {
 //     echo "Data has been saved";
 // }
 
-// $roomfacility = "CREATE TABLE roomfacilitytb
-// (
-//     RoomID varchar(20),
-//     FacilityID varchar(20),
-//     FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
-//     ON DELETE CASCADE 
-//     ON UPDATE CASCADE,
-//     FOREIGN KEY (FacilityID) REFERENCES facilitytb (FacilityID)
-//     ON DELETE CASCADE 
-//     ON UPDATE CASCADE 
-// )";
+$roomfacility = "CREATE TABLE roomfacilitytb
+(
+    RoomID varchar(20),
+    FacilityID varchar(20),
+    PRIMARY KEY (RoomID, FacilityID),
+    FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    FOREIGN KEY (FacilityID) REFERENCES facilitytb (FacilityID)
+    ON DELETE CASCADE 
+    ON UPDATE CASCADE 
+)";
 
-// try {
-//     $query = mysqli_query($connect, $roomfacility);
-//     echo "Data Successfully saved";
-// } catch (mysqli_sql_exception) {
-//     echo "Data has been saved";
-// }
+try {
+    $query = mysqli_query($connect, $roomfacility);
+    echo "Data Successfully saved";
+} catch (mysqli_sql_exception) {
+    echo "Data has been saved";
+}
 
 // $dining = "CREATE TABLE diningreservationtb
 // (

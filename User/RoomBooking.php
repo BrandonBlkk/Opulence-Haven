@@ -60,20 +60,28 @@ if (isset($_POST['room_favourite'])) {
     if ($userID) {
         $roomID = $_POST['roomID'];
 
+        // Get search parameters from POST data (they should be included in the form submission)
+        $checkin_date = isset($_POST['checkin_date']) ? $_POST['checkin_date'] : '';
+        $checkout_date = isset($_POST['checkout_date']) ? $_POST['checkout_date'] : '';
+        $adults = isset($_POST['adults']) ? intval($_POST['adults']) : 1;
+        $children = isset($_POST['children']) ? intval($_POST['children']) : 0;
+
         $check = "SELECT COUNT(*) as count FROM roomfavoritetb WHERE UserID = '$userID' AND RoomID = '$roomID'";
         $result = $connect->query($check);
         $count = $result->fetch_assoc()['count'];
 
         if ($count == 0) {
-            $insert = "INSERT INTO roomfavoritetb (UserID, RoomID) VALUES ('$userID', '$roomID')";
+            $insert = "INSERT INTO roomfavoritetb (UserID, RoomID, CheckInDate, CheckOutDate, Adults, Children) 
+                      VALUES ('$userID', '$roomID', '$checkin_date', '$checkout_date', '$adults', '$children')";
             $connect->query($insert);
         } else {
             $delete = "DELETE FROM roomfavoritetb WHERE UserID = '$userID' AND RoomID = '$roomID'";
             $connect->query($delete);
         }
 
-        // Refresh page
-        header("Location: RoomBooking.php");
+        // Redirect back with the same search parameters
+        $redirect_url = "RoomBooking.php?checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children";
+        header("Location: $redirect_url");
         exit();
     } else {
         $showLoginModal = true;
@@ -201,7 +209,7 @@ if (isset($_POST['room_favourite'])) {
                             <label class="font-semibold text-blue-900">Check-In Date</label>
                             <input type="date" id="checkin-date" name="checkin_date"
                                 class="p-3 border border-gray-300 rounded-sm outline-none"
-                                value="<?= htmlspecialchars($checkin_date) ?>"
+                                value="<?php echo isset($_GET['checkin_date']) ? $_GET['checkin_date'] : ''; ?>"
                                 placeholder="Check-in Date">
                         </div>
                         <!-- Check-out Date -->
@@ -209,7 +217,7 @@ if (isset($_POST['room_favourite'])) {
                             <label class="font-semibold text-blue-900">Check-Out Date</label>
                             <input type="date" id="checkout-date" name="checkout_date"
                                 class="p-3 border border-gray-300 rounded-sm outline-none"
-                                value="<?= htmlspecialchars($checkout_date) ?>"
+                                value="<?php echo isset($_GET['checkout_date']) ? $_GET['checkout_date'] : ''; ?>"
                                 placeholder="Check-out Date">
                         </div>
 
@@ -289,18 +297,6 @@ if (isset($_POST['room_favourite'])) {
                             <div class="space-y-3">
                                 <label class="flex items-center">
                                     <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                                    <span class="text-sm">Hotels</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                                    <span class="text-sm">Free WiFi</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                                    <span class="text-sm">5 stars</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
                                     <span class="text-sm">Sea view</span>
                                 </label>
                                 <label class="flex items-center">
@@ -346,7 +342,7 @@ if (isset($_POST['room_favourite'])) {
                                 ?>
                             </div>
 
-                            <h4 class="font-medium text-gray-800 my-4">Faculties</h4>
+                            <h4 class="font-medium text-gray-800 my-4">Facilities</h4>
                             <div class="space-y-3">
                                 <?php
                                 $select = "SELECT * FROM facilitytb";
@@ -424,6 +420,10 @@ if (isset($_POST['room_favourite'])) {
                                     <div class="md:w-[28%] h-64 overflow-hidden select-none rounded-l-md relative">
                                         <img src="<?= htmlspecialchars($room['RoomCoverImage']) ?>" alt="<?= htmlspecialchars($room['RoomName']) ?>" class="w-full h-full object-cover">
                                         <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post">
+                                            <input type="hidden" name="checkin_date" value="<?= $checkin_date ?>">
+                                            <input type="hidden" name="checkout_date" value="<?= $checkout_date ?>">
+                                            <input type="hidden" name="adults" value="<?= $adults ?>">
+                                            <input type="hidden" name="children" value="<?= $children ?>">
                                             <input type="hidden" name="roomID" value="<?= $room['RoomID'] ?>">
                                             <button type="submit" name="room_favourite">
                                                 <!-- Changed this line to use $is_favorited -->
