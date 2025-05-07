@@ -12,7 +12,7 @@ $userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
 
 // Check if user is logged in
 if (isset($_SESSION['UserID'])) {
-    $favorite_query = "SELECT r.*, rt.RoomType , rt.RoomCapacity
+    $favorite_query = "SELECT f.*, r.*, rt.RoomType , rt.RoomCapacity
                       FROM roomfavoritetb f
                       JOIN roomtb r ON f.RoomID = r.RoomID
                       JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
@@ -161,14 +161,12 @@ if (isset($_POST['room_favourite'])) {
                                             </p>
                                         </div>
                                         <p class="text-sm text-gray-600 mt-2 flex items-center">
-                                            <i class="ri-map-pin-line mr-1"></i> <?php echo $room['Location'] ?? 'Yangon downtown, Yangon' ?>
-                                            <span class="mx-2">•</span>
-                                            <span>2.2 km from centre</span>
+                                            <i class="ri-map-pin-line mr-1"></i> Opulence Haven, Yangon
                                         </p>
                                     </div>
                                     <div class="text-right">
                                         <p class="text-sm text-gray-500">1 night: <?php echo $room['RoomCapacity'] ?> adults</p>
-                                        <p class="text-lg font-bold text-blue-600">USD <?php echo number_format($room['RoomPrice'], 0) ?></p>
+                                        <p class="text-lg font-bold text-orange-500">USD <?php echo number_format($room['RoomPrice'], 0) ?></p>
                                         <p class="text-xs text-gray-500">Includes taxes and charges</p>
                                         <p class="text-xs text-green-600 mt-1">✔ Free cancellation</p>
                                     </div>
@@ -177,10 +175,12 @@ if (isset($_POST['room_favourite'])) {
                                 <div class="mt-4 pt-4 border-t">
                                     <div class="flex justify-between items-center">
                                         <div>
-                                            <p class="text-sm text-gray-600">Tue 6 May - Wed 7 May</p>
-                                            <p class="text-sm text-gray-600">2 adults - 0 children - 1 room</p>
+                                            <p class="text-sm text-gray-600"><?php
+                                                                                echo date('D j M', strtotime($room['CheckInDate'])) . ' - ' . date('D j M', strtotime($room['CheckOutDate']));
+                                                                                ?></p>
+                                            <p class="text-sm text-gray-600"><?php echo $room['Adults'] ?> <?php echo $room['Adults'] > 1 ? 'adults' : 'adult'; ?> - <?php echo $room['Children'] ?> <?php echo $room['Children'] > 1 ? 'children' : 'child'; ?> - 1 room</p>
                                         </div>
-                                        <a href="../User/RoomDetails.php?RoomID=<?php echo $room['RoomID'] ?>" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                                        <a href="../User/RoomDetails.php?RoomID=<?php echo $room['RoomID'] ?>" class="px-4 py-2 bg-amber-500 text-white font-semibold rounded-md hover:bg-amber-600 transition-colors select-none">
                                             View Details
                                         </a>
                                     </div>
