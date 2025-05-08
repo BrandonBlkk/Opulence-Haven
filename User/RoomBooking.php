@@ -22,7 +22,7 @@ $has_dates = !empty($checkin_date) && !empty($checkout_date);
 $today = date('Y-m-d');
 
 // Base query
-$base_query = "SELECT r.*, rt.RoomType, rt.RoomCapacity 
+$base_query = "SELECT r.*, rt.RoomType, rt.RoomCapacity
                FROM roomtb r
                JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
                WHERE r.RoomStatus = 'available'";
@@ -418,7 +418,7 @@ if (isset($_POST['room_favourite'])) {
                             <div class="bg-white overflow-hidden">
                                 <a href="../User/RoomDetails.php?room_id=<?= $room['RoomID'] ?>&checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="flex flex-col md:flex-row rounded-md shadow-sm border">
                                     <div class="md:w-[28%] h-64 overflow-hidden select-none rounded-l-md relative">
-                                        <img src="<?= htmlspecialchars($room['RoomCoverImage']) ?>" alt="<?= htmlspecialchars($room['RoomName']) ?>" class="w-full h-full object-cover">
+                                        <img src="../Admin/<?= htmlspecialchars($room['RoomCoverImage']) ?>" alt="<?= htmlspecialchars($room['RoomName']) ?>" class="w-full h-full object-cover">
                                         <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post">
                                             <input type="hidden" name="checkin_date" value="<?= $checkin_date ?>">
                                             <input type="hidden" name="checkout_date" value="<?= $checkout_date ?>">
@@ -492,8 +492,22 @@ if (isset($_POST['room_favourite'])) {
                                         <div class="text-sm text-gray-600 mt-1"><?= htmlspecialchars($room['RoomType']) ?> <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Max <?= $room['RoomCapacity'] ?> <?php if ($room['RoomCapacity'] > 1) echo 'guests';
                                                                                                                                                                                                                                 else echo 'guest'; ?></span> <span class="text-gray-400">•</span> Show on map</div>
                                         <p class="text-sm text-gray-700 mt-3"><?= htmlspecialchars($room['RoomDescription']) ?></p>
-                                        <div class="flex flex-wrap gap-2 mt-4 select-none">
-                                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Air conditioning</span>
+                                        <div class="flex flex-wrap gap-1 mt-4 select-none">
+                                            <?php
+                                            $facilitiesQuery = "SELECT f.Facility
+                                            FROM roomfacilitytb rf
+                                            JOIN facilitytb f ON rf.FacilityID = f.FacilityID
+                                            WHERE rf.RoomID = '" . $room['RoomID'] . "'";
+                                            $facilitiesResult = $connect->query($facilitiesQuery);
+
+                                            if ($facilitiesResult->num_rows > 0) {
+                                                while ($facility = $facilitiesResult->fetch_assoc()) {
+                                                    echo '<span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">' .
+                                                        htmlspecialchars($facility['Facility']) .
+                                                        '</span>';
+                                                }
+                                            }
+                                            ?>
                                         </div>
                                     </div>
                                 </a>
