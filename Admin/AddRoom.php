@@ -13,7 +13,7 @@ $updateRoomSuccess = false;
 $deleteRoomSuccess = false;
 $roomID = AutoID('roomtb', 'RoomID', 'R-', 6);
 
-// Add Room Type
+// Add Room
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addroom'])) {
     $roomname = mysqli_real_escape_string($connect, $_POST['roomname']);
     $description = mysqli_real_escape_string($connect, $_POST['roomdescription']);
@@ -31,17 +31,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addroom'])) {
         echo "<p>Cannot upload Product Image.</p>";
         exit();
     }
-    $userProductImage = $_FILES["roomcoverimage"]["name"];
-    $copyFile = "../UserImages/";
-    $userFileName = $copyFile . uniqid() . "_" . $userProductImage;
-    $copy = copy($_FILES["roomcoverimage"]["tmp_name"], $userFileName);
+    // $userProductImage = $_FILES["roomcoverimage"]["name"];
+    // $copyFile = "../UserImages/";
+    // $userFileName = $copyFile . uniqid() . "_" . $userProductImage;
+    // $copy = copy($_FILES["roomcoverimage"]["tmp_name"], $userFileName);
 
-    if (!$copy) {
-        echo "<p>Cannot upload Product Image.</p>";
-        exit();
-    }
+    // if (!$copy) {
+    //     echo "<p>Cannot upload Product Image.</p>";
+    //     exit();
+    // }
 
-    // Check if the product type already exists using prepared statement
+    // Check if the room already exists
     $checkQuery = "SELECT RoomName FROM roomtb WHERE RoomName = '$roomname'";
     $count = $connect->query($checkQuery)->num_rows;
 
@@ -49,9 +49,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addroom'])) {
         $alertMessage = 'Room you added is already existed.';
     } else {
         $RoomQuery = "INSERT INTO roomtb (RoomID, RoomCoverImage, RoomName, RoomDescription, RoomPrice, RoomStatus, RoomTypeID)
-        VALUES ('$roomID', '$userFileName', '$roomname', '$description', '$roomprice', '$roomstatus', '$roomtype')";
+        VALUES ('$roomID', '$fileName', '$roomname', '$description', '$roomprice', '$roomstatus', '$roomtype')";
 
         if ($connect->query($RoomQuery)) {
+            // Insert selected facilities into roomfacilitytb
+            if (isset($_POST['facilities']) && is_array($_POST['facilities'])) {
+                foreach ($_POST['facilities'] as $facilityID) {
+                    $facilityID = mysqli_real_escape_string($connect, $facilityID);
+                    $insertFacility = "INSERT INTO roomfacilitytb (RoomID, FacilityID) VALUES ('$roomID', '$facilityID')";
+                    $connect->query($insertFacility);
+                }
+            }
             $addRoomSuccess = true;
         } else {
             $alertMessage = "Failed to add room. Please try again.";
@@ -173,7 +181,7 @@ if (isset($_POST['deleteroomtype'])) {
                                         <td class="p-3 text-start whitespace-nowrap">
                                             <div class="flex items-center gap-2 font-medium text-gray-500">
                                                 <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                                <span><?= htmlspecialchars($room['RoomTypeID']) ?></span>
+                                                <span><?= htmlspecialchars($room['RoomID']) ?></span>
                                             </div>
                                         </td>
                                         <td class="p-3 text-start select-none">
@@ -411,6 +419,32 @@ if (isset($_POST['deleteroomtype'])) {
                             name="roomprice"
                             placeholder="Enter room price">
                         <small id="roomPriceError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                    </div>
+
+                    <!-- Facilities Selection -->
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Select Facilities</label>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-2 border rounded">
+                            <?php
+                            $facilityQuery = "SELECT * FROM facilitytb";
+                            $facilityResult = $connect->query($facilityQuery);
+
+                            if ($facilityResult->num_rows > 0) {
+                                while ($facility = $facilityResult->fetch_assoc()) {
+                                    $facilityID = $facility['FacilityID'];
+                                    $facilityName = $facility['Facility'];
+                                    echo '
+                <div class="flex items-center">
+                    <input type="checkbox" id="facility_' . $facilityID . '" name="facilities[]" value="' . $facilityID . '" class="h-4 w-4 text-amber-500 focus:ring-amber-500 border-gray-300 rounded">
+                    <label for="facility_' . $facilityID . '" class="ml-2 text-sm text-gray-700">' . $facilityName . '</label>
+                </div>';
+                                }
+                            } else {
+                                echo '<p class="text-sm text-gray-500 col-span-3">No facilities available</p>';
+                            }
+                            ?>
+                        </div>
+                        <small id="facilitiesError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
