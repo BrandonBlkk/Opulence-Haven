@@ -97,7 +97,7 @@ if (isset($_POST['room_favourite'])) {
                         <div class="flex flex-col md:flex-row">
                             <!-- Image -->
                             <div class="md:w-[28%] h-64 overflow-hidden select-none rounded-l-md relative">
-                                <img src="<?= htmlspecialchars($room['RoomCoverImage']) ?>" alt="<?= htmlspecialchars($room['RoomName']) ?>" class="w-full h-full object-cover">
+                                <img src="../Admin/<?= htmlspecialchars($room['RoomCoverImage']) ?>" alt="<?= htmlspecialchars($room['RoomName']) ?>" class="w-full h-full object-cover">
                                 <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post">
                                     <input type="hidden" name="roomID" value="<?= $room['RoomID'] ?>">
                                     <button type="submit" name="room_favourite">
