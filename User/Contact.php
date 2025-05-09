@@ -27,11 +27,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
     $fullname = mysqli_real_escape_string($connect, $_POST['fullname']);
     $email = mysqli_real_escape_string($connect, $_POST['email']);
     $contactNumber = mysqli_real_escape_string($connect, $_POST['phone']);
-    $country = mysqli_real_escape_string($connect, $_POST['country']);
     $message = mysqli_real_escape_string($connect, $_POST['contactMessage']);
 
+    // Get country name
+    $countryCode = mysqli_real_escape_string($connect, $_POST['country']);
+    $apiResponse = file_get_contents("https://restcountries.com/v3.1/alpha/$countryCode");
+    $data = json_decode($apiResponse, true);
+
+    if (!empty($data[0]['name']['common'])) {
+        $countryName = $data[0]['name']['common'];
+    } else {
+        $countryName = $countryCode;
+    }
+
     $addContactQuery = "INSERT INTO contacttb (ContactID, UserID, FullName, UserEmail, UserPhone, Country, ContactMessage)
-    VALUES ('$contactID', '$userID', '$fullname', '$email', '$contactNumber', '$country', '$message')";
+    VALUES ('$contactID', '$userID', '$fullname', '$email', '$contactNumber', '$countryName', '$message')";
 
     if ($connect->query($addContactQuery)) {
         $contactSuccess = true;
@@ -111,54 +121,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                         </div>
                     </div>
 
-                    <!-- Phone Input -->
-                    <div class="relative">
-                        <input
-                            id="contactPhoneInput"
-                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                            type="tel"
-                            name="phone"
-                            value="<?php echo $user_phone; ?>"
-                            placeholder="Enter your phone">
-                        <small id="contactPhoneError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                    <!-- Phone Input with Country Code -->
+                    <div class="flex gap-2">
+                        <!-- Country Code Dropdown with Flag -->
+                        <div class="relative w-1/3">
+                            <div class="flex items-center border rounded overflow-hidden">
+                                <div id="selectedFlag" class="pl-2">
+                                    <img src="https://flagcdn.com/w20/mm.png" class="w-5 h-3.5" alt="Flag">
+                                </div>
+                                <select id="countryCodeDropdown" name="countryCode" class="border-none p-2 text-sm w-full focus:outline-none">
+                                    <option value="+95" selected>+95 (MM)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Phone Number Input -->
+                        <div class="relative flex-1">
+                            <input
+                                id="contactPhoneInput"
+                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                type="tel"
+                                name="phone"
+                                value="<?php echo $user_phone; ?>"
+                                placeholder="959XXXXXXX">
+                            <small id="contactPhoneError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                        </div>
                     </div>
 
-                    <!-- Country Select -->
+                    <!-- Country Select with Flags -->
                     <div class="relative">
-                        <select id="countryDropdown" name="country" class="border p-2 rounded text-sm w-full">
-                            <option value="">Loading...</option>
-                        </select>
-
-                        <script>
-                            const dropdown = document.getElementById('countryDropdown');
-
-                            const fetchCountries = async () => {
-                                try {
-                                    const response = await fetch('https://restcountries.com/v3.1/all');
-                                    if (!response.ok) {
-                                        throw new Error('Failed to fetch countries');
-                                    }
-                                    const countries = await response.json();
-                                    populateDropdown(countries);
-                                } catch (error) {
-                                    console.error(error);
-                                    dropdown.innerHTML = '<option value="">Error loading countries</option>';
-                                }
-                            }
-
-                            const populateDropdown = (countries) => {
-                                dropdown.innerHTML = '<option value="">Select a country</option>';
-                                countries.sort((a, b) => a.name.common.localeCompare(b.name.common)); // Sort by country name
-                                countries.forEach(country => {
-                                    const option = document.createElement('option');
-                                    option.value = country.cca2; // Use country code as the value
-                                    option.textContent = country.name.common; // Use country name as the display text
-                                    dropdown.appendChild(option);
-                                });
-                            }
-
-                            fetchCountries();
-                        </script>
+                        <div class="flex items-center border rounded overflow-hidden">
+                            <div id="countryFlag" class="pl-2">
+                                <img src="https://flagcdn.com/w20/mm.png" class="w-5 h-3.5" alt="Flag">
+                            </div>
+                            <select id="countryDropdown" name="country" class="border-none p-2 rounded text-sm w-full focus:outline-none">
+                                <option value="">Loading...</option>
+                            </select>
+                        </div>
                         <small id="countryError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
 
@@ -184,7 +183,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                     <!-- Include reCAPTCHA Script -->
                     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
-
                     <!-- Signin Button -->
                     <input
                         class=" bg-amber-500 font-semibold text-white px-4 py-2 rounded-md hover:bg-amber-600 cursor-pointer transition-colors duration-200"
@@ -192,6 +190,100 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                         name="submit"
                         value="Submit">
                 </form>
+
+                <script>
+                    // Enhanced Country Dropdown with Flags
+                    const dropdown = document.getElementById('countryDropdown');
+                    const countryCodeDropdown = document.getElementById('countryCodeDropdown');
+                    const selectedFlag = document.getElementById('selectedFlag');
+                    const countryFlag = document.getElementById('countryFlag');
+                    const phoneInput = document.getElementById('contactPhoneInput');
+
+                    const fetchCountries = async () => {
+                        try {
+                            const response = await fetch('https://restcountries.com/v3.1/all');
+                            if (!response.ok) {
+                                throw new Error('Failed to fetch countries');
+                            }
+                            const countries = await response.json();
+                            populateDropdown(countries);
+                            populateCountryCodeDropdown(countries);
+                        } catch (error) {
+                            console.error(error);
+                            dropdown.innerHTML = '<option value="">Error loading countries</option>';
+                        }
+                    }
+
+                    const populateDropdown = (countries) => {
+                        dropdown.innerHTML = '<option value="">Select a country</option>';
+                        countries.sort((a, b) => a.name.common.localeCompare(b.name.common));
+
+                        countries.forEach(country => {
+                            const option = document.createElement('option');
+                            option.value = country.cca2;
+                            option.dataset.flag = `https://flagcdn.com/w20/${country.cca2.toLowerCase()}.png`;
+                            option.textContent = `${country.name.common}`;
+                            if (country.cca2 === "MM") {
+                                option.selected = true;
+                            }
+                            dropdown.appendChild(option);
+                        });
+                    }
+
+                    const populateCountryCodeDropdown = (countries) => {
+                        countryCodeDropdown.innerHTML = '';
+
+                        // Filter countries that have calling codes
+                        const countriesWithCallingCodes = countries.filter(c => c.idd && c.idd.root);
+
+                        countriesWithCallingCodes.sort((a, b) => {
+                            const codeA = a.idd.root + (a.idd.suffixes ? a.idd.suffixes[0] : '');
+                            const codeB = b.idd.root + (b.idd.suffixes ? b.idd.suffixes[0] : '');
+                            return codeA.localeCompare(codeB);
+                        });
+
+                        countriesWithCallingCodes.forEach(country => {
+                            const code = country.idd.root + (country.idd.suffixes ? country.idd.suffixes[0] : '');
+                            const option = document.createElement('option');
+                            option.value = code;
+                            option.dataset.countryCode = country.cca2;
+                            option.textContent = `${code} (${country.cca2})`;
+
+                            if (country.cca2 === "MM") {
+                                option.selected = true;
+                                selectedFlag.innerHTML = `<img src="https://flagcdn.com/w20/${country.cca2.toLowerCase()}.png" class="w-5 h-3.5" alt="Flag">`;
+                            }
+
+                            countryCodeDropdown.appendChild(option);
+                        });
+                    }
+
+                    // Update flag when country code changes
+                    countryCodeDropdown.addEventListener('change', function() {
+                        const selectedOption = this.options[this.selectedIndex];
+                        const countryCode = selectedOption.dataset.countryCode;
+                        selectedFlag.innerHTML = `<img src="https://flagcdn.com/w20/${countryCode.toLowerCase()}.png" class="w-5 h-3.5" alt="Flag">`;
+
+                        // Special handling for Myanmar (+959)
+                        if (countryCode === "MM") {
+                            phoneInput.placeholder = "959XXXXXXX";
+                        } else {
+                            phoneInput.placeholder = "Enter your phone";
+                        }
+                    });
+
+                    // Update flag when country dropdown changes
+                    dropdown.addEventListener('change', function() {
+                        const selectedOption = this.options[this.selectedIndex];
+                        if (selectedOption.value) {
+                            const flagUrl = selectedOption.dataset.flag;
+                            countryFlag.innerHTML = `<img src="${flagUrl}" class="w-5 h-3.5" alt="Flag">`;
+                        }
+                    });
+
+                    // Initialize with Myanmar as default
+                    fetchCountries();
+                </script>
             </div>
         </section>
         <div class="flex flex-col items-center justify-center py-16 px-3 text-center">
