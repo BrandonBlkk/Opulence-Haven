@@ -114,38 +114,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                                 id="contactEmailInput"
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 type="email"
-                                name="email"
                                 value="<?php echo $user_email; ?>"
-                                placeholder="Enter your email">
+                                placeholder="Enter your email" disabled>
+                            <input
+                                id="contactEmailInput"
+                                type="hidden"
+                                name="email"
+                                value="<?php echo $user_email; ?>">
                             <small id="contactEmailError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                         </div>
                     </div>
 
-                    <!-- Phone Input with Country Code -->
-                    <div class="flex gap-2">
-                        <!-- Country Code Dropdown with Flag -->
-                        <div class="relative w-1/3">
-                            <div class="flex items-center border rounded overflow-hidden">
-                                <div id="selectedFlag" class="pl-2">
-                                    <img src="https://flagcdn.com/w20/mm.png" class="w-5 h-3.5" alt="Flag">
-                                </div>
-                                <select id="countryCodeDropdown" name="countryCode" class="border-none p-2 text-sm w-full focus:outline-none">
-                                    <option value="+95" selected>+95 (MM)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Phone Number Input -->
-                        <div class="relative flex-1">
-                            <input
-                                id="contactPhoneInput"
-                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                type="tel"
-                                name="phone"
-                                value="<?php echo $user_phone; ?>"
-                                placeholder="959XXXXXXX">
-                            <small id="contactPhoneError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                        </div>
+                    <!-- Phone Number Input -->
+                    <div class="relative flex-1">
+                        <input
+                            id="contactPhoneInput"
+                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            type="tel"
+                            name="phone"
+                            value="<?php echo $user_phone; ?>"
+                            placeholder="Enter your phone number">
+                        <small id="contactPhoneError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
 
                     <!-- Country Select with Flags -->
@@ -163,13 +152,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
 
                     <!-- Message Input -->
                     <div class="relative w-full">
-                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">Message <sup>*</sup></label>
+                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">Message <sup class="text-red-500">*</sup></label>
                         <textarea
                             id="contactMessageInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             name="contactMessage"
-                            placeholder="Enter your message"></textarea>
-                        <small id="contactMessageError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            placeholder="Enter your message" rows="4"></textarea>
+                        <small id="contactMessageError" class="absolute left-2 -bottom-0 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
 
                     <!-- reCAPTCHA -->
@@ -194,7 +183,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                 <script>
                     // Enhanced Country Dropdown with Flags
                     const dropdown = document.getElementById('countryDropdown');
-                    const countryCodeDropdown = document.getElementById('countryCodeDropdown');
                     const selectedFlag = document.getElementById('selectedFlag');
                     const countryFlag = document.getElementById('countryFlag');
                     const phoneInput = document.getElementById('contactPhoneInput');
@@ -231,46 +219,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                     }
 
                     const populateCountryCodeDropdown = (countries) => {
-                        countryCodeDropdown.innerHTML = '';
 
                         // Filter countries that have calling codes
                         const countriesWithCallingCodes = countries.filter(c => c.idd && c.idd.root);
-
-                        countriesWithCallingCodes.sort((a, b) => {
-                            const codeA = a.idd.root + (a.idd.suffixes ? a.idd.suffixes[0] : '');
-                            const codeB = b.idd.root + (b.idd.suffixes ? b.idd.suffixes[0] : '');
-                            return codeA.localeCompare(codeB);
-                        });
-
-                        countriesWithCallingCodes.forEach(country => {
-                            const code = country.idd.root + (country.idd.suffixes ? country.idd.suffixes[0] : '');
-                            const option = document.createElement('option');
-                            option.value = code;
-                            option.dataset.countryCode = country.cca2;
-                            option.textContent = `${code} (${country.cca2})`;
-
-                            if (country.cca2 === "MM") {
-                                option.selected = true;
-                                selectedFlag.innerHTML = `<img src="https://flagcdn.com/w20/${country.cca2.toLowerCase()}.png" class="w-5 h-3.5" alt="Flag">`;
-                            }
-
-                            countryCodeDropdown.appendChild(option);
-                        });
                     }
-
-                    // Update flag when country code changes
-                    countryCodeDropdown.addEventListener('change', function() {
-                        const selectedOption = this.options[this.selectedIndex];
-                        const countryCode = selectedOption.dataset.countryCode;
-                        selectedFlag.innerHTML = `<img src="https://flagcdn.com/w20/${countryCode.toLowerCase()}.png" class="w-5 h-3.5" alt="Flag">`;
-
-                        // Special handling for Myanmar (+959)
-                        if (countryCode === "MM") {
-                            phoneInput.placeholder = "959XXXXXXX";
-                        } else {
-                            phoneInput.placeholder = "Enter your phone";
-                        }
-                    });
 
                     // Update flag when country dropdown changes
                     dropdown.addEventListener('change', function() {
@@ -337,10 +289,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
     <!-- MoveUp Btn -->
     <?php
     include('../includes/MoveUpBtn.php');
+    include('../includes/Alert.php');
+    include('../includes/Loader.php');
     include('../includes/Footer.php');
     ?>
     <script src="//unpkg.com/alpinejs" defer></script>
-    <script src="../JS/index.js"></script>
+    <script type="module" src="../JS/index.js"></script>
 </body>
 
 </html>

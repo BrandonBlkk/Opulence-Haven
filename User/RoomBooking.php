@@ -416,7 +416,7 @@ if (isset($_POST['room_favourite'])) {
                             $is_favorited = $favorite_result->fetch_assoc()['count'] > 0;
                         ?>
                             <div class="bg-white overflow-hidden">
-                                <a href="../User/RoomDetails.php?roomID=<?php echo htmlspecialchars($room['RoomID']) ?>" class="flex flex-col md:flex-row rounded-md shadow-sm border">
+                                <a href="../User/RoomDetails.php?roomID=<?php echo htmlspecialchars($room['RoomID']) ?>&checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="flex flex-col md:flex-row rounded-md shadow-sm border">
                                     <div class="md:w-[28%] h-64 overflow-hidden select-none rounded-l-md relative">
                                         <img src="../Admin/<?= htmlspecialchars($room['RoomCoverImage']) ?>" alt="<?= htmlspecialchars($room['RoomName']) ?>" class="w-full h-full object-cover">
                                         <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post">
