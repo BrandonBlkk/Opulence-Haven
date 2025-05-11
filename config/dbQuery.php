@@ -360,6 +360,23 @@ if (!$connect) {
 //     echo "Data has been saved";
 // }
 
+$roomimage = "CREATE TABLE roomimagetb
+(
+    ImageID int not null primary key auto_increment,
+    ImagePath text,
+    RoomID varchar(20),
+    FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
+    ON DELETE CASCADE 
+    ON UPDATE CASCADE
+)";
+
+try {
+    $query = mysqli_query($connect, $roomimage);
+    echo "Data Successfully saved";
+} catch (mysqli_sql_exception) {
+    echo "Data has been saved";
+}
+
 // $roomview = "CREATE TABLE roomviewtb
 // (
 //     ReviewID int not null primary key auto_increment,
@@ -441,25 +458,25 @@ if (!$connect) {
 //     echo "Data has been saved";
 // }
 
-$roomfacility = "CREATE TABLE roomfacilitytb
-(
-    RoomID varchar(20),
-    FacilityID varchar(20),
-    PRIMARY KEY (RoomID, FacilityID),
-    FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE,
-    FOREIGN KEY (FacilityID) REFERENCES facilitytb (FacilityID)
-    ON DELETE CASCADE 
-    ON UPDATE CASCADE 
-)";
+// $roomfacility = "CREATE TABLE roomfacilitytb
+// (
+//     RoomID varchar(20),
+//     FacilityID varchar(20),
+//     PRIMARY KEY (RoomID, FacilityID),
+//     FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
+//     ON DELETE CASCADE
+//     ON UPDATE CASCADE,
+//     FOREIGN KEY (FacilityID) REFERENCES facilitytb (FacilityID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE 
+// )";
 
-try {
-    $query = mysqli_query($connect, $roomfacility);
-    echo "Data Successfully saved";
-} catch (mysqli_sql_exception) {
-    echo "Data has been saved";
-}
+// try {
+//     $query = mysqli_query($connect, $roomfacility);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
 
 // $dining = "CREATE TABLE diningreservationtb
 // (
@@ -521,25 +538,6 @@ try {
 
 // try {
 //     $query = mysqli_query($connect, $purchasedetail);
-//     echo "Data Successfully saved";
-// } catch (mysqli_sql_exception) {
-//     echo "Data has been saved";
-// }
-
-// $cart = "CREATE TABLE carttb
-// (
-//     CartID int NOT NULL PRIMARY KEY AUTO_INCREMENT,
-//     UserID varchar(30),
-//     ProductID varchar(20),
-//     SizeID int,
-//     Quantity int,
-//     FOREIGN KEY (UserID) REFERENCES usertb (UserID),
-//     FOREIGN KEY (SizeID) REFERENCES sizetb (SizeID),
-//     FOREIGN KEY (ProductID) REFERENCES producttb (ProductID)
-// )";
-
-// try {
-//     $query = mysqli_query($connect, $cart);
 //     echo "Data Successfully saved";
 // } catch (mysqli_sql_exception) {
 //     echo "Data has been saved";

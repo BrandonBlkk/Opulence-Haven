@@ -1,4 +1,4 @@
-import { showAlert, validateField } from './alertFunc.js';
+import { hideError, showAlert, showError, validateField } from './alertFunc.js';
 
 // Move Right Loader
 let moveRight = document.getElementById("move-right");
@@ -317,7 +317,7 @@ if (profileDeleteBtn && confirmDeleteModal && cancelDeleteBtn && confirmDeleteBt
         // Notify the server to delete the account
         fetch("UserAccountDelete.php", {
             method: "POST",
-        })
+        }) 
             .then(() => {
                 // Redirect after account deletion
                 setTimeout(() => {
@@ -327,6 +327,44 @@ if (profileDeleteBtn && confirmDeleteModal && cancelDeleteBtn && confirmDeleteBt
             .catch((error) => console.error("Account deletion failed:", error));
     });
 }
+
+//Contact Form
+document.addEventListener("DOMContentLoaded", () => {
+    const loader = document.getElementById('loader');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const contactSuccess = document.getElementById('contactSuccess').value === 'true';
+
+    if (contactSuccess) {
+        loader.style.display = 'flex';
+
+        // Show Alert
+        setTimeout(() => {
+            loader.style.display = 'none';
+                showAlert('Your message has been successfully sent.');
+            setTimeout(() => {
+               window.location.href = '../User/Contact.php';
+            }, 5000);
+        }, 1000);
+    } else if (alertMessage) {
+        // Show Alert
+        showAlert(alertMessage);
+    }
+
+    // Add keyup event listeners for real-time validation
+    document.getElementById("contactFullNameInput").addEventListener("keyup", validateFuillName);
+    document.getElementById("contactPhoneInput").addEventListener("keyup", validateContactPhone);
+    document.getElementById("countryFlag").addEventListener("keyup", validateCountryFlag);
+    document.getElementById("contactMessageInput").addEventListener("keyup", validateContactMessage);
+
+    const contactForm = document.getElementById("contactForm");
+    if (contactForm) {
+        contactForm.addEventListener("submit", (e) => {
+            if (!validateContactForm()) {
+                e.preventDefault();
+            }
+        });
+    }
+});
 
 // Reset Password and Profile Update Form Validation
 document.addEventListener("DOMContentLoaded", () => {
@@ -439,8 +477,17 @@ const validateDiningForm = () => {
     const isDiningPhoneValid = validateDiningPhone();
 
 
-    return isDiningNameValid && isDiningEmailValid && isDiningPhoneValids;
+    return isDiningNameValid && isDiningEmailValid && isDiningPhoneValid;
 };
+
+const validateContactForm = () => {
+    const isContactFullNameValid = validateFuillName();
+    const isContactPhoneValid = validateContactPhone();
+    const isContactCountryFlagValid = validateCountryFlag();
+    const isContactMessageValid = validateContactMessage();
+
+    return isContactFullNameValid && isContactPhoneValid && isContactCountryFlagValid && isContactMessageValid;
+}
 
 // Individual validation functions
 
@@ -471,7 +518,7 @@ const validateUsername = () => {
     const usernameInput = document.getElementById("usernameInput").value.trim();
     const usernameError = document.getElementById("usernameError");
 
-    const getUserNameError = (username) => {
+    const getUserNameError = (usernameInput) => {
         if (!usernameInput) return "Username is required.";
         if (usernameInput.length > 14) return "Username should not exceed 14 characters.";
         return null; 
@@ -481,13 +528,31 @@ const validateUsername = () => {
 
     switch (true) {
         case errorMessage !== null:
-            usernameError.textContent = errorMessage;
-            usernameError.classList.remove("opacity-0");
-            usernameError.classList.add("opacity-100");
+            showError(usernameError, errorMessage);
             return false;
         default:
-            usernameError.classList.remove("opacity-100");
-            usernameError.classList.add("opacity-0");
+            hideError(usernameError);
+            return true;
+    }
+};
+
+const validateFuillName = () => {
+    const contactFullNameInput = document.getElementById("contactFullNameInput").value.trim();
+    const contactFullNameError = document.getElementById("contactFullNameError");
+
+    const getPhoneError = (contactFullNameInput) => {
+        if (!contactFullNameInput) return "Full name is required.";
+        return null; 
+    };
+
+    const errorMessage = getPhoneError(contactFullNameInput);
+
+    switch (true) {
+        case errorMessage !== null:
+            showError(contactFullNameError, errorMessage);
+            return false;
+        default:
+            hideError(contactFullNameError);
             return true;
     }
 };
@@ -505,13 +570,10 @@ const validateEmail = () => {
 
     switch (true) {
         case errorMessage !== null:
-            emailError.textContent = errorMessage;
-            emailError.classList.remove("opacity-0");
-            emailError.classList.add("opacity-100");
+            showError(emailError, errorMessage);
             return false;
         default:
-            emailError.classList.remove("opacity-100");
-            emailError.classList.add("opacity-0");
+            hideError(emailError);
             return true;
     }
 };
@@ -531,16 +593,57 @@ const validatePhone = () => {
 
     switch (true) {
         case errorMessage !== null:
-            phoneError.textContent = errorMessage;
-            phoneError.classList.remove("opacity-0");
-            phoneError.classList.add("opacity-100");
+            showError(phoneError, errorMessage);
             return false;
         default:
-            phoneError.classList.remove("opacity-100");
-            phoneError.classList.add("opacity-0");
+            hideError(phoneError);
             return true;
     }
 };
+
+const validateContactPhone = () => {
+    const contactPhoneInput = document.getElementById("contactPhoneInput").value.trim();
+    const contactPhoneError = document.getElementById("contactPhoneError");
+
+    const getPhoneError = (contactPhoneInput) => {
+        if (!contactPhoneInput) return "Phone is required.";
+        if (!contactPhoneInput.match(/^\d+$/)) return "Phone number is invalid. Only digits are allowed.";
+        if (contactPhoneInput.length < 8 || contactPhoneInput.length > 11) return "Phone number must be between 8 and 11 digits.";
+        return null; 
+    };
+
+    const errorMessage = getPhoneError(contactPhoneInput);
+
+    switch (true) {
+        case errorMessage !== null:
+            showError(contactPhoneError, errorMessage);
+            return false;
+        default:
+            hideError(contactPhoneError);
+            return true;
+    }
+};
+
+const validateContactMessage = () => {
+    const contactMessageInput = document.getElementById("contactMessageInput").value.trim();
+    const contactMessageError = document.getElementById("contactMessageError");
+
+    const getMessageError = (contactMessageInput) => {
+        if (!contactMessageInput) return "Message is required.";
+        return null; 
+    };
+
+    const errorMessage = getMessageError(contactMessageInput);
+
+    switch (true) {
+        case errorMessage !== null:
+            showError(contactMessageError, errorMessage);
+            return false;
+        default:
+            hideError(contactMessageError);
+            return true;
+    }
+}
 
 const validateResetPassword = () => {
     const resetpassword = document.getElementById("resetpasswordInput").value.trim();
@@ -555,13 +658,10 @@ const validateResetPassword = () => {
 
     switch (true) {
         case errorMessage !== null:
-            resetpasswordError.textContent = errorMessage;
-            resetpasswordError.classList.remove("opacity-0");
-            resetpasswordError.classList.add("opacity-100");
+            showError(resetpasswordError, errorMessage);
             return false;
         default:
-            resetpasswordError.classList.remove("opacity-100");
-            resetpasswordError.classList.add("opacity-0");
+            hideError(resetpasswordError);
             return true;
     }
 };
@@ -583,13 +683,10 @@ const validateNewPassword = () => {
 
     switch (true) {
         case errorMessage !== null:
-            newpasswordError.textContent = errorMessage;
-            newpasswordError.classList.remove("opacity-0");
-            newpasswordError.classList.add("opacity-100");
+            showError(newpasswordError, errorMessage);
             return false;
         default:
-            newpasswordError.classList.remove("opacity-100");
-            newpasswordError.classList.add("opacity-0");
+            hideError(newpasswordError);
             return true;
     }
 };
@@ -606,13 +703,10 @@ const validateConfirmPassword = () => {
 
     switch (true) {
         case errorMessage !== null:
-            confirmpasswordError.textContent = errorMessage;
-            confirmpasswordError.classList.remove("opacity-0");
-            confirmpasswordError.classList.add("opacity-100");
+            showError(confirmpasswordError, errorMessage);
             return false;
         default:
-            confirmpasswordError.classList.remove("opacity-100");
-            confirmpasswordError.classList.add("opacity-0");
+            hideError(confirmpasswordError);
             return true;
     }
 };
