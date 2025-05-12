@@ -22,30 +22,27 @@ $has_dates = !empty($checkin_date) && !empty($checkout_date);
 $today = date('Y-m-d');
 
 // Base query
-$base_query = "SELECT r.*, rt.RoomType, rt.RoomCapacity
-               FROM roomtb r
-               JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
-               WHERE r.RoomStatus = 'available'";
+$base_query = "SELECT rt.* FROM roomtypetb rt";
 
 // Add guest capacity filter if dates are valid
 if ($has_dates && $checkin_date >= $today && $checkout_date > $checkin_date) {
-    $base_query .= " AND rt.RoomCapacity >= $totelGuest";
+    $base_query .= " WHERE rt.RoomCapacity >= $totelGuest";
 }
 
 // Sorting
 $sort = isset($_GET['sort']) ? $_GET['sort'] : 'top_picks';
 switch ($sort) {
     case 'price_low_high':
-        $base_query .= " ORDER BY r.RoomPrice ASC";
+        $base_query .= " ORDER BY rt.RoomPrice ASC";
         break;
     case 'price_high_low':
-        $base_query .= " ORDER BY r.RoomPrice DESC";
+        $base_query .= " ORDER BY rt.RoomPrice DESC";
         break;
     case 'rating':
         $base_query .= " ORDER BY r.RoomRating DESC";
         break;
     default:
-        $base_query .= " ORDER BY r.RoomID DESC";
+        $base_query .= " ORDER BY rt.RoomTypeID DESC";
 }
 
 // Execute query
@@ -58,7 +55,7 @@ $foundProperties = count($available_rooms);
 // Add room to favorites
 if (isset($_POST['room_favourite'])) {
     if ($userID) {
-        $roomID = $_POST['roomID'];
+        $roomTypeID = $_POST['roomTypeID'];
 
         // Get search parameters from POST data (they should be included in the form submission)
         $checkin_date = isset($_POST['checkin_date']) ? $_POST['checkin_date'] : '';
@@ -66,16 +63,16 @@ if (isset($_POST['room_favourite'])) {
         $adults = isset($_POST['adults']) ? intval($_POST['adults']) : 1;
         $children = isset($_POST['children']) ? intval($_POST['children']) : 0;
 
-        $check = "SELECT COUNT(*) as count FROM roomfavoritetb WHERE UserID = '$userID' AND RoomID = '$roomID'";
+        $check = "SELECT COUNT(*) as count FROM roomfavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
         $result = $connect->query($check);
         $count = $result->fetch_assoc()['count'];
 
         if ($count == 0) {
-            $insert = "INSERT INTO roomfavoritetb (UserID, RoomID, CheckInDate, CheckOutDate, Adults, Children) 
-                      VALUES ('$userID', '$roomID', '$checkin_date', '$checkout_date', '$adults', '$children')";
+            $insert = "INSERT INTO roomfavoritetb (UserID, RoomTypeID, CheckInDate, CheckOutDate, Adult, Children) 
+                      VALUES ('$userID', '$roomTypeID', '$checkin_date', '$checkout_date', '$adults', '$children')";
             $connect->query($insert);
         } else {
-            $delete = "DELETE FROM roomfavoritetb WHERE UserID = '$userID' AND RoomID = '$roomID'";
+            $delete = "DELETE FROM roomfavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
             $connect->query($delete);
         }
 
@@ -317,31 +314,6 @@ if (isset($_POST['room_favourite'])) {
                                 </label>
                             </div>
 
-                            <h4 class="font-medium text-gray-800 my-4">Room type</h4>
-                            <div class="space-y-3">
-                                <?php
-                                $select = "SELECT * FROM roomtypetb";
-                                $query = $connect->query($select);
-                                $count = $query->num_rows;
-                                if ($count) {
-                                    for ($i = 0; $i < $count; $i++) {
-                                        $row = $query->fetch_assoc();
-                                        $room_type_id = $row['RoomTypeID'];
-                                        $room_type = $row['RoomType'];
-
-                                ?>
-                                        <label class="flex items-center">
-                                            <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                                            <span class="text-sm"><?= $room_type ?></span>
-                                        </label>
-                                <?php
-                                    }
-                                } else {
-                                    echo "<option value='' disabled>No data yet</option>";
-                                }
-                                ?>
-                            </div>
-
                             <h4 class="font-medium text-gray-800 my-4">Facilities</h4>
                             <div class="space-y-3">
                                 <?php
@@ -409,22 +381,22 @@ if (isset($_POST['room_favourite'])) {
                         </div>
 
                         <!-- Hotel Listings -->
-                        <?php foreach ($available_rooms as $room):
+                        <?php foreach ($available_rooms as $roomtype):
                             // Check if room is favorited
-                            $check_favorite = "SELECT COUNT(*) as count FROM roomfavoritetb WHERE UserID = '$userID' AND RoomID = '" . $room['RoomID'] . "'";
+                            $check_favorite = "SELECT COUNT(*) as count FROM roomfavoritetb WHERE UserID = '$userID' AND RoomTypeID = '" . $roomtype['RoomTypeID'] . "'";
                             $favorite_result = $connect->query($check_favorite);
                             $is_favorited = $favorite_result->fetch_assoc()['count'] > 0;
                         ?>
                             <div class="bg-white overflow-hidden">
-                                <a href="../User/RoomDetails.php?roomID=<?php echo htmlspecialchars($room['RoomID']) ?>&checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="flex flex-col md:flex-row rounded-md shadow-sm border">
+                                <a href="../User/RoomDetails.php?roomTypeID=<?php echo htmlspecialchars($roomtype['RoomTypeID']) ?>&checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="flex flex-col md:flex-row rounded-md shadow-sm border">
                                     <div class="md:w-[28%] h-64 overflow-hidden select-none rounded-l-md relative">
-                                        <img src="../Admin/<?= htmlspecialchars($room['RoomCoverImage']) ?>" alt="<?= htmlspecialchars($room['RoomName']) ?>" class="w-full h-full object-cover">
+                                        <img src="../Admin/<?= htmlspecialchars($roomtype['RoomCoverImage']) ?>" alt="<?= htmlspecialchars($roomtype['RoomType']) ?>" class="w-full h-full object-cover">
                                         <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post">
                                             <input type="hidden" name="checkin_date" value="<?= $checkin_date ?>">
                                             <input type="hidden" name="checkout_date" value="<?= $checkout_date ?>">
                                             <input type="hidden" name="adults" value="<?= $adults ?>">
                                             <input type="hidden" name="children" value="<?= $children ?>">
-                                            <input type="hidden" name="roomID" value="<?= $room['RoomID'] ?>">
+                                            <input type="hidden" name="roomTypeID" value="<?= $roomtype['RoomTypeID'] ?>">
                                             <button type="submit" name="room_favourite">
                                                 <!-- Changed this line to use $is_favorited -->
                                                 <i class="absolute top-3 right-3 ri-heart-fill text-xl cursor-pointer flex items-center justify-center bg-white w-9 h-9 rounded-full hover:bg-slate-100 transition-colors duration-300 <?= $is_favorited ? 'text-red-500 hover:text-red-600' : 'text-slate-400 hover:text-red-300' ?>"></i>
@@ -434,9 +406,9 @@ if (isset($_POST['room_favourite'])) {
                                     <div class="md:w-2/3 p-4">
                                         <div class="flex justify-between items-start">
                                             <div class="flex items-center gap-4">
-                                                <h2 class="text-xl font-bold text-gray-800"><?= htmlspecialchars($room['RoomType']) ?> <?= htmlspecialchars($room['RoomName']) ?></h2>
+                                                <h2 class="text-xl font-bold text-gray-800"><?= htmlspecialchars($roomtype['RoomType']) ?></h2>
                                                 <?php
-                                                $review_select = "SELECT Rating FROM roomviewtb WHERE RoomID = '" . $room['RoomID'] . "'";
+                                                $review_select = "SELECT Rating FROM roomviewtb WHERE RoomTypeID = '" . $roomtype['RoomTypeID'] . "'";
                                                 $select_query = $connect->query($review_select);
 
                                                 // Check if there are any reviews
@@ -486,18 +458,24 @@ if (isset($_POST['room_favourite'])) {
                                             </div>
                                             <div class="text-right">
                                                 <div class="text-sm text-gray-500">Price starts from</div>
-                                                <div class="text-lg font-bold text-orange-500">$<?= number_format($room['RoomPrice'], 2) ?></div>
+                                                <div class="text-lg font-bold text-orange-500">$<?= number_format($roomtype['RoomPrice'], 2) ?></div>
                                             </div>
                                         </div>
-                                        <div class="text-sm text-gray-600 mt-1"><?= htmlspecialchars($room['RoomType']) ?> <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Max <?= $room['RoomCapacity'] ?> <?php if ($room['RoomCapacity'] > 1) echo 'guests';
-                                                                                                                                                                                                                                else echo 'guest'; ?></span> <span class="text-gray-400">•</span> Show on map</div>
-                                        <p class="text-sm text-gray-700 mt-3"><?= htmlspecialchars($room['RoomDescription']) ?></p>
+                                        <div class="text-sm text-gray-600 mt-1"><?= htmlspecialchars($roomtype['RoomType']) ?> <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Max <?= $roomtype['RoomCapacity'] ?> <?php if ($roomtype['RoomCapacity'] > 1) echo 'guests';
+                                                                                                                                                                                                                                        else echo 'guest'; ?></span> <span class="text-gray-400">•</span> Show on map</div>
+                                        <p class="text-sm text-gray-700 mt-3">
+                                            <?php
+                                            $description = $roomtype['RoomDescription'] ?? '';
+                                            $truncated = mb_strimwidth(htmlspecialchars($description), 0, 250, '...');
+                                            echo $truncated;
+                                            ?>
+                                        </p>
                                         <div class="flex flex-wrap gap-1 mt-4 select-none">
                                             <?php
                                             $facilitiesQuery = "SELECT f.Facility
                                             FROM roomfacilitytb rf
                                             JOIN facilitytb f ON rf.FacilityID = f.FacilityID
-                                            WHERE rf.RoomID = '" . $room['RoomID'] . "'";
+                                            WHERE rf.RoomTypeID = '" . $roomtype['RoomTypeID'] . "'";
                                             $facilitiesResult = $connect->query($facilitiesQuery);
 
                                             if ($facilitiesResult->num_rows > 0) {
