@@ -12,10 +12,9 @@ $userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
 
 // Check if user is logged in
 if (isset($_SESSION['UserID'])) {
-    $favorite_query = "SELECT f.*, r.*, rt.RoomType , rt.RoomCapacity
+    $favorite_query = "SELECT f.*, rt.RoomCoverImage, rt.RoomType , rt.RoomCapacity, rt.RoomPrice
                       FROM roomfavoritetb f
-                      JOIN roomtb r ON f.RoomID = r.RoomID
-                      JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
+                      JOIN roomtypetb rt ON f.RoomTypeID = rt.RoomTypeID
                       WHERE f.UserID = '$userID'";
 
     $favorite_result = $connect->query($favorite_query);
@@ -29,23 +28,28 @@ if (isset($_SESSION['UserID'])) {
 
 // Add room to favorites
 if (isset($_POST['room_favourite'])) {
-    $roomID = $_POST['roomID'];
+    if ($userID) {
+        $roomTypeID = $_POST['roomTypeID'];
 
-    $check = "SELECT COUNT(*) as count FROM roomfavoritetb WHERE UserID = '$userID' AND RoomID = '$roomID'";
-    $result = $connect->query($check);
-    $count = $result->fetch_assoc()['count'];
+        $check = "SELECT COUNT(*) as count FROM roomfavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
+        $result = $connect->query($check);
+        $count = $result->fetch_assoc()['count'];
 
-    if ($count == 0) {
-        $insert = "INSERT INTO roomfavoritetb (UserID, RoomID) VALUES ('$userID', '$roomID')";
-        $connect->query($insert);
+        if ($count == 0) {
+            $insert = "INSERT INTO roomfavoritetb (UserID, RoomTypeID, CheckInDate, CheckOutDate, Adult, Children) 
+                      VALUES ('$userID', '$roomTypeID', '$checkin_date', '$checkout_date', '$adults', '$children')";
+            $connect->query($insert);
+        } else {
+            $delete = "DELETE FROM roomfavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
+            $connect->query($delete);
+        }
+
+        // Refresh page
+        header("Location: Favorite.php");
+        exit();
     } else {
-        $delete = "DELETE FROM roomfavoritetb WHERE UserID = '$userID' AND RoomID = '$roomID'";
-        $connect->query($delete);
+        $showLoginModal = true;
     }
-
-    // Refresh page
-    header("Location: Favorite.php");
-    exit();
 }
 ?>
 
@@ -88,7 +92,7 @@ if (isset($_POST['room_favourite'])) {
             <section class="grid grid-cols-1 gap-6">
                 <?php foreach ($favorite_rooms as $room):
                     // Check if room is favorited
-                    $check_favorite = "SELECT COUNT(*) as count FROM roomfavoritetb WHERE UserID = '$userID' AND RoomID = '" . $room['RoomID'] . "'";
+                    $check_favorite = "SELECT COUNT(*) as count FROM roomfavoritetb WHERE UserID = '$userID' AND RoomTypeID = '" . $room['RoomTypeID'] . "'";
                     $favorite_result = $connect->query($check_favorite);
                     $is_favorited = $favorite_result->fetch_assoc()['count'] > 0;
                 ?>
@@ -97,9 +101,9 @@ if (isset($_POST['room_favourite'])) {
                         <div class="flex flex-col md:flex-row">
                             <!-- Image -->
                             <div class="md:w-[28%] h-64 overflow-hidden select-none rounded-l-md relative">
-                                <img src="../Admin/<?= htmlspecialchars($room['RoomCoverImage']) ?>" alt="<?= htmlspecialchars($room['RoomName']) ?>" class="w-full h-full object-cover">
+                                <img src="../Admin/<?= htmlspecialchars($room['RoomCoverImage']) ?>" alt="" class="w-full h-full object-cover">
                                 <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post">
-                                    <input type="hidden" name="roomID" value="<?= $room['RoomID'] ?>">
+                                    <input type="hidden" name="roomTypeID" value="<?= $room['RoomTypeID'] ?>">
                                     <button type="submit" name="room_favourite">
                                         <!-- Changed this line to use $is_favorited -->
                                         <i class="absolute top-3 right-3 ri-heart-fill text-xl cursor-pointer flex items-center justify-center bg-white w-9 h-9 rounded-full hover:bg-slate-100 transition-colors duration-300 <?= $is_favorited ? 'text-red-500 hover:text-red-600' : 'text-slate-400 hover:text-red-300' ?>"></i>
@@ -111,9 +115,9 @@ if (isset($_POST['room_favourite'])) {
                             <div class="md:w-2/3 p-5">
                                 <div class="flex justify-between items-start">
                                     <div>
-                                        <h2 class="text-xl font-bold text-gray-800"><?= htmlspecialchars($room['RoomType']) ?> <?= htmlspecialchars($room['RoomName']) ?></h2>
+                                        <h2 class="text-xl font-bold text-gray-800"><?= htmlspecialchars($room['RoomType']) ?></h2>
                                         <?php
-                                        $review_select = "SELECT Rating FROM roomviewtb WHERE RoomID = '" . $room['RoomID'] . "'";
+                                        $review_select = "SELECT Rating FROM roomviewtb WHERE RoomTypeID = '" . $room['RoomTypeID'] . "'";
                                         $select_query = $connect->query($review_select);
 
                                         // Check if there are any reviews
@@ -178,9 +182,9 @@ if (isset($_POST['room_favourite'])) {
                                             <p class="text-sm text-gray-600"><?php
                                                                                 echo date('D j M', strtotime($room['CheckInDate'])) . ' - ' . date('D j M', strtotime($room['CheckOutDate']));
                                                                                 ?></p>
-                                            <p class="text-sm text-gray-600"><?php echo $room['Adults'] ?> <?php echo $room['Adults'] > 1 ? 'adults' : 'adult'; ?> - <?php echo $room['Children'] ?> <?php echo $room['Children'] > 1 ? 'children' : 'child'; ?> - 1 room</p>
+                                            <p class="text-sm text-gray-600"><?php echo $room['Adult'] ?> <?php echo $room['Adult'] > 1 ? 'adults' : 'adult'; ?> - <?php echo $room['Children'] ?> <?php echo $room['Children'] > 1 ? 'children' : 'child'; ?> - 1 room</p>
                                         </div>
-                                        <a href="../User/RoomDetails.php?RoomID=<?php echo $room['RoomID'] ?>" class="px-4 py-2 bg-amber-500 text-white font-semibold rounded-md hover:bg-amber-600 transition-colors select-none">
+                                        <a href="../User/RoomDetails.php?roomTypeID=<?php echo $room['RoomTypeID'] ?>&checkin_date=<?= $room['CheckInDate'] ?>&checkout_date=<?= $room['CheckOutDate'] ?>&adults=<?= $room['Adult'] ?>&children=<?= $room['Children'] ?>" class="px-4 py-2 bg-amber-500 text-white font-semibold rounded-md hover:bg-amber-600 transition-colors select-none">
                                             View Details
                                         </a>
                                     </div>
