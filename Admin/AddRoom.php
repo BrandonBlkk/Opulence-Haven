@@ -16,21 +16,8 @@ $roomID = AutoID('roomtb', 'RoomID', 'R-', 6);
 // Add Room
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addroom'])) {
     $roomname = mysqli_real_escape_string($connect, $_POST['roomname']);
-    $description = mysqli_real_escape_string($connect, $_POST['roomdescription']);
-    $roomprice = mysqli_real_escape_string($connect, $_POST['roomprice']);
     $roomstatus = mysqli_real_escape_string($connect, $_POST['roomstatus']);
     $roomtype = mysqli_real_escape_string($connect, $_POST['roomtype']);
-
-    // Product image upload 
-    $productImage = $_FILES["roomcoverimage"]["name"];
-    $copyFile = "AdminImages/";
-    $fileName = $copyFile . uniqid() . "_" . $productImage;
-    $copy = copy($_FILES["roomcoverimage"]["tmp_name"], $fileName);
-
-    if (!$copy) {
-        echo "<p>Cannot upload Product Image.</p>";
-        exit();
-    }
 
     // Check if the room already exists
     $checkQuery = "SELECT RoomName FROM roomtb WHERE RoomName = '$roomname'";
@@ -39,37 +26,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addroom'])) {
     if ($count > 0) {
         $alertMessage = 'Room you added is already existed.';
     } else {
-        $RoomQuery = "INSERT INTO roomtb (RoomID, RoomCoverImage, RoomName, RoomDescription, RoomPrice, RoomStatus, RoomTypeID)
-        VALUES ('$roomID', '$fileName', '$roomname', '$description', '$roomprice', '$roomstatus', '$roomtype')";
+        $RoomQuery = "INSERT INTO roomtb (RoomID, RoomName, RoomStatus, RoomTypeID)
+        VALUES ('$roomID', '$roomname', '$roomstatus', '$roomtype')";
 
         if ($connect->query($RoomQuery)) {
-            // Insert selected facilities into roomfacilitytb
-            if (isset($_POST['facilities']) && is_array($_POST['facilities'])) {
-                foreach ($_POST['facilities'] as $facilityID) {
-                    $facilityID = mysqli_real_escape_string($connect, $facilityID);
-                    $insertFacility = "INSERT INTO roomfacilitytb (RoomID, FacilityID) VALUES ('$roomID', '$facilityID')";
-                    $connect->query($insertFacility);
-                }
-            }
-
-            // Handle additional images
-            if (!empty($_FILES['additional_images']['name'][0])) {
-                $additionalImages = $_FILES['additional_images'];
-
-                for ($i = 0; $i < count($additionalImages['name']); $i++) {
-                    if ($additionalImages['error'][$i] === UPLOAD_ERR_OK) {
-                        $tempName = $additionalImages['tmp_name'][$i];
-                        $imageName = $additionalImages['name'][$i];
-                        $imagePath = $copyFile . uniqid() . "_" . $imageName;
-
-                        if (move_uploaded_file($tempName, $imagePath)) {
-                            $insertImage = "INSERT INTO roomimagetb (ImagePath, RoomID) VALUES ('$imagePath', '$roomID')";
-                            $connect->query($insertImage);
-                        }
-                    }
-                }
-            }
-
             $addRoomSuccess = true;
         } else {
             $alertMessage = "Failed to add room. Please try again.";
@@ -175,10 +135,7 @@ if (isset($_POST['deleteroomtype'])) {
                         <thead>
                             <tr class="bg-gray-100 text-gray-600 text-sm">
                                 <th class="p-3 text-start">ID</th>
-                                <th class="p-3 text-start">Cover Image</th>
                                 <th class="p-3 text-start hidden sm:table-cell">Room</th>
-                                <th class="p-3 text-start hidden sm:table-cell">Description</th>
-                                <th class="p-3 text-start hidden sm:table-cell">Price</th>
                                 <th class="p-3 text-start hidden sm:table-cell">Status</th>
                                 <th class="p-3 text-start hidden sm:table-cell">Room Type</th>
                                 <th class="p-3 text-start">Actions</th>
@@ -194,17 +151,8 @@ if (isset($_POST['deleteroomtype'])) {
                                                 <span><?= htmlspecialchars($room['RoomID']) ?></span>
                                             </div>
                                         </td>
-                                        <td class="p-3 text-start select-none">
-                                            <img src="<?= htmlspecialchars($room['RoomCoverImage']) ?>" alt="Product Image" class="w-12 h-12 object-cover rounded-sm">
-                                        </td>
                                         <td class="p-3 text-start">
                                             <?= htmlspecialchars($room['RoomName']) ?>
-                                        </td>
-                                        <td class="p-3 text-start hidden sm:table-cell">
-                                            <?= htmlspecialchars($room['RoomDescription']) ?>
-                                        </td>
-                                        <td class="p-3 text-start hidden sm:table-cell">
-                                            <?= htmlspecialchars($room['RoomPrice']) ?>
                                         </td>
                                         <td class="p-3 text-start hidden sm:table-cell">
                                             <?= htmlspecialchars($room['RoomStatus']) ?>
@@ -293,36 +241,53 @@ if (isset($_POST['deleteroomtype'])) {
                 <h2 class="text-xl text-start text-gray-700 font-bold">Edit Room</h2>
                 <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="updateRoomForm">
                     <input type="hidden" name="roomtypeid" id="updateRoomID">
-                    <!-- Room Input -->
-                    <div class="relative w-full">
-                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">Room Information</label>
+                    <!-- Room Name -->
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Room Name</label>
                         <input
-                            id="updateRoomInput"
+                            id="updateRoomNameInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="text"
-                            name="updateroomtype"
-                            placeholder="Enter room type">
-                        <small id="updateRoomError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            name="updateroomname"
+                            placeholder="Enter room name">
+                        <small id="updateRoomNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
-                    <!-- Description Input -->
-                    <div class="relative w-full">
-                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">Description</label>
-                        <textarea
-                            id="updateRoomDescriptionInput"
-                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                            name="updateroomtypedescription"
-                            placeholder="Enter room type description"></textarea>
-                        <small id="updateRoomDescriptionError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                    </div>
-                    <!-- Capacity Input -->
-                    <div class="relative w-full">
-                        <input
-                            id="updateRoomCapacityInput"
-                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                            type="number"
-                            name="updateroomcapacity"
-                            placeholder="Enter room capacity">
-                        <small id="updateRoomCapacityError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+
+                    <!-- Status and Room Type -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Status -->
+                        <div class="relative">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                            <select name="updateroomstatus" id="updateroomstatus" class="p-2 w-full border rounded outline-none" required>
+                                <option value="" disabled selected>Select status</option>
+                                <option value="available">Available</option>
+                                <option value="unavailable">Unavailable</option>
+                                <option value="maintenance">Maintenance</option>
+                            </select>
+                        </div>
+
+                        <!-- Room Type -->
+                        <div class="relative">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Room Type</label>
+                            <select name="updateroomtype" id="updateroomtype" class="p-2 w-full border rounded outline-none" required>
+                                <option value="" disabled selected>Select type of rooms</option>
+                                <?php
+                                $select = "SELECT * FROM roomtypetb";
+                                $query = $connect->query($select);
+                                $count = $query->num_rows;
+                                if ($count) {
+                                    for ($i = 0; $i < $count; $i++) {
+                                        $row = $query->fetch_assoc();
+                                        $room_type_id = $row['RoomTypeID'];
+                                        $room_type = $row['RoomType'];
+                                        echo "<option value='$room_type_id'>$room_type</option>";
+                                    }
+                                } else {
+                                    echo "<option value='' disabled>No data yet</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
                     </div>
                     <!-- Submit Button -->
                     <div class="flex justify-end gap-4 select-none">
@@ -365,117 +330,20 @@ if (isset($_POST['deleteroomtype'])) {
 
         <!-- Add Room Form -->
         <div id="addRoomModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
-            <div class="bg-white w-full max-w-4xl mx-4 p-6 rounded-md shadow-md max-h-[90vh] overflow-y-auto">
+            <div class="bg-white w-full md:w-1/3 mx-4 p-6 rounded-md shadow-md max-h-[90vh] overflow-y-auto">
                 <h2 class="text-xl text-gray-700 font-bold mb-4">Add New Room</h2>
-                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="roomForm" enctype="multipart/form-data">
+                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="roomForm">
 
-                    <!-- Cover Image Upload -->
-                    <div>
-                        <label class="block text-gray-700 font-medium mb-2">Cover Image (High-Quality JPG/PNG/JPEG)</label>
-                        <div id="cover-preview-container" class="hidden mb-4">
-                            <div class="relative group">
-                                <img id="cover-preview" class="w-full h-40 object-cover rounded-lg border border-gray-200">
-                                <button type="button" onclick="removeCoverImage()"
-                                    class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 shadow-md transition-opacity opacity-0 group-hover:opacity-100">
-                                    ×
-                                </button>
-                            </div>
-                        </div>
-                        <div class="relative">
-                            <div id="upload-area" class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
-                                <div class="flex flex-col items-center justify-center space-y-2 py-4">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    <p class="text-sm text-gray-600">Click to upload or drag and drop</p>
-                                    <p class="text-xs text-gray-500">PNG, JPG, JPEG (Max. 5MB)</p>
-                                </div>
-                                <input type="file" name="roomcoverimage" id="cover-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/jpeg,image/png,image/jpg">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Additional Images Upload -->
-                    <div>
-                        <label class="block text-gray-700 font-medium mb-2">Additional Room Images (Max 5 images)</label>
-                        <div id="additional-preview-container" class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4"></div>
-                        <div class="relative">
-                            <div id="additional-upload-area" class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
-                                <div class="flex flex-col items-center justify-center space-y-2 py-4">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    <p class="text-sm text-gray-600">Click to upload or drag and drop</p>
-                                    <p class="text-xs text-gray-500">PNG, JPG, JPEG (Max. 5MB each, Max 5 files)</p>
-                                </div>
-                                <input type="file" name="additional_images[]" id="additional-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/jpeg,image/png,image/jpg" multiple>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Room Information Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Room Name -->
-                        <div class="relative">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Room Name</label>
-                            <input
-                                id="roomNameInput"
-                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                type="text"
-                                name="roomname"
-                                placeholder="Enter room name">
-                            <small id="roomNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                        </div>
-
-                        <!-- Room Price -->
-                        <div class="relative">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Room Price</label>
-                            <input
-                                id="roomPriceInput"
-                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                type="number"
-                                name="roomprice"
-                                placeholder="Enter room price">
-                            <small id="roomPriceError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                        </div>
-                    </div>
-
-                    <!-- Room Description -->
+                    <!-- Room Name -->
                     <div class="relative">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Room Description</label>
-                        <textarea
-                            id="roomDescriptionInput"
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Room Name</label>
+                        <input
+                            id="roomNameInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="text"
-                            name="roomdescription"
-                            placeholder="Enter room description" rows="3"></textarea>
-                        <small id="roomDescriptionError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                    </div>
-
-                    <!-- Facilities Selection -->
-                    <div class="relative">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Select Facilities</label>
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-2 border rounded">
-                            <?php
-                            $facilityQuery = "SELECT * FROM facilitytb";
-                            $facilityResult = $connect->query($facilityQuery);
-
-                            if ($facilityResult->num_rows > 0) {
-                                while ($facility = $facilityResult->fetch_assoc()) {
-                                    $facilityID = $facility['FacilityID'];
-                                    $facilityName = $facility['Facility'];
-                                    echo '
-                            <div class="flex items-center">
-                                <input type="checkbox" id="facility_' . $facilityID . '" name="facilities[]" value="' . $facilityID . '" class="h-4 w-4 text-amber-500 focus:ring-amber-500 border-gray-300 rounded">
-                                <label for="facility_' . $facilityID . '" class="ml-2 text-sm text-gray-700">' . $facilityName . '</label>
-                            </div>';
-                                }
-                            } else {
-                                echo '<p class="text-sm text-gray-500 col-span-3">No facilities available</p>';
-                            }
-                            ?>
-                        </div>
-                        <small id="facilitiesError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            name="roomname"
+                            placeholder="Enter room name">
+                        <small id="roomNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
 
                     <!-- Status and Room Type -->
@@ -485,8 +353,9 @@ if (isset($_POST['deleteroomtype'])) {
                             <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
                             <select name="roomstatus" id="roomstatus" class="p-2 w-full border rounded outline-none" required>
                                 <option value="" disabled selected>Select status</option>
-                                <option value="available">Available</option>
-                                <option value="unavailable">Unavailable</option>
+                                <option value="Available">Available</option>
+                                <option value="Unavailable">Unavailable</option>
+                                <option value="Maintenance">Maintenance</option>
                             </select>
                         </div>
 
@@ -529,141 +398,6 @@ if (isset($_POST['deleteroomtype'])) {
                 </form>
             </div>
         </div>
-
-        <script>
-            // JavaScript to handle image preview
-            const coverInput = document.getElementById('cover-input');
-            const coverPreview = document.getElementById('cover-preview');
-            const coverPreviewContainer = document.getElementById('cover-preview-container');
-            const uploadArea = document.getElementById('upload-area');
-            const additionalInput = document.getElementById('additional-input');
-            const additionalPreviewContainer = document.getElementById('additional-preview-container');
-            const additionalUploadArea = document.getElementById('additional-upload-area');
-            let additionalImages = [];
-
-            // Cover Image Handling
-            coverInput.addEventListener('change', function(event) {
-                const file = event.target.files[0];
-                if (file) {
-                    if (file.size > 5 * 1024 * 1024) {
-                        alert('File size exceeds 5MB limit');
-                        return;
-                    }
-
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        coverPreview.src = e.target.result;
-                        coverPreviewContainer.classList.remove('hidden');
-                        uploadArea.classList.add('hidden');
-                    }
-                    reader.readAsDataURL(file);
-                }
-            });
-
-            function removeCoverImage() {
-                coverInput.value = '';
-                coverPreviewContainer.classList.add('hidden');
-                uploadArea.classList.remove('hidden');
-            }
-
-            // Additional Images Handling
-            additionalInput.addEventListener('change', function(event) {
-                handleAdditionalFiles(event.target.files);
-            });
-
-            function handleAdditionalFiles(files) {
-                if (additionalImages.length + files.length > 5) {
-                    alert('You can upload a maximum of 5 additional images');
-                    return;
-                }
-
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-
-                    if (file.size > 5 * 1024 * 1024) {
-                        alert(`File ${file.name} exceeds 5MB limit`);
-                        continue;
-                    }
-
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const imageId = 'additional-img-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
-                        additionalImages.push({
-                            id: imageId,
-                            file: file,
-                            preview: e.target.result
-                        });
-
-                        updateAdditionalPreviews();
-                    }
-                    reader.readAsDataURL(file);
-                }
-            }
-
-            function updateAdditionalPreviews() {
-                additionalPreviewContainer.innerHTML = '';
-
-                additionalImages.forEach((image, index) => {
-                    const previewDiv = document.createElement('div');
-                    previewDiv.className = 'relative group';
-                    previewDiv.innerHTML = `
-                <img src="${image.preview}" class="w-full h-32 object-cover rounded-lg border border-gray-200">
-                <button type="button" onclick="removeAdditionalImage('${image.id}')" 
-                    class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 shadow-md transition-opacity opacity-0 group-hover:opacity-100">
-                    ×
-                </button>
-            `;
-                    additionalPreviewContainer.appendChild(previewDiv);
-                });
-
-                if (additionalImages.length >= 5) {
-                    additionalUploadArea.classList.add('hidden');
-                } else {
-                    additionalUploadArea.classList.remove('hidden');
-                }
-            }
-
-            function removeAdditionalImage(id) {
-                additionalImages = additionalImages.filter(img => img.id !== id);
-                updateAdditionalPreviews();
-            }
-
-            // Drag and Drop Handling
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                [uploadArea, additionalUploadArea].forEach(area => {
-                    area.addEventListener(eventName, preventDefaults, false);
-                });
-            });
-
-            ['dragenter', 'dragover'].forEach(eventName => {
-                uploadArea.addEventListener(eventName, () => highlight(uploadArea), false);
-                additionalUploadArea.addEventListener(eventName, () => highlight(additionalUploadArea), false);
-            });
-
-            ['dragleave', 'drop'].forEach(eventName => {
-                uploadArea.addEventListener(eventName, () => unhighlight(uploadArea), false);
-                additionalUploadArea.addEventListener(eventName, () => unhighlight(additionalUploadArea), false);
-            });
-
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-
-            function highlight(element) {
-                element.classList.add('border-blue-400', 'bg-blue-50');
-            }
-
-            function unhighlight(element) {
-                element.classList.remove('border-blue-400', 'bg-blue-50');
-            }
-
-            additionalUploadArea.addEventListener('drop', function(e) {
-                const dt = e.dataTransfer;
-                const files = dt.files;
-                handleAdditionalFiles(files);
-            });
-        </script>
     </div>
 
     <!-- Loader -->

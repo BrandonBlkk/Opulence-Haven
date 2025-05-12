@@ -806,6 +806,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("roomTypeInput").addEventListener("keyup", validateRoomType);
     document.getElementById("roomTypeDescriptionInput").addEventListener("keyup", validateRoomTypeDescription);
     document.getElementById("roomCapacityInput").addEventListener("keyup", validateRoomCapacity);
+    document.getElementById("roomPriceInput").addEventListener("keyup", validateRoomPrice);
+    document.getElementById("roomCapacityInput").addEventListener("keyup", validateRoomCapacity);
+    document.getElementById("roomQuantityInput").addEventListener("keyup", validateRoomQuantity);
 
     const roomTypeForm = document.getElementById("roomTypeForm");
     if (roomTypeForm) {
@@ -956,9 +959,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const addRoomModal = document.getElementById('addRoomModal');
     const addRoomBtn = document.getElementById('addRoomBtn');
     const addRoomCancelBtn = document.getElementById('addRoomCancelBtn');
-    // const loader = document.getElementById('loader');
-    // const alertMessage = document.getElementById('alertMessage').value;
-    // const addRoomSuccess = document.getElementById('addRoomSuccess').value === 'true';
+    const loader = document.getElementById('loader');
+    const alertMessage = document.getElementById('alertMessage').value;
+    const addRoomSuccess = document.getElementById('addRoomSuccess').value === 'true';
 
     if (addRoomModal && addRoomBtn && addRoomCancelBtn) {
         // Show modal
@@ -975,42 +978,40 @@ document.addEventListener("DOMContentLoaded", () => {
             darkOverlay2.classList.remove('opacity-100');
 
             // Clear error messages
-            // const errors = ['roomTypeError', 'roomTypeDescriptionError', 'roomCapacityError'];
-            // errors.forEach(error => {
-            //     hideError(document.getElementById(error));
-            // });
+            const errors = ['roomNameError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
         });
     }
 
-    // if (addRoomSuccess) {
-    //     loader.style.display = 'flex';
+    if (addRoomSuccess) {
+        loader.style.display = 'flex';
 
-    //     // Show Alert
-    //     setTimeout(() => {
-    //         loader.style.display = 'none';
-    //         showAlert('A new room type has been successfully added.');
-    //         setTimeout(() => {
-    //             window.location.href = 'AddRoomType.php';
-    //         }, 5000);
-    //     }, 1000);
-    // } else if (alertMessage) {
-    //     // Show Alert
-    //     showAlert(alertMessage);
-    // }
+        // Show Alert
+        setTimeout(() => {
+            loader.style.display = 'none';
+            showAlert('A new room has been successfully added.');
+            setTimeout(() => {
+                window.location.href = 'AddRoom.php';
+            }, 5000);
+        }, 1000);
+    } else if (alertMessage) {
+        // Show Alert
+        showAlert(alertMessage);
+    }
 
     // Add keyup event listeners for real-time validation
-    // document.getElementById("roomTypeInput").addEventListener("keyup", validateRoomType);
-    // document.getElementById("roomTypeDescriptionInput").addEventListener("keyup", validateRoomTypeDescription);
-    // document.getElementById("roomCapacityInput").addEventListener("keyup", validateRoomCapacity);
+    document.getElementById("roomNameInput").addEventListener("keyup", validateRoomName);
 
-    // const roomForm = document.getElementById("roomForm");
-    // if (roomForm) {
-    //     roomForm.addEventListener("submit", (e) => {
-    //         if (!validateRoomTypeForm()) {
-    //             e.preventDefault();
-    //         }
-    //     });
-    // }
+    const roomForm = document.getElementById("roomForm");
+    if (roomForm) {
+        roomForm.addEventListener("submit", (e) => {
+            if (!validateRoomForm()) {
+                e.preventDefault();
+            }
+        });
+    }
 });
 
 // Add Facility Type Form
@@ -2506,8 +2507,10 @@ const validateRoomTypeForm = () => {
     const isRoomTypeValid = validateRoomType();
     const isRoomDescriptionValid = validateRoomTypeDescription();
     const isRoomCapacityValid = validateRoomCapacity();
+    const isRoomPriceValid = validateRoomPrice();
+    const validateRoomQuantityValid = validateRoomQuantity();
 
-    return isRoomTypeValid && isRoomDescriptionValid && isRoomCapacityValid;
+    return isRoomTypeValid && isRoomDescriptionValid && isRoomCapacityValid && isRoomPriceValid && validateRoomQuantityValid;
 }
 
 const validateUpdateRoomTypeForm = () => {
@@ -2516,6 +2519,12 @@ const validateUpdateRoomTypeForm = () => {
     const isRoomCapacityValid = validateUpdateRoomCapacity();
 
     return isRoomTypeValid && isRoomDescriptionValid && isRoomCapacityValid;
+}
+
+const validateRoomForm = () => {
+    const isRoomNameValid = validateRoomName();
+
+    return isRoomNameValid;
 }
 
 const validateFacilityTypeForm = () => {
@@ -3011,6 +3020,14 @@ const validateUpdateRoomTypeDescription = () => {
     );
 }
 
+const validateRoomName = () => {
+    return validateField(
+        "roomNameInput",
+        "roomNameError",
+        (input) => (!input ? "Room name is required." : null)
+    );
+}
+
 const validateRoomCapacity = () => {
     return validateField(
         "roomCapacityInput",
@@ -3024,6 +3041,22 @@ const validateUpdateRoomCapacity = () => {
         "updateRoomCapacityInput",
         "updateRoomCapacityError",
         (input) => (!input ? "Room capacity is required." : null)
+    );
+}
+
+const validateRoomPrice = () => {
+    return validateField(
+        "roomPriceInput",
+        "roomPriceError",
+        (input) => (!input ? "Price is required." : null)
+    );
+}
+
+const validateRoomQuantity = () => {
+    return validateField(
+        "roomQuantityInput",
+        "roomQuantityError",
+        (input) => (!input ? "Room quantity is required." : null)
     );
 }
 
