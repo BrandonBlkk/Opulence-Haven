@@ -408,7 +408,8 @@ if (isset($_POST['room_favourite'])) {
                                             <div class="flex items-center gap-4">
                                                 <h2 class="text-xl font-bold text-gray-800"><?= htmlspecialchars($roomtype['RoomType']) ?></h2>
                                                 <?php
-                                                $review_select = "SELECT Rating FROM roomviewtb WHERE RoomTypeID = '" . $roomtype['RoomTypeID'] . "'";
+                                                // Get average rating
+                                                $review_select = "SELECT Rating FROM roomreviewtb WHERE RoomTypeID = '$roomtype[RoomTypeID]'";
                                                 $select_query = $connect->query($review_select);
 
                                                 // Check if there are any reviews
@@ -427,7 +428,6 @@ if (isset($_POST['room_favourite'])) {
                                                     $averageRating = 0;
                                                 }
                                                 ?>
-
                                                 <div class="flex items-center gap-3">
                                                     <div class="select-none space-x-1 cursor-pointer">
                                                         <?php
@@ -458,7 +458,7 @@ if (isset($_POST['room_favourite'])) {
                                             </div>
                                             <div class="text-right">
                                                 <div class="text-sm text-gray-500">Price starts from</div>
-                                                <div class="text-lg font-bold text-orange-500">$<?= number_format($roomtype['RoomPrice'], 2) ?></div>
+                                                <div class="text-lg font-bold text-orange-500">USD<?= number_format($roomtype['RoomPrice'], 2) ?></div>
                                             </div>
                                         </div>
                                         <div class="text-sm text-gray-600 mt-1"><?= htmlspecialchars($roomtype['RoomType']) ?> <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Max <?= $roomtype['RoomCapacity'] ?> <?php if ($roomtype['RoomCapacity'] > 1) echo 'guests';
