@@ -115,6 +115,48 @@ if (menubar) {
     });
 }
 
+//Rooom Review
+const viewAllReviews = document.getElementById('viewAllReviews');
+if (viewAllReviews) {
+    const reviewCloseBtn = document.getElementById('reviewCloseBtn');
+    const rooomReview = document.getElementById('rooomReview');
+
+    viewAllReviews.addEventListener('click', () => {
+        rooomReview.style.top = '0%';
+    });
+
+    reviewCloseBtn.addEventListener('click', () => {
+        rooomReview.style.top = '100%';
+    });
+
+    darkOverlay.addEventListener('click', () => {
+        rooomReview.style.top = '100%';
+    });
+}
+
+// Write Room Review
+document.addEventListener("DOMContentLoaded", () => {
+    const writeReviewModal = document.getElementById('writeReviewModal');
+    const writeReview = document.getElementById('writeReview');
+    const addReviewCancelBtn = document.getElementById('addReviewCancelBtn');
+
+    if (writeReviewModal && writeReview && addReviewCancelBtn) {
+        // Show modal
+        writeReview.addEventListener('click', () => {
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
+            writeReviewModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+        });
+
+        // Cancel button functionality
+        addReviewCancelBtn.addEventListener('click', () => {
+            writeReviewModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+    }
+});
+
 // Dining Reservation Modal
 const diningBtn = document.getElementById('diningBtn');
 if (diningBtn) {

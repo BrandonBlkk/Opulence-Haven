@@ -81,9 +81,26 @@ if ($totalReviews > 0) {
     }
 
     // Calculate the average rating
-    $averageRating = $totalRating / $totalReviews;
+    $averageRating = round($totalRating / $totalReviews, 1); // Round to 1 decimal place
+
+    // Function to get rating description
+    function getRatingDescription($rating)
+    {
+        if ($rating >= 4.5) return 'Exceptional';
+        if ($rating >= 4.0) return 'Superb';
+        if ($rating >= 3.5) return 'Very Good';
+        if ($rating >= 3.0) return 'Good';
+        if ($rating >= 2.5) return 'Average';
+        if ($rating >= 2.0) return 'Below Average';
+        return 'Poor';
+    }
+
+    // Get the rating description
+    $ratingDescription = getRatingDescription($averageRating);
 } else {
     $averageRating = 0;
+    $ratingDescription = 'No Reviews';
+    $totalReviews = 0;
 }
 
 // Count Review
@@ -341,7 +358,7 @@ function timeAgo($date)
                         <div class="flex justify-between items-start mb-6">
                             <div class="flex items-start">
                                 <div class="flex flex-col items-center mr-3">
-                                    <span class="bg-blue-600 text-white px-3 py-1 rounded-md text-sm font-medium">Superb</span>
+                                    <span class="bg-blue-600 text-white px-3 py-1 rounded-md text-sm font-medium"><?= $ratingDescription ?></span>
                                     <p class="text-gray-700 text-sm mt-1">
                                         <?= $totalReviews ?> <?= ($totalReviews > 1) ? 'reviews' : 'review' ?>
                                     </p>
@@ -368,7 +385,8 @@ function timeAgo($date)
                                     <?php
                                     $roomReviewSelect = "SELECT rr.*, u.* FROM roomreviewtb rr 
                                     JOIN usertb u ON rr.UserID = u.UserID
-                                    WHERE RoomTypeID = '$roomtype[RoomTypeID]'";
+                                    WHERE RoomTypeID = '$roomtype[RoomTypeID]'
+                                    ORDER BY rr.Rating DESC";
                                     $roomReviewResult = $connect->query($roomReviewSelect);
                                     $totalReviews = $roomReviewResult->num_rows;
 
@@ -481,13 +499,13 @@ function timeAgo($date)
 
                     <!-- Property highlights -->
                     <div class="mb-6 bg-blue-50 flex-1 p-3">
-                        <h2 class="text-lg font-bold text-slate-700 mb-2">Property highlights</h2>
+                        <h2 class="text-lg font-bold text-slate-600 mb-2">Property highlights</h2>
                         <p class="mb-2 text-sm text-gray-500 flex items-center">
                             <i class="ri-map-pin-line text-xl"></i>
                             Top location: Highly rated by recent guests (<?= number_format($averageRating, 1); ?>)
                         </p>
                         <p class="mb-2 text-sm text-gray-500">
-                            <strong class="text-slate-700">Breakfast info</strong><br>
+                            <strong class="text-slate-600">Breakfast info</strong><br>
                             Vegetarian, Gluten-free, Asian
                         </p>
                         <p class="text-sm text-gray-500 flex items-center">
@@ -536,9 +554,10 @@ function timeAgo($date)
                             <tbody class="bg-white divide-y divide-gray-200">
                                 <?php
                                 $roomSelect = "SELECT r.*, rt.RoomType
-                          FROM roomtb r 
-                          JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID 
-                          WHERE r.RoomTypeID = '" . $roomtype['RoomTypeID'] . "'";
+                                FROM roomtb r 
+                                JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID 
+                                WHERE r.RoomTypeID = '" . $roomtype['RoomTypeID'] . "'
+                                ORDER BY r.RoomStatus = 'Available' DESC";
                                 $roomSelectResult = $connect->query($roomSelect);
 
                                 if ($roomSelectResult->num_rows > 0) {
@@ -624,7 +643,7 @@ function timeAgo($date)
                     </div>
 
                     <!-- View All Button -->
-                    <button class="w-full mt-4 text-start text-blue-600 hover:text-blue-800 text-sm font-medium">
+                    <button id="viewAllReviews" class="w-full mt-4 text-start text-blue-600 hover:text-blue-800 text-sm font-medium">
                         Read all reviews
                     </button>
                 </div>
@@ -674,6 +693,7 @@ function timeAgo($date)
     <?php
     include('../includes/MoveUpBtn.php');
     include('../includes/Alert.php');
+    include('../includes/UserRoomReview.php');
     include('../includes/Footer.php');
     ?>
 
@@ -724,6 +744,17 @@ function timeAgo($date)
         // Keep your existing scroll functions exactly as they are
         function scrollToFacilities() {
             const section = document.getElementById('facilities-section');
+            const sectionRect = section.getBoundingClientRect();
+            const sectionMiddle = sectionRect.top + window.scrollY + (sectionRect.height / 2) - (window.innerHeight / 2);
+
+            window.scrollTo({
+                top: sectionMiddle,
+                behavior: 'smooth'
+            });
+        }
+
+        function scrollToAvailability() {
+            const section = document.getElementById('availability-section');
             const sectionRect = section.getBoundingClientRect();
             const sectionMiddle = sectionRect.top + window.scrollY + (sectionRect.height / 2) - (window.innerHeight / 2);
 
