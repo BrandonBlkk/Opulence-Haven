@@ -7,6 +7,7 @@ if (!$connect) {
 }
 
 $userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
+$username = (!empty($_SESSION["UserName"]) ? $_SESSION["UserName"] : null);
 $alertMessage = '';
 
 // Get search parameters from URL with strict validation
@@ -136,6 +137,34 @@ function timeAgo($date)
         return 'Just now';
     }
 }
+
+// Submit Review
+if (isset($_POST['submitreview'])) {
+    if ($userID) {
+        // Get values from POST
+        $roomTypeID = $_POST['roomTypeID'];
+        $travellerType = mysqli_real_escape_string($connect, $_POST['travellertype']);
+        $rating = intval($_POST['rating']);
+        $country = mysqli_real_escape_string($connect, $_POST['country']);
+        $review = mysqli_real_escape_string($connect, $_POST['reviewtext']);
+
+        // Validate inputs
+        if (empty($travellerType) || empty($rating) || empty($country) || empty($review)) {
+            $alertMessage = "All fields are required!";
+        } else {
+            // Insert into database
+            $insert = "INSERT INTO roomreviewtb (Rating, Country, Comment, TravellerType, UserID, RoomTypeID) 
+                      VALUES ('$rating', '$country', '$review', '$travellerType', '$userID', '$roomTypeID')";
+
+            if ($connect->query($insert)) {
+                // Redirect back with the same search parameters
+                $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children";
+                header("Location: $redirect_url");
+                exit();
+            }
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -147,6 +176,7 @@ function timeAgo($date)
     <meta name="csrf-token" content="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
     <title>Opulence Haven</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" />
     <link rel="stylesheet" href="../CSS/output.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
 </head>
@@ -407,7 +437,35 @@ function timeAgo($date)
                                                         <span class="w-10 h-10 rounded-full bg-[<?= $bgColor ?>] text-white uppercase font-semibold flex items-center justify-center select-none"><?= $initials ?></span>
                                                     </div>
                                                     <div>
-                                                        <h4 class="text-xs font-medium text-gray-800"><?= $roomReview['UserName'] ?></h4>
+                                                        <div class="flex items-center gap-2">
+                                                            <h4 class="text-sm font-medium text-gray-800"><?= $roomReview['UserName'] ?></h4>
+                                                            <div class="flex items-center gap-2">
+                                                                <!-- Country Flag -->
+                                                                <span class="text-xs flag-icon flag-icon-<?= strtolower($roomReview['Country']) ?> rounded-sm shadow-sm"></span>
+
+                                                                <!-- Country Name (Fetched via API) -->
+                                                                <span
+                                                                    class="text-xs text-gray-600 country-name"
+                                                                    data-country-code="<?= $roomReview['Country'] ?>">
+                                                                    Loading...
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        <script>
+                                                            // Fetch country names from RestCountries API
+                                                            document.querySelectorAll('.country-name').forEach(el => {
+                                                                const countryCode = el.getAttribute('data-country-code');
+                                                                fetch(`https://restcountries.com/v3.1/alpha/${countryCode}`)
+                                                                    .then(response => response.json())
+                                                                    .then(data => {
+                                                                        el.textContent = data[0]?.name?.common || countryCode;
+                                                                    })
+                                                                    .catch(() => {
+                                                                        el.textContent = countryCode; // Fallback if API fails
+                                                                    });
+                                                            });
+                                                        </script>
                                                         <div class="flex items-center">
                                                             <div class="flex items-center gap-3 mb-4">
                                                                 <div class="select-none space-x-1 cursor-pointer text-sm">
@@ -586,66 +644,287 @@ function timeAgo($date)
                 <div id="review-section" class="space-y-4 mb-8">
                     <h2 class="text-xl font-bold text-gray-800 mb-3">Guests who stayed here loved</h2>
 
-                    <!-- Grid Layout for Reviews -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <?php
-                        $roomReviewSelect = "SELECT rr.*, u.* FROM roomreviewtb rr 
+                    <!-- Swiper Container (replaces grid layout) -->
+                    <div class="swiper review-swiper">
+                        <div class="swiper-wrapper">
+                            <?php
+                            $roomReviewSelect = "SELECT rr.*, u.* FROM roomreviewtb rr 
                             JOIN usertb u ON rr.UserID = u.UserID
-                            WHERE RoomTypeID = '$roomtype[RoomTypeID]'";
-                        $roomReviewResult = $connect->query($roomReviewSelect);
-                        $totalReviews = $roomReviewResult->num_rows;
+                            WHERE RoomTypeID = '$roomtype[RoomTypeID]'
+                            ORDER BY AddedDate DESC";
+                            $roomReviewResult = $connect->query($roomReviewSelect);
+                            $totalReviews = $roomReviewResult->num_rows;
 
-                        while ($roomReview = $roomReviewResult->fetch_assoc()) {
-                            // Extract initials
-                            $nameParts = explode(' ', trim($roomReview['UserName']));
-                            $initials = substr($nameParts[0], 0, 1);
-                            if (count($nameParts) > 1) {
-                                $initials .= substr(end($nameParts), 0, 1);
-                            }
-                            $bgColor = $roomReview['ProfileBgColor'];
-                        ?>
-                            <!-- Review Card -->
-                            <div class="border border-gray-200 rounded-lg p-4">
-                                <div class="flex items-center mb-2">
-                                    <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
-                                        <span class="w-10 h-10 rounded-full bg-[<?= $bgColor ?>] text-white uppercase font-semibold flex items-center justify-center select-none"><?= $initials ?></span>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-xs font-medium text-gray-800"><?= $roomReview['UserName'] ?></h4>
-                                        <div class="flex items-center">
-                                            <div class="flex items-center gap-3 mb-4">
-                                                <div class="select-none space-x-1 cursor-pointer text-sm">
-                                                    <?php
-                                                    $fullStars = floor($roomReview['Rating']);
-                                                    $emptyStars = 5 - $fullStars;
-                                                    for ($i = 0; $i < $fullStars; $i++) {
-                                                        echo '<i class="ri-star-fill text-amber-500"></i>';
-                                                    }
-                                                    for ($i = 0; $i < $emptyStars; $i++) {
-                                                        echo '<i class="ri-star-line text-amber-500"></i>';
-                                                    }
-                                                    ?>
+                            while ($roomReview = $roomReviewResult->fetch_assoc()) {
+                                // Extract initials
+                                $nameParts = explode(' ', trim($roomReview['UserName']));
+                                $initials = substr($nameParts[0], 0, 1);
+                                if (count($nameParts) > 1) {
+                                    $initials .= substr(end($nameParts), 0, 1);
+                                }
+                                $bgColor = $roomReview['ProfileBgColor'];
+                            ?>
+                                <!-- Review Card as Swiper Slide -->
+                                <div class="swiper-slide">
+                                    <div class="border border-gray-200 rounded-lg p-4 h-full">
+                                        <div class="flex items-center mb-2">
+                                            <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
+                                                <span class="w-10 h-10 rounded-full bg-[<?= $bgColor ?>] text-white uppercase font-semibold flex items-center justify-center select-none"><?= $initials ?></span>
+                                            </div>
+                                            <div>
+                                                <div class="flex items-center gap-2">
+                                                    <h4 class="text-sm font-medium text-gray-800"><?= $roomReview['UserName'] ?></h4>
+                                                    <div class="flex items-center gap-2">
+                                                        <!-- Country Flag -->
+                                                        <span class="text-xs flag-icon flag-icon-<?= strtolower($roomReview['Country']) ?> rounded-sm shadow-sm"></span>
+                                                        <!-- Country Name -->
+                                                        <span class="text-xs text-gray-600 country-name" data-country-code="<?= $roomReview['Country'] ?>">
+                                                            Loading...
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                                <span class="text-gray-500 text-xs"><?= timeAgo($roomReview['AddedDate']) ?></span>
+                                                <div class="flex items-center">
+                                                    <div class="flex items-center gap-3 mb-4">
+                                                        <div class="select-none space-x-1 cursor-pointer text-sm">
+                                                            <?php
+                                                            $fullStars = floor($roomReview['Rating']);
+                                                            $emptyStars = 5 - $fullStars;
+                                                            for ($i = 0; $i < $fullStars; $i++) {
+                                                                echo '<i class="ri-star-fill text-amber-500"></i>';
+                                                            }
+                                                            for ($i = 0; $i < $emptyStars; $i++) {
+                                                                echo '<i class="ri-star-line text-amber-500"></i>';
+                                                            }
+                                                            ?>
+                                                        </div>
+                                                        <span class="text-gray-500 text-xs"><?= timeAgo($roomReview['AddedDate']) ?></span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
+                                        <p class="text-gray-700 text-xs">
+                                            "<?php
+                                                $review = $roomReview['Comment'] ?? '';
+                                                $truncated = mb_strimwidth(htmlspecialchars($review), 0, 250, '...');
+                                                echo $truncated;
+                                                ?>"
+                                        </p>
                                     </div>
                                 </div>
-                                <p class="text-gray-700 text-xs">
-                                    "<?php
-                                        $review = $roomReview['Comment'] ?? '';
-                                        $truncated = mb_strimwidth(htmlspecialchars($review), 0, 250, '...');
-                                        echo $truncated;
-                                        ?>"
-                                </p>
-                            </div>
-                        <?php } ?>
+                            <?php } ?>
+                        </div>
+
+                        <!-- Add Navigation Arrows -->
+                        <div class="swiper-button-next right-0 top-[40%]"></div>
+                        <div class="swiper-button-prev left-0 top-[40%]"></div>
                     </div>
 
                     <!-- View All Button -->
-                    <button id="viewAllReviews" class="w-full mt-4 text-start text-blue-600 hover:text-blue-800 text-sm font-medium">
+                    <button id="viewAllReviews" class="w-full text-start text-blue-600 hover:text-blue-800 text-sm font-medium">
                         Read all reviews
                     </button>
+                </div>
+
+                <!-- Add Swiper JS and CSS -->
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+                <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+                <style>
+                    .review-swiper {
+                        /* Space for navigation arrows */
+                        position: relative;
+                    }
+
+                    .swiper-slide {
+                        height: auto;
+                    }
+
+                    .swiper-button-next,
+                    .swiper-button-prev {
+                        color: #d97706;
+                        /* Amber-500 color */
+                        top: 40%;
+                        /* Center vertically */
+                    }
+                </style>
+
+                <script>
+                    // Initialize Swiper
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const swiper = new Swiper('.review-swiper', {
+                            slidesPerView: 3,
+                            spaceBetween: 16,
+                            navigation: {
+                                nextEl: '.swiper-button-next',
+                                prevEl: '.swiper-button-prev',
+                            },
+                            breakpoints: {
+                                320: {
+                                    slidesPerView: 1,
+                                },
+                                768: {
+                                    slidesPerView: 2,
+                                },
+                                1024: {
+                                    slidesPerView: 3,
+                                }
+                            }
+                        });
+
+                        // Keep your existing country fetch code
+                        document.querySelectorAll('.country-name').forEach(el => {
+                            const countryCode = el.getAttribute('data-country-code');
+                            fetch(`https://restcountries.com/v3.1/alpha/${countryCode}`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    el.textContent = data[0]?.name?.common || countryCode;
+                                })
+                                .catch(() => {
+                                    el.textContent = countryCode; // Fallback if API fails
+                                });
+                        });
+                    });
+                </script>
+
+                <div id="facilities-section" class="space-y-6 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Facilities of Opulence Haven</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Great for your stay -->
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-1">
+                                <?php
+                                // Get the icon for 'Stay' category
+                                $stayIconQuery = "SELECT FacilityTypeIcon FROM facilitytypetb WHERE FacilityType = 'Stay'";
+                                $stayIconResult = $connect->query($stayIconQuery);
+                                $stayIcon = $stayIconResult->fetch_assoc();
+                                ?>
+                                <i class="<?= htmlspecialchars($stayIcon['FacilityTypeIcon']) ?> text-xl leading-none"></i>
+                                <h3 class="text-md font-semibold text-gray-700">Great for your stay</h3>
+                            </div>
+                            <div class="grid grid-cols-1 gap-3">
+                                <?php
+                                $safetyQuery = "SELECT * FROM facilitytb 
+                       WHERE FacilityTypeID = (SELECT FacilityTypeID FROM facilitytypetb WHERE FacilityType = 'Stay')
+                       ORDER BY Facility";
+                                $safetyResult = $connect->query($safetyQuery);
+
+                                while ($facility = $safetyResult->fetch_assoc()) {
+                                    echo '
+                                <div class="flex items-center gap-2">
+                                    <i class="ri-checkbox-circle-line text-base text-green-500 leading-none"></i>
+                                    <span class="text-gray-700 text-sm leading-none">' . htmlspecialchars($facility['Facility']) . '</span>
+                                </div>
+                                ';
+                                }
+                                ?>
+                            </div>
+                        </div>
+
+                        <!-- Bathroom -->
+                        <div class="space-y-4">
+                            <h3 class="text-md font-semibold text-gray-700">Bathroom</h3>
+                            <div class="grid grid-cols-1 gap-3">
+                                <?php
+                                $safetyQuery = "SELECT * FROM facilitytb 
+                           WHERE FacilityTypeID = (SELECT FacilityTypeID FROM facilitytypetb WHERE FacilityType = 'Bathroom')
+                           ORDER BY Facility";
+                                $safetyResult = $connect->query($safetyQuery);
+
+                                while ($facility = $safetyResult->fetch_assoc()) {
+                                    echo '
+                                <div class="flex items-center gap-2">
+                                    <i class="ri-checkbox-circle-line text-base text-green-500 leading-none"></i>
+                                    <span class="text-gray-700 text-sm leading-none">' . htmlspecialchars($facility['Facility']) . '</span>
+                                </div>
+                                ';
+                                }
+                                ?>
+                            </div>
+                        </div>
+
+                        <!-- Activities -->
+                        <div class="space-y-4">
+                            <h3 class="text-md font-semibold text-gray-700">Activities</h3>
+                            <div class="grid grid-cols-1 gap-3">
+                                <?php
+                                $safetyQuery = "SELECT * FROM facilitytb 
+                           WHERE FacilityTypeID = (SELECT FacilityTypeID FROM facilitytypetb WHERE FacilityType = 'Activities')
+                           ORDER BY Facility";
+                                $safetyResult = $connect->query($safetyQuery);
+
+                                while ($facility = $safetyResult->fetch_assoc()) {
+                                    echo '
+                                <div class="flex items-center gap-2">
+                                    <i class="ri-checkbox-circle-line text-base text-green-500 leading-none"></i>
+                                    <span class="text-gray-700 text-sm leading-none">' . htmlspecialchars($facility['Facility']) . '</span>
+                                </div>
+                                ';
+                                }
+                                ?>
+                            </div>
+                        </div>
+
+                        <!-- Living Area -->
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-1">
+                                <?php
+                                $stayIconQuery = "SELECT FacilityTypeIcon FROM facilitytypetb WHERE FacilityType = 'Living Area'";
+                                $stayIconResult = $connect->query($stayIconQuery);
+                                $stayIcon = $stayIconResult->fetch_assoc();
+                                ?>
+                                <i class="<?= htmlspecialchars($stayIcon['FacilityTypeIcon']) ?> text-xl leading-none"></i>
+                                <h3 class="text-md font-semibold text-gray-700">Living Area</h3>
+                            </div>
+                            <div class="grid grid-cols-1 gap-3">
+                                <?php
+                                $safetyQuery = "SELECT * FROM facilitytb 
+                           WHERE FacilityTypeID = (SELECT FacilityTypeID FROM facilitytypetb WHERE FacilityType = 'Living Area')
+                           ORDER BY Facility";
+                                $safetyResult = $connect->query($safetyQuery);
+
+                                while ($facility = $safetyResult->fetch_assoc()) {
+                                    echo '
+                                <div class="flex items-center gap-2">
+                                    <i class="ri-checkbox-circle-line text-base text-green-500 leading-none"></i>
+                                    <span class="text-gray-700 text-sm leading-none">' . htmlspecialchars($facility['Facility']) . '</span>
+                                </div>
+                                ';
+                                }
+                                ?>
+                            </div>
+                        </div>
+
+                        <!-- Media & Technology -->
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-1">
+                                <?php
+                                $stayIconQuery = "SELECT FacilityTypeIcon FROM facilitytypetb WHERE FacilityType = 'Media & Technology'";
+                                $stayIconResult = $connect->query($stayIconQuery);
+                                $stayIcon = $stayIconResult->fetch_assoc();
+                                ?>
+                                <i class="<?= htmlspecialchars($stayIcon['FacilityTypeIcon']) ?> text-xl leading-none"></i>
+                                <h3 class="text-md font-semibold text-gray-700">Media & Technology</h3>
+                            </div>
+                            <div class="grid grid-cols-1 gap-3">
+                                <?php
+                                $safetyQuery = "SELECT * FROM facilitytb 
+                           WHERE FacilityTypeID = (SELECT FacilityTypeID FROM facilitytypetb WHERE FacilityType = 'Media & Technology')
+                           ORDER BY Facility";
+                                $safetyResult = $connect->query($safetyQuery);
+
+                                while ($facility = $safetyResult->fetch_assoc()) {
+                                    echo '
+                                <div class="flex items-center gap-2">
+                                    <i class="ri-checkbox-circle-line text-base text-green-500 leading-none"></i>
+                                    <span class="text-gray-700 text-sm leading-none">' . htmlspecialchars($facility['Facility']) . '</span>
+                                </div>
+                                ';
+                                }
+                                ?>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- House rules -->
