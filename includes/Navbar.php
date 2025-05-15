@@ -11,7 +11,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <?php endif; ?>
 </section>
 
-<div class="sticky top-0 w-full bg-white border-b z-50">
+<div class="sticky top-0 w-full bg-white border-b z-30">
     <?php
     include('../includes/MoveRightLoader.php');
     ?>
