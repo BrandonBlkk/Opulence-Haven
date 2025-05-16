@@ -93,7 +93,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
     <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
 </head>
 
-<body class="flex justify-center items-center min-h-screen">
+<body class="flex justify-center items-center min-h-screen min-w-[380px]">
     <div class="p-3">
         <!-- Logo -->
         <div class="flex items-end gap-1 select-none">

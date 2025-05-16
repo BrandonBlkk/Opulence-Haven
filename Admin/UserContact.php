@@ -62,7 +62,7 @@ if (isset($_POST['respondcontact'])) {
     <?php include('../includes/AdminNavbar.php'); ?>
 
     <!-- Main Container -->
-    <div class="p-3 ml-0 md:ml-[250px] min-w-[350px] relative">
+    <div class="p-3 ml-0 md:ml-[250px] min-w-[380px] relative">
         <!-- Left Side Content -->
         <div class="w-full bg-white p-2">
             <h2 class="text-xl font-bold mb-4">Manage User Contacts</h2>

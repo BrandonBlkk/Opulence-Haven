@@ -175,7 +175,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["removeItem"])) {
 <body>
     <?php include('../includes/AdminNavbar.php'); ?>
 
-    <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px] min-w-[350px]">
+    <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px] min-w-[380px]">
         <div class="w-full bg-white p-2">
             <h2 class="text-xl text-gray-700 font-bold mb-4">Purchase Product</h2>
             <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="ruleForm">

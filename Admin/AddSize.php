@@ -99,7 +99,7 @@ if (isset($_POST['deleteproductsize'])) {
     <?php include('../includes/AdminNavbar.php'); ?>
 
     <!-- Main Container -->
-    <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px] min-w-[350px]">
+    <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px] min-w-[380px]">
         <!-- Left Side Content -->
         <div class="w-full bg-white p-2">
             <div class="flex justify-between items-end">

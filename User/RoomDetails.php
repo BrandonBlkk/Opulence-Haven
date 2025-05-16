@@ -181,7 +181,7 @@ if (isset($_POST['submitreview'])) {
     <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
 </head>
 
-<body class="relative">
+<body class="relative min-w-[380px]">
     <?php
     include('../includes/Navbar.php');
     include('../includes/Cookies.php');
@@ -543,7 +543,7 @@ if (isset($_POST['submitreview'])) {
                     </div>
                 </div>
 
-                <div class="flex items-center">
+                <div class="flex items-center gap-5">
                     <!-- About section -->
                     <div class="my-8 w-[65%]">
                         <h2 class="text-xl font-bold mb-2">About this room</h2>
