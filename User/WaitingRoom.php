@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
 </head>
 
-<body>
+<body class="min-w-[380px]">
     <section class="waiting-section flex flex-col items-center justify-center min-h-screen p-2 bg-gray-50">
         <div class="waiting-title text-center space-y-2 mb-8">
             <h1 class="text-3xl font-bold">Hang Tight</h1>

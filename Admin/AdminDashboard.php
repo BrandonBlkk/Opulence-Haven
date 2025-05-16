@@ -94,7 +94,7 @@ $outOfStock = $outOfStockResult->fetch_assoc()['OutOfStock'];
         </script>
     <?php endif; ?>
 
-    <div class="p-3 ml-0 md:ml-[250px] min-w-[350px]">
+    <div class="p-3 ml-0 md:ml-[250px] min-w-[380px]">
 
         <!-- Left Side Content -->
         <div class="w-full bg-white p-3 rounded-sm">

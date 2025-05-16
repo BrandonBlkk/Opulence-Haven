@@ -180,7 +180,7 @@ if ($productReviewSelectQuery->num_rows > 0) {
     include('../includes/StoreNavbar.php');
     ?>
 
-    <main class="max-w-[1310px] mx-auto px-4 py-5 min-w-[350px]">
+    <main class="max-w-[1310px] mx-auto px-4 py-5 min-w-[380px]">
         <div class="flex text-sm text-slate-600">
             <a href="../User/HomePage.php" class="underline">Home</a>
             <span><i class="ri-arrow-right-s-fill"></i></span>

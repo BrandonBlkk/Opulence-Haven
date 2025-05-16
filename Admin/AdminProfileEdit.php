@@ -113,7 +113,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['changePassword'])) {
     <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
 </head>
 
-<body>
+<body class="min-w-[380px]">
     <?php include('../includes/AdminNavbar.php'); ?>
 
     <!-- Main Container -->

@@ -77,7 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 </head>
 
-<body class="flex justify-center items-center min-h-screen">
+<body class="flex justify-center items-center min-h-screen min-w-[380px]">
     <div class="flex flex-col-reverse md:flex-row justify-center gap-5 sm:gap-10 p-3">
         <div class="signinCon pb-0 sm:pb-5">
             <div class="max-w-[450px] hidden sm:block select-none">

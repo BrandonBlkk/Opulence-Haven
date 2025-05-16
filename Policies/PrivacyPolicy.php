@@ -19,7 +19,7 @@ if (!$connect) {
     <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
 </head>
 
-<body class="relative">
+<body class="relative min-w-[380px]">
     <?php
     include('../includes/Navbar.php');
     ?>
