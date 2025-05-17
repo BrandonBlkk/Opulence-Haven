@@ -187,6 +187,80 @@ if (isset($_POST['submitreview'])) {
     include('../includes/Cookies.php');
     ?>
 
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 z-50 flex items-center justify-center <?php echo !empty($showLoginModal) ? '' : 'hidden'; ?>">
+        <!-- Overlay -->
+        <div class="absolute inset-0 bg-black opacity-50"></div>
+
+        <!-- Modal Container -->
+        <div class="relative bg-white rounded-md shadow-2xl max-w-md w-full mx-4 z-10 overflow-hidden">
+            <!-- Modal Header -->
+            <div class="bg-blue-950 p-6 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+
+                    <h3 class="text-xl font-semibold text-white">Sign In for Full Access</h3>
+                </div>
+
+                <button
+                    type="button"
+                    onclick="closeModal()"
+                    class="text-white">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-6">
+                <div class="flex items-start mb-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-500 mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div>
+                        <p class="text-gray-700 font-medium">To save favorite rooms and access all features:</p>
+                        <ul class="list-disc list-inside text-gray-600 mt-2 space-y-1 pl-4">
+                            <li>Save unlimited favorite rooms</li>
+                            <li>Get personalized recommendations</li>
+                            <li>Access booking history</li>
+                            <li>Receive exclusive member deals</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <div class="flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-800 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clip-rule="evenodd" />
+                        </svg>
+                        <p class="text-sm text-blue-800">New to our site? Creating an account only takes 30 seconds!</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col space-y-2 my-3">
+                    <a
+                        href="../User/UserSignIn.php"
+                        class="px-6 py-2.5 bg-amber-500 text-white rounded-md hover:from-indigo-700 hover:to-purple-700 transition-colors font-medium text-center shadow-sm select-none">
+                        Sign In
+                    </a>
+                    <a
+                        href="../User/UserSignUp.php"
+                        class="text-xs text-center text-blue-900 hover:text-blue-800 hover:underline transition-colors">
+                        Don't have an account? Register
+                    </a>
+                </div>
+
+                <!-- Footer matching the site's advisory note style -->
+                <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
+                    <p class="text-xs text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Remember to review any travel advisories before booking.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <main class="pb-4">
         <div class="relative swiper-container flex justify-center">
             <div class="max-w-[1150px] mx-auto px-4 py-8">
@@ -278,14 +352,14 @@ if (isset($_POST['submitreview'])) {
                     </div>
                 </div>
 
-                <div class="flex justify-between gap-3">
+                <div class="flex flex-col lg:flex-row justify-between gap-3">
                     <!-- Swiper.js Styles -->
                     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 
                     <!-- Room Images Grid -->
-                    <div class="flex gap-2 w-full">
+                    <div class="flex flex-col md:flex-row gap-2 w-full">
                         <!-- Cover Image - Made larger -->
-                        <div class="w-[70%] h-[450px] select-none cursor-pointer" onclick="openSwiper(0)">
+                        <div class="w-full md:w-[70%] h-[250px] md:h-[450px] select-none cursor-pointer" onclick="openSwiper(0)">
                             <img src="../Admin/<?= htmlspecialchars($roomtype['RoomCoverImage']) ?>"
                                 class="w-full h-full object-cover rounded-lg border border-gray-200">
                         </div>
@@ -309,11 +383,11 @@ if (isset($_POST['submitreview'])) {
                             $displayImages = array_slice($allImages, 1, 3); // skip first (cover)
                             $extraCount = count($allImages) - 4;
 
-                            echo '<div class="w-[30%] grid grid-cols-1 gap-2 select-none">';
+                            echo '<div class="w-full md:w-[30%] grid grid-cols-3 md:grid-cols-1 gap-2 select-none">';
                             foreach ($displayImages as $index => $image) {
                                 $imgIndex = $index + 1; // cover is 0
                                 echo '<div class="relative cursor-pointer" onclick="openSwiper(' . $imgIndex . ')">';
-                                echo '<img src="../Admin/' . htmlspecialchars($image['ImagePath']) . '" class="w-full h-[145px] object-cover rounded-lg border border-gray-200">';
+                                echo '<img src="../Admin/' . htmlspecialchars($image['ImagePath']) . '" class="w-full h-[100px] md:h-[145px] object-cover rounded-lg border border-gray-200">';
                                 if ($index === 2 && $extraCount > 0) {
                                     echo '<div class="absolute inset-0 bg-black bg-opacity-40 rounded-lg flex items-center justify-center">';
                                     echo '<span class="text-white text-lg font-semibold">+' . $extraCount . '</span>';
@@ -383,7 +457,7 @@ if (isset($_POST['submitreview'])) {
                     </script>
 
                     <!-- Rating and Review Section -->
-                    <div class="w-[360px] p-5 rounded-lg shadow-sm border border-gray-100">
+                    <div class="w-full md:w-[360px] p-0 md:p-5 rounded-lg shadow-sm border border-gray-100">
                         <!-- Rating Summary -->
                         <div class="flex justify-between items-start mb-6">
                             <div class="flex items-start">
@@ -410,95 +484,105 @@ if (isset($_POST['submitreview'])) {
                         <!-- User Testimonials -->
                         <div class="space-y-4">
                             <!-- Swiper Container -->
-                            <div class="swiper reviewSwiper">
-                                <div class="swiper-wrapper">
-                                    <?php
-                                    $roomReviewSelect = "SELECT rr.*, u.* FROM roomreviewtb rr 
+                            <?php
+                            if ($totalReviews > 0) {
+                            ?>
+                                <div class="swiper reviewSwiper">
+                                    <div class="swiper-wrapper">
+                                        <?php
+                                        $roomReviewSelect = "SELECT rr.*, u.* FROM roomreviewtb rr 
                                     JOIN usertb u ON rr.UserID = u.UserID
                                     WHERE RoomTypeID = '$roomtype[RoomTypeID]'
                                     ORDER BY rr.Rating DESC";
-                                    $roomReviewResult = $connect->query($roomReviewSelect);
-                                    $totalReviews = $roomReviewResult->num_rows;
+                                        $roomReviewResult = $connect->query($roomReviewSelect);
+                                        $totalReviews = $roomReviewResult->num_rows;
 
-                                    while ($roomReview = $roomReviewResult->fetch_assoc()) {
-                                        // Extract initials
-                                        $nameParts = explode(' ', trim($roomReview['UserName']));
-                                        $initials = substr($nameParts[0], 0, 1);
-                                        if (count($nameParts) > 1) {
-                                            $initials .= substr(end($nameParts), 0, 1);
-                                        }
-                                        $bgColor = $roomReview['ProfileBgColor'];
-                                    ?>
-                                        <!-- Slide for each review -->
-                                        <div class="swiper-slide">
-                                            <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
-                                                <div class="flex items-center mb-2">
-                                                    <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
-                                                        <span class="w-10 h-10 rounded-full bg-[<?= $bgColor ?>] text-white uppercase font-semibold flex items-center justify-center select-none"><?= $initials ?></span>
-                                                    </div>
-                                                    <div>
-                                                        <div class="flex items-center gap-2">
-                                                            <h4 class="text-sm font-medium text-gray-800"><?= $roomReview['UserName'] ?></h4>
+                                        while ($roomReview = $roomReviewResult->fetch_assoc()) {
+                                            // Extract initials
+                                            $nameParts = explode(' ', trim($roomReview['UserName']));
+                                            $initials = substr($nameParts[0], 0, 1);
+                                            if (count($nameParts) > 1) {
+                                                $initials .= substr(end($nameParts), 0, 1);
+                                            }
+                                            $bgColor = $roomReview['ProfileBgColor'];
+                                        ?>
+                                            <!-- Slide for each review -->
+                                            <div class="swiper-slide">
+                                                <div class="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                                                    <div class="flex items-center mb-2">
+                                                        <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
+                                                            <span class="w-10 h-10 rounded-full bg-[<?= $bgColor ?>] text-white uppercase font-semibold flex items-center justify-center select-none"><?= $initials ?></span>
+                                                        </div>
+                                                        <div>
                                                             <div class="flex items-center gap-2">
-                                                                <!-- Country Flag -->
-                                                                <span class="text-xs flag-icon flag-icon-<?= strtolower($roomReview['Country']) ?> rounded-sm shadow-sm"></span>
+                                                                <h4 class="text-sm font-medium text-gray-800"><?= $roomReview['UserName'] ?></h4>
+                                                                <div class="flex items-center gap-2">
+                                                                    <!-- Country Flag -->
+                                                                    <span class="text-xs flag-icon flag-icon-<?= strtolower($roomReview['Country']) ?> rounded-sm shadow-sm"></span>
 
-                                                                <!-- Country Name (Fetched via API) -->
-                                                                <span
-                                                                    class="text-xs text-gray-600 country-name"
-                                                                    data-country-code="<?= $roomReview['Country'] ?>">
-                                                                    Loading...
-                                                                </span>
-                                                            </div>
-                                                        </div>
-
-                                                        <script>
-                                                            // Fetch country names from RestCountries API
-                                                            document.querySelectorAll('.country-name').forEach(el => {
-                                                                const countryCode = el.getAttribute('data-country-code');
-                                                                fetch(`https://restcountries.com/v3.1/alpha/${countryCode}`)
-                                                                    .then(response => response.json())
-                                                                    .then(data => {
-                                                                        el.textContent = data[0]?.name?.common || countryCode;
-                                                                    })
-                                                                    .catch(() => {
-                                                                        el.textContent = countryCode; // Fallback if API fails
-                                                                    });
-                                                            });
-                                                        </script>
-                                                        <div class="flex items-center">
-                                                            <div class="flex items-center gap-3 mb-4">
-                                                                <div class="select-none space-x-1 cursor-pointer text-sm">
-                                                                    <?php
-                                                                    $fullStars = floor($roomReview['Rating']);
-                                                                    $emptyStars = 5 - $fullStars;
-                                                                    for ($i = 0; $i < $fullStars; $i++) {
-                                                                        echo '<i class="ri-star-fill text-amber-500"></i>';
-                                                                    }
-                                                                    for ($i = 0; $i < $emptyStars; $i++) {
-                                                                        echo '<i class="ri-star-line text-amber-500"></i>';
-                                                                    }
-                                                                    ?>
+                                                                    <!-- Country Name (Fetched via API) -->
+                                                                    <span
+                                                                        class="text-xs text-gray-600 country-name"
+                                                                        data-country-code="<?= $roomReview['Country'] ?>">
+                                                                        Loading...
+                                                                    </span>
                                                                 </div>
-                                                                <span class="text-gray-500 text-xs"><?= timeAgo($roomReview['AddedDate']) ?></span>
+                                                            </div>
+
+                                                            <script>
+                                                                // Fetch country names from RestCountries API
+                                                                document.querySelectorAll('.country-name').forEach(el => {
+                                                                    const countryCode = el.getAttribute('data-country-code');
+                                                                    fetch(`https://restcountries.com/v3.1/alpha/${countryCode}`)
+                                                                        .then(response => response.json())
+                                                                        .then(data => {
+                                                                            el.textContent = data[0]?.name?.common || countryCode;
+                                                                        })
+                                                                        .catch(() => {
+                                                                            el.textContent = countryCode; // Fallback if API fails
+                                                                        });
+                                                                });
+                                                            </script>
+                                                            <div class="flex items-center">
+                                                                <div class="flex items-center gap-3 mb-4">
+                                                                    <div class="select-none space-x-1 cursor-pointer text-sm">
+                                                                        <?php
+                                                                        $fullStars = floor($roomReview['Rating']);
+                                                                        $emptyStars = 5 - $fullStars;
+                                                                        for ($i = 0; $i < $fullStars; $i++) {
+                                                                            echo '<i class="ri-star-fill text-amber-500"></i>';
+                                                                        }
+                                                                        for ($i = 0; $i < $emptyStars; $i++) {
+                                                                            echo '<i class="ri-star-line text-amber-500"></i>';
+                                                                        }
+                                                                        ?>
+                                                                    </div>
+                                                                    <span class="text-gray-500 text-xs"><?= timeAgo($roomReview['AddedDate']) ?></span>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    <p class="text-gray-700 text-xs">
+                                                        "<?php
+                                                            $review = $roomReview['Comment'] ?? '';
+                                                            $truncated = mb_strimwidth(htmlspecialchars($review), 0, 250, '...');
+                                                            echo $truncated;
+                                                            ?>"
+                                                    </p>
                                                 </div>
-                                                <p class="text-gray-700 text-xs">
-                                                    "<?php
-                                                        $review = $roomReview['Comment'] ?? '';
-                                                        $truncated = mb_strimwidth(htmlspecialchars($review), 0, 250, '...');
-                                                        echo $truncated;
-                                                        ?>"
-                                                </p>
                                             </div>
-                                        </div>
-                                    <?php } ?>
+                                        <?php } ?>
+                                    </div>
+                                    <!-- Add pagination if needed -->
+                                    <div class="swiper-pagination"></div>
                                 </div>
-                                <!-- Add pagination if needed -->
-                                <div class="swiper-pagination"></div>
-                            </div>
+                            <?php
+                            } else {
+                            ?>
+                                <p class="text-gray-700 text-xs text-center py-20">No reviews yet.</p>
+                            <?php
+                            }
+                            ?>
 
                             <!-- View All Button -->
                             <button onclick="scrollToReview()" class="w-full mt-4 text-center text-blue-600 hover:text-blue-800 text-sm font-medium">
@@ -543,9 +627,9 @@ if (isset($_POST['submitreview'])) {
                     </div>
                 </div>
 
-                <div class="flex items-center gap-5">
+                <div class="flex flex-col md:flex-row items-start gap-0 md:gap-5 my-8">
                     <!-- About section -->
-                    <div class="my-8 w-[65%]">
+                    <div class="w-full md:w-[65%]">
                         <h2 class="text-xl font-bold mb-2">About this room</h2>
                         <p class="text-gray-700 text-sm mb-3">
                             <?= nl2br(htmlspecialchars($roomtype['RoomDescription'])) ?>
@@ -556,7 +640,7 @@ if (isset($_POST['submitreview'])) {
                     </div>
 
                     <!-- Property highlights -->
-                    <div class="mb-6 bg-blue-50 flex-1 p-3">
+                    <div class="mb-6 bg-blue-50 flex-1 p-3 w-full">
                         <h2 class="text-lg font-bold text-slate-600 mb-2">Property highlights</h2>
                         <p class="mb-2 text-sm text-gray-500 flex items-center">
                             <i class="ri-map-pin-line text-xl"></i>
@@ -601,12 +685,12 @@ if (isset($_POST['submitreview'])) {
                         Availability (<?= $availableRooms ?> of <?= $totalRooms ?> left)
                     </h2>
                     <div class="overflow-x-auto">
-                        <table class="min-w-full">
+                        <table class="w-full">
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room Name</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Availability</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    <th class="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room Name</th>
+                                    <th class="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Availability</th>
+                                    <th class="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -623,10 +707,10 @@ if (isset($_POST['submitreview'])) {
 
                                 ?>
                                         <tr class="<?= ($room['RoomStatus'] == 'Available') ? '' : 'opacity-50'; ?>">
-                                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($room['RoomName']) ?> (<?= htmlspecialchars($room['RoomType']) ?>)</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-gray-600"><?= htmlspecialchars($room['RoomStatus']) ?></td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded text-sm select-none <?= ($room['RoomStatus'] == 'Available') ? '' : 'disabled'; ?>">View</button>
+                                            <td class="px-3 md:px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($room['RoomName']) ?> (<?= htmlspecialchars($room['RoomType']) ?>)</td>
+                                            <td class="px-3 md:px-6 py-4 whitespace-nowrap text-gray-600"><?= htmlspecialchars($room['RoomStatus']) ?></td>
+                                            <td class="px-3 md:px-6 py-4 whitespace-nowrap">
+                                                <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded text-sm select-none <?= ($room['RoomStatus'] == 'Available') ? '' : 'disabled'; ?>">Reserve</button>
                                             </td>
                                         </tr>
                                 <?php
@@ -645,79 +729,89 @@ if (isset($_POST['submitreview'])) {
                     <h2 class="text-xl font-bold text-gray-800 mb-3">Guests who stayed here loved</h2>
 
                     <!-- Swiper Container (replaces grid layout) -->
-                    <div class="swiper review-swiper">
-                        <div class="swiper-wrapper">
-                            <?php
-                            $roomReviewSelect = "SELECT rr.*, u.* FROM roomreviewtb rr 
+                    <?php
+                    if ($totalReviews > 0) {
+                    ?>
+                        <div class="swiper review-swiper">
+                            <div class="swiper-wrapper">
+                                <?php
+                                $roomReviewSelect = "SELECT rr.*, u.* FROM roomreviewtb rr 
                             JOIN usertb u ON rr.UserID = u.UserID
                             WHERE RoomTypeID = '$roomtype[RoomTypeID]'
                             ORDER BY AddedDate DESC";
-                            $roomReviewResult = $connect->query($roomReviewSelect);
-                            $totalReviews = $roomReviewResult->num_rows;
+                                $roomReviewResult = $connect->query($roomReviewSelect);
+                                $totalReviews = $roomReviewResult->num_rows;
 
-                            while ($roomReview = $roomReviewResult->fetch_assoc()) {
-                                // Extract initials
-                                $nameParts = explode(' ', trim($roomReview['UserName']));
-                                $initials = substr($nameParts[0], 0, 1);
-                                if (count($nameParts) > 1) {
-                                    $initials .= substr(end($nameParts), 0, 1);
-                                }
-                                $bgColor = $roomReview['ProfileBgColor'];
-                            ?>
-                                <!-- Review Card as Swiper Slide -->
-                                <div class="swiper-slide">
-                                    <div class="border border-gray-200 rounded-lg p-4 h-full">
-                                        <div class="flex items-center mb-2">
-                                            <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
-                                                <span class="w-10 h-10 rounded-full bg-[<?= $bgColor ?>] text-white uppercase font-semibold flex items-center justify-center select-none"><?= $initials ?></span>
-                                            </div>
-                                            <div>
-                                                <div class="flex items-center gap-2">
-                                                    <h4 class="text-sm font-medium text-gray-800"><?= $roomReview['UserName'] ?></h4>
+                                while ($roomReview = $roomReviewResult->fetch_assoc()) {
+                                    // Extract initials
+                                    $nameParts = explode(' ', trim($roomReview['UserName']));
+                                    $initials = substr($nameParts[0], 0, 1);
+                                    if (count($nameParts) > 1) {
+                                        $initials .= substr(end($nameParts), 0, 1);
+                                    }
+                                    $bgColor = $roomReview['ProfileBgColor'];
+                                ?>
+                                    <!-- Review Card as Swiper Slide -->
+                                    <div class="swiper-slide">
+                                        <div class="border border-gray-200 rounded-lg p-4 h-full">
+                                            <div class="flex items-center mb-2">
+                                                <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
+                                                    <span class="w-10 h-10 rounded-full bg-[<?= $bgColor ?>] text-white uppercase font-semibold flex items-center justify-center select-none"><?= $initials ?></span>
+                                                </div>
+                                                <div>
                                                     <div class="flex items-center gap-2">
-                                                        <!-- Country Flag -->
-                                                        <span class="text-xs flag-icon flag-icon-<?= strtolower($roomReview['Country']) ?> rounded-sm shadow-sm"></span>
-                                                        <!-- Country Name -->
-                                                        <span class="text-xs text-gray-600 country-name" data-country-code="<?= $roomReview['Country'] ?>">
-                                                            Loading...
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div class="flex items-center">
-                                                    <div class="flex items-center gap-3 mb-4">
-                                                        <div class="select-none space-x-1 cursor-pointer text-sm">
-                                                            <?php
-                                                            $fullStars = floor($roomReview['Rating']);
-                                                            $emptyStars = 5 - $fullStars;
-                                                            for ($i = 0; $i < $fullStars; $i++) {
-                                                                echo '<i class="ri-star-fill text-amber-500"></i>';
-                                                            }
-                                                            for ($i = 0; $i < $emptyStars; $i++) {
-                                                                echo '<i class="ri-star-line text-amber-500"></i>';
-                                                            }
-                                                            ?>
+                                                        <h4 class="text-sm font-medium text-gray-800"><?= $roomReview['UserName'] ?></h4>
+                                                        <div class="flex items-center gap-2">
+                                                            <!-- Country Flag -->
+                                                            <span class="text-xs flag-icon flag-icon-<?= strtolower($roomReview['Country']) ?> rounded-sm shadow-sm"></span>
+                                                            <!-- Country Name -->
+                                                            <span class="text-xs text-gray-600 country-name" data-country-code="<?= $roomReview['Country'] ?>">
+                                                                Loading...
+                                                            </span>
                                                         </div>
-                                                        <span class="text-gray-500 text-xs"><?= timeAgo($roomReview['AddedDate']) ?></span>
+                                                    </div>
+                                                    <div class="flex items-center">
+                                                        <div class="flex items-center gap-3 mb-4">
+                                                            <div class="select-none space-x-1 cursor-pointer text-sm">
+                                                                <?php
+                                                                $fullStars = floor($roomReview['Rating']);
+                                                                $emptyStars = 5 - $fullStars;
+                                                                for ($i = 0; $i < $fullStars; $i++) {
+                                                                    echo '<i class="ri-star-fill text-amber-500"></i>';
+                                                                }
+                                                                for ($i = 0; $i < $emptyStars; $i++) {
+                                                                    echo '<i class="ri-star-line text-amber-500"></i>';
+                                                                }
+                                                                ?>
+                                                            </div>
+                                                            <span class="text-gray-500 text-xs"><?= timeAgo($roomReview['AddedDate']) ?></span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
+                                            <p class="text-gray-700 text-xs">
+                                                "<?php
+                                                    $review = $roomReview['Comment'] ?? '';
+                                                    $truncated = mb_strimwidth(htmlspecialchars($review), 0, 250, '...');
+                                                    echo $truncated;
+                                                    ?>"
+                                            </p>
                                         </div>
-                                        <p class="text-gray-700 text-xs">
-                                            "<?php
-                                                $review = $roomReview['Comment'] ?? '';
-                                                $truncated = mb_strimwidth(htmlspecialchars($review), 0, 250, '...');
-                                                echo $truncated;
-                                                ?>"
-                                        </p>
                                     </div>
-                                </div>
-                            <?php } ?>
-                        </div>
+                                <?php } ?>
+                            </div>
 
-                        <!-- Add Navigation Arrows -->
-                        <div class="swiper-button-next right-0 top-[40%]"></div>
-                        <div class="swiper-button-prev left-0 top-[40%]"></div>
-                    </div>
+                            <!-- Add Navigation Arrows -->
+                            <div class="swiper-button-next right-0 top-[40%]"></div>
+                            <div class="swiper-button-prev left-0 top-[40%]"></div>
+                        </div>
+                    <?php
+                    } else {
+                    ?>
+                        <p class="text-gray-700 text-sm text-center py-20">No reviews yet.</p>
+                    <?php
+                    }
+                    ?>
 
                     <!-- View All Button -->
                     <button id="viewAllReviews" class="w-full text-start text-blue-600 hover:text-blue-800 text-sm font-medium">
@@ -758,17 +852,6 @@ if (isset($_POST['submitreview'])) {
                                 nextEl: '.swiper-button-next',
                                 prevEl: '.swiper-button-prev',
                             },
-                            breakpoints: {
-                                320: {
-                                    slidesPerView: 1,
-                                },
-                                768: {
-                                    slidesPerView: 2,
-                                },
-                                1024: {
-                                    slidesPerView: 3,
-                                }
-                            }
                         });
 
                         // Keep your existing country fetch code
@@ -789,7 +872,7 @@ if (isset($_POST['submitreview'])) {
                 <div id="facilities-section" class="space-y-6 mb-8">
                     <h2 class="text-2xl font-bold text-gray-800 mb-6">Facilities of Opulence Haven</h2>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
                         <!-- Great for your stay -->
                         <div class="space-y-4">
                             <div class="flex items-center gap-1">
@@ -1064,6 +1147,17 @@ if (isset($_POST['submitreview'])) {
                 behavior: 'smooth'
             });
         }
+
+        function closeModal() {
+            document.getElementById('loginModal').classList.add('hidden');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('loginModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
     </script>
 
     <script src="//unpkg.com/alpinejs" defer></script>
