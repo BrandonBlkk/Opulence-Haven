@@ -21,12 +21,55 @@ $totelGuest = $adults + $children;
 $has_dates = !empty($checkin_date) && !empty($checkout_date);
 $today = date('Y-m-d');
 
-// Base query
+// Base query (your existing PHP code remains exactly the same)
 $base_query = "SELECT rt.* FROM roomtypetb rt";
+
+// Initialize conditions array for WHERE clauses
+$conditions = [];
 
 // Add guest capacity filter if dates are valid
 if ($has_dates && $checkin_date >= $today && $checkout_date > $checkin_date) {
-    $base_query .= " WHERE rt.RoomCapacity >= $totelGuest";
+    $conditions[] = "rt.RoomCapacity >= $totelGuest";
+}
+
+if (isset($_GET['facilities']) && is_array($_GET['facilities']) && !empty($_GET['facilities'])) {
+    $facility_ids = array_map('intval', $_GET['facilities']);
+    $facility_ids = array_filter($facility_ids);
+
+    if (!empty($facility_ids)) {
+        $placeholders = implode(',', array_fill(0, count($facility_ids), '?'));
+        $conditions[] = "rt.RoomTypeID IN (
+            SELECT DISTINCT RoomTypeID 
+            FROM roomtypefacilitytb 
+            WHERE FacilityID IN ($placeholders)
+        )";
+
+        foreach ($facility_ids as $id) {
+            $params[] = $id;
+            $types .= 'i';
+        }
+    }
+}
+
+// Process rating filters - Modified to show selected rating AND lower ratings
+if (isset($_GET['ratings']) && is_array($_GET['ratings']) && !empty($_GET['ratings'])) {
+    $rating_conditions = [];
+    $max_rating = max(array_map('intval', $_GET['ratings'])); // Get the highest selected rating
+
+    // Only need one condition since we're checking "less than or equal to" the max selected rating
+    $rating_conditions[] = "(SELECT COALESCE(AVG(Rating), 0) FROM roomtypereviewtb WHERE RoomTypeID = rt.RoomTypeID) <= $max_rating";
+
+    // Also ensure the rating is at least 1 (if you want to exclude unrated items)
+    $rating_conditions[] = "(SELECT COALESCE(AVG(Rating), 0) FROM roomtypereviewtb WHERE RoomTypeID = rt.RoomTypeID) >= 1";
+
+    if (!empty($rating_conditions)) {
+        $conditions[] = "(" . implode(' AND ', $rating_conditions) . ")";
+    }
+}
+
+// Add all conditions to the query
+if (!empty($conditions)) {
+    $base_query .= " WHERE " . implode(' AND ', $conditions);
 }
 
 // Sorting
@@ -39,7 +82,12 @@ switch ($sort) {
         $base_query .= " ORDER BY rt.RoomPrice DESC";
         break;
     case 'rating':
-        $base_query .= " ORDER BY r.RoomRating DESC";
+        if (strpos($base_query, 'WHERE') === false) {
+            $base_query .= " WHERE rt.RoomTypeID IN (SELECT RoomTypeID FROM roomtypereviewtb)";
+        } else {
+            $base_query .= " AND rt.RoomTypeID IN (SELECT RoomTypeID FROM roomtypereviewtb)";
+        }
+        $base_query .= " ORDER BY (SELECT AVG(Rating) FROM roomtypereviewtb WHERE RoomTypeID = rt.RoomTypeID) DESC";
         break;
     default:
         $base_query .= " ORDER BY rt.RoomTypeID DESC";
@@ -254,117 +302,193 @@ if (isset($_POST['room_favourite'])) {
             </form>
         </div>
 
-        <?php if ($foundProperties > 0): ?>
-            <section class="max-w-[1200px] mx-auto px-4 py-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h1 class="text-2xl font-bold text-gray-800">Rooms: <?= $foundProperties ?> properties found</h1>
-                    <div class="text-sm">
-                        <span class="text-gray-600">Sort by:</span>
-                        <select id="sortRooms" class="ml-2 border-none font-medium focus:ring-0 outline-none">
-                            <option value="top_picks">Our top picks</option>
-                            <option value="price_low_high">Price (low to high)</option>
-                            <option value="price_high_low">Price (high to low)</option>
-                            <option value="rating">Star rating</option>
-                        </select>
-                    </div>
-                    <script>
-                        // Add event listener for sorting
-                        document.getElementById('sortRooms').addEventListener('change', function() {
-                            const url = new URL(window.location.href);
-                            url.searchParams.set('sort', this.value);
-                            window.location.href = url.toString();
-                        });
-
-                        // Set selected option based on current sort
-                        const currentSort = new URLSearchParams(window.location.search).get('sort') || 'top_picks';
-                        document.getElementById('sortRooms').value = currentSort;
-                    </script>
+        <section class="max-w-[1200px] mx-auto px-4 py-8">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">Rooms: <?= $foundProperties ?> properties found</h1>
+                <div class="text-sm">
+                    <span class="text-gray-600">Sort by:</span>
+                    <select id="sortRooms" class="ml-2 border-none font-medium focus:ring-0 outline-none">
+                        <option value="top_picks">Our top picks</option>
+                        <option value="price_low_high">Price (low to high)</option>
+                        <option value="price_high_low">Price (high to low)</option>
+                        <option value="rating">Star rating</option>
+                    </select>
                 </div>
+                <script>
+                    // Add event listener for sorting
+                    document.getElementById('sortRooms').addEventListener('change', function() {
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('sort', this.value);
+                        window.location.href = url.toString();
+                    });
 
-                <div class="mb-4 text-sm text-gray-600 border-b pb-4">
-                    Please review any travel advisories provided by your government to make an informed decision about your stay in this area, which may be considered conflict-affected.
-                </div>
+                    // Set selected option based on current sort
+                    const currentSort = new URLSearchParams(window.location.search).get('sort') || 'top_picks';
+                    document.getElementById('sortRooms').value = currentSort;
+                </script>
+            </div>
 
-                <div class="flex flex-col md:flex-row gap-3">
-                    <!-- Left: Filter Panel -->
-                    <aside class="w-full md:w-1/4">
-                        <div class="bg-white p-4 rounded-md shadow-sm border sticky top-4">
-                            <h3 class="text-lg font-semibold text-gray-700">Filter by:</h3>
-                            <h4 class="font-medium text-gray-800 my-4">Popular filters</h4>
-                            <div class="space-y-3">
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                                    <span class="text-sm">Sea view</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                                    <span class="text-sm">Restaurant</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                                    <span class="text-sm">Air conditioning</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                                    <span class="text-sm">Swimming Pool</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                                    <span class="text-sm">Apartments</span>
-                                </label>
-                            </div>
+            <div class="mb-4 text-sm text-gray-600 border-b pb-4">
+                Please review any travel advisories provided by your government to make an informed decision about your stay in this area, which may be considered conflict-affected.
+            </div>
 
-                            <h4 class="font-medium text-gray-800 my-4">Facilities</h4>
-                            <div class="space-y-3">
-                                <?php
-                                $select = "SELECT * FROM facilitytb";
-                                $query = $connect->query($select);
-                                $count = $query->num_rows;
-                                if ($count) {
-                                    for ($i = 0; $i < $count; $i++) {
-                                        $row = $query->fetch_assoc();
-                                        $faculty_id = $row['FacilityID'];
-                                        $facility = $row['Facility'];
+            <div class="flex flex-col md:flex-row gap-3">
+                <!-- Left: Filter Panel -->
+                <aside class="w-full md:w-1/4">
+                    <form method="GET" action="" class="bg-white p-4 rounded-md shadow-sm border sticky top-4" id="filterForm">
+                        <!-- Preserve existing GET parameters -->
+                        <input type="hidden" name="checkin_date" value="<?= $checkin_date ?>">
+                        <input type="hidden" name="checkout_date" value="<?= $checkout_date ?>">
+                        <input type="hidden" name="adults" value="<?= $adults ?>">
+                        <input type="hidden" name="children" value="<?= $children ?>">
+                        <input type="hidden" name="roomTypeID" value="<?= $roomtype['RoomTypeID'] ?>">
+                        <input type="hidden" name="sort" value="<?= htmlspecialchars($sort) ?>">
+                        <?php if ($has_dates): ?>
+                            <input type="hidden" name="checkin" value="<?= htmlspecialchars($checkin_date) ?>">
+                            <input type="hidden" name="checkout" value="<?= htmlspecialchars($checkout_date) ?>">
+                            <input type="hidden" name="guests" value="<?= htmlspecialchars($totelGuest) ?>">
+                        <?php endif; ?>
 
-                                ?>
-                                        <label class="flex items-center">
-                                            <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                                            <span class="text-sm"><?= $facility ?></span>
-                                        </label>
-                                <?php
-                                    }
-                                } else {
-                                    echo "<option value='' disabled>No data yet</option>";
-                                }
-                                ?>
-                            </div>
+                        <h3 class="text-lg font-semibold text-gray-700">Filter by:</h3>
 
-                            <h4 class="font-medium text-gray-800 my-4">Room rating</h4>
-                            <div class="space-y-3">
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                                    <span class="text-sm">1 star</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                                    <span class="text-sm">2 stars</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                                    <span class="text-sm">3 stars</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                                    <span class="text-sm">4 stars</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                                    <span class="text-sm">5 stars</span>
-                                </label>
-                            </div>
+                        <h4 class="font-medium text-gray-800 my-4">Popular filters</h4>
+                        <div class="space-y-3">
+                            <label class="flex items-center">
+                                <input type="checkbox" name="sea_view" value="1" class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit" <?= isset($_GET['sea_view']) ? 'checked' : '' ?>>
+                                <span class="text-sm">Sea view</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="restaurant" value="1" class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit" <?= isset($_GET['restaurant']) ? 'checked' : '' ?>>
+                                <span class="text-sm">Restaurant</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="air_conditioning" value="1" class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit" <?= isset($_GET['air_conditioning']) ? 'checked' : '' ?>>
+                                <span class="text-sm">Air conditioning</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="swimming_pool" value="1" class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit" <?= isset($_GET['swimming_pool']) ? 'checked' : '' ?>>
+                                <span class="text-sm">Swimming Pool</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="apartments" value="1" class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit" <?= isset($_GET['apartments']) ? 'checked' : '' ?>>
+                                <span class="text-sm">Apartments</span>
+                            </label>
                         </div>
-                    </aside>
 
+                        <h4 class="font-medium text-gray-800 my-4">Facilities</h4>
+                        <div class="space-y-3">
+                            <?php
+                            $select = "SELECT * FROM facilitytb";
+                            $query = $connect->query($select);
+                            $count = $query->num_rows;
+                            if ($count) {
+                                for ($i = 0; $i < $count; $i++) {
+                                    $row = $query->fetch_assoc();
+                                    $faculty_id = $row['FacilityID'];
+                                    $facility = $row['Facility'];
+                                    $checked = isset($_GET['facilities']) && in_array($faculty_id, $_GET['facilities']) ? 'checked' : '';
+                            ?>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="facilities[]" value="<?= $faculty_id ?>" class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit" <?= $checked ?>>
+                                        <span class="text-sm"><?= htmlspecialchars($facility) ?></span>
+                                    </label>
+                            <?php
+                                }
+                            } else {
+                                echo "<option value='' disabled>No data yet</option>";
+                            }
+                            ?>
+                        </div>
+
+                        <h4 class="font-medium text-gray-800 my-4">Room rating</h4>
+                        <div class="space-y-3">
+                            <?php for ($i = 1; $i <= 5; $i++): ?>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="ratings[]" value="<?= $i ?>" class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit"
+                                        <?= isset($_GET['ratings']) && in_array($i, $_GET['ratings']) ? 'checked' : '' ?>>
+                                    <span class="text-sm"><?= $i ?> star<?= $i > 1 ? 's' : '' ?></span>
+                                </label>
+                            <?php endfor; ?>
+                        </div>
+
+                        <!-- Keep the submit button for accessibility (hidden but still functional) -->
+                        <button type="submit" class="hidden">Apply Filters</button>
+                    </form>
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            // Show loading skeleton when filters are changed
+                            const filterForm = document.getElementById('filterForm');
+                            const mainContent = document.querySelector('.hotel-listings-container');
+
+                            // Create skeleton loading element
+                            const skeletonLoading = document.createElement('div');
+                            skeletonLoading.className = 'skeleton-loading';
+                            skeletonLoading.innerHTML = `
+                        
+                            <!-- Hotel Listings Skeleton (3 items) -->
+                            ${Array(3).fill().map(() => `
+                                <div class="bg-white overflow-hidden animate-pulse mb-2">
+                                    <div class="flex flex-col md:flex-row rounded-md shadow-sm border">
+                                        <div class="md:w-[28%] h-64 bg-gray-200 rounded-l-md"></div>
+                                        <div class="md:w-2/3 p-4 space-y-3">
+                                            <div class="flex justify-between">
+                                                <div class="h-6 bg-gray-200 rounded w-1/2"></div>
+                                                <div class="h-6 bg-gray-200 rounded w-1/4"></div>
+                                            </div>
+                                            <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                                            <div class="h-3 bg-gray-200 rounded w-full"></div>
+                                            <div class="h-3 bg-gray-200 rounded w-4/5"></div>
+                                            <div class="flex flex-wrap gap-2 mt-4">
+                                                <div class="h-4 bg-gray-200 rounded w-16"></div>
+                                                <div class="h-4 bg-gray-200 rounded w-20"></div>
+                                                <div class="h-4 bg-gray-200 rounded w-12"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+
+                            // Auto-submit when any checkbox is clicked
+                            document.querySelectorAll('.auto-submit').forEach(function(checkbox) {
+                                checkbox.addEventListener('change', function() {
+                                    // Show loading skeleton
+                                    if (mainContent) {
+                                        mainContent.innerHTML = '';
+                                        mainContent.appendChild(skeletonLoading);
+                                    }
+
+                                    // For checkboxes with the same name (like facilities[]), we need to ensure all are included
+                                    if (this.name.endsWith('[]')) {
+                                        document.querySelectorAll('input[name="' + this.name + '"]').forEach(function(cb) {
+                                            if (!cb.checked) {
+                                                // Add hidden input for unchecked boxes to maintain state
+                                                const hiddenInput = document.createElement('input');
+                                                hiddenInput.type = 'hidden';
+                                                hiddenInput.name = cb.name;
+                                                hiddenInput.value = cb.value;
+                                                hiddenInput.classList.add('temp-hidden');
+                                                document.getElementById('filterForm').appendChild(hiddenInput);
+                                            }
+                                        });
+
+                                        // Remove any existing temp hidden inputs for this checkbox
+                                        document.querySelectorAll('input.temp-hidden[name="' + this.name + '"]').forEach(function(el) {
+                                            el.remove();
+                                        });
+                                    }
+
+                                    // Submit the form
+                                    document.getElementById('filterForm').submit();
+                                });
+                            });
+                        });
+                    </script>
+                </aside>
+
+                <?php if ($foundProperties > 0): ?>
                     <!-- Right: Hotel Listings -->
                     <div class="w-full space-y-2">
                         <!-- Entire Homes CTA -->
@@ -387,7 +511,7 @@ if (isset($_POST['room_favourite'])) {
                             $favorite_result = $connect->query($check_favorite);
                             $is_favorited = $favorite_result->fetch_assoc()['count'] > 0;
                         ?>
-                            <div class="bg-white overflow-hidden">
+                            <div class="bg-white overflow-hidden hotel-listings-container">
                                 <a href="../User/RoomDetails.php?roomTypeID=<?php echo htmlspecialchars($roomtype['RoomTypeID']) ?>&checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="flex flex-col md:flex-row rounded-md shadow-sm border">
                                     <div class="md:w-[28%] h-64 overflow-hidden select-none rounded-l-md relative">
                                         <img src="../Admin/<?= htmlspecialchars($roomtype['RoomCoverImage']) ?>" alt="<?= htmlspecialchars($roomtype['RoomType']) ?>" class="w-full h-full object-cover">
@@ -398,7 +522,6 @@ if (isset($_POST['room_favourite'])) {
                                             <input type="hidden" name="children" value="<?= $children ?>">
                                             <input type="hidden" name="roomTypeID" value="<?= $roomtype['RoomTypeID'] ?>">
                                             <button type="submit" name="room_favourite">
-                                                <!-- Changed this line to use $is_favorited -->
                                                 <i class="absolute top-3 right-3 ri-heart-fill text-xl cursor-pointer flex items-center justify-center bg-white w-9 h-9 rounded-full hover:bg-slate-100 transition-colors duration-300 <?= $is_favorited ? 'text-red-500 hover:text-red-600' : 'text-slate-400 hover:text-red-300' ?>"></i>
                                             </button>
                                         </form>
@@ -473,9 +596,9 @@ if (isset($_POST['room_favourite'])) {
                                         <div class="flex flex-wrap gap-1 mt-4 select-none">
                                             <?php
                                             $facilitiesQuery = "SELECT f.Facility
-                                            FROM roomtypefacilitytb rf
-                                            JOIN facilitytb f ON rf.FacilityID = f.FacilityID
-                                            WHERE rf.RoomTypeID = '" . $roomtype['RoomTypeID'] . "'";
+                                    FROM roomtypefacilitytb rf
+                                    JOIN facilitytb f ON rf.FacilityID = f.FacilityID
+                                    WHERE rf.RoomTypeID = '" . $roomtype['RoomTypeID'] . "'";
                                             $facilitiesResult = $connect->query($facilitiesQuery);
 
                                             if ($facilitiesResult->num_rows > 0) {
@@ -492,24 +615,42 @@ if (isset($_POST['room_favourite'])) {
                             </div>
                         <?php endforeach; ?>
                     </div>
-                </div>
-            </section>
-        <?php else: ?>
-            <div class="max-w-[1200px] mx-auto px-4 py-16 text-center">
-                <div class="bg-white p-8 rounded-lg shadow-sm border max-w-2xl mx-auto">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <h2 class="text-xl font-bold text-gray-800 mt-4">No properties found</h2>
-                    <p class="text-gray-600 mt-2">We couldn't find any properties matching your search criteria.</p>
-                    <div class="mt-6">
-                        <a href="../index.php" class="inline-block bg-orange-500 text-white px-6 py-2 rounded-md hover:bg-orange-600 transition-colors select-none">
-                            Modify search
-                        </a>
+                <?php else: ?>
+                    <div class="max-w-[1200px] mx-auto px-4 py-16 text-center">
+                        <div class="bg-white p-8 rounded-lg shadow-sm border max-w-2xl mx-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <h2 class="text-xl font-bold text-gray-800 mt-4">No properties found</h2>
+                            <p class="text-gray-600 mt-2">We couldn't find any properties matching your search criteria.</p>
+                            <div class="mt-6">
+                                <a href="../index.php" class="inline-block bg-orange-500 text-white px-6 py-2 rounded-md hover:bg-orange-600 transition-colors select-none">
+                                    Modify search
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                <?php endif; ?>
             </div>
-        <?php endif; ?>
+        </section>
+
+        <style>
+            .animate-pulse {
+                animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+
+            @keyframes pulse {
+
+                0%,
+                100% {
+                    opacity: 1;
+                }
+
+                50% {
+                    opacity: 0.5;
+                }
+            }
+        </style>
     </main>
 
     <!-- MoveUp Btn -->

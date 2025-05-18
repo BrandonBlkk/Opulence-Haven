@@ -117,7 +117,7 @@ if (isset($_POST['room_favourite'])) {
                                     <div>
                                         <h2 class="text-xl font-bold text-gray-800"><?= htmlspecialchars($room['RoomType']) ?></h2>
                                         <?php
-                                        $review_select = "SELECT Rating FROM roomviewtb WHERE RoomTypeID = '" . $room['RoomTypeID'] . "'";
+                                        $review_select = "SELECT Rating FROM roomtypereviewtb WHERE RoomTypeID = '" . $room['RoomTypeID'] . "'";
                                         $select_query = $connect->query($review_select);
 
                                         // Check if there are any reviews
