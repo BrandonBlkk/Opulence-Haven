@@ -11,7 +11,7 @@
     </div>
 
     <div class="flex flex-col md:flex-row gap-4">
-        <div class="w-full md:w-1/4">
+        <div class="w-full md:w-[260px]">
             <div class="bg-white p-4 rounded-md shadow-sm border sticky top-4">
                 <h3 class="text-lg font-semibold text-gray-700">Filter by:</h3>
                 <h4 class="font-medium text-gray-800 my-4">Popular filters</h4>

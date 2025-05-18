@@ -457,7 +457,7 @@ if (isset($_POST['submitreview'])) {
                     </script>
 
                     <!-- Rating and Review Section -->
-                    <div class="w-full md:w-[360px] p-0 md:p-5 rounded-lg shadow-sm border border-gray-100">
+                    <div class="w-full md:w-[300px] p-0 md:p-5 rounded-lg shadow-sm border border-gray-100">
                         <!-- Rating Summary -->
                         <div class="flex justify-between items-start mb-6">
                             <div class="flex items-start">
@@ -488,7 +488,7 @@ if (isset($_POST['submitreview'])) {
                             if ($totalReviews > 0) {
                             ?>
                                 <div class="swiper reviewSwiper">
-                                    <div class="swiper-wrapper">
+                                    <div class="swiper-wrapper pb-3">
                                         <?php
                                         $roomReviewSelect = "SELECT rr.*, u.* FROM roomtypereviewtb rr 
                                     JOIN usertb u ON rr.UserID = u.UserID
@@ -640,7 +640,7 @@ if (isset($_POST['submitreview'])) {
                     </div>
 
                     <!-- Property highlights -->
-                    <div class="mb-6 bg-blue-50 flex-1 p-3 w-full">
+                    <div class="bg-blue-50 flex-1 p-3 w-full">
                         <h2 class="text-lg font-bold text-slate-600 mb-2">Property highlights</h2>
                         <p class="mb-2 text-sm text-gray-500 flex items-center">
                             <i class="ri-map-pin-line text-xl"></i>
@@ -829,7 +829,12 @@ if (isset($_POST['submitreview'])) {
                         position: relative;
                     }
 
+                    .review-swiper {
+                        width: 100%;
+                    }
+
                     .swiper-slide {
+
                         height: auto;
                     }
 
