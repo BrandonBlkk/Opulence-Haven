@@ -72,7 +72,7 @@
                 <div class=" grid grid-cols-1 gap-4 divide-y-2 divide-slate-100">
                     <?php
                     $roomReviewSelect = "SELECT rr.*, u.*, rt.RoomType
-                    FROM roomreviewtb rr 
+                    FROM roomtypereviewtb rr 
                     JOIN usertb u ON rr.UserID = u.UserID 
                     JOIN roomtypetb rt ON rr.RoomTypeID = rt.RoomTypeID
                     ORDER BY rr.AddedDate DESC";

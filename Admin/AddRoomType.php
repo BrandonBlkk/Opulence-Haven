@@ -43,11 +43,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addroomtype'])) {
         VALUES ('$roomTypeID', '$fileName', '$roomtype', '$description', '$roomcapacity', '$roomprice', '$roomquantity')";
 
         if ($connect->query($RoomTypeQuery)) {
-            // Insert selected facilities into roomfacilitytb
+            // Insert selected facilities into roomtypefacilitytb
             if (isset($_POST['facilities']) && is_array($_POST['facilities'])) {
                 foreach ($_POST['facilities'] as $facilityID) {
                     $facilityID = mysqli_real_escape_string($connect, $facilityID);
-                    $insertFacility = "INSERT INTO roomfacilitytb (RoomTypeID, FacilityID) VALUES ('$roomTypeID', '$facilityID')";
+                    $insertFacility = "INSERT INTO roomtypefacilitytb (RoomTypeID, FacilityID) VALUES ('$roomTypeID', '$facilityID')";
                     $connect->query($insertFacility);
                 }
             }
@@ -63,7 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addroomtype'])) {
                         $imagePath = $copyFile . uniqid() . "_" . $imageName;
 
                         if (move_uploaded_file($tempName, $imagePath)) {
-                            $insertImage = "INSERT INTO roomimagetb (ImagePath, RoomTypeID) VALUES ('$imagePath', '$roomTypeID')";
+                            $insertImage = "INSERT INTO roomtypeimagetb (ImagePath, RoomTypeID) VALUES ('$imagePath', '$roomTypeID')";
                             $connect->query($insertImage);
                         }
                     }

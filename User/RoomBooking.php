@@ -63,16 +63,16 @@ if (isset($_POST['room_favourite'])) {
         $adults = isset($_POST['adults']) ? intval($_POST['adults']) : 1;
         $children = isset($_POST['children']) ? intval($_POST['children']) : 0;
 
-        $check = "SELECT COUNT(*) as count FROM roomfavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
+        $check = "SELECT COUNT(*) as count FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
         $result = $connect->query($check);
         $count = $result->fetch_assoc()['count'];
 
         if ($count == 0) {
-            $insert = "INSERT INTO roomfavoritetb (UserID, RoomTypeID, CheckInDate, CheckOutDate, Adult, Children) 
+            $insert = "INSERT INTO roomtypefavoritetb (UserID, RoomTypeID, CheckInDate, CheckOutDate, Adult, Children) 
                       VALUES ('$userID', '$roomTypeID', '$checkin_date', '$checkout_date', '$adults', '$children')";
             $connect->query($insert);
         } else {
-            $delete = "DELETE FROM roomfavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
+            $delete = "DELETE FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
             $connect->query($delete);
         }
 
@@ -383,7 +383,7 @@ if (isset($_POST['room_favourite'])) {
                         <!-- Hotel Listings -->
                         <?php foreach ($available_rooms as $roomtype):
                             // Check if room is favorited
-                            $check_favorite = "SELECT COUNT(*) as count FROM roomfavoritetb WHERE UserID = '$userID' AND RoomTypeID = '" . $roomtype['RoomTypeID'] . "'";
+                            $check_favorite = "SELECT COUNT(*) as count FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '" . $roomtype['RoomTypeID'] . "'";
                             $favorite_result = $connect->query($check_favorite);
                             $is_favorited = $favorite_result->fetch_assoc()['count'] > 0;
                         ?>
@@ -409,7 +409,7 @@ if (isset($_POST['room_favourite'])) {
                                                 <h2 class="text-xl font-bold text-gray-800"><?= htmlspecialchars($roomtype['RoomType']) ?></h2>
                                                 <?php
                                                 // Get average rating
-                                                $review_select = "SELECT Rating FROM roomreviewtb WHERE RoomTypeID = '$roomtype[RoomTypeID]'";
+                                                $review_select = "SELECT Rating FROM roomtypereviewtb WHERE RoomTypeID = '$roomtype[RoomTypeID]'";
                                                 $select_query = $connect->query($review_select);
 
                                                 // Check if there are any reviews
@@ -473,7 +473,7 @@ if (isset($_POST['room_favourite'])) {
                                         <div class="flex flex-wrap gap-1 mt-4 select-none">
                                             <?php
                                             $facilitiesQuery = "SELECT f.Facility
-                                            FROM roomfacilitytb rf
+                                            FROM roomtypefacilitytb rf
                                             JOIN facilitytb f ON rf.FacilityID = f.FacilityID
                                             WHERE rf.RoomTypeID = '" . $roomtype['RoomTypeID'] . "'";
                                             $facilitiesResult = $connect->query($facilitiesQuery);

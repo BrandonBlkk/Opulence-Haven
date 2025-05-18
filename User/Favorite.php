@@ -13,7 +13,7 @@ $userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
 // Check if user is logged in
 if (isset($_SESSION['UserID'])) {
     $favorite_query = "SELECT f.*, rt.RoomCoverImage, rt.RoomType , rt.RoomCapacity, rt.RoomPrice
-                      FROM roomfavoritetb f
+                      FROM roomtypefavoritetb f
                       JOIN roomtypetb rt ON f.RoomTypeID = rt.RoomTypeID
                       WHERE f.UserID = '$userID'";
 
@@ -31,16 +31,16 @@ if (isset($_POST['room_favourite'])) {
     if ($userID) {
         $roomTypeID = $_POST['roomTypeID'];
 
-        $check = "SELECT COUNT(*) as count FROM roomfavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
+        $check = "SELECT COUNT(*) as count FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
         $result = $connect->query($check);
         $count = $result->fetch_assoc()['count'];
 
         if ($count == 0) {
-            $insert = "INSERT INTO roomfavoritetb (UserID, RoomTypeID, CheckInDate, CheckOutDate, Adult, Children) 
+            $insert = "INSERT INTO roomtypefavoritetb (UserID, RoomTypeID, CheckInDate, CheckOutDate, Adult, Children) 
                       VALUES ('$userID', '$roomTypeID', '$checkin_date', '$checkout_date', '$adults', '$children')";
             $connect->query($insert);
         } else {
-            $delete = "DELETE FROM roomfavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
+            $delete = "DELETE FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
             $connect->query($delete);
         }
 
@@ -92,7 +92,7 @@ if (isset($_POST['room_favourite'])) {
             <section class="grid grid-cols-1 gap-6">
                 <?php foreach ($favorite_rooms as $room):
                     // Check if room is favorited
-                    $check_favorite = "SELECT COUNT(*) as count FROM roomfavoritetb WHERE UserID = '$userID' AND RoomTypeID = '" . $room['RoomTypeID'] . "'";
+                    $check_favorite = "SELECT COUNT(*) as count FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '" . $room['RoomTypeID'] . "'";
                     $favorite_result = $connect->query($check_favorite);
                     $is_favorited = $favorite_result->fetch_assoc()['count'] > 0;
                 ?>
