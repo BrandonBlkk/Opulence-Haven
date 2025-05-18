@@ -45,16 +45,16 @@ if (isset($_POST['room_favourite'])) {
         $adults = isset($_POST['adults']) ? intval($_POST['adults']) : 1;
         $children = isset($_POST['children']) ? intval($_POST['children']) : 0;
 
-        $check = "SELECT COUNT(*) as count FROM roomfavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
+        $check = "SELECT COUNT(*) as count FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
         $result = $connect->query($check);
         $count = $result->fetch_assoc()['count'];
 
         if ($count == 0) {
-            $insert = "INSERT INTO roomfavoritetb (UserID, RoomTypeID, CheckInDate, CheckOutDate, Adult, Children) 
+            $insert = "INSERT INTO roomtypefavoritetb (UserID, RoomTypeID, CheckInDate, CheckOutDate, Adult, Children) 
                       VALUES ('$userID', '$roomTypeID', '$checkin_date', '$checkout_date', '$adults', '$children')";
             $connect->query($insert);
         } else {
-            $delete = "DELETE FROM roomfavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
+            $delete = "DELETE FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
             $connect->query($delete);
         }
 
@@ -68,7 +68,7 @@ if (isset($_POST['room_favourite'])) {
 }
 
 // Get average rating
-$review_select = "SELECT Rating FROM roomreviewtb WHERE RoomTypeID = '$roomtype[RoomTypeID]'";
+$review_select = "SELECT Rating FROM roomtypereviewtb WHERE RoomTypeID = '$roomtype[RoomTypeID]'";
 $select_query = $connect->query($review_select);
 
 // Check if there are any reviews
@@ -105,7 +105,7 @@ if ($totalReviews > 0) {
 }
 
 // Count Review
-$review_count_select = "SELECT COUNT(*) as count FROM roomreviewtb WHERE RoomTypeID = '$roomtype[RoomTypeID]'";
+$review_count_select = "SELECT COUNT(*) as count FROM roomtypereviewtb WHERE RoomTypeID = '$roomtype[RoomTypeID]'";
 $review_count_query = $connect->query($review_count_select);
 $review_count_result = $review_count_query->fetch_assoc();
 $review_count = $review_count_result['count'];
@@ -153,7 +153,7 @@ if (isset($_POST['submitreview'])) {
             $alertMessage = "All fields are required!";
         } else {
             // Insert into database
-            $insert = "INSERT INTO roomreviewtb (Rating, Country, Comment, TravellerType, UserID, RoomTypeID) 
+            $insert = "INSERT INTO roomtypereviewtb (Rating, Country, Comment, TravellerType, UserID, RoomTypeID) 
                       VALUES ('$rating', '$country', '$review', '$travellerType', '$userID', '$roomTypeID')";
 
             if ($connect->query($insert)) {
@@ -329,7 +329,7 @@ if (isset($_POST['submitreview'])) {
                     <div class="flex items-center gap-3">
                         <?php
                         // Check if room is favorited
-                        $check_favorite = "SELECT COUNT(*) as count FROM roomfavoritetb WHERE UserID = '$userID' AND RoomTypeID = '" . $roomtype['RoomTypeID'] . "'";
+                        $check_favorite = "SELECT COUNT(*) as count FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '" . $roomtype['RoomTypeID'] . "'";
                         $favorite_result = $connect->query($check_favorite);
                         $is_favorited = $favorite_result->fetch_assoc()['count'] > 0;
                         ?>
@@ -366,7 +366,7 @@ if (isset($_POST['submitreview'])) {
 
                         <!-- Additional Images (Up to 3 with +X overlay) - Made larger -->
                         <?php
-                        $additionalImagesQuery = "SELECT * FROM roomimagetb WHERE RoomTypeID = '$roomtype_id'";
+                        $additionalImagesQuery = "SELECT * FROM roomtypeimagetb WHERE RoomTypeID = '$roomtype_id'";
                         $additionalImagesResult = $connect->query($additionalImagesQuery);
 
                         if ($additionalImagesResult->num_rows > 0) {
@@ -490,7 +490,7 @@ if (isset($_POST['submitreview'])) {
                                 <div class="swiper reviewSwiper">
                                     <div class="swiper-wrapper">
                                         <?php
-                                        $roomReviewSelect = "SELECT rr.*, u.* FROM roomreviewtb rr 
+                                        $roomReviewSelect = "SELECT rr.*, u.* FROM roomtypereviewtb rr 
                                     JOIN usertb u ON rr.UserID = u.UserID
                                     WHERE RoomTypeID = '$roomtype[RoomTypeID]'
                                     ORDER BY rr.Rating DESC";
@@ -579,7 +579,7 @@ if (isset($_POST['submitreview'])) {
                             <?php
                             } else {
                             ?>
-                                <p class="text-gray-700 text-xs text-center py-20">No reviews yet.</p>
+                                <p class="text-gray-400 text-xs text-center py-20">No reviews yet.</p>
                             <?php
                             }
                             ?>
@@ -663,7 +663,7 @@ if (isset($_POST['submitreview'])) {
                     <div class="flex flex-wrap gap-2 select-none mt-6">
                         <?php
                         $facilitiesQuery = "SELECT f.Facility
-                                FROM roomfacilitytb rf
+                                FROM roomtypefacilitytb rf
                                 JOIN facilitytb f ON rf.FacilityID = f.FacilityID
                                 WHERE rf.RoomTypeID = '" . $roomtype['RoomTypeID'] . "'";
                         $facilitiesResult = $connect->query($facilitiesQuery);
@@ -735,7 +735,7 @@ if (isset($_POST['submitreview'])) {
                         <div class="swiper review-swiper">
                             <div class="swiper-wrapper">
                                 <?php
-                                $roomReviewSelect = "SELECT rr.*, u.* FROM roomreviewtb rr 
+                                $roomReviewSelect = "SELECT rr.*, u.* FROM roomtypereviewtb rr 
                             JOIN usertb u ON rr.UserID = u.UserID
                             WHERE RoomTypeID = '$roomtype[RoomTypeID]'
                             ORDER BY AddedDate DESC";
@@ -808,7 +808,7 @@ if (isset($_POST['submitreview'])) {
                     <?php
                     } else {
                     ?>
-                        <p class="text-gray-700 text-sm text-center py-20">No reviews yet.</p>
+                        <p class="text-base text-gray-400 text-center py-20">No reviews yet.</p>
                     <?php
                     }
                     ?>

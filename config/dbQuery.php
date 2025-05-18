@@ -359,7 +359,7 @@ if (!$connect) {
 //     echo "Data has been saved";
 // }
 
-// $roomimage = "CREATE TABLE roomimagetb
+// $roomtypeimage = "CREATE TABLE roomtypeimagetb
 // (
 //     ImageID int not null primary key auto_increment,
 //     ImagePath text,
@@ -370,37 +370,13 @@ if (!$connect) {
 // )";
 
 // try {
-//     $query = mysqli_query($connect, $roomimage);
+//     $query = mysqli_query($connect, $roomtypeimage);
 //     echo "Data Successfully saved";
 // } catch (mysqli_sql_exception) {
 //     echo "Data has been saved";
 // }
 
-// $roomview = "CREATE TABLE roomviewtb
-// (
-//     ReviewID int not null primary key auto_increment,
-//     Rating int,
-//     Comment text,
-//     AddedDate datetime default current_timestamp,
-//     LastUpdate datetime default current_timestamp on update current_timestamp,
-//     UserID varchar(30),
-//     RoomTypeID varchar(20),
-//     FOREIGN KEY (UserID) REFERENCES usertb (UserID)
-//     ON DELETE CASCADE 
-//     ON UPDATE CASCADE,
-//     FOREIGN KEY (RoomTypeID) REFERENCES roomtypetb (RoomTypeID)
-//     ON DELETE CASCADE 
-//     ON UPDATE CASCADE
-// )";
-
-// try {
-//     $query = mysqli_query($connect, $roomview);
-//     echo "Data Successfully saved";
-// } catch (mysqli_sql_exception) {
-//     echo "Data has been saved";
-// }
-
-// $roomfavorite = "CREATE TABLE roomfavoritetb
+// $roomtypefavorite = "CREATE TABLE roomtypefavoritetb
 // (
 //     FavoriteID int not null primary key auto_increment,
 //     UserID varchar(30),
@@ -418,13 +394,13 @@ if (!$connect) {
 // )";
 
 // try {
-//     $query = mysqli_query($connect, $roomfavorite);
+//     $query = mysqli_query($connect, $roomtypefavorite);
 //     echo "Data Successfully saved";
 // } catch (mysqli_sql_exception) {
 //     echo "Data has been saved";
 // }
 
-$roomreview = "CREATE TABLE roomreviewtb
+$roomtypereview = "CREATE TABLE roomtypereviewtb
 (
     ReviewID int not null primary key auto_increment,
     Rating int,
@@ -442,13 +418,13 @@ $roomreview = "CREATE TABLE roomreviewtb
 )";
 
 try {
-    $query = mysqli_query($connect, $roomreview);
+    $query = mysqli_query($connect, $roomtypereview);
     echo "Data Successfully saved";
 } catch (mysqli_sql_exception) {
     echo "Data has been saved";
 }
 
-// $roomrule = "CREATE TABLE roomruletb
+// $roomtyperule = "CREATE TABLE roomtyperuletb
 // (
 //     RoomID varchar(20),
 //     RuleID varchar(20),
@@ -461,13 +437,13 @@ try {
 // )";
 
 // try {
-//     $query = mysqli_query($connect, $roomrule);
+//     $query = mysqli_query($connect, $roomtyperule);
 //     echo "Data Successfully saved";
 // } catch (mysqli_sql_exception) {
 //     echo "Data has been saved";
 // }
 
-// $roomfacility = "CREATE TABLE roomfacilitytb
+// $roomtypefacility = "CREATE TABLE roomtypefacilitytb
 // (
 //     RoomTypeID varchar(20),
 //     FacilityID varchar(20),
@@ -481,7 +457,7 @@ try {
 // )";
 
 // try {
-//     $query = mysqli_query($connect, $roomfacility);
+//     $query = mysqli_query($connect, $roomtypefacility);
 //     echo "Data Successfully saved";
 // } catch (mysqli_sql_exception) {
 //     echo "Data has been saved";
