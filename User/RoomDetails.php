@@ -1,6 +1,7 @@
 <?php
 session_start();
 include('../config/dbConnection.php');
+include('../includes/AutoIDFunc.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -704,13 +705,15 @@ if (isset($_POST['submitreview'])) {
 
                                 if ($roomSelectResult->num_rows > 0) {
                                     while ($room = $roomSelectResult->fetch_assoc()) {
-
                                 ?>
                                         <tr class="<?= ($room['RoomStatus'] == 'Available') ? '' : 'opacity-50'; ?>">
                                             <td class="px-3 md:px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($room['RoomName']) ?> (<?= htmlspecialchars($room['RoomType']) ?>)</td>
                                             <td class="px-3 md:px-6 py-4 whitespace-nowrap text-gray-600"><?= htmlspecialchars($room['RoomStatus']) ?></td>
                                             <td class="px-3 md:px-6 py-4 whitespace-nowrap">
-                                                <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded text-sm select-none <?= ($room['RoomStatus'] == 'Available') ? '' : 'disabled'; ?>">Reserve</button>
+                                                <a href="Reservation.php?roomID=<?= htmlspecialchars($room['RoomID']) ?>&checkin_date=<?= urlencode($checkin_date) ?>&checkout_date=<?= urlencode($checkout_date) ?>&adults=<?= urlencode($adults) ?>&children=<?= urlencode($children) ?>"
+                                                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded text-sm select-none <?= ($room['RoomStatus'] == 'Available') ? '' : 'disabled'; ?>">
+                                                    Reserve
+                                                </a>
                                             </td>
                                         </tr>
                                 <?php
