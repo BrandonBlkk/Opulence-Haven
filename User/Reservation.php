@@ -19,79 +19,6 @@ if (count($nameParts) > 1) {
     $initials .= substr(end($nameParts), 0, 1);
 }
 
-// 1. Validate and sanitize input data
-$roomID = isset($_GET['roomID']) ? mysqli_real_escape_string($connect, $_GET['roomID']) : '';
-$checkin_date = isset($_GET['checkin_date']) ? mysqli_real_escape_string($connect, $_GET['checkin_date']) : '';
-$checkout_date = isset($_GET['checkout_date']) ? mysqli_real_escape_string($connect, $_GET['checkout_date']) : '';
-$adults = isset($_GET['adults']) ? intval($_GET['adults']) : 1;
-$children = isset($_GET['children']) ? intval($_GET['children']) : 0;
-
-// 5. Get room details with price from roomtypetb
-$roomQuery = "SELECT r.RoomID, r.RoomStatus, rt.RoomPrice 
-              FROM roomtb r
-              JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
-              WHERE r.RoomID = '$roomID'";
-$roomResult = mysqli_query($connect, $roomQuery);
-
-if (!$roomResult || mysqli_num_rows($roomResult) === 0) {
-    die("Error: Room not found");
-}
-
-$roomData = mysqli_fetch_assoc($roomResult);
-
-// 7. Calculate total price
-$nights = (strtotime($checkout_date) - strtotime($checkin_date)) / (60 * 60 * 24);
-$totalPrice = $roomData['RoomPrice'] * $nights;
-
-// 8. Generate unique ReservationID
-try {
-    $reservationID = 'RES-' . uniqid();
-} catch (Exception $e) {
-    die("Error generating reservation ID: " . $e->getMessage());
-}
-
-// 9. Start transaction
-mysqli_begin_transaction($connect);
-
-try {
-    // 10. Insert into reservationtb
-    $reservationQuery = "INSERT INTO reservationtb 
-                        (ReservationID, UserID, TotalPrice, Status) 
-                        VALUES 
-                        ('$reservationID', '$userID', $totalPrice, 'Pending')";
-
-    if (!mysqli_query($connect, $reservationQuery)) {
-        throw new Exception("Failed to create reservation: " . mysqli_error($connect));
-    }
-
-    // 11. Insert into reservationdetailtb
-    $detailQuery = "INSERT INTO reservationdetailtb 
-                    (ReservationID, RoomID, CheckInDate, CheckOutDate, Adult, Children, Price) 
-                    VALUES 
-                    ('$reservationID', '$roomID', '$checkin_date', '$checkout_date', $adults, $children, {$roomData['RoomPrice']})";
-
-    if (!mysqli_query($connect, $detailQuery)) {
-        throw new Exception("Failed to add reservation details: " . mysqli_error($connect));
-    }
-
-    // 12. Update room status
-    $updateRoomQuery = "UPDATE roomtb SET RoomStatus = 'Reserved' WHERE RoomID = '$roomID'";
-    if (!mysqli_query($connect, $updateRoomQuery)) {
-        throw new Exception("Failed to update room status: " . mysqli_error($connect));
-    }
-
-    // 13. Commit transaction
-    mysqli_commit($connect);
-
-    // 14. Redirect to confirmation
-    header("Location: Reservation.php");
-    exit();
-} catch (Exception $e) {
-    // Rollback on error
-    mysqli_rollback($connect);
-    die("Error: " . $e->getMessage());
-}
-
 // Get search parameters from URL with strict validation
 if (isset($_GET["roomID"])) {
     $room_id = $_GET["roomID"];
@@ -205,7 +132,7 @@ if (isset($_POST['room_favourite'])) {
             <div class="p-6 border-b border-gray-200">
                 <div class="flex flex-col md:flex-row gap-7">
                     <!-- Left Column - Booking Information -->
-                    <div class="w-full md:w-1/4">
+                    <div class="w-full md:w-1/3">
                         <div class="space-y-6">
                             <!-- Booking Summary -->
                             <div class="bg-white rounded-lg shadow-sm">
@@ -237,26 +164,47 @@ if (isset($_POST['room_favourite'])) {
                             <div class="bg-white rounded-lg shadow-sm">
                                 <h3 class="text-lg font-semibold text-white mb-4 border-b border-gray-100 bg-blue-900 p-2">Price Summary</h3>
                                 <div class="space-y-3">
-                                    <div class="flex justify-between items-center">
-                                        <p class="text-sm font-medium text-gray-600">Room × <?= $totalNights ?> night<?= $totalNights > 1 ? 's' : '' ?></p>
-                                        <p class="text-sm font-semibold text-gray-800">$<?= number_format($room['RoomPrice'] * $totalNights, 2) ?></p>
-                                    </div>
+                                    <?php
+                                    // Query to get all reservation details with room information
+                                    $detailsQuery = "SELECT rd.*, rt.RoomType, r.RoomName 
+                    FROM reservationdetailtb rd
+                    JOIN roomtb r ON rd.RoomID = r.RoomID
+                    JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
+                    WHERE rd.ReservationID = '$reservationID'";
+                                    $detailsResult = mysqli_query($connect, $detailsQuery);
 
-                                    <div class="pt-3 border-t border-gray-100">
-                                        <div class="flex justify-between items-center mb-1">
-                                            <p class="text-sm font-medium text-gray-600">Price per night</p>
-                                            <p class="text-sm font-medium text-gray-700">$<?= number_format($room['RoomPrice'], 2) ?></p>
-                                        </div>
-                                        <div class="flex justify-between items-center">
-                                            <p class="text-sm font-medium text-gray-600">Total stay</p>
-                                            <p class="text-sm font-medium text-gray-700">$<?= number_format($room['RoomPrice'] * $totalNights, 2) ?></p>
-                                        </div>
-                                    </div>
+                                    if (!$detailsResult) {
+                                        die("Error fetching reservation details: " . mysqli_error($connect));
+                                    }
+
+                                    $grandTotal = 0;
+
+                                    if (mysqli_num_rows($detailsResult) > 0) {
+                                        while ($roomItem = mysqli_fetch_assoc($detailsResult)) {
+                                            $checkIn = new DateTime($roomItem['CheckInDate']);
+                                            $checkOut = new DateTime($roomItem['CheckOutDate']);
+                                            $totalNights = $checkOut->diff($checkIn)->days;
+                                            $roomTotal = $roomItem['Price'] * $totalNights;
+                                            $grandTotal += $roomTotal;
+                                    ?>
+                                            <div class="flex justify-between items-center">
+                                                <p class="text-sm font-medium text-gray-600">
+                                                    <?= htmlspecialchars($roomItem['RoomName'] ?? 'Room') ?> <?= htmlspecialchars($roomItem['RoomType']) ?>
+                                                    × <?= $totalNights ?> night<?= $totalNights > 1 ? 's' : '' ?>
+                                                </p>
+                                                <p class="text-sm font-semibold text-gray-800">$<?= number_format($roomTotal, 2) ?></p>
+                                            </div>
+                                    <?php
+                                        }
+                                    } else {
+                                        echo "<p class='text-sm text-gray-600'>No rooms added to reservation yet.</p>";
+                                    }
+                                    ?>
 
                                     <div class="pt-3 border-t border-gray-100">
                                         <div class="flex justify-between items-center">
                                             <p class="text-base font-semibold text-gray-800">Total</p>
-                                            <p class="text-lg font-bold text-blue-600">$<?= number_format($room['RoomPrice'] * $totalNights, 2) ?></p>
+                                            <p class="text-lg font-bold text-blue-600">$<?= number_format($grandTotal, 2) ?></p>
                                         </div>
                                         <p class="text-xs text-green-600 mt-1">✓ Includes all taxes and fees</p>
                                     </div>
@@ -395,7 +343,7 @@ if (isset($_POST['room_favourite'])) {
                                         <span class="ml-2">Yes</span>
                                     </label>
                                     <label class="inline-flex items-center">
-                                        <input type="radio" name="work_travel" class="h-4 w-4 text-blue-600">
+                                        <input type="radio" name="work_travel" class="h-4 w-4 text-blue-600" checked>
                                         <span class="ml-2">No</span>
                                     </label>
                                 </div>
@@ -412,22 +360,23 @@ if (isset($_POST['room_favourite'])) {
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">First name *</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">First name <span class="text-red-500">*</span></label>
                                     <input type="text" value="<?= $userData['UserName'] ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Last name *</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Last name (Optional)</label>
                                     <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                 </div>
                             </div>
 
                             <div class="mb-6">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Email address *</label>
-                                <input type="email" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Email address <span class="text-red-500">*</span></label>
+                                <input type="email" value="<?= $userData['UserEmail'] ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" disabled>
+                                <input type="hidden" name="email" value="<?= $userData['UserEmail'] ?>">
                             </div>
 
                             <div class="mb-6">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Phone <span class="text-red-500">*</span></label>
                                 <input type="tel" value="<?= $userData['UserPhone'] ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                             </div>
 
