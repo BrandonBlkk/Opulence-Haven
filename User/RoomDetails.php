@@ -38,6 +38,48 @@ if (isset($_GET["roomTypeID"])) {
     $availableRooms = $availableRoomsResult['available'];
 }
 
+// Function to cleanup expired reservations
+function cleanupExpiredReservations($connect)
+{
+    try {
+        // Get current datetime 
+        $currentDateTime = date('Y-m-d H:i:s');
+
+        // Get all expired reservation IDs
+        $getExpiredQuery = "SELECT ReservationID FROM reservationtb 
+                          WHERE Status = 'Pending' AND ExpiryDate <= ?";
+        $stmtGet = $connect->prepare($getExpiredQuery);
+        $stmtGet->bind_param("s", $currentDateTime);
+        $stmtGet->execute();
+        $expiredResult = $stmtGet->get_result();
+
+        // Process each expired reservation
+        while ($row = $expiredResult->fetch_assoc()) {
+            $reservationID = $row['ReservationID'];
+
+            // Delete from reservationdetailtb first (due to foreign key constraints)
+            $deleteDetails = "DELETE FROM reservationdetailtb WHERE ReservationID = ?";
+            $stmtDetails = $connect->prepare($deleteDetails);
+            $stmtDetails->bind_param("s", $reservationID);
+            $stmtDetails->execute();
+
+            // Then delete from reservationtb
+            $deleteReservation = "DELETE FROM reservationtb WHERE ReservationID = ?";
+            $stmtReservation = $connect->prepare($deleteReservation);
+            $stmtReservation->bind_param("s", $reservationID);
+            $stmtReservation->execute();
+        }
+
+        return true;
+    } catch (Exception $e) {
+        error_log("Cleanup failed: " . $e->getMessage());
+        return false;
+    }
+}
+
+// Call this function at the start of your reservation processing
+cleanupExpiredReservations($connect);
+
 // Reserve room
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
     $roomID = $_POST['reserve_room_id'];
@@ -113,7 +155,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
                 $reservationID = $reservationData['ReservationID'];
 
                 // Extend the expiry time
-                $newExpiry = date('Y-m-d H:i:s', strtotime('+1 day'));
+                $newExpiry = date('Y-m-d H:i:s', strtotime('+30 minutes'));
                 $updateExpiry = "UPDATE reservationtb SET ExpiryDate = ? WHERE ReservationID = ?";
                 $stmtExpiry = $connect->prepare($updateExpiry);
                 $stmtExpiry->bind_param("ss", $newExpiry, $reservationID);
