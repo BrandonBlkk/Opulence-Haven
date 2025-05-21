@@ -48,6 +48,109 @@ if (isset($_GET["roomID"])) {
     $room = $connect->query($query)->fetch_assoc();
 }
 
+// Get reservation details
+// if ($userID) {
+//     $query = "SELECT * FROM reservationtb WHERE UserID = '$userID'";
+//     $reservation = $connect->query($query)->fetch_assoc();
+
+//     if ($reservation) {
+//         $reservationID = $reservation['ReservationID'];
+//         $totalPrice = $reservation['TotalPrice'];
+//     }
+
+//     $query = "SELECT * FROM reservationdetailtb rd
+//             JOIN roomtb r ON rd.RoomID = r.RoomID
+//             JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
+//             WHERE ReservationID = '$reservationID'";
+//     $room = $connect->query($query)->fetch_assoc();
+
+//     if ($room) {
+//         $roomID = $room['RoomID'];
+//         $adults = $room['Adult'];
+//         $children = $room['Children'];
+//         $totalGuest = $adults + $children;
+
+//         try {
+//             $checkin_date = $room['CheckInDate'];
+//             $checkout_date = $room['CheckOutDate'];
+
+//             $totalNights = (strtotime($checkout_date) - strtotime($checkin_date)) / (60 * 60 * 24);
+//         } catch (Exception $e) {
+//             // Handle invalid dates
+//             $alertMessage = "Invalid dates: " . $e->getMessage();
+//             header("Location: Reservation.php");
+//             exit();
+//         }
+//     }
+// }
+
+if ($userID) {
+    // Get the user's reservation
+    $query = "SELECT * FROM reservationtb WHERE UserID = '$userID' AND Status = 'Pending'";
+    $reservationResult = $connect->query($query);
+
+    if ($reservationResult->num_rows > 0) {
+        $reservation = $reservationResult->fetch_assoc();
+        $reservationID = $reservation['ReservationID'];
+        $totalPrice = $reservation['TotalPrice'];
+
+        // Get all reserved rooms for this reservation
+        $roomsQuery = "SELECT rd.*, r.*, rt.* 
+                      FROM reservationdetailtb rd
+                      JOIN roomtb r ON rd.RoomID = r.RoomID
+                      JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
+                      WHERE rd.ReservationID = '$reservationID'";
+        $roomsResult = $connect->query($roomsQuery);
+
+        $reservedRooms = [];
+        $totalNights = 0;
+
+        if ($roomsResult->num_rows > 0) {
+            while ($room = $roomsResult->fetch_assoc()) {
+                // Calculate nights for each room (they should have same dates)
+                try {
+                    $checkin_date = $room['CheckInDate'];
+                    $checkout_date = $room['CheckOutDate'];
+                    $adults = $room['Adult'];
+                    $children = $room['Children'];
+                    $nights = (strtotime($checkout_date) - strtotime($checkin_date)) / (60 * 60 * 24);
+
+                    // Store room data with additional calculated fields
+                    $room['nights'] = $nights;
+                    $room['subtotal'] = $room['Price'] * $nights;
+                    $reservedRooms[] = $room;
+
+                    // Set total nights (same for all rooms in reservation)
+                    $totalNights = $nights;
+                } catch (Exception $e) {
+                    // Handle invalid dates
+                    $alertMessage = "Invalid dates: " . $e->getMessage();
+                    header("Location: Reservation.php");
+                    exit();
+                }
+            }
+        }
+
+        // Calculate total guests
+        $totalGuest = 0;
+        foreach ($reservedRooms as $room) {
+            $totalGuest += $room['Adult'] + $room['Children'];
+        }
+    }
+}
+
+// Remove room from reservation
+if (isset($_POST['remove_room'])) {
+    $reservation_id = $_POST["reservation_id"];
+    $room_id = $_POST["room_id"];
+    $query = "DELETE FROM reservationdetailtb WHERE RoomID = '$room_id' AND ReservationID = '$reservation_id'";
+    $connect->query($query);
+
+    // Redirect back to the reservation page
+    header("Location: Reservation.php");
+    exit();
+}
+
 // Add room to favorites
 if (isset($_POST['room_favourite'])) {
     if ($userID) {
@@ -135,28 +238,85 @@ if (isset($_POST['room_favourite'])) {
                     <div class="w-full md:w-1/3">
                         <div class="space-y-6">
                             <!-- Booking Summary -->
-                            <div class="bg-white rounded-lg shadow-sm">
-                                <h3 class="text-lg font-semibold text-white mb-4 border-b border-gray-100 bg-blue-900 p-2">Your booking detailss</h3>
-                                <div class="space-y-2">
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-500 mb-1">Check-in:</p>
-                                        <p class="text-xs font-semibold text-gray-800"><?= date('D, j M Y', strtotime($checkin_date)); ?></p>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-500 mb-1">Check-out:</p>
-                                        <p class="text-xs font-semibold text-gray-800"><?= date('D, j M Y', strtotime($checkout_date)); ?></p>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-500 mb-1">Total stay:</p>
-                                        <p class="text-xs font-semibold text-gray-800"><?= $totalNights ?> <?= $totalNights > 1 ? 'nights' : 'night'; ?></p>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-500 mb-1">Guests:</p>
-                                        <p class="text-xs font-semibold text-gray-800">
-                                            <?= $adults ?> adult<?= $adults > 1 ? 's' : '' ?>
-                                            <?= $children > 0 ? ', ' . $children . ' child' . ($children > 1 ? 'ren' : '') : '' ?>
-                                        </p>
-                                    </div>
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                                <h3 class="text-lg font-semibold text-white mb-0 border-b border-blue-800 bg-blue-900 p-3">
+                                    Your booking details
+                                </h3>
+
+                                <div class="p-4 space-y-4">
+                                    <?php if (!empty($checkin_date) && !empty($checkout_date)): ?>
+                                        <!-- Booking details when dates are available -->
+                                        <div class="grid grid-cols-2 gap-0">
+                                            <div class="bg-gray-50 p-3 rounded-lg">
+                                                <p class="text-xs font-medium text-gray-500 mb-1 flex items-center">
+                                                    <i class="ri-calendar-event-line mr-1"></i> Check-in
+                                                </p>
+                                                <p class="text-sm font-semibold text-gray-800">
+                                                    <?= date('D, j M Y', strtotime($checkin_date)); ?>
+                                                </p>
+                                                <p class="text-xs text-gray-500 mt-1">
+                                                    After 2:00 PM
+                                                </p>
+                                            </div>
+
+                                            <div class="bg-gray-50 p-3 rounded-lg">
+                                                <p class="text-xs font-medium text-gray-500 mb-1 flex items-center">
+                                                    <i class="ri-calendar-event-line mr-1"></i> Check-out
+                                                </p>
+                                                <p class="text-sm font-semibold text-gray-800">
+                                                    <?= date('D, j M Y', strtotime($checkout_date)); ?>
+                                                </p>
+                                                <p class="text-xs text-gray-500 mt-1">
+                                                    Before 12:00 PM
+                                                </p>
+                                            </div>
+
+                                            <div class="bg-gray-50 p-3 rounded-lg">
+                                                <p class="text-xs font-medium text-gray-500 mb-1 flex items-center">
+                                                    <i class="ri-hotel-bed-line mr-1"></i> Total stay
+                                                </p>
+                                                <p class="text-sm font-semibold text-gray-800">
+                                                    <?= $totalNights ?> <?= $totalNights > 1 ? 'nights' : 'night' ?>
+                                                </p>
+                                                <p class="text-xs text-gray-500 mt-1">
+                                                    <?= $totalNights > 1 ? 'From arrival to departure' : 'One night stay' ?>
+                                                </p>
+                                            </div>
+
+                                            <div class="bg-gray-50 p-3 rounded-lg">
+                                                <p class="text-xs font-medium text-gray-500 mb-1 flex items-center">
+                                                    <i class="ri-user-line mr-1"></i> Guests
+                                                </p>
+                                                <p class="text-sm font-semibold text-gray-800">
+                                                    <?= $adults ?> adult<?= $adults > 1 ? 's' : '' ?>
+                                                    <?= $children > 0 ? ', ' . $children . ' child' . ($children > 1 ? 'ren' : '') : '' ?>
+                                                </p>
+                                                <p class="text-xs text-gray-500 mt-1">
+                                                    Max capacity: <?= $room['RoomCapacity'] ?? 'N/A' ?>
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Additional booking info -->
+                                        <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 mt-2">
+                                            <p class="text-xs text-blue-800 flex items-start">
+                                                <i class="ri-information-line mr-2 mt-0.5"></i>
+                                                Need to modify your booking? Contact our customer service for assistance.
+                                            </p>
+                                        </div>
+                                    <?php else: ?>
+                                        <!-- Empty state when no booking details -->
+                                        <div class="text-center py-6">
+                                            <div class="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                                                <i class="ri-calendar-line text-2xl text-gray-400"></i>
+                                            </div>
+                                            <h4 class="text-sm font-medium text-gray-500 mb-1">No booking details found</h4>
+                                            <p class="text-xs text-gray-400 mb-4">Please select dates to see booking information</p>
+                                            <a href="RoomBooking.php" class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800">
+                                                Browse available rooms <i class="ri-arrow-right-line ml-1"></i>
+                                            </a>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
 
@@ -165,49 +325,85 @@ if (isset($_POST['room_favourite'])) {
                                 <h3 class="text-lg font-semibold text-white mb-4 border-b border-gray-100 bg-blue-900 p-2">Price Summary</h3>
                                 <div class="space-y-3">
                                     <?php
-                                    // Query to get all reservation details with room information
-                                    $detailsQuery = "SELECT rd.*, rt.RoomType, r.RoomName 
-                    FROM reservationdetailtb rd
-                    JOIN roomtb r ON rd.RoomID = r.RoomID
-                    JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
-                    WHERE rd.ReservationID = '$reservationID'";
-                                    $detailsResult = mysqli_query($connect, $detailsQuery);
+                                    if (empty($reservationID)) {
+                                        // Show message when no reservation exists
+                                        echo '<div class="text-center py-6">';
+                                        echo '<i class="ri-hotel-bed-line text-4xl text-gray-300 mb-3"></i>';
+                                        echo '<p class="text-gray-500">You don\'t have any active reservations</p>';
+                                        echo '<a href="RoomBooking.php" class="mt-2 inline-block text-blue-600 hover:text-blue-800 text-sm font-medium">';
+                                        echo 'Browse available rooms →';
+                                        echo '</a>';
+                                        echo '</div>';
+                                    } else {
+                                        // Query to get all reservation details with room information
+                                        $detailsQuery = "SELECT rd.*, rt.RoomType, r.RoomName, rt.RoomCoverImage 
+                        FROM reservationdetailtb rd
+                        JOIN roomtb r ON rd.RoomID = r.RoomID
+                        JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
+                        WHERE rd.ReservationID = '$reservationID'";
+                                        $detailsResult = mysqli_query($connect, $detailsQuery);
 
-                                    if (!$detailsResult) {
-                                        die("Error fetching reservation details: " . mysqli_error($connect));
-                                    }
+                                        if (!$detailsResult) {
+                                            die("Error fetching reservation details: " . mysqli_error($connect));
+                                        }
 
-                                    $grandTotal = 0;
+                                        $grandTotal = 0;
 
-                                    if (mysqli_num_rows($detailsResult) > 0) {
-                                        while ($roomItem = mysqli_fetch_assoc($detailsResult)) {
-                                            $checkIn = new DateTime($roomItem['CheckInDate']);
-                                            $checkOut = new DateTime($roomItem['CheckOutDate']);
-                                            $totalNights = $checkOut->diff($checkIn)->days;
-                                            $roomTotal = $roomItem['Price'] * $totalNights;
-                                            $grandTotal += $roomTotal;
+                                        if (mysqli_num_rows($detailsResult) > 0) {
+                                            while ($roomItem = mysqli_fetch_assoc($detailsResult)) {
+                                                $checkIn = new DateTime($roomItem['CheckInDate']);
+                                                $checkOut = new DateTime($roomItem['CheckOutDate']);
+                                                $totalNights = $checkOut->diff($checkIn)->days;
+                                                $roomTotal = $roomItem['Price'] * $totalNights;
+                                                $grandTotal += $roomTotal;
                                     ?>
-                                            <div class="flex justify-between items-center">
-                                                <p class="text-sm font-medium text-gray-600">
-                                                    <?= htmlspecialchars($roomItem['RoomName'] ?? 'Room') ?> <?= htmlspecialchars($roomItem['RoomType']) ?>
-                                                    × <?= $totalNights ?> night<?= $totalNights > 1 ? 's' : '' ?>
-                                                </p>
-                                                <p class="text-sm font-semibold text-gray-800">$<?= number_format($roomTotal, 2) ?></p>
+                                                <div>
+                                                    <div class="flex justify-between">
+                                                        <h4 class="font-medium text-gray-800">
+                                                            <?= htmlspecialchars($roomItem['RoomName'] ?? 'Room') ?> <?= htmlspecialchars($roomItem['RoomType']) ?>
+                                                        </h4>
+                                                        <p class="font-semibold text-gray-800">$<?= number_format($roomTotal, 2) ?></p>
+                                                    </div>
+                                                    <p class="text-sm text-gray-500 mt-1">
+                                                        <?= $checkIn->format('M j, Y') ?> - <?= $checkOut->format('M j, Y') ?>
+                                                        (<?= $totalNights ?> night<?= $totalNights > 1 ? 's' : '' ?>)
+                                                    </p>
+                                                    <p class="text-sm text-gray-500 mt-1">
+                                                        <?= $roomItem['Adult'] ?> adult<?= $roomItem['Adult'] > 1 ? 's' : '' ?>
+                                                        <?= $roomItem['Children'] > 0 ? ' + ' . $roomItem['Children'] . ' child' . ($roomItem['Children'] > 1 ? 'ren' : '') : '' ?>
+                                                    </p>
+                                                </div>
+                                            <?php
+                                            }
+                                            ?>
+                                            <div class="pt-3 border-t border-gray-100">
+                                                <div class="flex justify-between items-center">
+                                                    <p class="text-base font-semibold text-gray-800">Subtotal</p>
+                                                    <p class="text-gray-800">$<?= number_format($grandTotal, 2) ?></p>
+                                                </div>
+                                                <div class="flex justify-between items-center mt-1">
+                                                    <p class="text-sm text-gray-600">Taxes and fees</p>
+                                                    <p class="text-gray-800">$<?= number_format($grandTotal * 0.1, 2) ?></p> <!-- Assuming 10% tax -->
+                                                </div>
+                                                <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-200">
+                                                    <p class="text-lg font-bold text-gray-900">Total</p>
+                                                    <p class="text-lg font-bold text-blue-600">$<?= number_format($grandTotal * 1.1, 2) ?></p> <!-- Total with tax -->
+                                                </div>
+                                                <p class="text-xs text-green-600 mt-1">✓ Includes all taxes and fees</p>
                                             </div>
                                     <?php
+                                        } else {
+                                            // Show message when reservation exists but has no rooms
+                                            echo '<div class="text-center py-6">';
+                                            echo '<i class="ri-shopping-cart-line text-4xl text-gray-300 mb-3"></i>';
+                                            echo '<p class="text-gray-500">Your reservation is empty</p>';
+                                            echo '<a href="RoomBooking.php" class="mt-2 inline-block text-blue-600 hover:text-blue-800 text-sm font-medium">';
+                                            echo 'Add rooms to your reservation →';
+                                            echo '</a>';
+                                            echo '</div>';
                                         }
-                                    } else {
-                                        echo "<p class='text-sm text-gray-600'>No rooms added to reservation yet.</p>";
                                     }
                                     ?>
-
-                                    <div class="pt-3 border-t border-gray-100">
-                                        <div class="flex justify-between items-center">
-                                            <p class="text-base font-semibold text-gray-800">Total</p>
-                                            <p class="text-lg font-bold text-blue-600">$<?= number_format($grandTotal, 2) ?></p>
-                                        </div>
-                                        <p class="text-xs text-green-600 mt-1">✓ Includes all taxes and fees</p>
-                                    </div>
 
                                     <div class="pt-2">
                                         <p class="text-xs text-gray-500">
@@ -221,106 +417,65 @@ if (isset($_POST['room_favourite'])) {
 
                     <!-- Right Column - Room Information (Keep existing code exactly as is) -->
                     <div class="w-full">
-                        <a href="../User/RoomDetails.php?roomTypeID=<?php echo htmlspecialchars($room['RoomTypeID']) ?>&checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="flex flex-col md:flex-row rounded-md shadow-sm border">
-                            <div class="md:w-[48%] h-64 overflow-hidden select-none rounded-l-md relative">
-                                <img src="../Admin/<?= htmlspecialchars($room['RoomCoverImage']) ?>" alt="<?= htmlspecialchars($room['RoomType']) ?>" class="w-full h-full object-cover">
-                                <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post">
-                                    <input type="hidden" name="checkin_date" value="<?= $checkin_date ?>">
-                                    <input type="hidden" name="checkout_date" value="<?= $checkout_date ?>">
-                                    <input type="hidden" name="adults" value="<?= $adults ?>">
-                                    <input type="hidden" name="children" value="<?= $children ?>">
-                                    <input type="hidden" name="roomTypeID" value="<?= $room['RoomTypeID'] ?>">
-                                    <button type="submit" name="room_favourite">
-                                        <i class="absolute top-3 right-3 ri-heart-fill text-xl cursor-pointer flex items-center justify-center bg-white w-9 h-9 rounded-full hover:bg-slate-100 transition-colors duration-300 <?= $is_favorited ? 'text-red-500 hover:text-red-600' : 'text-slate-400 hover:text-red-300' ?>"></i>
-                                    </button>
-                                </form>
-                            </div>
-                            <div class="w-full p-4">
-                                <div class="flex justify-between items-start">
-                                    <div class="flex items-center gap-4">
-                                        <h2 class="text-xl font-bold text-gray-800"><?= htmlspecialchars($room['RoomName']) ?> <?= htmlspecialchars($room['RoomType']) ?></h2>
-                                        <?php
-                                        // Get average rating
-                                        $review_select = "SELECT Rating FROM roomtypereviewtb WHERE RoomTypeID = '$room[RoomTypeID]'";
-                                        $select_query = $connect->query($review_select);
-
-                                        // Check if there are any reviews
-                                        $totalReviews = $select_query->num_rows;
-                                        if ($totalReviews > 0) {
-                                            $totalRating = 0;
-
-                                            // Sum all ratings
-                                            while ($review = $select_query->fetch_assoc()) {
-                                                $totalRating += $review['Rating'];
-                                            }
-
-                                            // Calculate the average rating
-                                            $averageRating = $totalRating / $totalReviews;
-                                        } else {
-                                            $averageRating = 0;
-                                        }
-                                        ?>
-                                        <div class="flex items-center gap-3">
-                                            <div class="select-none space-x-1 cursor-pointer">
-                                                <?php
-                                                $fullStars = floor($averageRating);
-                                                $halfStar = ($averageRating - $fullStars) >= 0.5 ? 1 : 0;
-                                                $emptyStars = 5 - ($fullStars + $halfStar);
-
-                                                // Display full stars
-                                                for ($i = 0; $i < $fullStars; $i++) {
-                                                    echo '<i class="ri-star-fill text-amber-500"></i>';
-                                                }
-
-                                                // Display half star if needed
-                                                if ($halfStar) {
-                                                    echo '<i class="ri-star-half-line text-amber-500"></i>';
-                                                }
-
-                                                // Display empty stars
-                                                for ($i = 0; $i < $emptyStars; $i++) {
-                                                    echo '<i class="ri-star-line text-amber-500"></i>';
-                                                }
-                                                ?>
+                        <!-- Display reserved rooms -->
+                        <?php if (!empty($reservedRooms)): ?>
+                            <div class="space-y-2">
+                                <?php foreach ($reservedRooms as $room): ?>
+                                    <div class="flex flex-col md:flex-row rounded-md shadow-sm border">
+                                        <div class="md:w-[48%] h-56 overflow-hidden select-none rounded-l-md relative">
+                                            <img src="../Admin/<?= htmlspecialchars($room['RoomCoverImage']) ?>"
+                                                alt="<?= htmlspecialchars($room['RoomType']) ?>"
+                                                class="w-full h-full object-cover">
+                                        </div>
+                                        <div class="w-full p-4">
+                                            <div class="flex justify-between items-start">
+                                                <div class="flex items-center gap-4">
+                                                    <h2 class="text-xl font-bold text-gray-800">
+                                                        <?= htmlspecialchars($room['RoomName']) ?>
+                                                        <?= htmlspecialchars($room['RoomType']) ?>
+                                                    </h2>
+                                                </div>
+                                                <div class="text-right">
+                                                    <div class="text-sm text-gray-500">
+                                                        <?= $room['nights'] ?> night<?= $room['nights'] > 1 ? 's' : '' ?>
+                                                    </div>
+                                                    <div class="text-lg font-bold text-orange-500">
+                                                        USD<?= number_format($room['subtotal'], 2) ?>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <p class="text-gray-500 text-sm">
-                                                (<?php echo $totalReviews; ?> review<?php echo ($totalReviews > 1) ? 's' : ''; ?>)
-                                            </p>
+
+                                            <div class="text-sm text-gray-600 mt-1">
+                                                Check-in: <?= date('M j, Y', strtotime($room['CheckInDate'])) ?><br>
+                                                Check-out: <?= date('M j, Y', strtotime($room['CheckOutDate'])) ?>
+                                            </div>
+
+                                            <div class="text-sm text-gray-600 mt-1">
+                                                Guests: <?= $room['Adult'] ?> adult<?= $room['Adult'] > 1 ? 's' : '' ?>
+                                                <?= $room['Children'] > 0 ? ' + ' . $room['Children'] . ' child' . ($room['Children'] > 1 ? 'ren' : '') : '' ?>
+                                            </div>
+
+                                            <!-- Remove room button -->
+                                            <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" class="mt-4">
+                                                <input type="hidden" name="reservation_id" value="<?= $reservationID ?>">
+                                                <input type="hidden" name="room_id" value="<?= $room['RoomID'] ?>">
+                                                <button type="submit" name="remove_room"
+                                                    class="text-red-600 hover:text-red-800 text-sm font-medium">
+                                                    Remove Room
+                                                </button>
+                                            </form>
                                         </div>
                                     </div>
-                                    <div class="text-right">
-                                        <div class="text-sm text-gray-500">Price starts from</div>
-                                        <div class="text-lg font-bold text-orange-500">USD<?= number_format($room['RoomPrice'], 2) ?></div>
-                                    </div>
-                                </div>
-                                <div class="text-sm text-gray-600 mt-1"><?= htmlspecialchars($room['RoomType']) ?> <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Max <?= $room['RoomCapacity'] ?> <?php if ($room['RoomCapacity'] > 1) echo 'guests';
-                                                                                                                                                                                                                        else echo 'guest'; ?></span></div>
-                                <p class="text-sm text-gray-700 mt-3">
-                                    <?php
-                                    $description = $room['RoomDescription'] ?? '';
-                                    $truncated = mb_strimwidth(htmlspecialchars($description), 0, 200, '...');
-                                    echo $truncated;
-                                    ?>
-                                </p>
-                                <div class="flex flex-wrap gap-1 mt-4 select-none">
-                                    <?php
-                                    $facilitiesQuery = "SELECT f.Facility
-                    FROM roomtypefacilitytb rf
-                    JOIN facilitytb f ON rf.FacilityID = f.FacilityID
-                    WHERE rf.RoomTypeID = '" . $room['RoomTypeID'] . "'";
-                                    $facilitiesResult = $connect->query($facilitiesQuery);
-
-                                    if ($facilitiesResult->num_rows > 0) {
-                                        while ($facility = $facilitiesResult->fetch_assoc()) {
-                                            echo '<span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">' .
-                                                htmlspecialchars($facility['Facility']) .
-                                                '</span>';
-                                        }
-                                    }
-                                    ?>
-                                </div>
+                                <?php endforeach; ?>
                             </div>
-                        </a>
+                        <?php else: ?>
+                            <div class="text-center py-8">
+                                <p class="text-gray-500">You don't have any rooms reserved yet.</p>
+                                <a href="RoomBooking.php" class="text-blue-600 hover:underline mt-2 inline-block">
+                                    Browse available rooms
+                                </a>
+                            </div>
+                        <?php endif; ?>
 
                         <div class="py-6">
                             <h2 class="text-xl font-semibold text-gray-800 mb-4">Enter your details</h2>
