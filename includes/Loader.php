@@ -1,4 +1,4 @@
-<div id="loader" class="fixed inset-0 items-center justify-center bg-black/15 z-40 hidden">
+<div id="loader" class="fixed inset-0 items-center justify-center bg-black/15 z-50 hidden">
     <div class="flex-col gap-4 w-full flex items-center justify-center">
         <div
             class="w-20 h-20 border-4 border-transparent text-blue-800 text-4xl animate-spin flex items-center justify-center border-t-blue-800 rounded-full">
