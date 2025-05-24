@@ -1020,8 +1020,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const addFacilityTypeBtn = document.getElementById('addFacilityTypeBtn');
     const addFacilityTypeCancelBtn = document.getElementById('addFacilityTypeCancelBtn');
     const loader = document.getElementById('loader');
-    const alertMessage = document.getElementById('alertMessage').value;
-    const addFacilityTypeSuccess = document.getElementById('addFacilityTypeSuccess').value === 'true';
+    const darkOverlay2 = document.getElementById('darkOverlay2'); 
+
+    // Function to close the modal
+    const closeModal = () => {
+        addFacilityTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+        darkOverlay2.classList.add('opacity-0', 'invisible');
+        darkOverlay2.classList.remove('opacity-100');
+
+        const errors = ['facilityTypeError', 'facilityTypeIconError'];
+        errors.forEach(error => {
+            hideError(document.getElementById(error));
+        });
+    };
 
     if (addFacilityTypeModal && addFacilityTypeBtn && addFacilityTypeCancelBtn) {
         // Show modal
@@ -1033,44 +1044,60 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Cancel button functionality
         addFacilityTypeCancelBtn.addEventListener('click', () => {
-            addFacilityTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-            darkOverlay2.classList.add('opacity-0', 'invisible');
-            darkOverlay2.classList.remove('opacity-100');
-     
-            // Clear error messages
-            const errors = ['facilityTypeError', 'facilityTypeIconError'];
-            errors.forEach(error => {
-                hideError(document.getElementById(error));
-            });
+            closeModal();
+            document.getElementById('facilityTypeInput').value = '';
+            document.getElementById('facilityTypeIconInput').value = '';
         });
     }
 
-    if (addFacilityTypeSuccess) {
-        loader.style.display = 'flex';
-
-        // Show Alert
-        setTimeout(() => {
-            loader.style.display = 'none';
-            showAlert('A new facility type has been successfully added.');
-            setTimeout(() => {
-                window.location.href = 'AddFacilityType.php';
-            }, 5000);
-        }, 1000);
-    } else if (alertMessage) {
-        // Show Alert
-        showAlert(alertMessage);
-    }
-
-    // Add keyup event listeners for real-time validation
     document.getElementById("facilityTypeInput").addEventListener("keyup", validateFacilityType);
     document.getElementById("facilityTypeIconInput").addEventListener("keyup", validateFacilityTypeIcon);
 
     const facilityTypeForm = document.getElementById("facilityTypeForm");
     if (facilityTypeForm) {
         facilityTypeForm.addEventListener("submit", (e) => {
-            if (!validateFacilityTypeForm()) {
-                e.preventDefault();
-            }
+            e.preventDefault();
+
+            if (!validateFacilityTypeForm()) return;
+
+            loader.style.display = 'flex';
+
+            const formData = new FormData(facilityTypeForm);
+            formData.append('addfacilitytype', true);
+
+            fetch('AddFacilityType.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return res.json();
+            })
+            .then(data => {
+                loader.style.display = 'none';
+                showAlert(data.message);
+
+                if (data.success) {
+                    // Clear form and close modal
+                    document.getElementById('facilityTypeInput').value = '';
+                    document.getElementById('facilityTypeIconInput').value = '';
+                    facilityTypeForm.reset();
+                    closeModal();
+                    
+                } else {
+                    document.getElementById('facilityTypeInput').value = '';
+                    document.getElementById('facilityTypeIconInput').value = '';
+                    facilityTypeForm.reset();
+                    closeModal();
+                }
+            })
+            .catch(err => {
+                loader.style.display = 'none';
+                showAlert("Something went wrong. Please try again.");
+                console.error(err);
+            });
         });
     }
 });
@@ -1195,16 +1222,69 @@ document.addEventListener('DOMContentLoaded', () => {
             darkOverlay2.classList.remove('opacity-100');
         });
 
-        if (deleteFacilityTypeSuccess) {
-            // Show Alert
-            showAlert('The facility type has been successfully deleted.');
-            setTimeout(() => {
-                window.location.href = 'AddFacilityType.php';
-            }, 5000);
-        } else if (alertMessage) {
-            // Show Alert
-            showAlert(alertMessage);
+        const facilityTypeDeleteForm = document.getElementById('facilityTypeDeleteForm');
+        if (facilityTypeDeleteForm) {
+            facilityTypeDeleteForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(facilityTypeDeleteForm);
+                formData.append('deletefacilitytype', true);
+                const facilityTypeId = formData.get('facilitytypeid');
+
+                fetch('../Admin/AddFacilityType.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Close the modal
+                        facilityTypeConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                        darkOverlay2.classList.add('opacity-0', 'invisible');
+                        darkOverlay2.classList.remove('opacity-100');
+                        
+                        // Remove the deleted row from the table
+                        const rowToRemove = document.querySelector(`[data-facilitytype-id="${facilityTypeId}"]`).closest('tr');
+                        if (rowToRemove) {
+                            rowToRemove.remove();
+                        }
+                        
+                        // Check if table is empty and show "No data" message
+                        const tableBody = document.querySelector('tbody');
+                        if (tableBody && tableBody.querySelectorAll('tr').length === 0) {
+                            const emptyRow = document.createElement('tr');
+                            emptyRow.innerHTML = `
+                                <td colspan="7" class="p-3 text-center text-gray-500 py-52">
+                                    No facility types available.
+                                </td>
+                            `;
+                            tableBody.appendChild(emptyRow);
+                        }
+                        
+                        showAlert('The facility type has been successfully deleted.');
+                    } else {
+                        showAlert(data.message || 'Failed to delete facility type.');
+                    }
+                })
+                .catch((err) => {
+                    console.error('Error:', err);
+                    showAlert('An error occurred. Please try again.');
+                });
+            });
         }
+
+        // Add event listener for delete buttons
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('delete-btn')) {
+                const facilityTypeId = e.target.getAttribute('data-facilitytype-id');
+                document.getElementById('deleteFacilityTypeId').value = facilityTypeId;
+            }
+        });
     }
 });
 

@@ -8,33 +8,39 @@ if (!$connect) {
 }
 
 $alertMessage = '';
-$addFacilityTypeSuccess = false;
 $updateFacilityTypeSuccess = false;
-$deleteFacilityTypeSuccess = false;
 $facilityTypeID = AutoID('facilitytypetb', 'FacilityTypeID', 'FT-', 6);
 
 // Add Facility Type
+$response = ['success' => false, 'message' => ''];
+
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addfacilitytype'])) {
     $facilitytype = mysqli_real_escape_string($connect, $_POST['facilitytype']);
     $facilitytypeicon = mysqli_real_escape_string($connect, $_POST['facilitytypeicon']);
     $facilitytypeiconsize = mysqli_real_escape_string($connect, $_POST['facilitytypeiconsize']);
 
-    // Check if the product type already exists using prepared statement
     $checkQuery = "SELECT FacilityType FROM facilitytypetb WHERE FacilityType = '$facilitytype'";
     $count = $connect->query($checkQuery)->num_rows;
 
     if ($count > 0) {
-        $alertMessage = 'Facility type you added is already existed.';
+        $response['message'] = 'Facility type you added is already existed.';
     } else {
         $addFacilityTypeQuery = "INSERT INTO facilitytypetb (FacilityTypeID, FacilityType, FacilityTypeIcon, IconSize)
         VALUES ('$facilityTypeID', '$facilitytype', '$facilitytypeicon', '$facilitytypeiconsize')";
 
         if ($connect->query($addFacilityTypeQuery)) {
-            $addFacilityTypeSuccess = true;
+            $newId = $connect->insert_id;
+            $response['success'] = true;
+            $response['message'] = 'A new facility type has been successfully added.';
+            $response['newId'] = $newId;
         } else {
-            $alertMessage = "Failed to add facility type. Please try again.";
+            $response['message'] = "Failed to add facility type. Please try again.";
         }
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Get Facility Type Details
@@ -80,15 +86,14 @@ if (isset($_POST['editfacilitytype'])) {
 // Delete Facility Type
 if (isset($_POST['deletefacilitytype'])) {
     $facilityTypeId = mysqli_real_escape_string($connect, $_POST['facilitytypeid']);
-
-    // Build query based on action
     $deleteQuery = "DELETE FROM facilitytypetb WHERE FacilityTypeID = '$facilityTypeId'";
 
     if ($connect->query($deleteQuery)) {
-        $deleteFacilityTypeSuccess = true;
+        echo json_encode(['success' => true]);
     } else {
-        $alertMessage = "Failed to delete facility type. Please try again.";
+        echo json_encode(['success' => false, 'message' => 'Failed to delete facility type. Please try again.']);
     }
+    exit;
 }
 ?>
 
