@@ -1,17 +1,42 @@
 // Show Alert Function
-export const showAlert = (message) => {
-    const alertBox = document.getElementById("alertBox");
-    const alertText = document.getElementById("alertText");
+export const showAlert = (message, isError = false) => {
+    const alertBox = document.getElementById('alertBox');
+    const alertText = document.getElementById('alertText');
+    const alertIcon = document.getElementById('alertIcon');
+    
+    // Reset any ongoing animations
+    alertBox.style.transition = 'none';
+    alertBox.classList.remove('opacity-100', 'bottom-3', 'bg-red-400', 'bg-green-400');
+    alertBox.classList.add('opacity-0', '-bottom-20');
+    
+    // Force reflow to reset the element
+    void alertBox.offsetHeight;
+    
+    // Restore transition
+    alertBox.style.transition = '';
+    
+    // Set alert content
     alertText.textContent = message;
-
+    
+    // Set alert style based on type
+    if (isError) {
+        alertBox.classList.add('bg-red-400');
+        alertIcon.className = 'text-2xl text-white ri-error-warning-line';
+    } else {
+        alertBox.classList.add('bg-green-400');
+        alertIcon.className = 'text-2xl text-white ri-checkbox-circle-fill';
+    }
+    
+    // Show alert with animation
     setTimeout(() => {
-        alertBox.classList.remove("-bottom-1", "opacity-0", "hidden");
-        alertBox.classList.add("opacity-100", "bottom-3");
+        alertBox.classList.remove('opacity-0', '-bottom-20');
+        alertBox.classList.add('opacity-100', 'bottom-3');
     }, 10);
-
-    // Hide Alert
+    
+    // Hide alert after 5 seconds
     setTimeout(() => {
-        alertBox.classList.add("translate-x-full", "-right-full");
+        alertBox.classList.remove('opacity-100', 'bottom-3');
+        alertBox.classList.add('opacity-0', '-bottom-20');
     }, 5000);
 };
 

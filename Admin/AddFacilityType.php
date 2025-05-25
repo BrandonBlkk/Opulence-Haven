@@ -8,12 +8,10 @@ if (!$connect) {
 }
 
 $alertMessage = '';
-$updateFacilityTypeSuccess = false;
 $facilityTypeID = AutoID('facilitytypetb', 'FacilityTypeID', 'FT-', 6);
+$response = ['success' => false, 'message' => '', 'generatedId' => $facilityTypeID];
 
 // Add Facility Type
-$response = ['success' => false, 'message' => ''];
-
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addfacilitytype'])) {
     $facilitytype = mysqli_real_escape_string($connect, $_POST['facilitytype']);
     $facilitytypeicon = mysqli_real_escape_string($connect, $_POST['facilitytypeicon']);
@@ -29,10 +27,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addfacilitytype'])) {
         VALUES ('$facilityTypeID', '$facilitytype', '$facilitytypeicon', '$facilitytypeiconsize')";
 
         if ($connect->query($addFacilityTypeQuery)) {
-            $newId = $connect->insert_id;
             $response['success'] = true;
             $response['message'] = 'A new facility type has been successfully added.';
-            $response['newId'] = $newId;
+            // Keep the generated ID in the response
+            $response['generatedId'] = $facilityTypeID;
         } else {
             $response['message'] = "Failed to add facility type. Please try again.";
         }
@@ -58,11 +56,15 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         $facilitytype = $result->fetch_assoc();
 
         if ($facilitytype) {
-            echo json_encode(['success' => true, 'facilitytype' => $facilitytype]);
+            $response['success'] = true;
+            $response['facilitytype'] = $facilitytype;
         } else {
-            echo json_encode(['success' => false]);
+            $response['success'] = true;
         }
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
     exit;
 }
 
@@ -73,14 +75,29 @@ if (isset($_POST['editfacilitytype'])) {
     $updatedFacilityTypeIcon = mysqli_real_escape_string($connect, $_POST['updatefacilitytypeicon']);
     $updatedFacilityTypeIconSize = mysqli_real_escape_string($connect, $_POST['updatefacilitytypeiconsize']);
 
+    $response = ['success' => false];
+
     // Update query
-    $updateQuery = "UPDATE facilitytypetb SET FacilityType = '$updatedFacilityType', FacilityTypeIcon = '$updatedFacilityTypeIcon', IconSize = '$updatedFacilityTypeIconSize' WHERE FacilityTypeID = '$facilityTypeId'";
+    $updateQuery = "UPDATE facilitytypetb SET 
+                    FacilityType = '$updatedFacilityType', 
+                    FacilityTypeIcon = '$updatedFacilityTypeIcon', 
+                    IconSize = '$updatedFacilityTypeIconSize' 
+                    WHERE FacilityTypeID = '$facilityTypeId'";
 
     if ($connect->query($updateQuery)) {
-        $updateFacilityTypeSuccess = true;
+        $response['success'] = true;
+        $response['message'] = 'The facility type has been successfully updated.';
+        $response['generatedId'] = $facilityTypeId;
+        $response['updatedFacilityType'] = $updatedFacilityType;
+        $response['updatedFacilityTypeIcon'] = $updatedFacilityTypeIcon;
+        $response['updatedFacilityTypeIconSize'] = $updatedFacilityTypeIconSize;
     } else {
-        $alertMessage = "Failed to update facility type. Please try again.";
+        $response['message'] = "Failed to update facility type. Please try again.";
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Delete Facility Type
@@ -89,11 +106,16 @@ if (isset($_POST['deletefacilitytype'])) {
     $deleteQuery = "DELETE FROM facilitytypetb WHERE FacilityTypeID = '$facilityTypeId'";
 
     if ($connect->query($deleteQuery)) {
-        echo json_encode(['success' => true]);
+        $response['success'] = true;
+        $response['generatedId'] = $facilityTypeId;
     } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to delete facility type. Please try again.']);
+        $response['success'] = false;
+        $response['message'] = 'Failed to delete facility type. Please try again.';
     }
-    exit;
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 ?>
 

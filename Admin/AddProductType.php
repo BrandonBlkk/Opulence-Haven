@@ -8,34 +8,40 @@ if (!$connect) {
 }
 
 $alertMessage = '';
-$addProductTypeSuccess = false;
 $updateProductTypeSuccess = false;
 $deleteProductTypeSuccess = false;
 $productTypeID = AutoID('producttypetb', 'ProductTypeID', 'PT-', 6);
 
 // Add Product Type
+$response = ['success' => false, 'message' => '', 'generatedId' => $productTypeID];
+
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproducttype'])) {
     $producttype = mysqli_real_escape_string($connect, $_POST['producttype']);
     $description = mysqli_real_escape_string($connect, $_POST['description']);
 
     // Check if the product type already exists using prepared statement
     $checkQuery = "SELECT ProductType FROM producttypetb WHERE ProductType = '$producttype'";
-
-    $checkQuery = $connect->query($checkQuery);
-    $count = $checkQuery->num_rows;
+    $count = $connect->query($checkQuery)->num_rows;
 
     if ($count > 0) {
-        $alertMessage = 'Product type you added is already existed.';
+        $response['message'] = 'Product type you added is already existed.';
     } else {
         $addProductTypeQuery = "INSERT INTO producttypetb (ProductTypeID, ProductType, Description)
         VALUES ('$productTypeID', '$producttype', '$description')";
 
         if ($connect->query($addProductTypeQuery)) {
-            $addProductTypeSuccess = true;
+            $response['success'] = true;
+            $response['message'] = 'A new product type has been successfully added.';
+            // Keep the generated ID in the response
+            $response['generatedId'] = $productTypeID;
         } else {
-            $alertMessage = "Failed to add product type. Please try again.";
+            $response['message'] = "Failed to add product type. Please try again.";
         }
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Get Product Type Details
@@ -43,21 +49,25 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     $id = mysqli_real_escape_string($connect, $_GET['id']);
     $action = $_GET['action'];
 
-    // Build query based on action
     $query = match ($action) {
         'getProductTypeDetails' => "SELECT * FROM producttypetb WHERE ProductTypeID = '$id'",
         default => null
     };
+
     if ($query) {
         $result = $connect->query($query);
         $producttype = $result->fetch_assoc();
 
         if ($producttype) {
-            echo json_encode(['success' => true, 'producttype' => $producttype]);
+            $response['success'] = true;
+            $response['producttype'] = $producttype;
         } else {
-            echo json_encode(['success' => false]);
+            $response['success'] = true;
         }
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
     exit;
 }
 
@@ -67,14 +77,23 @@ if (isset($_POST['editproducttype'])) {
     $updatedProductType = mysqli_real_escape_string($connect, $_POST['updateproducttype']);
     $updatedDescription = mysqli_real_escape_string($connect, $_POST['updatedescription']);
 
-    // Update query
+    $response = ['success' => false];
+
     $updateQuery = "UPDATE producttypetb SET ProductType = '$updatedProductType', Description = '$updatedDescription' WHERE ProductTypeID = '$productTypeId'";
 
     if ($connect->query($updateQuery)) {
-        $updateProductTypeSuccess = true;
+        $response['success'] = true;
+        $response['message'] = 'The product type has been successfully updated.';
+        $response['generatedId'] = $productTypeId;
+        $response['updatedProductType'] = $updatedProductType;
+        $response['updatedDescription'] = $updatedDescription;
     } else {
-        $alertMessage = "Failed to update product type. Please try again.";
+        $response['message'] = "Failed to update product type. Please try again.";
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Delete Product Type
@@ -85,10 +104,16 @@ if (isset($_POST['deleteproducttype'])) {
     $deleteQuery = "DELETE FROM producttypetb WHERE ProductTypeID = '$productTypeId'";
 
     if ($connect->query($deleteQuery)) {
-        $deleteProductTypeSuccess = true;
+        $response['success'] = true;
+        $response['generatedId'] = $productTypeId;
     } else {
-        $alertMessage = "Failed to delete product type. Please try again.";
+        $response['success'] = false;
+        $response['message'] = 'Failed to delete product type. Please try again.';
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 ?>
 
