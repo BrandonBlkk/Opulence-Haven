@@ -23,8 +23,6 @@
 <input type="hidden" id="addRoleSuccess" value="<?php echo $addRoleSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="addRoomTypeSuccess" value="<?php echo $addRoomTypeSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="updateRoomTypeSuccess" value="<?php echo $updateRoomTypeSuccess ? 'true' : 'false'; ?>">
-<input type="hidden" id="deleteRoomTypeSuccess" value="<?php echo $deleteRoomTypeSuccess ? 'true' : 'false'; ?>">
-<input type="hidden" id="updateFacilityTypeSuccess" value="<?php echo $updateFacilityTypeSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="addFacilitySuccess" value="<?php echo $addFacilitySuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="updateFacilitySuccess" value="<?php echo $updateFacilitySuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="deleteFacilitySuccess" value="<?php echo $deleteFacilitySuccess ? 'true' : 'false'; ?>">
@@ -41,10 +39,10 @@
 <input type="hidden" id="resetPasswordSuccess" value="<?php echo $resetPasswordSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="addRoomSuccess" value="<?php echo $addRoomSuccess ? 'true' : 'false'; ?>">
 
-<div id="alertBox" class="fixed -bottom-20 right-3 items-center rounded-md shadow-lg z-40 p-3 transition-all duration-150 ease-out transform <?php echo $alertMessage ? 'bg-red-400' : 'bg-green-400'; ?>">
+<div id="alertBox" class="fixed -bottom-20 right-3 items-center rounded-md shadow-lg z-40 p-3 transition-all duration-150 ease-out transform opacity-0">
     <div class="flex items-center justify-center gap-2 select-none">
         <div>
-            <i class="text-2xl text-white <?php echo $alertMessage ? 'ri-error-warning-line' : 'ri-checkbox-circle-fill'; ?>"></i>
+            <i id="alertIcon" class="text-2xl text-white"></i>
         </div>
         <p class="font-semibold text-white" id="alertText"></p>
     </div>
