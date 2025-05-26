@@ -246,79 +246,10 @@ $roomCountQuery = "SELECT COUNT(*) as count FROM roomtb";
 $roomCountResult = $connect->query($roomCountQuery);
 $allRoomCount = $roomCountResult->fetch_assoc()['count'];
 
-// Initialize search variables for facility type
-$searchFacilityTypeQuery = isset($_GET['facilitytype_search']) ? mysqli_real_escape_string($connect, $_GET['facilitytype_search']) : '';
-
-// Construct the facility type query based on search
-if (!empty($searchFacilityTypeQuery)) {
-    $facilityTypeSelect = "SELECT * FROM facilitytypetb WHERE FacilityType LIKE '%$searchFacilityTypeQuery%' LIMIT $rowsPerPage OFFSET $facilityTypeOffset";
-} else {
-    $facilityTypeSelect = "SELECT * FROM facilitytypetb LIMIT $rowsPerPage OFFSET $facilityTypeOffset";
-}
-
-$facilityTypeSelectQuery = $connect->query($facilityTypeSelect);
-$facilityTypes = [];
-
-if (mysqli_num_rows($facilityTypeSelectQuery) > 0) {
-    while ($row = $facilityTypeSelectQuery->fetch_assoc()) {
-        $facilityTypes[] = $row;
-    }
-}
-
-// Construct the facilitytype count query based on search
-if (!empty($searchFacilityTypeQuery)) {
-    $facilityTypeQuery = "SELECT COUNT(*) as count FROM facilitytypetb WHERE FacilityType LIKE '%$searchFacilityTypeQuery%'";
-} else {
-    $facilityTypeQuery = "SELECT COUNT(*) as count FROM facilitytypetb";
-}
-
-// Execute the count query
-$facilityTypeResult = $connect->query($facilityTypeQuery);
-$facilityTypeCount = $facilityTypeResult->fetch_assoc()['count'];
-
 // Fetch facility type count
 $facilityTypeCountQuery = "SELECT COUNT(*) as count FROM facilitytypetb";
 $facilityTypeCountResult = $connect->query($facilityTypeCountQuery);
 $allFacilityTypeCount = $facilityTypeCountResult->fetch_assoc()['count'];
-
-// Initialize search and filter variables for facility
-$searchFacilityQuery = isset($_GET['facility_search']) ? mysqli_real_escape_string($connect, $_GET['facility_search']) : '';
-$filterFacilityTypeID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
-
-// Construct the facility query based on search
-if ($filterFacilityTypeID !== 'random' && !empty($searchFacilityQuery)) {
-    $facilitySelect = "SELECT * FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID' AND (Facility LIKE '%$searchFacilityQuery%') LIMIT $rowsPerPage OFFSET $facilityOffset";
-} elseif ($filterFacilityTypeID !== 'random') {
-    $facilitySelect = "SELECT * FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID' LIMIT $rowsPerPage OFFSET $facilityOffset";
-} elseif (!empty($searchFacilityQuery)) {
-    $facilitySelect = "SELECT * FROM facilitytb WHERE Facility LIKE '%$searchFacilityQuery%' LIMIT $rowsPerPage OFFSET $facilityOffset";
-} else {
-    $facilitySelect = "SELECT * FROM facilitytb LIMIT $rowsPerPage OFFSET $facilityOffset";
-}
-
-$facilitySelectQuery = $connect->query($facilitySelect);
-$facilities = [];
-
-if (mysqli_num_rows($facilitySelectQuery) > 0) {
-    while ($row = $facilitySelectQuery->fetch_assoc()) {
-        $facilities[] = $row;
-    }
-}
-
-// Construct the facility count query based on search
-if ($filterFacilityTypeID !== 'random' && !empty($searchFacilityQuery)) {
-    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID' AND (Facility LIKE '%$searchFacilityQuery%')";
-} elseif ($filterFacilityTypeID !== 'random') {
-    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID'";
-} elseif (!empty($searchFacilityQuery)) {
-    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb WHERE Facility LIKE '%$searchFacilityQuery%'";
-} else {
-    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb";
-}
-
-// Execute the count query
-$facilityResult = $connect->query($facilityQuery);
-$facilityCount = $facilityResult->fetch_assoc()['count'];
 
 // Fetch facility count
 $facilityCountQuery = "SELECT COUNT(*) as count FROM facilitytb";

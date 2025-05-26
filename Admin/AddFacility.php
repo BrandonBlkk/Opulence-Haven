@@ -2,16 +2,15 @@
 session_start();
 include('../config/dbConnection.php');
 include('../includes/AutoIDFunc.php');
+include('../includes/AdminPagination.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
 $alertMessage = '';
-$addFacilitySuccess = false;
-$updateFacilitySuccess = false;
-$deleteFacilitySuccess = false;
 $facilityID = AutoID('facilitytb', 'FacilityID', 'F-', 6);
+$response = ['success' => false, 'message' => '', 'generatedId' => $facilityID];
 
 // Add Facility
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addfacility'])) {
@@ -23,21 +22,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addfacility'])) {
     $facilityType = mysqli_real_escape_string($connect, $_POST['facilityType']);
 
     // Check if the product  already exists using prepared statement
-    $checkQuery = "SELECT Facility FROM facilitytb WHERE Facility = '$facility'";
+    $checkQuery = "SELECT Facility FROM facilitytb WHERE Facility = '$facility' AND FacilityTypeID = '$facilityType'";
     $count = $connect->query($checkQuery)->num_rows;
 
     if ($count > 0) {
-        $alertMessage = 'Facility you added is already existed.';
+        $response['message'] = 'Facility you added is already existed.';
     } else {
         $addFacilityQuery = "INSERT INTO facilitytb (FacilityID, Facility, FacilityIcon, IconSize, AdditionalCharge, Popular, FacilityTypeID)
         VALUES ('$facilityID', '$facility', '$facilityicon', '$facilityiconsize', '$additionalcharge', '$popular', '$facilityType')";
 
         if ($connect->query($addFacilityQuery)) {
-            $addFacilitySuccess = true;
+            $response['success'] = true;
+            $response['message'] = 'A new facility type has been successfully added.';
+            // Keep the generated ID in the response
+            $response['generatedId'] = $facilityID;
         } else {
-            $alertMessage = "Failed to add facility. Please try again.";
+            $response['message'] = "Failed to add facility. Please try again.";
         }
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Get Facility  Details
@@ -55,12 +61,16 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         $facility = $result->fetch_assoc();
 
         if ($facility) {
-            echo json_encode(['success' => true, 'facility' => $facility]);
+            $response['success'] = true;
+            $response['facility'] = $facility;
         } else {
-            echo json_encode(['success' => false]);
+            $response['success'] = true;
         }
     }
-    exit;
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Update Facility 
@@ -77,10 +87,22 @@ if (isset($_POST['editfacility'])) {
     $updateQuery = "UPDATE facilitytb SET Facility = '$updateFacility', FacilityIcon = '$updateFacilityIcon', IconSize = '$updateFacilityIconSize', AdditionalCharge = '$updateAdditionalcharge', Popular = '$updatePopular', FacilityTypeID = '$updateFacilityType' WHERE FacilityID = '$facilityId'";
 
     if ($connect->query($updateQuery)) {
-        $updateFacilitySuccess = true;
+        $response['success'] = true;
+        $response['message'] = 'The facility has been successfully updated.';
+        $response['generatedId'] = $facilityId;
+        $response['updateFacility'] = $updateFacility;
+        $response['updateFacilityIcon'] = $updateFacilityIcon;
+        $response['updateFacilityIconSize'] = $updateFacilityIconSize;
+        $response['updateAdditionalcharge'] = $updateAdditionalcharge;
+        $response['updatePopular'] = $updatePopular;
+        $response['updateFacilityType'] = $updateFacilityType;
     } else {
-        $alertMessage = "Failed to update facility. Please try again.";
+        $response['message'] = "Failed to update facility. Please try again.";
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Delete Facility 
@@ -91,11 +113,61 @@ if (isset($_POST['deletefacility'])) {
     $deleteQuery = "DELETE FROM facilitytb WHERE FacilityID = '$facilityId'";
 
     if ($connect->query($deleteQuery)) {
-        $deleteFacilitySuccess = true;
+        $response['success'] = true;
+        $response['generatedId'] = $facilityId;
     } else {
-        $alertMessage = "Failed to delete facility. Please try again.";
+        $response['success'] = false;
+        $response['message'] = 'Failed to delete facility. Please try again.';
+    }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
+}
+
+// Initialize search and filter variables for facility
+$searchFacilityQuery = isset($_GET['facility_search']) ? mysqli_real_escape_string($connect, $_GET['facility_search']) : '';
+$filterFacilityTypeID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
+
+// Construct the facility query based on search
+if ($filterFacilityTypeID !== 'random' && !empty($searchFacilityQuery)) {
+    $facilitySelect = "SELECT * FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID' AND (Facility LIKE '%$searchFacilityQuery%') LIMIT $rowsPerPage OFFSET $facilityOffset";
+} elseif ($filterFacilityTypeID !== 'random') {
+    $facilitySelect = "SELECT * FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID' LIMIT $rowsPerPage OFFSET $facilityOffset";
+} elseif (!empty($searchFacilityQuery)) {
+    $facilitySelect = "SELECT * FROM facilitytb WHERE Facility LIKE '%$searchFacilityQuery%' LIMIT $rowsPerPage OFFSET $facilityOffset";
+} else {
+    $facilitySelect = "SELECT * FROM facilitytb LIMIT $rowsPerPage OFFSET $facilityOffset";
+}
+
+$facilitySelectQuery = $connect->query($facilitySelect);
+$facilities = [];
+
+if (mysqli_num_rows($facilitySelectQuery) > 0) {
+    while ($row = $facilitySelectQuery->fetch_assoc()) {
+        $facilities[] = $row;
     }
 }
+
+// Construct the facility count query based on search
+if ($filterFacilityTypeID !== 'random' && !empty($searchFacilityQuery)) {
+    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID' AND (Facility LIKE '%$searchFacilityQuery%')";
+} elseif ($filterFacilityTypeID !== 'random') {
+    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID'";
+} elseif (!empty($searchFacilityQuery)) {
+    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb WHERE Facility LIKE '%$searchFacilityQuery%'";
+} else {
+    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb";
+}
+
+// Execute the count query
+$facilityResult = $connect->query($facilityQuery);
+$facilityCount = $facilityResult->fetch_assoc()['count'];
+
+// Fetch facility count
+$facilityCountQuery = "SELECT COUNT(*) as count FROM facilitytb";
+$facilityCountResult = $connect->query($facilityCountQuery);
+$allFacilityCount = $facilityCountResult->fetch_assoc()['count'];
 ?>
 
 <!DOCTYPE html>

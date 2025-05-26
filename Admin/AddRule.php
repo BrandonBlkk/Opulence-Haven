@@ -8,10 +8,8 @@ if (!$connect) {
 }
 
 $alertMessage = '';
-$addRuleSuccess = false;
-$updateRuleSuccess = false;
-$deleteRuleSuccess = false;
 $ruleID = AutoID('ruletb', 'RuleID', 'RL-', 6);
+$response = ['success' => false, 'message' => '', 'generatedId' => $ruleID];
 
 // Add Rule
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addrule'])) {
@@ -27,17 +25,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addrule'])) {
     $count = mysqli_num_rows($checkQuery);
 
     if ($count > 0) {
-        $alertMessage = 'Rule you added is already existed.';
+        $response['message'] = 'Rule you added is already existed.';
     } else {
         $RuleQuery = "INSERT INTO ruletb (RuleID, RuleTitle, Rule, RuleIcon, IconSize)
         VALUES ('$ruleID', '$ruletitle', '$rule', '$ruleicon', '$ruleiconsize')";
 
         if (mysqli_query($connect, $RuleQuery)) {
-            $addRuleSuccess = true;
+            $response['success'] = true;
+            $response['message'] = 'A new Rule has been successfully added.';
+            // Keep the generated ID in the response
+            $response['generatedId'] = $ruleID;
         } else {
-            $alertMessage = "Failed to add rule. Please try again.";
+            $response['message'] = "Failed to add rule. Please try again.";
         }
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit;
 }
 
 // Get Rule Details
@@ -51,15 +56,19 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         default => null
     };
     if ($query) {
-        $result = mysqli_query($connect, $query);
-        $rule = mysqli_fetch_assoc($result);
+        $result = $connect->query($query);
+        $rule = $result->fetch_assoc();
 
         if ($rule) {
-            echo json_encode(['success' => true, 'rule' => $rule]);
+            $response['success'] = true;
+            $response['rule'] = $rule;
         } else {
-            echo json_encode(['success' => false]);
+            $response['success'] = true;
         }
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
     exit;
 }
 
@@ -75,11 +84,21 @@ if (isset($_POST['editrule'])) {
     $updateQuery = "UPDATE ruletb SET RuleTitle = '$updateRuleTitle', Rule = '$updateRule', RuleIcon = '$updateRuleIcon', IconSize = '$updateRuleIconSize'
     WHERE RuleID = '$ruleId'";
 
-    if (mysqli_query($connect, $updateQuery)) {
-        $updateRuleSuccess = true;
+    if ($connect->query($updateQuery)) {
+        $response['success'] = true;
+        $response['message'] = 'The rule has been successfully updated.';
+        $response['generatedId'] = $ruleId;
+        $response['updateRuleTitle'] = $updateRuleTitle;
+        $response['updateRule'] = $updateRule;
+        $response['updateRuleIcon'] = $updateRuleIcon;
+        $response['updateRuleIconSize'] = $updateRuleIconSize;
     } else {
-        $alertMessage = "Failed to update rule. Please try again.";
+        $response['message'] = "Failed to update rule. Please try again.";
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Delete Rule
@@ -89,11 +108,17 @@ if (isset($_POST['deleterule'])) {
     // Build query based on action
     $deleteQuery = "DELETE FROM ruletb WHERE RuleID = '$ruleId'";
 
-    if (mysqli_query($connect, $deleteQuery)) {
-        $deleteRuleSuccess = true;
+    if ($connect->query($deleteQuery)) {
+        $response['success'] = true;
+        $response['generatedId'] = $ruleId;
     } else {
-        $alertMessage = "Failed to delete rule. Please try again.";
+        $response['success'] = false;
+        $response['message'] = 'Failed to delete rule. Please try again.';
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit;
 }
 ?>
 
