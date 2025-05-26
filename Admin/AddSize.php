@@ -8,9 +8,7 @@ if (!$connect) {
 }
 
 $alertMessage = '';
-$addProductSizeSuccess = false;
-$updateProductSizeSuccess = false;
-$deleteProductSizeSuccess = false;
+$response = ['success' => false, 'message' => '', 'generatedId' => ''];
 
 // Add Product Size
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproductsize'])) {
@@ -18,14 +16,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproductsize'])) {
     $price = mysqli_real_escape_string($connect, $_POST['price']);
     $product = mysqli_real_escape_string($connect, $_POST['product']);
 
-    $addProductSizeQuery = "INSERT INTO sizetb (Size, PriceModifier, ProductID)
-    VALUES ('$size', '$price', '$product')";
+    // Check if the product  already exists using prepared statement
+    $checkQuery = "SELECT Size FROM sizetb WHERE Size = '$size' AND ProductID = '$product'";
+    $count = $connect->query($checkQuery)->num_rows;
 
-    if ($connect->query($addProductSizeQuery)) {
-        $addProductSizeSuccess = true;
+    if ($count > 0) {
+        $response['message'] = 'Size you added is already existed.';
     } else {
-        $alertMessage = "Failed to add product size. Please try again.";
+        $addProductSizeQuery = "INSERT INTO sizetb (Size, PriceModifier, ProductID)
+        VALUES ('$size', '$price', '$product')";
+
+        if ($connect->query($addProductSizeQuery)) {
+
+            $sizeID = $connect->insert_id;
+
+            $response['success'] = true;
+            $response['message'] = 'A new product size has been successfully added.';
+            // Keep the generated ID in the response
+            $response['generatedId'] = $sizeID;
+        } else {
+            $response['message'] = "Failed to add product size. Please try again.";
+        }
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Get Product Size Details
@@ -43,12 +59,37 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         $productsize = $result->fetch_assoc();
 
         if ($productsize) {
-            echo json_encode(['success' => true, 'productsize' => $productsize]);
+            $response['success'] = true;
+            $response['productsize'] = $productsize;
         } else {
-            echo json_encode(['success' => false]);
+            $response['success'] = true;
         }
     }
-    exit;
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
+}
+
+// Get Product Name
+if (isset($_GET['action']) && $_GET['action'] === 'getProductName' && isset($_GET['id'])) {
+    $productId = mysqli_real_escape_string($connect, $_GET['id']);
+    $query = "SELECT Title FROM producttb WHERE ProductID = '$productId'";
+    $result = $connect->query($query);
+
+    if ($result && $result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        $response = [
+            'success' => true,
+            'productName' => $row['Title']
+        ];
+    } else {
+        $response = ['success' => false];
+    }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Update Product Size
@@ -62,10 +103,19 @@ if (isset($_POST['editproductsize'])) {
     $updateQuery = "UPDATE sizetb SET Size = '$updateSize', PriceModifier = '$updatePrice', ProductID = '$updateProduct' WHERE SizeID = '$productsizeid'";
 
     if ($connect->query($updateQuery)) {
-        $updateProductSizeSuccess = true;
+        $response['success'] = true;
+        $response['message'] = 'The product size has been successfully updated.';
+        $response['generatedId'] = $productsizeid;
+        $response['updateSize'] = $updateSize;
+        $response['updatePrice'] = $updatePrice;
+        $response['updateProduct'] = $updateProduct;
     } else {
-        $alertMessage = "Failed to update product size. Please try again.";
+        $response['message'] = "Failed to update product size. Please try again.";
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Delete Product Size
@@ -76,10 +126,16 @@ if (isset($_POST['deleteproductsize'])) {
     $deleteQuery = "DELETE FROM sizetb WHERE SizeID = '$productsizeid'";
 
     if ($connect->query($deleteQuery)) {
-        $deleteProductSizeSuccess = true;
+        $response['success'] = true;
+        $response['generatedId'] = $productsizeid;
     } else {
-        $alertMessage = "Failed to delete product size. Please try again.";
+        $response['success'] = false;
+        $response['message'] = 'Failed to delete product size. Please try again.';
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 ?>
 

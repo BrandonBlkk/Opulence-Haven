@@ -2,6 +2,7 @@
 session_start();
 include('../config/dbConnection.php');
 include('../includes/AutoIDFunc.php');
+include('../includes/AdminPagination.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -117,6 +118,41 @@ if (isset($_POST['deletefacilitytype'])) {
     echo json_encode($response);
     exit();
 }
+
+// Initialize search variables for facility type
+$searchFacilityTypeQuery = isset($_GET['facilitytype_search']) ? mysqli_real_escape_string($connect, $_GET['facilitytype_search']) : '';
+
+// Construct the facility type query based on search
+if (!empty($searchFacilityTypeQuery)) {
+    $facilityTypeSelect = "SELECT * FROM facilitytypetb WHERE FacilityType LIKE '%$searchFacilityTypeQuery%' LIMIT $rowsPerPage OFFSET $facilityTypeOffset";
+} else {
+    $facilityTypeSelect = "SELECT * FROM facilitytypetb LIMIT $rowsPerPage OFFSET $facilityTypeOffset";
+}
+
+$facilityTypeSelectQuery = $connect->query($facilityTypeSelect);
+$facilityTypes = [];
+
+if (mysqli_num_rows($facilityTypeSelectQuery) > 0) {
+    while ($row = $facilityTypeSelectQuery->fetch_assoc()) {
+        $facilityTypes[] = $row;
+    }
+}
+
+// Construct the facilitytype count query based on search
+if (!empty($searchFacilityTypeQuery)) {
+    $facilityTypeQuery = "SELECT COUNT(*) as count FROM facilitytypetb WHERE FacilityType LIKE '%$searchFacilityTypeQuery%'";
+} else {
+    $facilityTypeQuery = "SELECT COUNT(*) as count FROM facilitytypetb";
+}
+
+// Execute the count query
+$facilityTypeResult = $connect->query($facilityTypeQuery);
+$facilityTypeCount = $facilityTypeResult->fetch_assoc()['count'];
+
+// Fetch facility type count
+$facilityTypeCountQuery = "SELECT COUNT(*) as count FROM facilitytypetb";
+$facilityTypeCountResult = $connect->query($facilityTypeCountQuery);
+$allFacilityTypeCount = $facilityTypeCountResult->fetch_assoc()['count'];
 ?>
 
 <!DOCTYPE html>

@@ -12,6 +12,7 @@ $addProductSuccess = false;
 $updateProductSuccess = false;
 $deleteProductSuccess = false;
 $productID = AutoID('producttb', 'ProductID', 'PD-', 6);
+$response = ['success' => false, 'message' => '', 'generatedId' => $productID];
 
 // Add Product
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproduct'])) {
@@ -32,17 +33,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproduct'])) {
     $count = $connect->query($checkQuery)->num_rows;
 
     if ($count > 0) {
-        $alertMessage = 'Product you added is already existed.';
+        $response['message'] = 'Product you added is already existed.';
     } else {
         $addProductQuery = "INSERT INTO producttb (ProductID, Title, Price, DiscountPrice, Description, Specification, Information, DeliveryInfo, Brand, SellingFast, Stock, ProductTypeID)
         VALUES ('$productID', '$productTitle', '$price', '$discountPrice', '$description', '$specification', '$information', '$delivery', '$brand', '$sellingFast', '$stock', '$productType')";
 
         if ($connect->query($addProductQuery)) {
-            $addProductSuccess = true;
+            $response['success'] = true;
+            $response['message'] = 'A new product has been successfully added.';
+            // Keep the generated ID in the response
+            $response['generatedId'] = $productID;
         } else {
-            $alertMessage = "Failed to add product. Please try again.";
+            $response['message'] = "Failed to add product. Please try again.";
         }
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Get Product Details
@@ -60,12 +68,16 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         $product = $result->fetch_assoc();
 
         if ($product) {
-            echo json_encode(['success' => true, 'product' => $product]);
+            $response['success'] = true;
+            $response['product'] = $product;
         } else {
-            echo json_encode(['success' => false]);
+            $response['success'] = true;
         }
     }
-    exit;
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Update Product
@@ -87,10 +99,26 @@ if (isset($_POST['editproduct'])) {
     Price = '$price', DiscountPrice = '$discountPrice', SellingFast = '$sellingFast', ProductTypeID = '$productType' WHERE ProductID = '$productId'";
 
     if ($connect->query($updateQuery)) {
-        $updateProductSuccess = true;
+        $response['success'] = true;
+        $response['message'] = 'The product has been successfully updated.';
+        $response['generatedId'] = $productId;
+        $response['productTitle'] = $productTitle;
+        $response['brand'] = $brand;
+        $response['description'] = $description;
+        $response['specification'] = $specification;
+        $response['information'] = $information;
+        $response['delivery'] = $delivery;
+        $response['price'] = $price;
+        $response['discountPrice'] = $discountPrice;
+        $response['sellingFast'] = $sellingFast;
+        $response['productType'] = $productType;
     } else {
-        $alertMessage = "Failed to update product. Please try again.";
+        $response['message'] = "Failed to update product. Please try again.";
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Delete Product
@@ -101,10 +129,16 @@ if (isset($_POST['deleteproduct'])) {
     $deleteQuery = "DELETE FROM producttb WHERE ProductID = '$productId'";
 
     if ($connect->query($deleteQuery)) {
-        $deleteProductSuccess = true;
+        $response['success'] = true;
+        $response['generatedId'] = $productId;
     } else {
-        $alertMessage = "Failed to delete product. Please try again.";
+        $response['success'] = false;
+        $response['message'] = 'Failed to delete product. Please try again.';
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 ?>
 

@@ -8,8 +8,6 @@ if (!$connect) {
 }
 
 $alertMessage = '';
-$updateProductTypeSuccess = false;
-$deleteProductTypeSuccess = false;
 $productTypeID = AutoID('producttypetb', 'ProductTypeID', 'PT-', 6);
 
 // Add Product Type

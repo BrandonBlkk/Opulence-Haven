@@ -8,10 +8,8 @@ if (!$connect) {
 }
 
 $alertMessage = '';
-$addSupplierSuccess = false;
-$updateSupplierSuccess = false;
-$deleteSupplierSuccess = false;
 $supplierID = AutoID('suppliertb', 'SupplierID', 'SP-', 6);
+$response = ['success' => false, 'message' => '', 'generatedId' => $supplierID];
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addsupplier'])) {
     $suppliername = mysqli_real_escape_string($connect, $_POST['suppliername']);
@@ -30,17 +28,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addsupplier'])) {
     $count = $connect->query($checkQuery)->num_rows;
 
     if ($count > 0) {
-        $alertMessage = 'Supplier you added is already existed.';
+        $response['message'] = 'Supplier you added is already existed.';
     } else {
         $addSupplierQuery = "INSERT INTO suppliertb (SupplierID, SupplierName, SupplierEmail, SupplierContact, SupplierCompany, Address, City, State, PostalCode, Country, ProductTypeID)
         VALUES ('$supplierID', '$suppliername', '$email', '$contactNumber', '$companyName', '$address', '$city', '$state', '$postalCode', '$country', '$productType')";
 
         if ($connect->query($addSupplierQuery)) {
-            $addSupplierSuccess = true;
+            $response['success'] = true;
+            $response['message'] = 'A new supplier has been successfully added.';
+            // Keep the generated ID in the response
+            $response['generatedId'] = $supplierID;
         } else {
-            $alertMessage = "Failed to add supplier. Please try again.";
+            $response['message'] = "Failed to add supplier. Please try again.";
         }
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Get Supplier Details
@@ -54,15 +59,19 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         default => null
     };
     if ($query) {
-        $result = $connect->query($query)->fetch_assoc();
+        $supplier = $connect->query($query)->fetch_assoc();
 
-        if ($result) {
-            echo json_encode(['success' => true, 'supplier' => $result]);
+        if ($supplier) {
+            $response['success'] = true;
+            $response['supplier'] = $supplier;
         } else {
-            echo json_encode(['success' => false]);
+            $response['success'] = true;
         }
     }
-    exit;
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Update Spplier
@@ -86,10 +95,26 @@ if (isset($_POST['editsupplier'])) {
     WHERE SupplierID = '$supplierId'";
 
     if (mysqli_query($connect, $updateQuery)) {
-        $updateSupplierSuccess = true;
+        $response['success'] = true;
+        $response['message'] = 'The supplier has been successfully updated.';
+        $response['generatedId'] = $supplierId;
+        $response['supplierName'] = $supplierName;
+        $response['supplierEmail'] = $supplierEmail;
+        $response['supplierContact'] = $supplierContact;
+        $response['supplierCompany'] = $supplierCompany;
+        $response['supplierAddress'] = $supplierAddress;
+        $response['supplierCity'] = $supplierCity;
+        $response['supplierState'] = $supplierState;
+        $response['supplierPostalCode'] = $supplierPostalCode;
+        $response['supplierCountry'] = $supplierCountry;
+        $response['supplierProductType'] = $supplierProductType;
     } else {
-        $alertMessage = "Failed to update supplier. Please try again.";
+        $response['message'] = "Failed to update supplier. Please try again.";
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Delete Supplier
@@ -100,10 +125,16 @@ if (isset($_POST['deletesupplier'])) {
     $deleteQuery = "DELETE FROM suppliertb WHERE SupplierID = '$supplierId'";
 
     if (mysqli_query($connect, $deleteQuery)) {
-        $deleteSupplierSuccess = true;
+        $response['success'] = true;
+        $response['generatedId'] = $supplierId;
     } else {
-        $alertMessage = "Failed to delete supplier. Please try again.";
+        $response['success'] = false;
+        $response['message'] = 'Failed to delete supplier. Please try again.';
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 ?>
 
