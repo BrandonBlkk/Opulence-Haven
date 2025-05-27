@@ -88,7 +88,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         default => null
     };
     if ($query) {
-        $result = $connect->query($query)?->fetch_assoc();
+        $result = $connect->query($query)->fetch_assoc();
 
         if ($result) {
             echo json_encode(['success' => true, 'roomtype' => $result]);
@@ -224,6 +224,120 @@ if (isset($_POST['deleteroomtype'])) {
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Add these to your head section -->
+                <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+
+                <!-- After your table, add this modal -->
+                <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden items-center justify-center p-4">
+                    <div class="relative w-full max-w-4xl">
+                        <!-- Close button -->
+                        <button id="closeModal" class="absolute top-0 right-0 m-4 text-white text-3xl z-50"></button>
+
+                        <!-- Swiper container -->
+                        <div class="swiper-container">
+                            <div class="swiper-wrapper">
+                                <!-- Slides will be added dynamically via JavaScript -->
+                            </div>
+                            <!-- Add navigation buttons -->
+                            <div class="swiper-button-next text-white"></div>
+                            <div class="swiper-button-prev text-white"></div>
+                            <!-- Add pagination -->
+                            <div class="swiper-pagination"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add this script at the end of your body -->
+                <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Initialize modal elements
+                        const modal = document.getElementById('imageModal');
+                        const closeBtn = document.getElementById('closeModal');
+                        const swiperWrapper = document.querySelector('.swiper-wrapper');
+
+                        // Get all table images
+                        const tableImages = document.querySelectorAll('tbody img[alt="Product Image"]');
+
+                        // Create a Swiper instance (will be initialized properly when modal opens)
+                        let swiper;
+
+                        // Add click event to each image
+                        tableImages.forEach(img => {
+                            img.style.cursor = 'pointer'; // Make it obvious it's clickable
+                            img.addEventListener('click', function() {
+                                // Get all images for this room type (assuming you might have multiple)
+                                const roomTypeId = this.closest('tr').querySelector('.details-btn').getAttribute('data-roomtype-id');
+
+                                // In a real app, you might fetch additional images from the server
+                                // For this example, we'll just use the cover image
+                                const images = [this.src];
+
+                                // Clear previous slides
+                                swiperWrapper.innerHTML = '';
+
+                                // Add new slides
+                                images.forEach(imageUrl => {
+                                    const slide = document.createElement('div');
+                                    slide.className = 'swiper-slide';
+                                    slide.innerHTML = `<img src="${imageUrl}" class="w-full h-full object-contain" alt="Room Image">`;
+                                    swiperWrapper.appendChild(slide);
+                                });
+
+                                // Initialize or update Swiper
+                                if (swiper) {
+                                    swiper.update();
+                                } else {
+                                    swiper = new Swiper('.swiper-container', {
+                                        loop: true,
+                                        pagination: {
+                                            el: '.swiper-pagination',
+                                            clickable: true,
+                                        },
+                                        navigation: {
+                                            nextEl: '.swiper-button-next',
+                                            prevEl: '.swiper-button-prev',
+                                        },
+                                    });
+                                }
+
+                                // Show modal
+                                modal.classList.remove('hidden');
+                                document.body.style.overflow = 'hidden';
+                            });
+                        });
+
+                        // Close modal
+                        closeBtn.addEventListener('click', function() {
+                            modal.classList.add('hidden');
+                            document.body.style.overflow = 'auto';
+                        });
+
+                        // Close when clicking outside content
+                        modal.addEventListener('click', function(e) {
+                            if (e.target === modal) {
+                                modal.classList.add('hidden');
+                                document.body.style.overflow = 'auto';
+                            }
+                        });
+                    });
+                </script>
+
+                <style>
+                    /* Custom styles for the swiper in modal */
+                    .swiper-container {
+                        width: 100%;
+                        height: 80vh;
+                    }
+
+                    .swiper-slide img {
+                        max-height: 100%;
+                        max-width: 100%;
+                        margin: 0 auto;
+                        display: block;
+                    }
+                </style>
 
                 <!-- Pagination Controls -->
                 <div class="flex justify-center items-center mt-1 <?= (!empty($roomTypes) ? 'flex' : 'hidden') ?>">

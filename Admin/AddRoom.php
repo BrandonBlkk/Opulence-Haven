@@ -8,10 +8,8 @@ if (!$connect) {
 }
 
 $alertMessage = '';
-$addRoomSuccess = false;
-$updateRoomSuccess = false;
-$deleteRoomSuccess = false;
 $roomID = AutoID('roomtb', 'RoomID', 'R-', 6);
+$response = ['success' => false, 'message' => '', 'generatedId' => $roomID];
 
 // Add Room
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addroom'])) {
@@ -24,72 +22,128 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addroom'])) {
     $count = $connect->query($checkQuery)->num_rows;
 
     if ($count > 0) {
-        $alertMessage = 'Room you added is already existed.';
+        $response['message'] = 'Room you added is already existed.';
     } else {
         $RoomQuery = "INSERT INTO roomtb (RoomID, RoomName, RoomStatus, RoomTypeID)
         VALUES ('$roomID', '$roomname', '$roomstatus', '$roomtype')";
 
         if ($connect->query($RoomQuery)) {
-            $addRoomSuccess = true;
+            $response['success'] = true;
+            $response['message'] = 'A new room has been successfully added.';
+            // Keep the generated ID in the response
+            $response['generatedId'] = $roomID;
         } else {
-            $alertMessage = "Failed to add room. Please try again.";
+            $response['message'] = "Failed to add room. Please try again.";
         }
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
-// Get Room Type Details
+// Get Room Details
 if (isset($_GET['action']) && isset($_GET['id'])) {
     $id = mysqli_real_escape_string($connect, $_GET['id']);
     $action = $_GET['action'];
 
     // Build query based on action
     $query = match ($action) {
-        'getRoomTypeDetails' => "SELECT * FROM roomtypetb WHERE RoomTypeID = '$id'",
+        'getRoomDetails' => "SELECT * FROM roomtb WHERE RoomID = '$id'",
         default => null
     };
     if ($query) {
-        $result = $connect->query($query)?->fetch_assoc();
+        $room = $connect->query($query)->fetch_assoc();
 
-        if ($result) {
-            echo json_encode(['success' => true, 'roomtype' => $result]);
+        if ($room) {
+            $response['success'] = true;
+            $response['room'] = $room;
         } else {
-            echo json_encode(['success' => false]);
+            $response['success'] = true;
         }
     }
-    exit;
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Update Product Type
-if (isset($_POST['editroomtype'])) {
-    $roomTypeId = mysqli_real_escape_string($connect, $_POST['roomtypeid']);
-    $RoomType = mysqli_real_escape_string($connect, $_POST['updateroomtype']);
-    $updatedRoomTypeDescription = mysqli_real_escape_string($connect, $_POST['updateroomtypedescription']);
-    $updatedRoomCapacity = mysqli_real_escape_string($connect, $_POST['updateroomcapacity']);
+if (isset($_POST['editroom'])) {
+    $roomId = mysqli_real_escape_string($connect, $_POST['roomid']);
+    $updateRoomName = mysqli_real_escape_string($connect, $_POST['updateroomname']);
+    $updateRoomStatus = mysqli_real_escape_string($connect, $_POST['updateroomstatus']);
+    $updateRoomType = mysqli_real_escape_string($connect, $_POST['updateroomtype']);
 
     // Update query
-    $updateQuery = "UPDATE roomtypetb SET RoomType = '$RoomType', RoomDescription = '$updatedRoomTypeDescription', RoomCapacity = '$updatedRoomCapacity' 
-    WHERE RoomTypeID = '$roomTypeId'";
+    $updateQuery = "UPDATE roomtb SET RoomName = '$updateRoomName', RoomStatus = '$updateRoomStatus', RoomTypeID = '$updateRoomType' 
+    WHERE RoomID = '$roomId'";
 
     if ($connect->query($updateQuery)) {
-        $updateRoomTypeSuccess = true;
+        $response['success'] = true;
+        $response['message'] = 'The room has been successfully updated.';
+        $response['generatedId'] = $roomId;
+        $response['updateRoomName'] = $updateRoomName;
+        $response['updateRoomStatus'] = $updateRoomStatus;
+        $response['updateRoomType'] = $updateRoomType;
     } else {
-        $alertMessage = "Failed to update room type. Please try again.";
+        $response['message'] = "Failed to update room. Please try again.";
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Delete Product Type
-if (isset($_POST['deleteroomtype'])) {
-    $roomTypeId = mysqli_real_escape_string($connect, $_POST['roomtypeid']);
+if (isset($_POST['deleteroom'])) {
+    $roomId = mysqli_real_escape_string($connect, $_POST['roomid']);
 
     // Build query based on action
-    $deleteQuery = "DELETE FROM roomtypetb WHERE RoomTypeID = '$roomTypeId'";
+    $deleteQuery = "DELETE FROM roomtb WHERE RoomID = '$roomId'";
 
     if ($connect->query($deleteQuery)) {
-        $deleteRoomTypeSuccess = true;
+        $response['success'] = true;
+        $response['generatedId'] = $roomId;
     } else {
-        $alertMessage = "Failed to delete room type. Please try again.";
+        $response['success'] = false;
+        $response['message'] = 'Failed to delete room. Please try again.';
+    }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
+}
+
+// Initialize search variables for room type
+$searchRoomQuery = isset($_GET['room_search']) ? mysqli_real_escape_string($connect, $_GET['room_search']) : '';
+
+// Construct the room type query based on search
+if (!empty($searchRoomQuery)) {
+    $roomSelect = "SELECT * FROM roomtb WHERE RoomName LIKE '%$searchRoomQuery%' OR RoomDescription LIKE '%$searchRoomQuery%'";
+} else {
+    $roomSelect = "SELECT * FROM roomtb";
+}
+
+$roomSelectQuery = $connect->query($roomSelect);
+$rooms = [];
+
+if (mysqli_num_rows($roomSelectQuery) > 0) {
+    while ($row = $roomSelectQuery->fetch_assoc()) {
+        $rooms[] = $row;
     }
 }
+
+// Construct the roomtype count query based on search
+if (!empty($searchRoomQuery)) {
+    $roomQuery = "SELECT COUNT(*) as count FROM roomtb WHERE RoomName LIKE '%$searchRoomQuery%' OR RoomDescription LIKE '%$searchRoomQuery%'";
+} else {
+    $roomQuery = "SELECT COUNT(*) as count FROM roomtb";
+}
+
+// Execute the count query
+$roomResult = $connect->query($roomQuery);
+$roomCount = $roomResult->fetch_assoc()['count'];
 ?>
 
 <!DOCTYPE html>
@@ -172,10 +226,10 @@ if (isset($_POST['deleteroomtype'])) {
                                         </td>
                                         <td class="p-3 text-start space-x-1 select-none">
                                             <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                                data-roomtype-id="<?= htmlspecialchars($room['RoomTypeID']) ?>"></i>
+                                                data-room-id="<?= htmlspecialchars($room['RoomID']) ?>"></i>
                                             <button class="text-red-500">
                                                 <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                                    data-roomtype-id="<?= htmlspecialchars($room['RoomTypeID']) ?>"></i>
+                                                    data-room-id="<?= htmlspecialchars($room['RoomID']) ?>"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -240,10 +294,10 @@ if (isset($_POST['deleteroomtype'])) {
             <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center w-full sm:max-w-[500px]">
                 <h2 class="text-xl text-start text-gray-700 font-bold">Edit Room</h2>
                 <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="updateRoomForm">
-                    <input type="hidden" name="roomtypeid" id="updateRoomID">
+                    <input type="hidden" name="roomid" id="updateRoomID">
                     <!-- Room Name -->
                     <div class="relative">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Room Name</label>
+                        <label class="block text-start text-sm font-medium text-gray-700 mb-1">Room Name</label>
                         <input
                             id="updateRoomNameInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
@@ -257,7 +311,7 @@ if (isset($_POST['deleteroomtype'])) {
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Status -->
                         <div class="relative">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                            <label class="block text-start text-sm font-medium text-gray-700 mb-1">Status</label>
                             <select name="updateroomstatus" id="updateroomstatus" class="p-2 w-full border rounded outline-none" required>
                                 <option value="" disabled selected>Select status</option>
                                 <option value="available">Available</option>
@@ -268,7 +322,7 @@ if (isset($_POST['deleteroomtype'])) {
 
                         <!-- Room Type -->
                         <div class="relative">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Room Type</label>
+                            <label class="block text-start text-sm font-medium text-gray-700 mb-1">Room Type</label>
                             <select name="updateroomtype" id="updateroomtype" class="p-2 w-full border rounded outline-none" required>
                                 <option value="" disabled selected>Select type of rooms</option>
                                 <?php
@@ -307,13 +361,13 @@ if (isset($_POST['deleteroomtype'])) {
 
         <!-- Room Delete Modal -->
         <div id="roomConfirmDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
-            <form class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="productDeleteForm">
+            <form class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="roomDeleteForm">
                 <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Room Deletion</h2>
                 <p class="text-slate-600 mb-2">You are about to delete the following Room : <span id="roomDeleteName" class="font-semibold"></span></p>
                 <p class="text-sm text-gray-500 mb-4">
                     Deleting this Room will permanently remove it from the system, including all associated data.
                 </p>
-                <input type="hidden" name="roomtypeid" id="deleteRoomID">
+                <input type="hidden" name="roomid" id="deleteRoomID">
                 <div class="flex justify-end gap-4 select-none">
                     <div id="roomCancelDeleteBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm">
                         Cancel

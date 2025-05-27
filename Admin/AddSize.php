@@ -2,6 +2,7 @@
 session_start();
 include('../config/dbConnection.php');
 include('../includes/AutoIDFunc.php');
+include('../includes/AdminPagination.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -55,8 +56,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         default => null
     };
     if ($query) {
-        $result = $connect->query($query);
-        $productsize = $result->fetch_assoc();
+        $productsize = $connect->query($query)->fetch_assoc();
 
         if ($productsize) {
             $response['success'] = true;
@@ -137,6 +137,45 @@ if (isset($_POST['deleteproductsize'])) {
     echo json_encode($response);
     exit();
 }
+
+// Initialize search variables for product size
+$searchSizeQuery = isset($_GET['size_search']) ? mysqli_real_escape_string($connect, $_GET['size_search']) : '';
+$filterSizes = isset($_GET['sort']) ? $_GET['sort'] : 'random';
+
+// Construct the facility type query based on search
+if ($filterSizes !== 'random' && !empty($searchSizeQuery)) {
+    $productSizeSelect = "SELECT * FROM sizetb WHERE ProductID = '$filterSizes' AND Size LIKE '%$searchSizeQuery%' LIMIT $rowsPerPage OFFSET $productSizeOffset";
+} elseif ($filterSizes !== 'random') {
+    $productSizeSelect = "SELECT * FROM sizetb WHERE ProductID = '$filterSizes' LIMIT $rowsPerPage OFFSET $productSizeOffset";
+} elseif (!empty($searchSizeQuery)) {
+    $productSizeSelect = "SELECT * FROM sizetb WHERE Size LIKE '%$searchSizeQuery%' LIMIT $rowsPerPage OFFSET $productSizeOffset";
+} else {
+    $productSizeSelect = "SELECT * FROM sizetb LIMIT $rowsPerPage OFFSET $productSizeOffset";
+}
+
+$productSizeSelectQuery = mysqli_query($connect, $productSizeSelect);
+$productSizes = [];
+
+if (mysqli_num_rows($productSizeSelectQuery) > 0) {
+    while ($row = $productSizeSelectQuery->fetch_assoc()) {
+        $productSizes[] = $row;
+    }
+}
+
+// Construct the facilitytype count query based on search
+if ($filterSizes !== 'random' && !empty($searchSizeQuery)) {
+    $productSizeQuery = "SELECT COUNT(*) as count FROM sizetb WHERE ProductID = '$filterSizes' AND Size LIKE '%$searchSizeQuery%'";
+} elseif ($filterSizes !== 'random') {
+    $productSizeQuery = "SELECT COUNT(*) as count FROM sizetb WHERE ProductID = '$filterSizes'";
+} elseif (!empty($searchSizeQuery)) {
+    $productSizeQuery = "SELECT COUNT(*) as count FROM sizetb WHERE Size LIKE '%$searchSizeQuery%'";
+} else {
+    $productSizeQuery = "SELECT COUNT(*) as count FROM sizetb";
+}
+
+// Execute the count query
+$productSizeResult = $connect->query($productSizeQuery);
+$productSizeCount = $productSizeResult->fetch_assoc()['count'];
 ?>
 
 <!DOCTYPE html>

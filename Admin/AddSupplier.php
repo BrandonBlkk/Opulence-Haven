@@ -2,6 +2,7 @@
 session_start();
 include('../config/dbConnection.php');
 include('../includes/AutoIDFunc.php');
+include('../includes/AdminPagination.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -136,6 +137,45 @@ if (isset($_POST['deletesupplier'])) {
     echo json_encode($response);
     exit();
 }
+
+// Initialize search and filter variables for supplier
+$searchSupplierQuery = isset($_GET['supplier_search']) ? mysqli_real_escape_string($connect, $_GET['supplier_search']) : '';
+$filterSupplierID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
+
+// Construct the supplier query based on search and role filter
+if ($filterSupplierID !== 'random' && !empty($searchSupplierQuery)) {
+    $supplierSelect = "SELECT * FROM suppliertb WHERE ProductTypeID = '$filterSupplierID' AND (SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%') LIMIT $rowsPerPage OFFSET $supplierOffset";
+} elseif ($filterSupplierID !== 'random') {
+    $supplierSelect = "SELECT * FROM suppliertb WHERE ProductTypeID = '$filterSupplierID' LIMIT $rowsPerPage OFFSET $supplierOffset";
+} elseif (!empty($searchSupplierQuery)) {
+    $supplierSelect = "SELECT * FROM suppliertb WHERE SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%' LIMIT $rowsPerPage OFFSET $supplierOffset";
+} else {
+    $supplierSelect = "SELECT * FROM suppliertb LIMIT $rowsPerPage OFFSET $supplierOffset";
+}
+
+$supplierSelectQuery = $connect->query($supplierSelect);
+$suppliers = [];
+
+if (mysqli_num_rows($supplierSelectQuery) > 0) {
+    while ($row = $supplierSelectQuery->fetch_assoc()) {
+        $suppliers[] = $row;
+    }
+}
+
+// Construct the supplier count query based on search and product type filter
+if ($filterSupplierID !== 'random' && !empty($searchSupplierQuery)) {
+    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb WHERE ProductTypeID = '$filterSupplierID' AND (SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%')";
+} elseif ($filterSupplierID !== 'random') {
+    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb WHERE ProductTypeID = '$filterSupplierID'";
+} elseif (!empty($searchSupplierQuery)) {
+    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb WHERE SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%'";
+} else {
+    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb";
+}
+
+// Execute the count query
+$supplierResult = $connect->query($supplierQuery);
+$supplierCount = $supplierResult->fetch_assoc()['count'];
 ?>
 
 <!DOCTYPE html>

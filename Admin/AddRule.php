@@ -2,6 +2,7 @@
 session_start();
 include('../config/dbConnection.php');
 include('../includes/AutoIDFunc.php');
+include('../includes/AdminPagination.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -56,8 +57,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         default => null
     };
     if ($query) {
-        $result = $connect->query($query);
-        $rule = $result->fetch_assoc();
+        $rule = $connect->query($query)->fetch_assoc();
 
         if ($rule) {
             $response['success'] = true;
@@ -120,6 +120,41 @@ if (isset($_POST['deleterule'])) {
     echo json_encode($response);
     exit;
 }
+
+// Initialize search variables for rule
+$searchRuleQuery = isset($_GET['rule_search']) ? mysqli_real_escape_string($connect, $_GET['rule_search']) : '';
+
+// Construct the rule query based on search
+if (!empty($searchRuleQuery)) {
+    $ruleSelect = "SELECT * FROM ruletb WHERE RuleTitle LIKE '%$searchRuleQuery%' OR Rule LIKE '%$searchRuleQuery%' LIMIT $rowsPerPage OFFSET $ruleOffset";
+} else {
+    $ruleSelect = "SELECT * FROM ruletb LIMIT $rowsPerPage OFFSET $ruleOffset";
+}
+
+$ruleSelectQuery = $connect->query($ruleSelect);
+$rules = [];
+
+if (mysqli_num_rows($ruleSelectQuery) > 0) {
+    while ($row = $ruleSelectQuery->fetch_assoc()) {
+        $rules[] = $row;
+    }
+}
+
+// Construct the rule count query based on search
+if (!empty($searchRuleQuery)) {
+    $ruleQuery = "SELECT COUNT(*) as count FROM ruletb WHERE RuleTitle LIKE '%$searchRuleQuery%' OR Rule LIKE '%$searchRuleQuery%'";
+} else {
+    $ruleQuery = "SELECT COUNT(*) as count FROM ruletb";
+}
+
+// Execute the count query
+$ruleResult = $connect->query($ruleQuery);
+$ruleCount = $ruleResult->fetch_assoc()['count'];
+
+// Fetch rule count
+$ruleCountQuery = "SELECT COUNT(*) as count FROM ruletb";
+$facilityTypeCountResult = $connect->query($ruleCountQuery);
+$allRuleCount = $facilityTypeCountResult->fetch_assoc()['count'];
 ?>
 
 <!DOCTYPE html>
