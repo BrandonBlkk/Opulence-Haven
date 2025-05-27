@@ -52,124 +52,15 @@ if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {
 $adminCountResult = $connect->query($adminCountQuery);
 $adminCount = $adminCountResult->fetch_assoc()['count'];
 
-// Initialize search and filter variables for supplier
-$searchSupplierQuery = isset($_GET['supplier_search']) ? mysqli_real_escape_string($connect, $_GET['supplier_search']) : '';
-$filterSupplierID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
-
-// Construct the supplier query based on search and role filter
-if ($filterSupplierID !== 'random' && !empty($searchSupplierQuery)) {
-    $supplierSelect = "SELECT * FROM suppliertb WHERE ProductTypeID = '$filterSupplierID' AND (SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%') LIMIT $rowsPerPage OFFSET $supplierOffset";
-} elseif ($filterSupplierID !== 'random') {
-    $supplierSelect = "SELECT * FROM suppliertb WHERE ProductTypeID = '$filterSupplierID' LIMIT $rowsPerPage OFFSET $supplierOffset";
-} elseif (!empty($searchSupplierQuery)) {
-    $supplierSelect = "SELECT * FROM suppliertb WHERE SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%' LIMIT $rowsPerPage OFFSET $supplierOffset";
-} else {
-    $supplierSelect = "SELECT * FROM suppliertb LIMIT $rowsPerPage OFFSET $supplierOffset";
-}
-
-$supplierSelectQuery = $connect->query($supplierSelect);
-$suppliers = [];
-
-if (mysqli_num_rows($supplierSelectQuery) > 0) {
-    while ($row = $supplierSelectQuery->fetch_assoc()) {
-        $suppliers[] = $row;
-    }
-}
-
-// Construct the supplier count query based on search and product type filter
-if ($filterSupplierID !== 'random' && !empty($searchSupplierQuery)) {
-    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb WHERE ProductTypeID = '$filterSupplierID' AND (SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%')";
-} elseif ($filterSupplierID !== 'random') {
-    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb WHERE ProductTypeID = '$filterSupplierID'";
-} elseif (!empty($searchSupplierQuery)) {
-    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb WHERE SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%'";
-} else {
-    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb";
-}
-
-// Execute the count query
-$supplierResult = $connect->query($supplierQuery);
-$supplierCount = $supplierResult->fetch_assoc()['count'];
-
 // Fetch all supplier count
 $supplierCountQuery = "SELECT COUNT(*) as count FROM suppliertb";
 $supplierCountResult = $connect->query($supplierCountQuery);
 $allSupplierCount = $supplierCountResult->fetch_assoc()['count'];
 
-// Initialize search and filter variables for product type
-$searchProductTypeQuery = isset($_GET['producttype_search']) ? mysqli_real_escape_string($connect, $_GET['producttype_search']) : '';
-$filterProductTypeID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
-
-// Construct the product type query based on search
-if (!empty($searchProductTypeQuery)) {
-    $productTypeSelect = "SELECT * FROM producttypetb WHERE ProductType LIKE '%$searchProductTypeQuery%' OR Description LIKE '%$searchProductTypeQuery%' LIMIT $rowsPerPage OFFSET $productTypeOffset";
-} else {
-    $productTypeSelect = "SELECT * FROM producttypetb LIMIT $rowsPerPage OFFSET $productTypeOffset";
-}
-
-$productTypeSelectQuery = $connect->query($productTypeSelect);
-$productTypes = [];
-
-if (mysqli_num_rows($productTypeSelectQuery) > 0) {
-    while ($row = $productTypeSelectQuery->fetch_assoc()) {
-        $productTypes[] = $row;
-    }
-}
-
-// Construct the prooducttype count query based on search
-if (!empty($searchProductTypeQuery)) {
-    $productTypeQuery = "SELECT COUNT(*) as count FROM producttypetb WHERE ProductType LIKE '%$searchProductTypeQuery%' OR Description LIKE '%$searchProductTypeQuery%'";
-} else {
-    $productTypeQuery = "SELECT COUNT(*) as count FROM producttypetb";
-}
-
-// Execute the count query
-$productTypeResult = $connect->query($productTypeQuery);
-$productTypeCount = $productTypeResult->fetch_assoc()['count'];
-
 // Fetch product type count
 $productTypeCountQuery = "SELECT COUNT(*) as count FROM producttypetb";
 $productTypeCountResult = $connect->query($productTypeCountQuery);
 $allProductTypeCount = $productTypeCountResult->fetch_assoc()['count'];
-
-// Initialize search and filter variables for product
-$searchProductQuery = isset($_GET['product_search']) ? mysqli_real_escape_string($connect, $_GET['product_search']) : '';
-$filterProductID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
-
-// Construct the product query based on search and product type filter
-if ($filterProductID !== 'random' && !empty($searchProductQuery)) {
-    $productSelect = "SELECT * FROM producttb WHERE ProductTypeID = '$filterProductID' AND (Title LIKE '%$searchProductQuery%' OR Description LIKE '%$searchProductQuery%' OR Specification LIKE '%$searchProductQuery%' OR Information LIKE '%$searchProductQuery%' OR Brand LIKE '%$searchProductQuery%') LIMIT $rowsPerPage OFFSET $productOffset";
-} elseif ($filterProductID !== 'random') {
-    $productSelect = "SELECT * FROM producttb WHERE ProductTypeID = '$filterProductID' LIMIT $rowsPerPage OFFSET $productOffset";
-} elseif (!empty($searchProductQuery)) {
-    $productSelect = "SELECT * FROM producttb WHERE Title LIKE '%$searchProductQuery%' OR Description LIKE '%$searchProductQuery%' OR Specification LIKE '%$searchProductQuery%' OR Information LIKE '%$searchProductQuery%' OR Brand LIKE '%$searchProductQuery%' LIMIT $rowsPerPage OFFSET $productOffset";
-} else {
-    $productSelect = "SELECT * FROM producttb LIMIT $rowsPerPage OFFSET $productOffset";
-}
-
-$productSelectQuery = $connect->query($productSelect);
-$products = [];
-
-if (mysqli_num_rows($productSelectQuery) > 0) {
-    while ($row = $productSelectQuery->fetch_assoc()) {
-        $products[] = $row;
-    }
-}
-
-// Construct the product count query based on search and product type filter
-if ($filterProductID !== 'random' && !empty($searchProductQuery)) {
-    $productQuery = "SELECT COUNT(*) as count FROM producttb WHERE ProductTypeID = '$filterProductID' AND (Title LIKE '%$searchProductQuery%' OR Description LIKE '%$searchProductQuery%' OR Specification LIKE '%$searchProductQuery%' OR Information LIKE '%$searchProductQuery%' OR Brand LIKE '%$searchProductQuery%')";
-} elseif ($filterProductID !== 'random') {
-    $productQuery = "SELECT COUNT(*) as count FROM producttb WHERE ProductTypeID = '$filterProductID'";
-} elseif (!empty($searchProductQuery)) {
-    $productQuery = "SELECT COUNT(*) as count FROM producttb WHERE Title LIKE '%$searchProductQuery%' OR Description LIKE '%$searchProductQuery%' OR Specification LIKE '%$searchProductQuery%' OR Information LIKE '%$searchProductQuery%' OR Brand LIKE '%$searchProductQuery%'";
-} else {
-    $productQuery = "SELECT COUNT(*) as count FROM producttb";
-}
-
-// Execute the count query
-$productResult = $connect->query($productQuery);
-$productCount = $productResult->fetch_assoc()['count'];
 
 // Fetch product count
 $productCountQuery = "SELECT COUNT(*) as count FROM producttb";
@@ -211,40 +102,15 @@ $roomTypeCountQuery = "SELECT COUNT(*) as count FROM roomtypetb";
 $roomTypeCountResult = $connect->query($roomTypeCountQuery);
 $allRoomTypeCount = $roomTypeCountResult->fetch_assoc()['count'];
 
-// Initialize search variables for room type
-$searchRoomQuery = isset($_GET['room_search']) ? mysqli_real_escape_string($connect, $_GET['room_search']) : '';
-
-// Construct the room type query based on search
-if (!empty($searchRoomQuery)) {
-    $roomSelect = "SELECT * FROM roomtb WHERE RoomName LIKE '%$searchRoomQuery%' OR RoomDescription LIKE '%$searchRoomQuery%'";
-} else {
-    $roomSelect = "SELECT * FROM roomtb";
-}
-
-$roomSelectQuery = $connect->query($roomSelect);
-$rooms = [];
-
-if (mysqli_num_rows($roomSelectQuery) > 0) {
-    while ($row = $roomSelectQuery->fetch_assoc()) {
-        $rooms[] = $row;
-    }
-}
-
-// Construct the roomtype count query based on search
-if (!empty($searchRoomQuery)) {
-    $roomQuery = "SELECT COUNT(*) as count FROM roomtb WHERE RoomName LIKE '%$searchRoomQuery%' OR RoomDescription LIKE '%$searchRoomQuery%'";
-} else {
-    $roomQuery = "SELECT COUNT(*) as count FROM roomtb";
-}
-
-// Execute the count query
-$roomResult = $connect->query($roomQuery);
-$roomCount = $roomResult->fetch_assoc()['count'];
-
 // Fetch room type count
 $roomCountQuery = "SELECT COUNT(*) as count FROM roomtb";
 $roomCountResult = $connect->query($roomCountQuery);
 $allRoomCount = $roomCountResult->fetch_assoc()['count'];
+
+// Fetch rule count
+$ruleCountQuery = "SELECT COUNT(*) as count FROM ruletb";
+$facilityTypeCountResult = $connect->query($ruleCountQuery);
+$allRuleCount = $facilityTypeCountResult->fetch_assoc()['count'];
 
 // Fetch facility type count
 $facilityTypeCountQuery = "SELECT COUNT(*) as count FROM facilitytypetb";
@@ -255,41 +121,6 @@ $allFacilityTypeCount = $facilityTypeCountResult->fetch_assoc()['count'];
 $facilityCountQuery = "SELECT COUNT(*) as count FROM facilitytb";
 $facilityCountResult = $connect->query($facilityCountQuery);
 $allFacilityCount = $facilityCountResult->fetch_assoc()['count'];
-
-// Initialize search variables for rule
-$searchRuleQuery = isset($_GET['rule_search']) ? mysqli_real_escape_string($connect, $_GET['rule_search']) : '';
-
-// Construct the rule query based on search
-if (!empty($searchRuleQuery)) {
-    $ruleSelect = "SELECT * FROM ruletb WHERE RuleTitle LIKE '%$searchRuleQuery%' OR Rule LIKE '%$searchRuleQuery%' LIMIT $rowsPerPage OFFSET $ruleOffset";
-} else {
-    $ruleSelect = "SELECT * FROM ruletb LIMIT $rowsPerPage OFFSET $ruleOffset";
-}
-
-$ruleSelectQuery = $connect->query($ruleSelect);
-$rules = [];
-
-if (mysqli_num_rows($ruleSelectQuery) > 0) {
-    while ($row = $ruleSelectQuery->fetch_assoc()) {
-        $rules[] = $row;
-    }
-}
-
-// Construct the rule count query based on search
-if (!empty($searchRuleQuery)) {
-    $ruleQuery = "SELECT COUNT(*) as count FROM ruletb WHERE RuleTitle LIKE '%$searchRuleQuery%' OR Rule LIKE '%$searchRuleQuery%'";
-} else {
-    $ruleQuery = "SELECT COUNT(*) as count FROM ruletb";
-}
-
-// Execute the count query
-$ruleResult = $connect->query($ruleQuery);
-$ruleCount = $ruleResult->fetch_assoc()['count'];
-
-// Fetch rule count
-$ruleCountQuery = "SELECT COUNT(*) as count FROM ruletb";
-$facilityTypeCountResult = $connect->query($ruleCountQuery);
-$allRuleCount = $facilityTypeCountResult->fetch_assoc()['count'];
 
 // Initialize search variables for user
 $searchUserQuery = isset($_GET['user_search']) ? mysqli_real_escape_string($connect, $_GET['user_search']) : '';
@@ -452,45 +283,6 @@ if ($filterImages !== 'random') {
 $productImageResult = $connect->query($productImageQuery);
 $productImageCount = $productImageResult->fetch_assoc()['count'];
 
-// Initialize search variables for product size
-$searchSizeQuery = isset($_GET['size_search']) ? mysqli_real_escape_string($connect, $_GET['size_search']) : '';
-$filterSizes = isset($_GET['sort']) ? $_GET['sort'] : 'random';
-
-// Construct the facility type query based on search
-if ($filterSizes !== 'random' && !empty($searchSizeQuery)) {
-    $productSizeSelect = "SELECT * FROM sizetb WHERE ProductID = '$filterSizes' AND Size LIKE '%$searchSizeQuery%' LIMIT $rowsPerPage OFFSET $productSizeOffset";
-} elseif ($filterSizes !== 'random') {
-    $productSizeSelect = "SELECT * FROM sizetb WHERE ProductID = '$filterSizes' LIMIT $rowsPerPage OFFSET $productSizeOffset";
-} elseif (!empty($searchSizeQuery)) {
-    $productSizeSelect = "SELECT * FROM sizetb WHERE Size LIKE '%$searchSizeQuery%' LIMIT $rowsPerPage OFFSET $productSizeOffset";
-} else {
-    $productSizeSelect = "SELECT * FROM sizetb LIMIT $rowsPerPage OFFSET $productSizeOffset";
-}
-
-$productSizeSelectQuery = mysqli_query($connect, $productSizeSelect);
-$productSizes = [];
-
-if (mysqli_num_rows($productSizeSelectQuery) > 0) {
-    while ($row = $productSizeSelectQuery->fetch_assoc()) {
-        $productSizes[] = $row;
-    }
-}
-
-// Construct the facilitytype count query based on search
-if ($filterSizes !== 'random' && !empty($searchSizeQuery)) {
-    $productSizeQuery = "SELECT COUNT(*) as count FROM sizetb WHERE ProductID = '$filterSizes' AND Size LIKE '%$searchSizeQuery%'";
-} elseif ($filterSizes !== 'random') {
-    $productSizeQuery = "SELECT COUNT(*) as count FROM sizetb WHERE ProductID = '$filterSizes'";
-} elseif (!empty($searchSizeQuery)) {
-    $productSizeQuery = "SELECT COUNT(*) as count FROM sizetb WHERE Size LIKE '%$searchSizeQuery%'";
-} else {
-    $productSizeQuery = "SELECT COUNT(*) as count FROM sizetb";
-}
-
-// Execute the count query
-$productSizeResult = $connect->query($productSizeQuery);
-$productSizeCount = $productSizeResult->fetch_assoc()['count'];
-
 // Fetch all users
 $select = "SELECT * FROM usertb ORDER BY SignupDate DESC LIMIT 5";
 $query = $connect->query($select);
@@ -646,7 +438,7 @@ if (mysqli_num_rows($query) > 0) {
                                 <i class="ri-hotel-bed-line text-xl"></i>
                                 <span class="font-semibold text-sm">Add room</span>
                             </div>
-                            <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= htmlspecialchars($supplierCount) ?></p>
+                            <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= htmlspecialchars($allRoomCount) ?></p>
                         </a>
                         <a href="../Admin/AddRule.php"
                             class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?>">
@@ -694,14 +486,14 @@ if (mysqli_num_rows($query) > 0) {
                                     <i class="ri-truck-line text-xl"></i>
                                     <span class="font-semibold text-sm">Purchase Product</span>
                                 </div>
-                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= htmlspecialchars($supplierCount) ?></p>
+                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= htmlspecialchars($allProductCount) ?></p>
                             </a>
                             <a href="../Admin/AddProduct.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">
                                     <i class="ri-history-line purchase-history-icon text-xl"></i>
                                     <span class="font-semibold text-sm">Purchase History</span>
                                 </div>
-                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $productCount ?></p>
+                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allProductCount ?></p>
                             </a>
                         </div>
                     </div>
@@ -726,14 +518,14 @@ if (mysqli_num_rows($query) > 0) {
                                     <i class="ri-booklet-line text-xl"></i>
                                     <span class="font-semibold text-sm">Booking</span>
                                 </div>
-                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= htmlspecialchars($supplierCount) ?></p>
+                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= htmlspecialchars($allProductCount) ?></p>
                             </a>
                             <a href="../Admin/AddProduct.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">
                                     <i class="ri-shopping-bag-2-line text-xl"></i>
                                     <span class="font-semibold text-sm">Order</span>
                                 </div>
-                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $productCount ?></p>
+                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allProductCount ?></p>
                             </a>
                         </div>
                     </div>

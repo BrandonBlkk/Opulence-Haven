@@ -129,225 +129,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// // Add Supplier Form
-// document.addEventListener("DOMContentLoaded", () => {
-//     const addSupplierModal = document.getElementById('addSupplierModal');
-//     const addSupplierBtn = document.getElementById('addSupplierBtn');
-//     const addSupplierCancelBtn = document.getElementById('addSupplierCancelBtn');
-//     const loader = document.getElementById('loader');
-//     const alertMessage = document.getElementById('alertMessage').value;
-//     const addSupplierSuccess = document.getElementById('addSupplierSuccess').value === 'true';
-
-//     if (addSupplierModal && addSupplierBtn && addSupplierCancelBtn) {
-//         // Show modal
-//         addSupplierBtn.addEventListener('click', () => {
-//             darkOverlay2.classList.remove('opacity-0', 'invisible');
-//             darkOverlay2.classList.add('opacity-100');
-//             addSupplierModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-//         });
-
-//         // Cancel button functionality
-//         addSupplierCancelBtn.addEventListener('click', () => {
-//             addSupplierModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//             darkOverlay2.classList.add('opacity-0', 'invisible');
-//             darkOverlay2.classList.remove('opacity-100');
-
-//             // Clear error messages
-//             const errors = ['supplierNameError', 'companyNameError', 'emailError', 'contactNumberError', 'addressError', 'cityError', 'stateError', 'postalCodeError', 'countryError'];
-//             errors.forEach(error => {
-//                 hideError(document.getElementById(error));
-//             });
-
-//             document.getElementById('productType').value = '';
-//         });
-//     }
-
-//     if (addSupplierSuccess) {
-//         loader.style.display = 'flex';
-
-//         // Show Alert
-//         setTimeout(() => {
-//             loader.style.display = 'none';
-//             showAlert('A new supplier has been successfully added.');
-//             setTimeout(() => {
-//                 window.location.href = 'AddSupplier.php';
-//             }, 5000);
-//         }, 1000);
-//     } else if (alertMessage) {
-//         // Show Alert
-//         showAlert(alertMessage);
-//     }
-
-//     // Add keyup event listeners for real-time validation
-//     document.getElementById("supplierNameInput").addEventListener("keyup", validateSupplierName);
-//     document.getElementById("companyNameInput").addEventListener("keyup", validateCompanyName);
-//     document.getElementById("emailInput").addEventListener("keyup", validateEmail);
-//     document.getElementById("contactNumberInput").addEventListener("keyup", validateContactNumber);
-//     document.getElementById("addressInput").addEventListener("keyup", validateAddress);
-//     document.getElementById("cityInput").addEventListener("keyup", validateCity);
-//     document.getElementById("stateInput").addEventListener("keyup", validateState);
-//     document.getElementById("postalCodeInput").addEventListener("keyup", validatePostalCode);
-//     document.getElementById("countryInput").addEventListener("keyup", validateCountry);
-
-//     const supplierForm = document.getElementById("supplierForm");
-//     if (supplierForm) {
-//         supplierForm.addEventListener("submit", (e) => {
-//             if (!validateSupplierForm()) {
-//                 e.preventDefault();
-//             }
-//         });
-//     }
-// });
-
-// // Supplier Details Modal
-// document.addEventListener('DOMContentLoaded', () => {
-//     const updateSupplierModal = document.getElementById('updateSupplierModal');
-//     const modalCancelBtn = document.getElementById('supplierModalCancelBtn');
-//     const alertMessage = document.getElementById('alertMessage').value;
-//     const updateSupplierSuccess = document.getElementById('updateSupplierSuccess').value === 'true';
-
-//     // Get all details buttons
-//     const detailsBtns = document.querySelectorAll('.details-btn');
-
-//     if (updateSupplierModal && modalCancelBtn && detailsBtns) {
-//         // Add click event to each button
-//         detailsBtns.forEach(btn => {
-//             btn.addEventListener('click', function () {
-//                 const supplierId = this.getAttribute('data-supplier-id');
-//                 darkOverlay2.classList.remove('opacity-0', 'invisible');
-//                 darkOverlay2.classList.add('opacity-100');
-
-//                 // Fetch supplier details
-//                 fetch(`../Admin/AddSupplier.php?action=getSupplierDetails&id=${supplierId}`)
-//                     .then(response => response.json())
-//                     .then(data => {
-//                         if (data.success) {
-//                             // Fill the modal form with supplier data
-//                             document.getElementById('updateSupplierID').value = supplierId;
-//                             document.querySelector('[name="updatesuppliername"]').value = data.supplier.SupplierName;
-//                             document.querySelector('[name="updatecompanyName"]').value = data.supplier.SupplierCompany;
-//                             document.querySelector('[name="updateemail"]').value = data.supplier.SupplierEmail;
-//                             document.querySelector('[name="updatecontactNumber"]').value = data.supplier.SupplierContact;
-//                             document.querySelector('[name="updateaddress"]').value = data.supplier.Address;
-//                             document.querySelector('[name="updatecity"]').value = data.supplier.City;
-//                             document.querySelector('[name="updatestate"]').value = data.supplier.State;
-//                             document.querySelector('[name="updatepostalCode"]').value = data.supplier.PostalCode;
-//                             document.querySelector('[name="updatecountry"]').value = data.supplier.Country;
-//                             document.querySelector('[name="updateproductType"]').value = data.supplier.ProductTypeID;
-
-//                             // Show the modal
-//                             updateSupplierModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-//                         } else {
-//                             console.error('Failed to load supplier details');
-//                         }
-//                     })
-//                     .catch(error => console.error('Error:', error));
-//             });
-//         });
-//         // Close modal when cancel button is clicked
-//         modalCancelBtn.addEventListener('click', () => {
-//             updateSupplierModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//             darkOverlay2.classList.add('opacity-0', 'invisible');
-//             darkOverlay2.classList.remove('opacity-100');
-
-//             // Clear error messages
-//             const errors = ['updateSupplierNameError', 'updateCompanyNameError', 'updateEmailError', 'updateContactNumberError', 'updateAddressError', 'updateCityError', 'updateStateError', 'updatePostalCodeError', 'updateCountryError'];
-//             errors.forEach(error => {
-//                 hideError(document.getElementById(error));
-//             });
-//         });
-
-//         if (updateSupplierSuccess) {
-//             // Show Alert
-//             setTimeout(() => {
-//                 showAlert('The supplier has been successfully updated.');
-//                 setTimeout(() => {
-//                     window.location.href = 'AddSupplier.php';
-//                 }, 5000);
-//             }, 500);
-//         } else if (alertMessage) {
-//             // Show Alert
-//             showAlert(alertMessage);
-//         }
-
-//         // Add keyup event listeners for real-time validation
-//         document.getElementById("updateSupplierNameInput").addEventListener("keyup", validateUpdateSupplierName);
-//         document.getElementById("updateCompanyNameInput").addEventListener("keyup", validateUpdateCompanyName);
-//         document.getElementById("updateEmailInput").addEventListener("keyup", validateUpdateEmail);
-//         document.getElementById("updateContactNumberInput").addEventListener("keyup", validateUpdateContactNumber);
-//         document.getElementById("updateAddressInput").addEventListener("keyup", validateUpdateAddress);
-//         document.getElementById("updateCityInput").addEventListener("keyup", validateUpdateCity);
-//         document.getElementById("updateStateInput").addEventListener("keyup", validateUpdateState);
-//         document.getElementById("updatePostalCodeInput").addEventListener("keyup", validateUpdatePostalCode);
-//         document.getElementById("updateCountryInput").addEventListener("keyup", validateUpdateCountry);
-
-//         const updateSupplierForm = document.getElementById("updateSupplierForm");
-//         if (updateSupplierForm) {
-//             updateSupplierForm.addEventListener("submit", (e) => {
-//                 if (!validateUpdateSupplier()) {
-//                     e.preventDefault();
-//                 }
-//             });
-//         }
-//     }
-// });
-
-// // Supplier Delete Modal
-// document.addEventListener('DOMContentLoaded', () => {
-//     const supplierConfirmDeleteModal = document.getElementById('supplierConfirmDeleteModal');
-//     const supplierCancelDeleteBtn = document.getElementById('supplierCancelDeleteBtn');
-//     const alertMessage = document.getElementById('alertMessage').value;
-//     const deleteSupplierSuccess = document.getElementById('deleteSupplierSuccess').value === 'true';
-
-//     // Get all delete buttons
-//     const deleteBtns = document.querySelectorAll('.delete-btn');
-
-//     if (supplierConfirmDeleteModal && supplierCancelDeleteBtn && deleteBtns) {
-//         // Add click event to each delete button
-//         deleteBtns.forEach(btn => {
-//             btn.addEventListener('click', function () {
-//                 const supplierId = this.getAttribute('data-supplier-id');
-
-//                 // Fetch supplierr details
-//                 fetch(`../Admin/AddSupplier.php?action=getSupplierDetails&id=${supplierId}`)
-//                     .then(response => response.json())
-//                     .then(data => {
-//                         if (data.success) {
-//                             document.getElementById('deleteSupplierID').value = supplierId;
-//                             document.getElementById('supplierDeleteName').textContent = data.supplier.SupplierName;
-//                         } else {
-//                             console.error('Failed to load product type details');
-//                         }
-//                     })
-//                     .catch(error => console.error('Fetch error:', error));
-
-//                 // Show modal
-//                 darkOverlay2.classList.remove('opacity-0', 'invisible');
-//                 darkOverlay2.classList.add('opacity-100');
-//                 supplierConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-//             });
-//         });
-
-//         // Cancel button functionality
-//         supplierCancelDeleteBtn.addEventListener('click', () => {
-//             supplierConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//             darkOverlay2.classList.add('opacity-0', 'invisible');
-//             darkOverlay2.classList.remove('opacity-100');
-//         });
-
-//         if (deleteSupplierSuccess) {
-//             // Show Alert
-//             showAlert('The supplier has been successfully deleted.');
-//             setTimeout(() => {
-//                 window.location.href = 'AddSupplier.php';
-//             }, 5000);
-//         } else if (alertMessage) {
-//             // Show Alert
-//             showAlert(alertMessage);
-//         }
-//     }
-// });
-
 // Supplier Form and Modals
 document.addEventListener("DOMContentLoaded", () => {
     // Add Supplier Modal Elements
@@ -365,6 +146,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const supplierConfirmDeleteModal = document.getElementById('supplierConfirmDeleteModal');
     const supplierCancelDeleteBtn = document.getElementById('supplierCancelDeleteBtn');
 
+    // Get current pagination and search parameters from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentPage = urlParams.get('supplierpage') || 1;
+    const currentSearch = urlParams.get('supplier_search') || '';
+    const currentSort = urlParams.get('sort') || 'random';
+
     // Function to close the add modal
     const closeModal = () => {
         addSupplierModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
@@ -375,6 +162,47 @@ document.addEventListener("DOMContentLoaded", () => {
         errors.forEach(error => {
             hideError(document.getElementById(error));
         });
+    };
+
+    // Function to fetch and render suppliers with current pagination
+    const fetchAndRenderSuppliers = () => {
+        let fetchUrl = `../Admin/AddSupplier.php?supplierpage=${currentPage}`;
+        
+        if (currentSearch) {
+            fetchUrl += `&supplier_search=${encodeURIComponent(currentSearch)}`;
+        }
+        if (currentSort !== 'random') {
+            fetchUrl += `&sort=${currentSort}`;
+        }
+
+        fetch(fetchUrl)
+            .then(response => response.text())
+            .then(html => {
+                // Parse the HTML to extract the table body content
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTableBody = doc.querySelector('tbody');
+                const newPagination = doc.querySelector('.flex.justify-center.items-center.mt-1');
+                
+                if (newTableBody) {
+                    const currentTableBody = document.querySelector('tbody');
+                    currentTableBody.innerHTML = newTableBody.innerHTML;
+                    
+                    // Reattach event listeners to the new rows
+                    initializeExistingRows();
+                }
+
+                if (newPagination) {
+                    const currentPagination = document.querySelector('.flex.justify-center.items-center.mt-1');
+                    if (currentPagination) {
+                        currentPagination.innerHTML = newPagination.innerHTML;
+                    } else {
+                        const tableContainer = document.querySelector('table').parentNode;
+                        tableContainer.appendChild(newPagination);
+                    }
+                }
+            })
+            .catch(error => console.error('Error fetching suppliers:', error));
     };
 
     // Function to fetch product type name by ID
@@ -505,7 +333,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     const supplierForm = document.getElementById("supplierForm");
     if (supplierForm) {
-        supplierForm.addEventListener("submit", async (e) => {
+        supplierForm.addEventListener("submit", (e) => {
             e.preventDefault();
 
             if (!validateSupplierForm()) return;
@@ -515,17 +343,17 @@ document.addEventListener("DOMContentLoaded", () => {
             const formData = new FormData(supplierForm);
             formData.append('addsupplier', true);
 
-            try {
-                const response = await fetch('AddSupplier.php', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (!response.ok) {
+            fetch('AddSupplier.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => {
+                if (!res.ok) {
                     throw new Error('Network response was not ok');
                 }
-                
-                const data = await response.json();
+                return res.json();
+            })
+            .then(data => {
                 loader.style.display = 'none';
                 showAlert(data.message, !data.success);
 
@@ -544,82 +372,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     supplierForm.reset();
                     closeModal();
                     
-                    const tableBody = document.querySelector('tbody');
-                    const noDataRow = tableBody.querySelector('td[colspan="7"]');
-
-                    if (noDataRow) {
-                        noDataRow.closest('tr').remove();
-                    }
-
-                    // First create the row with placeholder for product type
-                    const newRow = document.createElement('tr');
-                    newRow.className = 'border-b border-gray-200 hover:bg-gray-50';
-                    newRow.innerHTML = `
-                        <td class="p-3 text-start whitespace-nowrap">
-                            <div class="flex items-center gap-2 font-medium text-gray-500">
-                                <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                <span>${data.generatedId}</span>
-                            </div>
-                        </td>
-                        <td class="p-3">
-                            <p class="font-bold">${formData.get('suppliername')}</p>
-                            <p>${formData.get('email')}</p>
-                        </td>
-                        <td class="p-3 text-start hidden md:table-cell" data-product-type-id="${formData.get('productType')}">
-                            Loading...
-                        </td>
-                        <td class="p-3 text-start hidden sm:table-cell">
-                            ${formData.get('contactNumber')}
-                        </td>
-                        <td class="p-3 text-start hidden lg:table-cell">
-                            ${formData.get('companyName')}
-                        </td>
-                        <td class="p-3 text-start hidden lg:table-cell">
-                            <p>
-                                ${formData.get('address')},
-                                ${formData.get('city')},
-                                ${formData.get('country')}
-                            </p>
-                        </td>
-                        <td class="p-3 text-start space-x-1 select-none">
-                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                data-supplier-id="${data.generatedId}"></i>
-                            <button class="text-red-500">
-                                <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                    data-supplier-id="${data.generatedId}"></i>
-                            </button>
-                        </td>
-                    `;
-
-                    tableBody.appendChild(newRow);
-                    
-                    // Now fetch and update the product type name
-                    const productTypeId = formData.get('productType');
-                    const productTypeName = await fetchProductTypeName(productTypeId);
-                    const productTypeCell = newRow.querySelector('td:nth-child(3)');
-                    if (productTypeCell) {
-                        productTypeCell.textContent = productTypeName;
-                    }
-
-                    attachEventListenersToRow(newRow);
-                } else {
-                    document.getElementById('supplierNameInput').value = '';
-                    document.getElementById('companyNameInput').value = '';
-                    document.getElementById('emailInput').value = '';
-                    document.getElementById('contactNumberInput').value = '';
-                    document.getElementById('addressInput').value = '';
-                    document.getElementById('cityInput').value = '';
-                    document.getElementById('stateInput').value = '';
-                    document.getElementById('postalCodeInput').value = '';
-                    document.getElementById('countryInput').value = '';
-                    supplierForm.reset();
-                    closeModal();
+                    // Fetch and render the updated suppliers with current pagination
+                    fetchAndRenderSuppliers();
                 }
-            } catch (err) {
+            })
+            .catch(err => {
                 loader.style.display = 'none';
                 showAlert("Something went wrong. Please try again.", true);
                 console.error(err);
-            }
+            });
         });
     }
 
@@ -648,7 +409,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const updateSupplierForm = document.getElementById("updateSupplierForm");
         if (updateSupplierForm) {
-            updateSupplierForm.addEventListener("submit", async (e) => {
+            updateSupplierForm.addEventListener("submit", (e) => {
                 e.preventDefault();
 
                 if (!validateUpdateSupplier()) return;
@@ -656,20 +417,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 const loader = document.getElementById('loader');
                 loader.style.display = 'flex';
 
-                try {
-                    const formData = new FormData(updateSupplierForm);
-                    formData.append('editsupplier', true);
+                const formData = new FormData(updateSupplierForm);
+                formData.append('editsupplier', true);
 
-                    const response = await fetch('AddSupplier.php', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    if (!response.ok) {
+                fetch('AddSupplier.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => {
+                    if (!res.ok) {
                         throw new Error('Network response was not ok');
                     }
-                    
-                    const data = await response.json();
+                    return res.json();
+                })
+                .then(data => {
                     loader.style.display = 'none';
                     showAlert(data.message, !data.success);
 
@@ -690,45 +451,15 @@ document.addEventListener("DOMContentLoaded", () => {
                         darkOverlay2.classList.add('opacity-0', 'invisible');
                         darkOverlay2.classList.remove('opacity-100');
 
-                        // Update the table row with the new data
-                        const rowToUpdate = document.querySelector(`tr [data-supplier-id="${data.generatedId}"]`)?.closest('tr');
-                        if (rowToUpdate) {
-                            const nameCell = rowToUpdate.querySelector('td:nth-child(2)');
-                            if (nameCell) {
-                                nameCell.innerHTML = `<p class="font-bold">${data.supplierName}</p><p>${data.supplierEmail}</p>`;
-                            }
-                            
-                            // Fetch and update the product type name
-                            const productTypeName = await fetchProductTypeName(data.supplierProductType);
-                            rowToUpdate.querySelector('td:nth-child(3)').textContent = productTypeName;
-                            
-                            rowToUpdate.querySelector('td:nth-child(4)').textContent = data.supplierContact;
-                            rowToUpdate.querySelector('td:nth-child(5)').textContent = data.supplierCompany;
-                            rowToUpdate.querySelector('td:nth-child(6)').innerHTML = `
-                                <p>
-                                    ${data.supplierAddress},
-                                    ${data.supplierCity},
-                                    ${data.supplierCountry}
-                                </p>
-                            `;
-                        }
-                    } else {
-                        document.getElementById('updateSupplierNameInput').value = '';
-                        document.getElementById('updateCompanyNameInput').value = '';
-                        document.getElementById('updateEmailInput').value = '';
-                        document.getElementById('updateContactNumberInput').value = '';
-                        document.getElementById('updateAddressInput').value = '';
-                        document.getElementById('updateCityInput').value = '';
-                        document.getElementById('updateStateInput').value = '';
-                        document.getElementById('updatePostalCodeInput').value = '';
-                        document.getElementById('updateCountryInput').value = '';
-                        updateSupplierForm.reset();
+                        // Fetch and render the updated suppliers with current pagination
+                        fetchAndRenderSuppliers();
                     }
-                } catch (err) {
+                })
+                .catch(err => {
                     loader.style.display = 'none';
                     showAlert("Something went wrong. Please try again.", true);
                     console.error(err);
-                }
+                });
             });
         }
     }
@@ -748,7 +479,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const formData = new FormData(supplierDeleteForm);
                 formData.append('deletesupplier', true);
-                const supplierId = formData.get('supplierid');
 
                 fetch('../Admin/AddSupplier.php', {
                     method: 'POST',
@@ -766,21 +496,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         darkOverlay2.classList.add('opacity-0', 'invisible');
                         darkOverlay2.classList.remove('opacity-100');
                         
-                        const rowToRemove = document.querySelector(`[data-supplier-id="${supplierId}"]`).closest('tr');
-                        if (rowToRemove) {
-                            rowToRemove.remove();
-                        }
-                        
-                        const tableBody = document.querySelector('tbody');
-                        if (tableBody && tableBody.querySelectorAll('tr').length === 0) {
-                            const emptyRow = document.createElement('tr');
-                            emptyRow.innerHTML = `
-                                <td colspan="7" class="p-3 text-center text-gray-500 py-52">
-                                    No suppliers available.
-                                </td>
-                            `;
-                            tableBody.appendChild(emptyRow);
-                        }
+                        // Fetch and render the updated suppliers with current pagination
+                        fetchAndRenderSuppliers();
                         
                         showAlert('The supplier has been successfully deleted.');
                     } else {
@@ -800,154 +517,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updateProductTypeNames();
 });
 
-// // Add Product Type Form
-// document.addEventListener("DOMContentLoaded", () => {
-//     const addProductTypeModal = document.getElementById('addProductTypeModal');
-//     const addProductTypeBtn = document.getElementById('addProductTypeBtn');
-//     const addProductTypeCancelBtn = document.getElementById('addProductTypeCancelBtn');
-//     const loader = document.getElementById('loader');
-//     const darkOverlay2 = document.getElementById('darkOverlay2');
-
-//     // Function to close the modal
-//     const closeModal = () => {
-//         addProductTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//         darkOverlay2.classList.add('opacity-0', 'invisible');
-//         darkOverlay2.classList.remove('opacity-100');
-
-//         const errors = ['productTypeError', 'descriptionError'];
-//         errors.forEach(error => {
-//             hideError(document.getElementById(error));
-//         });
-//     };
-
-//     if (addProductTypeModal && addProductTypeBtn && addProductTypeCancelBtn) {
-//         // Show modal
-//         addProductTypeBtn.addEventListener('click', () => {
-//             darkOverlay2.classList.remove('opacity-0', 'invisible');
-//             darkOverlay2.classList.add('opacity-100');
-//             addProductTypeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-//         });
-
-//         // Cancel button functionality
-//         addProductTypeCancelBtn.addEventListener('click', () => {
-//             closeModal();
-//             document.getElementById('productTypeInput').value = '';
-//             document.getElementById('descriptionInput').value = '';
-//         });
-//     }
-
-//     // Add keyup event listeners for real-time validation
-//     document.getElementById("productTypeInput").addEventListener("keyup", validateProductType);
-//     document.getElementById("descriptionInput").addEventListener("keyup", validateDescription);
-
-//     const productTypeForm = document.getElementById("productTypeForm");
-//     if (productTypeForm) {
-//         productTypeForm.addEventListener("submit", (e) => {
-//             e.preventDefault();
-
-//             if (!validateProductTypeForm()) return;
-
-//             loader.style.display = 'flex';
-
-//             const formData = new FormData(productTypeForm);
-//             formData.append('addproducttype', true);
-
-//             fetch('AddProductType.php', {
-//                 method: 'POST',
-//                 body: formData
-//             })
-//             .then(res => {
-//                 if (!res.ok) {
-//                     throw new Error('Network response was not ok');
-//                 }
-//                 return res.json();
-//             })
-//             .then(data => {
-//                 loader.style.display = 'none';
-                
-//                 // Clear any existing alerts before showing new one
-//                 const existingAlerts = document.querySelectorAll('.alert-container');
-//                 existingAlerts.forEach(alert => alert.remove());
-                
-//                 // Create new alert container
-//                 const alertContainer = document.createElement('div');
-//                 alertContainer.className = 'alert-container';
-//                 document.body.appendChild(alertContainer);
-                
-//                 // Show alert with the new container
-//                 showAlert(data.message, !data.success, alertContainer);
-
-//                 if (data.success) {
-//                     // Clear form and close modal
-//                     document.getElementById('productTypeInput').value = '';
-//                     document.getElementById('descriptionInput').value = '';
-//                     productTypeForm.reset();
-//                     closeModal();
-
-//                     // Add new row to the table
-//                     const tableBody = document.querySelector('tbody');
-//                     const noDataRow = tableBody.querySelector('td[colspan="7"]');
-                    
-//                     // Remove "No data" row if it exists
-//                     if (noDataRow) {
-//                         noDataRow.closest('tr').remove();
-//                     }
-                    
-//                     // Create new row for the added facility
-//                     const newRow = document.createElement('tr');
-//                     newRow.className = 'border-b border-gray-200 hover:bg-gray-50';
-//                     newRow.innerHTML = `
-//                         <td class="p-3 text-start whitespace-nowrap">
-//                             <div class="flex items-center gap-2 font-medium text-gray-500">
-//                                 <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-//                                 <span>${data.generatedId}</span>
-//                             </div>
-//                         </td>
-//                         <td class="p-3 text-start">
-//                             ${formData.get('producttype')}
-//                         </td>
-//                          <td class="p-3 text-start">
-//                             ${formData.get('description')}
-//                         </td>
-//                         <td class="p-3 text-start space-x-1 select-none">
-//                             <i class="details-btn ri-eye-line text-lg cursor-pointer"
-//                                 data-producttype-id="${data.generatedId}"></i>
-//                             <button class="text-red-500">
-//                                 <i class="delete-btn ri-delete-bin-7-line text-xl"
-//                                     data-producttype-id="${data.generatedId}"></i>
-//                             </button>
-//                         </td>
-//                     `;
-                    
-//                     // Append the new row to the table
-//                     tableBody.appendChild(newRow);
-//                 } else {
-//                     document.getElementById('productTypeInput').value = '';
-//                     document.getElementById('descriptionInput').value = '';
-//                     productTypeForm.reset();
-//                     closeModal();
-//                 }
-//             })
-//             .catch(err => {
-//                 loader.style.display = 'none';
-                
-//                 // Clear any existing alerts before showing new one
-//                 const existingAlerts = document.querySelectorAll('.alert-container');
-//                 existingAlerts.forEach(alert => alert.remove());
-                
-//                 // Create new alert container
-//                 const errorAlertContainer = document.createElement('div');
-//                 errorAlertContainer.className = 'alert-container';
-//                 document.body.appendChild(errorAlertContainer);
-                
-//                 showAlert("Something went wrong. Please try again.", false, errorAlertContainer);
-//                 console.error(err);
-//                 closeModal();
-//             });
-//         });
-//     }
-// });
-
 // Product Type Form and Modals
 document.addEventListener("DOMContentLoaded", () => {
     // Add Product Type Modal Elements
@@ -965,6 +534,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const productTypeConfirmDeleteModal = document.getElementById('productTypeConfirmDeleteModal');
     const productTypeCancelDeleteBtn = document.getElementById('productTypeCancelDeleteBtn');
 
+    // Get current pagination and search parameters from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentPage = urlParams.get('producttypepage') || 1;
+    const currentSearch = urlParams.get('producttype_search') || '';
+
     // Function to close the add modal
     const closeModal = () => {
         addProductTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
@@ -974,6 +548,69 @@ document.addEventListener("DOMContentLoaded", () => {
         const errors = ['productTypeError', 'descriptionError'];
         errors.forEach(error => {
             hideError(document.getElementById(error));
+        });
+    };
+
+    // Function to fetch and render product types with current pagination
+    const fetchAndRenderProductTypes = () => {
+        let fetchUrl = `../Admin/AddProductType.php?producttypepage=${currentPage}`;
+        
+        if (currentSearch) {
+            fetchUrl += `&producttype_search=${encodeURIComponent(currentSearch)}`;
+        }
+
+        fetch(fetchUrl)
+            .then(response => response.text())
+            .then(html => {
+                // Parse the HTML to extract the table body content
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTableBody = doc.querySelector('tbody');
+                const newPagination = doc.querySelector('.flex.justify-center.items-center.mt-1');
+                
+                if (newTableBody) {
+                    const currentTableBody = document.querySelector('tbody');
+                    currentTableBody.innerHTML = newTableBody.innerHTML;
+                    
+                    // Reattach event listeners to the new rows
+                    initializeExistingRows();
+                }
+
+                if (newPagination) {
+                    const currentPagination = document.querySelector('.flex.justify-center.items-center.mt-1');
+                    if (currentPagination) {
+                        currentPagination.innerHTML = newPagination.innerHTML;
+                    } else {
+                        const tableContainer = document.querySelector('table').parentNode;
+                        tableContainer.appendChild(newPagination);
+                    }
+                    
+                    // Update pagination links to maintain current page
+                    updatePaginationLinks();
+                }
+            })
+            .catch(error => console.error('Error fetching product types:', error));
+    };
+
+    // Function to update pagination links to maintain current page
+    const updatePaginationLinks = () => {
+        const paginationLinks = document.querySelectorAll('.pagination-link');
+        paginationLinks.forEach(link => {
+            const href = new URL(link.href);
+            const searchParams = new URLSearchParams(href.search);
+            
+            // Update or add producttypepage parameter
+            searchParams.set('producttypepage', currentPage);
+            
+            // Maintain search parameter if it exists
+            if (currentSearch) {
+                searchParams.set('producttype_search', currentSearch);
+            } else {
+                searchParams.delete('producttype_search');
+            }
+            
+            href.search = searchParams.toString();
+            link.href = href.toString();
         });
     };
 
@@ -987,7 +624,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/AddProductType.php?action=getProductTypeDetails&id=${productTypeId}`)
+                fetch(`../Admin/AddProductType.php?action=getProductTypeDetails&id=${productTypeId}&producttypepage=${currentPage}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -1011,7 +648,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/AddProductType.php?action=getProductTypeDetails&id=${productTypeId}`)
+                fetch(`../Admin/AddProductType.php?action=getProductTypeDetails&id=${productTypeId}&producttypepage=${currentPage}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -1086,45 +723,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     productTypeForm.reset();
                     closeModal();
                     
-                    const tableBody = document.querySelector('tbody');
-                    const noDataRow = tableBody.querySelector('td[colspan="7"]');
-
-                    if (noDataRow) {
-                        noDataRow.closest('tr').remove();
-                    }
-
-                    const newRow = document.createElement('tr');
-                    newRow.className = 'border-b border-gray-200 hover:bg-gray-50';
-                    newRow.innerHTML = `
-                        <td class="p-3 text-start whitespace-nowrap">
-                            <div class="flex items-center gap-2 font-medium text-gray-500">
-                                <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                <span>${data.generatedId}</span>
-                            </div>
-                        </td>
-                        <td class="p-3 text-start">
-                            ${formData.get('producttype')}
-                        </td>
-                        <td class="p-3 text-start">
-                            ${formData.get('description')}
-                        </td>
-                        <td class="p-3 text-start space-x-1 select-none">
-                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                data-producttype-id="${data.generatedId}"></i>
-                            <button class="text-red-500">
-                                <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                    data-producttype-id="${data.generatedId}"></i>
-                            </button>
-                        </td>
-                    `;
-
-                    tableBody.appendChild(newRow);
-                    attachEventListenersToRow(newRow);
-                } else {
-                    document.getElementById('productTypeInput').value = '';
-                    document.getElementById('descriptionInput').value = '';
-                    productTypeForm.reset();
-                    closeModal();
+                    // Fetch and render the updated product types with current pagination
+                    fetchAndRenderProductTypes();
                 }
             })
             .catch(err => {
@@ -1149,7 +749,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         document.getElementById("updateProductTypeInput")?.addEventListener("keyup", validateUpdateProductType);
-        document.getElementById("updateDescriptionInput")?.addEventListener("keyup", validateUpdateDescription);
+        document.getElementById("updateProductTypeDescription")?.addEventListener("keyup", validateUpdateDescription);
 
         const updateProductTypeForm = document.getElementById("updateProductTypeForm");
         if (updateProductTypeForm) {
@@ -1163,7 +763,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const formData = new FormData(updateProductTypeForm);
                 formData.append('editproducttype', true);
-                const productTypeId = formData.get('producttypeid');
+                // Include current page in the form data
+                formData.append('producttypepage', currentPage);
 
                 fetch('AddProductType.php', {
                     method: 'POST',
@@ -1182,23 +783,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (data.success) {
                         // Clear form and close modal
                         document.getElementById('updateProductTypeInput').value = '';
-                        document.getElementById('updateDescriptionInput').value = '';
+                        document.getElementById('updateProductTypeDescription').value = '';
                         updateProductTypeForm.reset();
                         
                         updateProductTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
                         darkOverlay2.classList.add('opacity-0', 'invisible');
                         darkOverlay2.classList.remove('opacity-100');
 
-                        // Update the table row with the new data
-                        const rowToUpdate = document.querySelector(`tr [data-producttype-id="${productTypeId}"]`)?.closest('tr');
-                        if (rowToUpdate) {
-                            rowToUpdate.cells[1].textContent = formData.get('updateproducttype');
-                            rowToUpdate.cells[2].textContent = formData.get('updatedescription');
-                        }
-                    } else {
-                        document.getElementById('updateProductTypeInput').value = '';
-                        document.getElementById('updateDescriptionInput').value = '';
-                        updateProductTypeForm.reset();
+                        // Fetch and render the updated product types with current pagination
+                        fetchAndRenderProductTypes();
                     }
                 })
                 .catch(err => {
@@ -1225,7 +818,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const formData = new FormData(productTypeDeleteForm);
                 formData.append('deleteproducttype', true);
-                const productTypeId = formData.get('producttypeid');
+                // Include current page in the form data
+                formData.append('producttypepage', currentPage);
 
                 fetch('../Admin/AddProductType.php', {
                     method: 'POST',
@@ -1243,21 +837,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         darkOverlay2.classList.add('opacity-0', 'invisible');
                         darkOverlay2.classList.remove('opacity-100');
                         
-                        const rowToRemove = document.querySelector(`[data-producttype-id="${productTypeId}"]`).closest('tr');
-                        if (rowToRemove) {
-                            rowToRemove.remove();
-                        }
-                        
-                        const tableBody = document.querySelector('tbody');
-                        if (tableBody && tableBody.querySelectorAll('tr').length === 0) {
-                            const emptyRow = document.createElement('tr');
-                            emptyRow.innerHTML = `
-                                <td colspan="7" class="p-3 text-center text-gray-500 py-52">
-                                    No product types available.
-                                </td>
-                            `;
-                            tableBody.appendChild(emptyRow);
-                        }
+                        // Fetch and render the updated product types with current pagination
+                        fetchAndRenderProductTypes();
                         
                         showAlert('The product type has been successfully deleted.');
                     } else {
@@ -1276,220 +857,340 @@ document.addEventListener("DOMContentLoaded", () => {
     initializeExistingRows();
 });
 
-// // Add Product Form
-// document.addEventListener("DOMContentLoaded", () => {
-//     const addProductModal = document.getElementById('addProductModal');
-//     const addProductBtn = document.getElementById('addProductBtn');
-//     const addProductCancelBtn = document.getElementById('addProductCancelBtn');
-//     const loader = document.getElementById('loader');
-//     const alertMessage = document.getElementById('alertMessage').value;
-//     const addProductSuccess = document.getElementById('addProductSuccess').value === 'true';
+// Product Form and Modals
+document.addEventListener("DOMContentLoaded", () => {
+    // Add Product Modal Elements
+    const addProductModal = document.getElementById('addProductModal');
+    const addProductBtn = document.getElementById('addProductBtn');
+    const addProductCancelBtn = document.getElementById('addProductCancelBtn');
+    const loader = document.getElementById('loader');
+    const darkOverlay2 = document.getElementById('darkOverlay2'); 
 
-//     if (addProductModal && addProductBtn && addProductCancelBtn) {
-//         // Show modal
-//         addProductBtn.addEventListener('click', () => {
-//             darkOverlay2.classList.remove('opacity-0', 'invisible');
-//             darkOverlay2.classList.add('opacity-100');
-//             addProductModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-//         });
+    // Update Product Modal Elements
+    const updateProductModal = document.getElementById('updateProductModal');
+    const updateProductModalCancelBtn = document.getElementById('updateProductModalCancelBtn');
 
-//         // Cancel button functionality
-//         addProductCancelBtn.addEventListener('click', () => {
-//             addProductModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//             darkOverlay2.classList.add('opacity-0', 'invisible');
-//             darkOverlay2.classList.remove('opacity-100');
+    // Delete Product Modal Elements
+    const productConfirmDeleteModal = document.getElementById('productConfirmDeleteModal');
+    const productCancelDeleteBtn = document.getElementById('productCancelDeleteBtn');
 
-//             // Clear error messages
-//             const errors = ['productTitleError', 'brandError', 'productDescriptionError', 'specificationError', 'informationError', 'deliveryError', 'priceError', 'discountPriceError', 'stockError'];
-//             errors.forEach(error => {
-//                 hideError(document.getElementById(error));
-//             });
-//         });
-//     }
+    // Get current pagination and search parameters from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentPage = urlParams.get('productpage') || 1;
+    const currentSearch = urlParams.get('product_search') || '';
+    const currentSort = urlParams.get('sort') || 'random';
 
-//     if (addProductSuccess) {
-//         loader.style.display = 'flex';
+    // Function to close the add modal
+    const closeModal = () => {
+        addProductModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+        darkOverlay2.classList.add('opacity-0', 'invisible');
+        darkOverlay2.classList.remove('opacity-100');
 
-//         // Show Alert
-//         setTimeout(() => {
-//             loader.style.display = 'none';
-//             showAlert('A new product has been successfully added.');
-//             setTimeout(() => {
-//                 window.location.href = 'AddProduct.php';
-//             }, 5000);
-//         }, 1000);
-//     } else if (alertMessage) {
-//         // Show Alert
-//         showAlert(alertMessage);
-//     }
+        const errors = ['productTitleError', 'brandError', 'productDescriptionError', 'specificationError', 
+                       'informationError', 'deliveryError', 'priceError', 'discountPriceError'];
+        errors.forEach(error => {
+            hideError(document.getElementById(error));
+        });
+    };
 
-//     // Add keyup event listeners for real-time validation
-//     document.getElementById("productTitleInput").addEventListener("keyup", validateProductTitle);
-//     document.getElementById("brandInput").addEventListener("keyup", validateProductBrand);
-//     document.getElementById("productDescriptionInput").addEventListener("keyup", validateProductDescription);
-//     document.getElementById("specificationInput").addEventListener("keyup", validateProductSpecification);
-//     document.getElementById("informationInput").addEventListener("keyup", validateProductInformation);
-//     document.getElementById("deliveryInput").addEventListener("keyup", validateProductDelivery);
-//     document.getElementById("priceInput").addEventListener("keyup", validateProductPrice);
-//     document.getElementById("discountPriceInput").addEventListener("keyup", validateProductDiscountPrice);
+    // Function to fetch and render products with current pagination
+    const fetchAndRenderProducts = () => {
+        let fetchUrl = `../Admin/AddProduct.php?productpage=${currentPage}`;
+        
+        if (currentSearch) {
+            fetchUrl += `&product_search=${encodeURIComponent(currentSearch)}`;
+        }
+        if (currentSort !== 'random') {
+            fetchUrl += `&sort=${currentSort}`;
+        }
 
-//     const productForm = document.getElementById("productForm");
-//     if (productForm) {
-//         productForm.addEventListener("submit", (e) => {
-//             if (!validateProductForm()) {
-//                 e.preventDefault();
-//             }
-//         });
-//     }
-// });
+        fetch(fetchUrl)
+            .then(response => response.text())
+            .then(html => {
+                // Parse the HTML to extract the table body content
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTableBody = doc.querySelector('tbody');
+                const newPagination = doc.querySelector('.flex.justify-center.items-center.mt-1');
+                
+                if (newTableBody) {
+                    const currentTableBody = document.querySelector('tbody');
+                    currentTableBody.innerHTML = newTableBody.innerHTML;
+                    
+                    // Reattach event listeners to the new rows
+                    initializeExistingRows();
+                }
 
-// // Product Details Modal
-// document.addEventListener('DOMContentLoaded', () => {
-//     const updateProductModal = document.getElementById('updateProductModal');
-//     const updateProductModalCancelBtn = document.getElementById('updateProductModalCancelBtn');
-//     const alertMessage = document.getElementById('alertMessage').value;
-//     const updateProductSuccess = document.getElementById('updateProductSuccess').value === 'true';
+                if (newPagination) {
+                    const currentPagination = document.querySelector('.flex.justify-center.items-center.mt-1');
+                    if (currentPagination) {
+                        currentPagination.innerHTML = newPagination.innerHTML;
+                    } else {
+                        const tableContainer = document.querySelector('table').parentNode;
+                        tableContainer.appendChild(newPagination);
+                    }
+                }
+            })
+            .catch(error => console.error('Error fetching products:', error));
+    };
 
-//     // Get all details buttons
-//     const detailsBtns = document.querySelectorAll('.details-btn');
+    // Function to attach event listeners to a row
+    const attachEventListenersToRow = (row) => {
+        // Details button
+        const detailsBtn = row.querySelector('.details-btn');
+        if (detailsBtn) {
+            detailsBtn.addEventListener('click', function() {
+                const productId = this.getAttribute('data-product-id');
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
 
-//     if (updateProductModal && updateProductModalCancelBtn && detailsBtns) {
-//         // Add click event to each button
-//         detailsBtns.forEach(btn => {
-//             btn.addEventListener('click', function () {
-//                 const productId = this.getAttribute('data-product-id');
-//                 darkOverlay2.classList.remove('opacity-0', 'invisible');
-//                 darkOverlay2.classList.add('opacity-100');
+                fetch(`../Admin/AddProduct.php?action=getProductDetails&id=${productId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('updateProductID').value = productId;
+                            document.querySelector('[name="updateproductTitle"]').value = data.product.Title;
+                            document.querySelector('[name="updatebrand"]').value = data.product.Brand;
+                            document.querySelector('[name="updatedescription"]').value = data.product.Description;
+                            document.querySelector('[name="updatespecification"]').value = data.product.Specification;
+                            document.querySelector('[name="updateinformation"]').value = data.product.Information;
+                            document.querySelector('[name="updatedelivery"]').value = data.product.DeliveryInfo;
+                            document.querySelector('[name="updateprice"]').value = data.product.Price;
+                            document.querySelector('[name="updatediscountPrice"]').value = data.product.DiscountPrice;
+                            document.querySelector('[name="updatesellingfast"]').value = data.product.SellingFast;
+                            document.querySelector('[name="updateproductType"]').value = data.product.ProductTypeID;
+                            updateProductModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        } else {
+                            console.error('Failed to load product details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+            });
+        }
 
-//                 // Fetch product type details
-//                 fetch(`../Admin/AddProduct.php?action=getProductDetails&id=${productId}`)
-//                     .then(response => response.json())
-//                     .then(data => {
-//                         if (data.success) {
-//                             // Fill the modal form with product type data
-//                             document.getElementById('updateProductID').value = productId;
-//                             document.querySelector('[name="updateproductTitle"]').value = data.product.Title;
-//                             document.querySelector('[name="updatebrand"]').value = data.product.Brand;
-//                             document.querySelector('[name="updatedescription"]').value = data.product.Description;
-//                             document.querySelector('[name="updatespecification"]').value = data.product.Specification;
-//                             document.querySelector('[name="updateinformation"]').value = data.product.Information;
-//                             document.querySelector('[name="updatedelivery"]').value = data.product.DeliveryInfo;
-//                             document.querySelector('[name="updateprice"]').value = data.product.Price;
-//                             document.querySelector('[name="updatediscountPrice"]').value = data.product.DiscountPrice;
-//                             document.querySelector('[name="updatesellingfast"]').value = data.product.SellingFast;
-//                             document.querySelector('[name="updateproductType"]').value = data.product.ProductTypeID;
+        // Delete button
+        const deleteBtn = row.querySelector('.delete-btn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function() {
+                const productId = this.getAttribute('data-product-id');
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
 
-//                             // Show the modal
-//                             updateProductModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-//                         } else {
-//                             console.error('Failed to load product type details');
-//                         }
-//                     })
-//                     .catch(error => console.error('Fetch error:', error));
-//             });
-//         });
+                fetch(`../Admin/AddProduct.php?action=getProductDetails&id=${productId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('deleteProductID').value = productId;
+                            document.getElementById('productDeleteName').textContent = data.product.Title;
+                            productConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        } else {
+                            console.error('Failed to load product details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+            });
+        }
+    };
 
-//         updateProductModalCancelBtn.addEventListener('click', () => {
-//             updateProductModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//             darkOverlay2.classList.add('opacity-0', 'invisible');
-//             darkOverlay2.classList.remove('opacity-100');
+    // Initialize event listeners for existing rows
+    const initializeExistingRows = () => {
+        const rows = document.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            attachEventListenersToRow(row);
+        });
+    };
 
-//             // Clear error messages
-//             const errors = ['updateProductTitleError', 'updateBrandError', 'updateDescriptionError', 'updateSpecificationError', 'updateInformationError', 'updateDeliveryError', 'updatePriceError', 'updateDiscountPriceError'];
-//             errors.forEach(error => {
-//                 hideError(document.getElementById(error));
-//             });
-//         });
+    // Add Product Modal
+    if (addProductModal && addProductBtn && addProductCancelBtn) {
+        addProductBtn.addEventListener('click', () => {
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
+            addProductModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+        });
 
-//         if (updateProductSuccess) {
-//             // Show Alert
-//             setTimeout(() => {
-//                 showAlert('The product has been successfully updated.');
-//                 setTimeout(() => {
-//                     window.location.href = 'AddProduct.php';
-//                 }, 5000);
-//             }, 500);
-//         } else if (alertMessage) {
-//             // Show Alert
-//             showAlert(alertMessage);
-//         }
-//         // Add keyup event listeners for real-time validation
-//         document.getElementById("updateProductTitleInput").addEventListener("keyup", validateUpdateProductTitle);
-//         document.getElementById("updateBrandInput").addEventListener("keyup", validateUpdateBrand);
-//         document.getElementById("updateDescriptionInput").addEventListener("keyup", validateUpdateProductDescription);
-//         document.getElementById("updateSpecificationInput").addEventListener("keyup", validateUpdateSpecification);
-//         document.getElementById("updateInformationInput").addEventListener("keyup", validateUpdateInformation);
-//         document.getElementById("updateDeliveryInput").addEventListener("keyup", validateUpdateDelivery);
-//         document.getElementById("updatePriceInput").addEventListener("keyup", validateUpdatePrice);
-//         document.getElementById("updateDiscountPriceInput").addEventListener("keyup", validateUpdateDiscountPrice);
+        addProductCancelBtn.addEventListener('click', () => {
+            closeModal();
+            document.getElementById('productTitleInput').value = '';
+        });
+    }
 
-//         const updateProductForm = document.getElementById("updateProductForm");
-//         if (updateProductForm) {
-//             updateProductForm.addEventListener("submit", (e) => {
-//                 if (!validateUpdateProduct()) {
-//                     e.preventDefault();
-//                 }
-//             });
-//         }
-//     }
-// });
+    // Product Form Submission
+    document.getElementById("productTitleInput")?.addEventListener("keyup", validateProductTitle);
+    document.getElementById("brandInput")?.addEventListener("keyup", validateProductBrand);
+    document.getElementById("productDescriptionInput")?.addEventListener("keyup", validateProductDescription);
+    document.getElementById("specificationInput")?.addEventListener("keyup", validateProductSpecification);
+    document.getElementById("informationInput")?.addEventListener("keyup", validateProductInformation);
+    document.getElementById("deliveryInput")?.addEventListener("keyup", validateProductDelivery);
+    document.getElementById("priceInput")?.addEventListener("keyup", validateProductPrice);
+    document.getElementById("discountPriceInput")?.addEventListener("keyup", validateProductDiscountPrice);
+    
+    const productForm = document.getElementById("productForm");
+    if (productForm) {
+        productForm.addEventListener("submit", (e) => {
+            e.preventDefault();
 
-// // Product Delete Modal
-// document.addEventListener('DOMContentLoaded', () => {
-//     const productDeleteModal = document.getElementById('productConfirmDeleteModal');
-//     const productDeleteModalCancelBtn = document.getElementById('productCancelDeleteBtn');
-//     const alertMessage = document.getElementById('alertMessage').value;
-//     const deleteProductSuccess = document.getElementById('deleteProductSuccess').value === 'true';
+            if (!validateProductForm()) return;
 
-//     // Get all delete buttons
-//     const deleteBtns = document.querySelectorAll('.delete-btn');
+            loader.style.display = 'flex';
 
-//     if (productDeleteModal && productDeleteModalCancelBtn && deleteBtns) {
-//         // Add click event to each delete button
-//         deleteBtns.forEach(btn => {
-//             btn.addEventListener('click', function () {
-//                 const productId = this.getAttribute('data-product-id');
+            const formData = new FormData(productForm);
+            formData.append('addproduct', true);
 
-//                 // Fetch product type details
-//                 fetch(`../Admin/AddProduct.php?action=getProductDetails&id=${productId}`)
-//                     .then(response => response.json())
-//                     .then(data => {
-//                         if (data.success) {
-//                             document.getElementById('deleteProductID').value = productId;
-//                             document.getElementById('productDeleteName').textContent = data.product.Title;
-//                         } else {
-//                             console.error('Failed to load product details');
-//                         }
-//                     })
-//                     .catch(error => console.error('Fetch error:', error));
+            fetch('AddProduct.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return res.json();
+            })
+            .then(data => {
+                loader.style.display = 'none';
+                showAlert(data.message, !data.success);
 
-//                 // Show modal
-//                 darkOverlay2.classList.remove('opacity-0', 'invisible');
-//                 darkOverlay2.classList.add('opacity-100');
-//                 productDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-//             });
-//         });
+                if (data.success) {
+                    document.getElementById('productTitleInput').value = '';
+                    productForm.reset();
+                    closeModal();
+                    
+                    // Fetch and render the updated products with current pagination
+                    fetchAndRenderProducts();
+                }
+            })
+            .catch(err => {
+                loader.style.display = 'none';
+                showAlert("Something went wrong. Please try again.", true);
+                console.error(err);
+            });
+        });
+    }
 
-//         // Cancel button functionality
-//         productDeleteModalCancelBtn.addEventListener('click', () => {
-//             productDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//             darkOverlay2.classList.add('opacity-0', 'invisible');
-//             darkOverlay2.classList.remove('opacity-100');
-//         });
+    // Update Product Modal 
+    if (updateProductModal && updateProductModalCancelBtn) {
+        updateProductModalCancelBtn.addEventListener('click', () => {
+            updateProductModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
 
-//         if (deleteProductSuccess) {
-//             // Show Alert
-//             showAlert('The product has been successfully deleted.');
-//             setTimeout(() => {
-//                 window.location.href = 'AddProduct.php';
-//             }, 5000);
-//         } else if (alertMessage) {
-//             // Show Alert
-//             showAlert(alertMessage);
-//         }
-//     }
-// });
+            const errors = ['updateProductTitleError', 'updateBrandError', 'updateDescriptionError', 
+                          'updateSpecificationError', 'updateInformationError', 'updateDeliveryError', 
+                          'updatePriceError', 'updateDiscountPriceError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
+        });
 
+        document.getElementById("updateProductTitleInput")?.addEventListener("keyup", validateUpdateProductTitle);
+        document.getElementById("updateBrandInput")?.addEventListener("keyup", validateUpdateBrand);
+        document.getElementById("updateDescriptionInput")?.addEventListener("keyup", validateUpdateProductDescription);
+        document.getElementById("updateSpecificationInput")?.addEventListener("keyup", validateUpdateSpecification);
+        document.getElementById("updateInformationInput")?.addEventListener("keyup", validateUpdateInformation);
+        document.getElementById("updateDeliveryInput")?.addEventListener("keyup", validateUpdateDelivery);
+        document.getElementById("updatePriceInput")?.addEventListener("keyup", validateUpdatePrice);
+        document.getElementById("updateDiscountPriceInput")?.addEventListener("keyup", validateUpdateDiscountPrice);
+
+        const updateProductForm = document.getElementById("updateProductForm");
+        if (updateProductForm) {
+            updateProductForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+
+                if (!validateProductUpdateForm()) return;
+
+                const loader = document.getElementById('loader');
+                loader.style.display = 'flex';
+
+                const formData = new FormData(updateProductForm);
+                formData.append('editproduct', true);
+
+                fetch('AddProduct.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    loader.style.display = 'none';
+                    showAlert(data.message, !data.success);
+
+                    if (data.success) {
+                        // Clear form and close modal
+                        document.getElementById('updateProductTitleInput').value = '';
+                        updateProductForm.reset();
+                        
+                        updateProductModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                        darkOverlay2.classList.add('opacity-0', 'invisible');
+                        darkOverlay2.classList.remove('opacity-100');
+
+                        // Fetch and render the updated products with current pagination
+                        fetchAndRenderProducts();
+                    }
+                })
+                .catch(err => {
+                    loader.style.display = 'none';
+                    showAlert("Something went wrong. Please try again.", true);
+                    console.error(err);
+                });
+            });
+        }
+    }
+
+    // Delete Product Modal
+    if (productConfirmDeleteModal && productCancelDeleteBtn) {
+        productCancelDeleteBtn.addEventListener('click', () => {
+            productConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        const productDeleteForm = document.getElementById('productDeleteForm');
+        if (productDeleteForm) {
+            productDeleteForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(productDeleteForm);
+                formData.append('deleteproduct', true);
+
+                fetch('../Admin/AddProduct.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        productConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                        darkOverlay2.classList.add('opacity-0', 'invisible');
+                        darkOverlay2.classList.remove('opacity-100');
+                        
+                        // Fetch and render the updated products with current pagination
+                        fetchAndRenderProducts();
+                        
+                        showAlert('The product has been successfully deleted.');
+                    } else {
+                        showAlert(data.message || 'Failed to delete product.');
+                    }
+                })
+                .catch((err) => {
+                    console.error('Error:', err);
+                    showAlert('An error occurred. Please try again.');
+                });
+            });
+        }
+    }
+
+    // Initialize existing rows on page load
+    initializeExistingRows();
+});
 
 // Add Room Type Form
 document.addEventListener("DOMContentLoaded", () => {
@@ -1690,67 +1391,310 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Add Room Form
+// Room Form and Modals
 document.addEventListener("DOMContentLoaded", () => {
+    // Add Room Modal Elements
     const addRoomModal = document.getElementById('addRoomModal');
     const addRoomBtn = document.getElementById('addRoomBtn');
     const addRoomCancelBtn = document.getElementById('addRoomCancelBtn');
     const loader = document.getElementById('loader');
-    const alertMessage = document.getElementById('alertMessage').value;
-    const addRoomSuccess = document.getElementById('addRoomSuccess').value === 'true';
+    const darkOverlay2 = document.getElementById('darkOverlay2');
 
+    // Update Room Modal Elements
+    const updateRoomModal = document.getElementById('updateRoomModal');
+    const updateRoomModalCancelBtn = document.getElementById('updateRoomModalCancelBtn');
+
+    // Delete Room Modal Elements
+    const roomConfirmDeleteModal = document.getElementById('roomConfirmDeleteModal');
+    const roomCancelDeleteBtn = document.getElementById('roomCancelDeleteBtn');
+
+    // Get current pagination and search parameters from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentPage = urlParams.get('roompage') || 1;
+    const currentSearch = urlParams.get('room_search') || '';
+
+    // Function to close the add modal
+    const closeModal = () => {
+        addRoomModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+        darkOverlay2.classList.add('opacity-0', 'invisible');
+        darkOverlay2.classList.remove('opacity-100');
+
+        const errors = ['roomNameError'];
+        errors.forEach(error => {
+            hideError(document.getElementById(error));
+        });
+    };
+
+    // Function to fetch and render rooms with current pagination
+    const fetchAndRenderRooms = () => {
+        let fetchUrl = `../Admin/AddRoom.php?roompage=${currentPage}`;
+        
+        if (currentSearch) {
+            fetchUrl += `&room_search=${encodeURIComponent(currentSearch)}`;
+        }
+
+        fetch(fetchUrl)
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTableBody = doc.querySelector('tbody');
+                const newPagination = doc.querySelector('.flex.justify-center.items-center.mt-1');
+                
+                if (newTableBody) {
+                    const currentTableBody = document.querySelector('tbody');
+                    currentTableBody.innerHTML = newTableBody.innerHTML;
+                    initializeExistingRows();
+                }
+
+                if (newPagination) {
+                    const currentPagination = document.querySelector('.flex.justify-center.items-center.mt-1');
+                    if (currentPagination) {
+                        currentPagination.innerHTML = newPagination.innerHTML;
+                    } else {
+                        const tableContainer = document.querySelector('table').parentNode;
+                        tableContainer.appendChild(newPagination);
+                    }
+                    
+                    // Update pagination links to maintain current page
+                    updatePaginationLinks();
+                }
+            })
+            .catch(error => console.error('Error fetching rooms:', error));
+    };
+
+    // Function to update pagination links to maintain current page
+    const updatePaginationLinks = () => {
+        const paginationLinks = document.querySelectorAll('.pagination-link');
+        paginationLinks.forEach(link => {
+            const href = new URL(link.href);
+            const searchParams = new URLSearchParams(href.search);
+            
+            searchParams.set('roompage', currentPage);
+            
+            if (currentSearch) {
+                searchParams.set('room_search', currentSearch);
+            } else {
+                searchParams.delete('room_search');
+            }
+            
+            href.search = searchParams.toString();
+            link.href = href.toString();
+        });
+    };
+
+    // Function to attach event listeners to a row
+    const attachEventListenersToRow = (row) => {
+        // Details button
+        const detailsBtn = row.querySelector('.details-btn');
+        if (detailsBtn) {
+            detailsBtn.addEventListener('click', function() {
+                const roomId = this.getAttribute('data-room-id');
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+
+                fetch(`../Admin/AddRoom.php?action=getRoomDetails&id=${roomId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('updateRoomID').value = roomId;
+                            document.querySelector('[name="updateroomname"]').value = data.room.RoomName;
+                            document.querySelector('[name="updateroomstatus"]').value = data.room.RoomStatus;
+                            document.querySelector('[name="updateroomtype"]').value = data.room.RoomTypeID;
+                            updateRoomModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        } else {
+                            console.error('Failed to load room details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+            });
+        }
+
+        // Delete button
+        const deleteBtn = row.querySelector('.delete-btn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function() {
+                const roomId = this.getAttribute('data-room-id');
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+
+                fetch(`../Admin/AddRoom.php?action=getRoomDetails&id=${roomId}&roompage=${currentPage}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('deleteRoomID').value = roomId;
+                            document.getElementById('roomDeleteName').textContent = data.room.RoomName;
+                            roomConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        } else {
+                            console.error('Failed to load room details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+            });
+        }
+    };
+
+    // Initialize event listeners for existing rows
+    const initializeExistingRows = () => {
+        const rows = document.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            attachEventListenersToRow(row);
+        });
+    };
+
+    // Add Room Modal
     if (addRoomModal && addRoomBtn && addRoomCancelBtn) {
-        // Show modal
         addRoomBtn.addEventListener('click', () => {
             darkOverlay2.classList.remove('opacity-0', 'invisible');
             darkOverlay2.classList.add('opacity-100');
             addRoomModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
         });
 
-        // Cancel button functionality
         addRoomCancelBtn.addEventListener('click', () => {
-            addRoomModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-            darkOverlay2.classList.add('opacity-0', 'invisible');
-            darkOverlay2.classList.remove('opacity-100');
+            closeModal();
+            document.getElementById('roomNameInput').value = '';
+        });
+    }
 
-            // Clear error messages
-            const errors = ['roomNameError'];
-            errors.forEach(error => {
-                hideError(document.getElementById(error));
+    // Room Form Submission
+    document.getElementById("roomNameInput")?.addEventListener("keyup", validateRoomName);
+    
+    const roomForm = document.getElementById("roomForm");
+    if (roomForm) {
+        roomForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+
+            if (!validateRoomForm()) return;
+
+            loader.style.display = 'flex';
+
+            const formData = new FormData(roomForm);
+            formData.append('addroom', true);
+
+            fetch('AddRoom.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                loader.style.display = 'none';
+                showAlert(data.message, !data.success);
+
+                if (data.success) {
+                    document.getElementById('roomNameInput').value = '';
+                    roomForm.reset();
+                    closeModal();
+                    fetchAndRenderRooms();
+                }
+            })
+            .catch(err => {
+                loader.style.display = 'none';
+                showAlert("Something went wrong. Please try again.", true);
+                console.error(err);
             });
         });
     }
 
-    if (addRoomSuccess) {
-        loader.style.display = 'flex';
+    // Update Room Modal 
+    if (updateRoomModal && updateRoomModalCancelBtn) {
+        updateRoomModalCancelBtn.addEventListener('click', () => {
+            updateRoomModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
 
-        // Show Alert
-        setTimeout(() => {
-            loader.style.display = 'none';
-            showAlert('A new room has been successfully added.');
-            setTimeout(() => {
-                window.location.href = 'AddRoom.php';
-            }, 5000);
-        }, 1000);
-    } else if (alertMessage) {
-        // Show Alert
-        showAlert(alertMessage);
-    }
-
-    // Add keyup event listeners for real-time validation
-    document.getElementById("roomNameInput").addEventListener("keyup", validateRoomName);
-
-    const roomForm = document.getElementById("roomForm");
-    if (roomForm) {
-        roomForm.addEventListener("submit", (e) => {
-            if (!validateRoomForm()) {
-                e.preventDefault();
-            }
+            const errors = ['updateRoomNameError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
         });
+
+        document.getElementById("updateRoomNameInput")?.addEventListener("keyup", validateUpdateRoomName);
+
+        const updateRoomForm = document.getElementById("updateRoomForm");
+        if (updateRoomForm) {
+            updateRoomForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+
+                if (!validateRoomUpdateForm()) return;
+
+                const loader = document.getElementById('loader');
+                loader.style.display = 'flex';
+
+                const formData = new FormData(updateRoomForm);
+                formData.append('editroom', true);
+                formData.append('roompage', currentPage);
+
+                fetch('AddRoom.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    loader.style.display = 'none';
+                    showAlert(data.message, !data.success);
+
+                    if (data.success) {
+                        updateRoomModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                        darkOverlay2.classList.add('opacity-0', 'invisible');
+                        darkOverlay2.classList.remove('opacity-100');
+                        fetchAndRenderRooms();
+                    }
+                })
+                .catch(err => {
+                    loader.style.display = 'none';
+                    showAlert("Something went wrong. Please try again.", true);
+                    console.error(err);
+                });
+            });
+        }
     }
+
+    // Delete Room Modal
+    if (roomConfirmDeleteModal && roomCancelDeleteBtn) {
+        roomCancelDeleteBtn.addEventListener('click', () => {
+            roomConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        const roomDeleteForm = document.getElementById('roomDeleteForm');
+        if (roomDeleteForm) {
+            roomDeleteForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(roomDeleteForm);
+                formData.append('deleteroom', true);
+                formData.append('roompage', currentPage);
+
+                fetch('../Admin/AddRoom.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        roomConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                        darkOverlay2.classList.add('opacity-0', 'invisible');
+                        darkOverlay2.classList.remove('opacity-100');
+                        fetchAndRenderRooms();
+                        showAlert('The room has been successfully deleted.');
+                    } else {
+                        showAlert(data.message || 'Failed to delete room.');
+                    }
+                })
+                .catch((err) => {
+                    console.error('Error:', err);
+                    showAlert('An error occurred. Please try again.');
+                });
+            });
+        }
+    }
+
+    // Initialize existing rows on page load
+    initializeExistingRows();
 });
 
-// Facility Type Form and Modals
+// bType Form and Modals
 document.addEventListener("DOMContentLoaded", () => {
     // Add Facility Type Modal Elements
     const addFacilityTypeModal = document.getElementById('addFacilityTypeModal');
@@ -1767,6 +1711,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const facilityTypeConfirmDeleteModal = document.getElementById('facilityTypeConfirmDeleteModal');
     const facilityTypeCancelDeleteBtn = document.getElementById('facilityTypeCancelDeleteBtn');
 
+    // Get current pagination and search parameters from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentPage = urlParams.get('facilitytypepage') || 1;
+    const currentSearch = urlParams.get('facilitytype_search') || '';
+
     // Function to close the add modal
     const closeModal = () => {
         addFacilityTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
@@ -1779,15 +1728,22 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
-    // Function to fetch and render facility types
+    // Function to fetch and render facility types with current pagination
     const fetchAndRenderFacilityTypes = () => {
-        fetch('../Admin/AddFacilityType.php')
+        let fetchUrl = `../Admin/AddFacilityType.php?facilitytypepage=${currentPage}`;
+        
+        if (currentSearch) {
+            fetchUrl += `&facilitytype_search=${encodeURIComponent(currentSearch)}`;
+        }
+
+        fetch(fetchUrl)
             .then(response => response.text())
             .then(html => {
                 // Parse the HTML to extract the table body content
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 const newTableBody = doc.querySelector('tbody');
+                const newPagination = doc.querySelector('.flex.justify-center.items-center.mt-1');
                 
                 if (newTableBody) {
                     const currentTableBody = document.querySelector('tbody');
@@ -1795,6 +1751,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     
                     // Reattach event listeners to the new rows
                     initializeExistingRows();
+                }
+
+                if (newPagination) {
+                    const currentPagination = document.querySelector('.flex.justify-center.items-center.mt-1');
+                    if (currentPagination) {
+                        currentPagination.innerHTML = newPagination.innerHTML;
+                    } else {
+                        const tableContainer = document.querySelector('table').parentNode;
+                        tableContainer.appendChild(newPagination);
+                    }
                 }
             })
             .catch(error => console.error('Error fetching facility types:', error));
@@ -1910,7 +1876,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     facilityTypeForm.reset();
                     closeModal();
                     
-                    // Fetch and render the updated facility types
+                    // Fetch and render the updated facility types with current pagination
                     fetchAndRenderFacilityTypes();
                 }
             })
@@ -1975,7 +1941,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         darkOverlay2.classList.add('opacity-0', 'invisible');
                         darkOverlay2.classList.remove('opacity-100');
 
-                        // Fetch and render the updated facility types
+                        // Fetch and render the updated facility types with current pagination
                         fetchAndRenderFacilityTypes();
                     }
                 })
@@ -2020,7 +1986,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         darkOverlay2.classList.add('opacity-0', 'invisible');
                         darkOverlay2.classList.remove('opacity-100');
                         
-                        // Fetch and render the updated facility types
+                        // Fetch and render the updated facility types with current pagination
                         fetchAndRenderFacilityTypes();
                         
                         showAlert('The facility type has been successfully deleted.');
@@ -2040,635 +2006,6 @@ document.addEventListener("DOMContentLoaded", () => {
     initializeExistingRows();
 });
 
-// // Facility Form and Modals
-// document.addEventListener("DOMContentLoaded", () => {
-//     // Add Facility Modal Elements
-//     const addFacilityModal = document.getElementById('addFacilityModal');
-//     const addFacilityBtn = document.getElementById('addFacilityBtn');
-//     const addFacilityCancelBtn = document.getElementById('addFacilityCancelBtn');
-//     const loader = document.getElementById('loader');
-//     const darkOverlay2 = document.getElementById('darkOverlay2'); 
-
-//     // Update Facility Modal Elements
-//     const updateFacilityModal = document.getElementById('updateFacilityModal');
-//     const updateFacilityModalCancelBtn = document.getElementById('updateFacilityModalCancelBtn');
-
-//     // Delete Facility Modal Elements
-//     const facilityConfirmDeleteModal = document.getElementById('facilityConfirmDeleteModal');
-//     const facilityCancelDeleteBtn = document.getElementById('facilityCancelDeleteBtn');
-
-//     // Function to close the add modal
-//     const closeModal = () => {
-//         addFacilityModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//         darkOverlay2.classList.add('opacity-0', 'invisible');
-//         darkOverlay2.classList.remove('opacity-100');
-
-//         const errors = ['facilityError'];
-//         errors.forEach(error => {
-//             hideError(document.getElementById(error));
-//         });
-//     };
-
-//     // Function to attach event listeners to a row
-//     const attachEventListenersToRow = (row) => {
-//         // Details button
-//         const detailsBtn = row.querySelector('.details-btn');
-//         if (detailsBtn) {
-//             detailsBtn.addEventListener('click', function() {
-//                 const facilityId = this.getAttribute('data-facility-id');
-//                 darkOverlay2.classList.remove('opacity-0', 'invisible');
-//                 darkOverlay2.classList.add('opacity-100');
-
-//                 fetch(`../Admin/AddFacility.php?action=getFacilityDetails&id=${facilityId}`)
-//                     .then(response => response.json())
-//                     .then(data => {
-//                         if (data.success) {
-//                             document.getElementById('updateFacilityID').value = facilityId;
-//                             document.querySelector('[name="updatefacility"]').value = data.facility.Facility;
-//                             document.querySelector('[name="updatefacilityicon"]').value = data.facility.FacilityIcon;
-//                             document.querySelector('[name="updatefacilityiconsize"]').value = data.facility.IconSize;
-//                             document.querySelector('[name="updateadditionalcharge"]').value = data.facility.AdditionalCharge;
-//                             document.querySelector('[name="updatepopular"]').value = data.facility.Popular;
-//                             document.querySelector('[name="updatefacilitytype"]').value = data.facility.FacilityTypeID;
-//                             updateFacilityModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-//                         } else {
-//                             console.error('Failed to load facility details');
-//                         }
-//                     })
-//                     .catch(error => console.error('Fetch error:', error));
-//             });
-//         }
-
-//         // Delete button
-//         const deleteBtn = row.querySelector('.delete-btn');
-//         if (deleteBtn) {
-//             deleteBtn.addEventListener('click', function() {
-//                 const facilityId = this.getAttribute('data-facility-id');
-//                 darkOverlay2.classList.remove('opacity-0', 'invisible');
-//                 darkOverlay2.classList.add('opacity-100');
-
-//                 fetch(`../Admin/AddFacility.php?action=getFacilityDetails&id=${facilityId}`)
-//                     .then(response => response.json())
-//                     .then(data => {
-//                         if (data.success) {
-//                             document.getElementById('deleteFacilityID').value = facilityId;
-//                             document.getElementById('facilityDeleteName').textContent = data.facility.Facility;
-//                             facilityConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-//                         } else {
-//                             console.error('Failed to load facility details');
-//                         }
-//                     })
-//                     .catch(error => console.error('Fetch error:', error));
-//             });
-//         }
-//     };
-
-//     // Initialize event listeners for existing rows
-//     const initializeExistingRows = () => {
-//         const rows = document.querySelectorAll('tbody tr');
-//         rows.forEach(row => {
-//             attachEventListenersToRow(row);
-//         });
-//     };
-
-//     // Add Facility Modal
-//     if (addFacilityModal && addFacilityBtn && addFacilityCancelBtn) {
-//         addFacilityBtn.addEventListener('click', () => {
-//             darkOverlay2.classList.remove('opacity-0', 'invisible');
-//             darkOverlay2.classList.add('opacity-100');
-//             addFacilityModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-//         });
-
-//         addFacilityCancelBtn.addEventListener('click', () => {
-//             closeModal();
-//             document.getElementById('facilityInput').value = '';
-//         });
-//     }
-
-//     // Facility Form Submission
-//     document.getElementById("facilityInput")?.addEventListener("keyup", validateFacility);
-    
-//     const facilityForm = document.getElementById("facilityForm");
-//     if (facilityForm) {
-//         facilityForm.addEventListener("submit", (e) => {
-//             e.preventDefault();
-
-//             if (!validateFacilityForm()) return;
-
-//             loader.style.display = 'flex';
-
-//             const formData = new FormData(facilityForm);
-//             formData.append('addfacility', true);
-
-//             fetch('AddFacility.php', {
-//                 method: 'POST',
-//                 body: formData
-//             })
-//             .then(res => {
-//                 if (!res.ok) {
-//                     throw new Error('Network response was not ok');
-//                 }
-//                 return res.json();
-//             })
-//             .then(data => {
-//                 loader.style.display = 'none';
-//                 showAlert(data.message, !data.success);
-
-//                 if (data.success) {
-//                     document.getElementById('facilityInput').value = '';
-//                     facilityForm.reset();
-//                     closeModal();
-                    
-//                     const tableBody = document.querySelector('tbody');
-//                     const noDataRow = tableBody.querySelector('td[colspan="7"]');
-
-//                     if (noDataRow) {
-//                         noDataRow.closest('tr').remove();
-//                     }
-
-//                     const newRow = document.createElement('tr');
-//                     newRow.className = 'border-b border-gray-200 hover:bg-gray-50';
-//                     newRow.innerHTML = `
-//                         <td class="p-3 text-start whitespace-nowrap">
-//                             <div class="flex items-center gap-2 font-medium text-gray-500">
-//                                 <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-//                                 <span>${data.generatedId}</span>
-//                             </div>
-//                         </td>
-//                         <td class="p-3 text-start">
-//                             ${formData.get('facility')}
-//                         </td>
-//                         <td class="p-3 text-start">
-//                             ${formData.get('facilityicon') && formData.get('facilityiconsize') 
-//                                 ? `<i class="${formData.get('facilityicon')} ${formData.get('facilityiconsize')}"></i>`
-//                                 : 'None'}
-//                         </td>
-//                         <td class="p-3 text-start hidden md:table-cell">
-//                             ${formData.get('additionalcharge') == 1 ? 'True' : 'False'}
-//                         </td>
-//                         <td class="p-3 text-start hidden md:table-cell">
-//                             ${formData.get('popular') == 1 ? 'True' : 'False'}
-//                         </td>
-//                         <td class="p-3 text-start hidden lg:table-cell">
-//                             ${formData.get('facilityType')}
-//                         </td>
-//                         <td class="p-3 text-start space-x-1 select-none">
-//                             <i class="details-btn ri-eye-line text-lg cursor-pointer"
-//                                 data-facility-id="${data.generatedId}"></i>
-//                             <button class="text-red-500">
-//                                 <i class="delete-btn ri-delete-bin-7-line text-xl"
-//                                     data-facility-id="${data.generatedId}"></i>
-//                             </button>
-//                         </td>
-//                     `;
-
-//                     tableBody.appendChild(newRow);
-//                     attachEventListenersToRow(newRow);
-//                 } else {
-//                     document.getElementById('facilityInput').value = '';
-//                     facilityForm.reset();
-//                     closeModal();
-//                 }
-//             })
-//             .catch(err => {
-//                 loader.style.display = 'none';
-//                 showAlert("Something went wrong. Please try again.", true);
-//                 console.error(err);
-//             });
-//         });
-//     }
-
-//     // Update Facility Modal 
-//     if (updateFacilityModal && updateFacilityModalCancelBtn) {
-//         updateFacilityModalCancelBtn.addEventListener('click', () => {
-//             updateFacilityModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//             darkOverlay2.classList.add('opacity-0', 'invisible');
-//             darkOverlay2.classList.remove('opacity-100');
-
-//             const errors = ['updateFacilityError'];
-//             errors.forEach(error => {
-//                 hideError(document.getElementById(error));
-//             });
-//         });
-
-//         document.getElementById("updateFacilityInput")?.addEventListener("keyup", validateUpdateFacility);
-
-//         const updateFacilityForm = document.getElementById("updateFacilityForm");
-//         if (updateFacilityForm) {
-//             updateFacilityForm.addEventListener("submit", (e) => {
-//                 e.preventDefault();
-
-//                 if (!validateFacilityUpdateForm()) return;
-
-//                 const loader = document.getElementById('loader');
-//                 loader.style.display = 'flex';
-
-//                 const formData = new FormData(updateFacilityForm);
-//                 formData.append('editfacility', true);
-
-//                 fetch('AddFacility.php', {
-//                     method: 'POST',
-//                     body: formData
-//                 })
-//                 .then(res => {
-//                     if (!res.ok) {
-//                         throw new Error('Network response was not ok');
-//                     }
-//                     return res.json();
-//                 })
-//                 .then(data => {
-//                     loader.style.display = 'none';
-//                     showAlert(data.message, !data.success);
-
-//                     if (data.success) {
-//                         // Clear form and close modal
-//                         document.getElementById('updateFacilityInput').value = '';
-//                         updateFacilityForm.reset();
-                        
-//                         updateFacilityModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//                         darkOverlay2.classList.add('opacity-0', 'invisible');
-//                         darkOverlay2.classList.remove('opacity-100');
-
-//                         // Update the table row with the new data
-//                         const rowToUpdate = document.querySelector(`tr [data-facility-id="${data.generatedId}"]`)?.closest('tr');
-//                         if (rowToUpdate) {
-//                             rowToUpdate.querySelector('td:nth-child(2)').textContent = data.updateFacility;
-//                             const iconCell = rowToUpdate.querySelector('td:nth-child(3)');
-//                             iconCell.innerHTML = data.updateFacilityIcon && data.updateFacilityIconSize 
-//                                 ? `<i class="${data.updateFacilityIcon} ${data.updateFacilityIconSize}"></i>`
-//                                 : 'None';
-//                             rowToUpdate.querySelector('td:nth-child(4)').textContent = data.updateAdditionalcharge == 1 ? 'True' : 'False';
-//                             rowToUpdate.querySelector('td:nth-child(5)').textContent = data.updatePopular == 1 ? 'True' : 'False';
-//                             rowToUpdate.querySelector('td:nth-child(6)').textContent = data.updateFacilityType;
-//                         }
-//                     } else {
-//                         document.getElementById('updateFacilityInput').value = '';
-//                         updateFacilityForm.reset();
-//                     }
-//                 })
-//                 .catch(err => {
-//                     loader.style.display = 'none';
-//                     showAlert("Something went wrong. Please try again.", true);
-//                     console.error(err);
-//                 });
-//             });
-//         }
-//     }
-
-//     // Delete Facility Modal
-//     if (facilityConfirmDeleteModal && facilityCancelDeleteBtn) {
-//         facilityCancelDeleteBtn.addEventListener('click', () => {
-//             facilityConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//             darkOverlay2.classList.add('opacity-0', 'invisible');
-//             darkOverlay2.classList.remove('opacity-100');
-//         });
-
-//         const facilityDeleteForm = document.getElementById('facilityDeleteForm');
-//         if (facilityDeleteForm) {
-//             facilityDeleteForm.addEventListener('submit', function (e) {
-//                 e.preventDefault();
-
-//                 const formData = new FormData(facilityDeleteForm);
-//                 formData.append('deletefacility', true);
-//                 const facilityId = formData.get('facilityid');
-
-//                 fetch('../Admin/AddFacility.php', {
-//                     method: 'POST',
-//                     body: formData
-//                 })
-//                 .then(res => {
-//                     if (!res.ok) {
-//                         throw new Error('Network response was not ok');
-//                     }
-//                     return res.json();
-//                 })
-//                 .then(data => {
-//                     if (data.success) {
-//                         facilityConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//                         darkOverlay2.classList.add('opacity-0', 'invisible');
-//                         darkOverlay2.classList.remove('opacity-100');
-                        
-//                         const rowToRemove = document.querySelector(`[data-facility-id="${facilityId}"]`).closest('tr');
-//                         if (rowToRemove) {
-//                             rowToRemove.remove();
-//                         }
-                        
-//                         const tableBody = document.querySelector('tbody');
-//                         if (tableBody && tableBody.querySelectorAll('tr').length === 0) {
-//                             const emptyRow = document.createElement('tr');
-//                             emptyRow.innerHTML = `
-//                                 <td colspan="7" class="p-3 text-center text-gray-500 py-52">
-//                                     No facilities available.
-//                                 </td>
-//                             `;
-//                             tableBody.appendChild(emptyRow);
-//                         }
-                        
-//                         showAlert('The facility has been successfully deleted.');
-//                     } else {
-//                         showAlert(data.message || 'Failed to delete facility.');
-//                     }
-//                 })
-//                 .catch((err) => {
-//                     console.error('Error:', err);
-//                     showAlert('An error occurred. Please try again.');
-//                 });
-//             });
-//         }
-//     }
-
-//     // Initialize existing rows on page load
-//     initializeExistingRows();
-// });
-
-// // Facility Form and Modals
-// document.addEventListener("DOMContentLoaded", () => {
-//     // Add Facility Modal Elements
-//     const addFacilityModal = document.getElementById('addFacilityModal');
-//     const addFacilityBtn = document.getElementById('addFacilityBtn');
-//     const addFacilityCancelBtn = document.getElementById('addFacilityCancelBtn');
-//     const loader = document.getElementById('loader');
-//     const darkOverlay2 = document.getElementById('darkOverlay2'); 
-
-//     // Update Facility Modal Elements
-//     const updateFacilityModal = document.getElementById('updateFacilityModal');
-//     const updateFacilityModalCancelBtn = document.getElementById('updateFacilityModalCancelBtn');
-
-//     // Delete Facility Modal Elements
-//     const facilityConfirmDeleteModal = document.getElementById('facilityConfirmDeleteModal');
-//     const facilityCancelDeleteBtn = document.getElementById('facilityCancelDeleteBtn');
-
-//     // Function to close the add modal
-//     const closeModal = () => {
-//         addFacilityModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//         darkOverlay2.classList.add('opacity-0', 'invisible');
-//         darkOverlay2.classList.remove('opacity-100');
-
-//         const errors = ['facilityError'];
-//         errors.forEach(error => {
-//             hideError(document.getElementById(error));
-//         });
-//     };
-
-//     // Function to fetch and render facilities
-//     const fetchAndRenderFacilities = () => {
-//         fetch('../Admin/AddFacility.php')
-//             .then(response => response.text())
-//             .then(html => {
-//                 // Parse the HTML to extract the table body content
-//                 const parser = new DOMParser();
-//                 const doc = parser.parseFromString(html, 'text/html');
-//                 const newTableBody = doc.querySelector('tbody');
-                
-//                 if (newTableBody) {
-//                     const currentTableBody = document.querySelector('tbody');
-//                     currentTableBody.innerHTML = newTableBody.innerHTML;
-                    
-//                     // Reattach event listeners to the new rows
-//                     initializeExistingRows();
-//                 }
-//             })
-//             .catch(error => console.error('Error fetching facilities:', error));
-//     };
-
-//     // Function to attach event listeners to a row
-//     const attachEventListenersToRow = (row) => {
-//         // Details button
-//         const detailsBtn = row.querySelector('.details-btn');
-//         if (detailsBtn) {
-//             detailsBtn.addEventListener('click', function() {
-//                 const facilityId = this.getAttribute('data-facility-id');
-//                 darkOverlay2.classList.remove('opacity-0', 'invisible');
-//                 darkOverlay2.classList.add('opacity-100');
-
-//                 fetch(`../Admin/AddFacility.php?action=getFacilityDetails&id=${facilityId}`)
-//                     .then(response => response.json())
-//                     .then(data => {
-//                         if (data.success) {
-//                             document.getElementById('updateFacilityID').value = facilityId;
-//                             document.querySelector('[name="updatefacility"]').value = data.facility.Facility;
-//                             document.querySelector('[name="updatefacilityicon"]').value = data.facility.FacilityIcon;
-//                             document.querySelector('[name="updatefacilityiconsize"]').value = data.facility.IconSize;
-//                             document.querySelector('[name="updateadditionalcharge"]').value = data.facility.AdditionalCharge;
-//                             document.querySelector('[name="updatepopular"]').value = data.facility.Popular;
-//                             document.querySelector('[name="updatefacilitytype"]').value = data.facility.FacilityTypeID;
-//                             updateFacilityModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-//                         } else {
-//                             console.error('Failed to load facility details');
-//                         }
-//                     })
-//                     .catch(error => console.error('Fetch error:', error));
-//             });
-//         }
-
-//         // Delete button
-//         const deleteBtn = row.querySelector('.delete-btn');
-//         if (deleteBtn) {
-//             deleteBtn.addEventListener('click', function() {
-//                 const facilityId = this.getAttribute('data-facility-id');
-//                 darkOverlay2.classList.remove('opacity-0', 'invisible');
-//                 darkOverlay2.classList.add('opacity-100');
-
-//                 fetch(`../Admin/AddFacility.php?action=getFacilityDetails&id=${facilityId}`)
-//                     .then(response => response.json())
-//                     .then(data => {
-//                         if (data.success) {
-//                             document.getElementById('deleteFacilityID').value = facilityId;
-//                             document.getElementById('facilityDeleteName').textContent = data.facility.Facility;
-//                             facilityConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-//                         } else {
-//                             console.error('Failed to load facility details');
-//                         }
-//                     })
-//                     .catch(error => console.error('Fetch error:', error));
-//             });
-//         }
-//     };
-
-//     // Initialize event listeners for existing rows
-//     const initializeExistingRows = () => {
-//         const rows = document.querySelectorAll('tbody tr');
-//         rows.forEach(row => {
-//             attachEventListenersToRow(row);
-//         });
-//     };
-
-//     // Add Facility Modal
-//     if (addFacilityModal && addFacilityBtn && addFacilityCancelBtn) {
-//         addFacilityBtn.addEventListener('click', () => {
-//             darkOverlay2.classList.remove('opacity-0', 'invisible');
-//             darkOverlay2.classList.add('opacity-100');
-//             addFacilityModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-//         });
-
-//         addFacilityCancelBtn.addEventListener('click', () => {
-//             closeModal();
-//             document.getElementById('facilityInput').value = '';
-//         });
-//     }
-
-//     // Facility Form Submission
-//     document.getElementById("facilityInput")?.addEventListener("keyup", validateFacility);
-    
-//     const facilityForm = document.getElementById("facilityForm");
-//     if (facilityForm) {
-//         facilityForm.addEventListener("submit", (e) => {
-//             e.preventDefault();
-
-//             if (!validateFacilityForm()) return;
-
-//             loader.style.display = 'flex';
-
-//             const formData = new FormData(facilityForm);
-//             formData.append('addfacility', true);
-
-//             fetch('AddFacility.php', {
-//                 method: 'POST',
-//                 body: formData
-//             })
-//             .then(res => {
-//                 if (!res.ok) {
-//                     throw new Error('Network response was not ok');
-//                 }
-//                 return res.json();
-//             })
-//             .then(data => {
-//                 loader.style.display = 'none';
-//                 showAlert(data.message, !data.success);
-
-//                 if (data.success) {
-//                     document.getElementById('facilityInput').value = '';
-//                     facilityForm.reset();
-//                     closeModal();
-                    
-//                     // Fetch and render the updated facilities
-//                     fetchAndRenderFacilities();
-//                 }
-//             })
-//             .catch(err => {
-//                 loader.style.display = 'none';
-//                 showAlert("Something went wrong. Please try again.", true);
-//                 console.error(err);
-//             });
-//         });
-//     }
-
-//     // Update Facility Modal 
-//     if (updateFacilityModal && updateFacilityModalCancelBtn) {
-//         updateFacilityModalCancelBtn.addEventListener('click', () => {
-//             updateFacilityModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//             darkOverlay2.classList.add('opacity-0', 'invisible');
-//             darkOverlay2.classList.remove('opacity-100');
-
-//             const errors = ['updateFacilityError'];
-//             errors.forEach(error => {
-//                 hideError(document.getElementById(error));
-//             });
-//         });
-
-//         document.getElementById("updateFacilityInput")?.addEventListener("keyup", validateUpdateFacility);
-
-//         const updateFacilityForm = document.getElementById("updateFacilityForm");
-//         if (updateFacilityForm) {
-//             updateFacilityForm.addEventListener("submit", (e) => {
-//                 e.preventDefault();
-
-//                 if (!validateFacilityUpdateForm()) return;
-
-//                 const loader = document.getElementById('loader');
-//                 loader.style.display = 'flex';
-
-//                 const formData = new FormData(updateFacilityForm);
-//                 formData.append('editfacility', true);
-
-//                 fetch('AddFacility.php', {
-//                     method: 'POST',
-//                     body: formData
-//                 })
-//                 .then(res => {
-//                     if (!res.ok) {
-//                         throw new Error('Network response was not ok');
-//                     }
-//                     return res.json();
-//                 })
-//                 .then(data => {
-//                     loader.style.display = 'none';
-//                     showAlert(data.message, !data.success);
-
-//                     if (data.success) {
-//                         // Clear form and close modal
-//                         document.getElementById('updateFacilityInput').value = '';
-//                         updateFacilityForm.reset();
-                        
-//                         updateFacilityModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//                         darkOverlay2.classList.add('opacity-0', 'invisible');
-//                         darkOverlay2.classList.remove('opacity-100');
-
-//                         // Fetch and render the updated facilities
-//                         fetchAndRenderFacilities();
-//                     }
-//                 })
-//                 .catch(err => {
-//                     loader.style.display = 'none';
-//                     showAlert("Something went wrong. Please try again.", true);
-//                     console.error(err);
-//                 });
-//             });
-//         }
-//     }
-
-//     // Delete Facility Modal
-//     if (facilityConfirmDeleteModal && facilityCancelDeleteBtn) {
-//         facilityCancelDeleteBtn.addEventListener('click', () => {
-//             facilityConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//             darkOverlay2.classList.add('opacity-0', 'invisible');
-//             darkOverlay2.classList.remove('opacity-100');
-//         });
-
-//         const facilityDeleteForm = document.getElementById('facilityDeleteForm');
-//         if (facilityDeleteForm) {
-//             facilityDeleteForm.addEventListener('submit', function (e) {
-//                 e.preventDefault();
-
-//                 const formData = new FormData(facilityDeleteForm);
-//                 formData.append('deletefacility', true);
-
-//                 fetch('../Admin/AddFacility.php', {
-//                     method: 'POST',
-//                     body: formData
-//                 })
-//                 .then(res => {
-//                     if (!res.ok) {
-//                         throw new Error('Network response was not ok');
-//                     }
-//                     return res.json();
-//                 })
-//                 .then(data => {
-//                     if (data.success) {
-//                         facilityConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//                         darkOverlay2.classList.add('opacity-0', 'invisible');
-//                         darkOverlay2.classList.remove('opacity-100');
-                        
-//                         // Fetch and render the updated facilities
-//                         fetchAndRenderFacilities();
-                        
-//                         showAlert('The facility has been successfully deleted.');
-//                     } else {
-//                         showAlert(data.message || 'Failed to delete facility.');
-//                     }
-//                 })
-//                 .catch((err) => {
-//                     console.error('Error:', err);
-//                     showAlert('An error occurred. Please try again.');
-//                 });
-//             });
-//         }
-//     }
-
-//     // Initialize existing rows on page load
-//     initializeExistingRows();
-// });
-
 // Facility Form and Modals
 document.addEventListener("DOMContentLoaded", () => {
     // Add Facility Modal Elements
@@ -2677,6 +2014,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const addFacilityCancelBtn = document.getElementById('addFacilityCancelBtn');
     const loader = document.getElementById('loader');
     const darkOverlay2 = document.getElementById('darkOverlay2'); 
+
+    // Update Facility Modal Elements
+    const updateFacilityModal = document.getElementById('updateFacilityModal');
+    const updateFacilityModalCancelBtn = document.getElementById('updateFacilityModalCancelBtn');
+
+    // Delete Facility Modal Elements
+    const facilityConfirmDeleteModal = document.getElementById('facilityConfirmDeleteModal');
+    const facilityCancelDeleteBtn = document.getElementById('facilityCancelDeleteBtn');
 
     // Get current pagination and search parameters from URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -2992,6 +2337,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const ruleConfirmDeleteModal = document.getElementById('ruleConfirmDeleteModal');
     const ruleCancelDeleteBtn = document.getElementById('ruleCancelDeleteBtn');
 
+    // Get current pagination and search parameters from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentPage = urlParams.get('rulepage') || 1;
+    const currentSearch = urlParams.get('rule_search') || '';
+
     // Function to close the add modal
     const closeModal = () => {
         addRuleModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
@@ -3002,6 +2352,44 @@ document.addEventListener("DOMContentLoaded", () => {
         errors.forEach(error => {
             hideError(document.getElementById(error));
         });
+    };
+
+    // Function to fetch and render rules with current pagination
+    const fetchAndRenderRules = () => {
+        let fetchUrl = `../Admin/AddRule.php?rulepage=${currentPage}`;
+        
+        if (currentSearch) {
+            fetchUrl += `&rule_search=${encodeURIComponent(currentSearch)}`;
+        }
+
+        fetch(fetchUrl)
+            .then(response => response.text())
+            .then(html => {
+                // Parse the HTML to extract the table body content
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTableBody = doc.querySelector('tbody');
+                const newPagination = doc.querySelector('.flex.justify-center.items-center.mt-1');
+                
+                if (newTableBody) {
+                    const currentTableBody = document.querySelector('tbody');
+                    currentTableBody.innerHTML = newTableBody.innerHTML;
+                    
+                    // Reattach event listeners to the new rows
+                    initializeExistingRows();
+                }
+
+                if (newPagination) {
+                    const currentPagination = document.querySelector('.flex.justify-center.items-center.mt-1');
+                    if (currentPagination) {
+                        currentPagination.innerHTML = newPagination.innerHTML;
+                    } else {
+                        const tableContainer = document.querySelector('table').parentNode;
+                        tableContainer.appendChild(newPagination);
+                    }
+                }
+            })
+            .catch(error => console.error('Error fetching rules:', error));
     };
 
     // Function to attach event listeners to a row
@@ -3118,49 +2506,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     ruleForm.reset();
                     closeModal();
                     
-                    const tableBody = document.querySelector('tbody');
-                    const noDataRow = tableBody.querySelector('td[colspan="7"]');
-
-                    if (noDataRow) {
-                        noDataRow.closest('tr').remove();
-                    }
-
-                    const newRow = document.createElement('tr');
-                    newRow.className = 'border-b border-gray-200 hover:bg-gray-50';
-                    newRow.innerHTML = `
-                        <td class="p-3 text-start whitespace-nowrap">
-                            <div class="flex items-center gap-2 font-medium text-gray-500">
-                                <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                <span>${data.generatedId}</span>
-                            </div>
-                        </td>
-                        <td class="p-3 text-start">
-                            ${formData.get('ruletitle')}
-                        </td>
-                        <td class="p-3 text-start">
-                            ${formData.get('rule')}
-                        </td>
-                        <td class="p-3 text-start hidden sm:table-cell">
-                            <i class="${formData.get('ruleicon')} ${formData.get('ruleiconsize')}"></i>
-                        </td>
-                        <td class="p-3 text-start space-x-1 select-none">
-                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                data-rule-id="${data.generatedId}"></i>
-                            <button class="text-red-500">
-                                <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                    data-rule-id="${data.generatedId}"></i>
-                            </button>
-                        </td>
-                    `;
-
-                    tableBody.appendChild(newRow);
-                    attachEventListenersToRow(newRow);
-                } else {
-                    document.getElementById('ruleTitleInput').value = '';
-                    document.getElementById('ruleInput').value = '';
-                    document.getElementById('ruleIconInput').value = '';
-                    ruleForm.reset();
-                    closeModal();
+                    // Fetch and render the updated rules with current pagination
+                    fetchAndRenderRules();
                 }
             })
             .catch(err => {
@@ -3200,7 +2547,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const formData = new FormData(updateRuleForm);
                 formData.append('editrule', true);
-                const ruleId = formData.get('ruleid');
 
                 fetch('AddRule.php', {
                     method: 'POST',
@@ -3227,19 +2573,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         darkOverlay2.classList.add('opacity-0', 'invisible');
                         darkOverlay2.classList.remove('opacity-100');
 
-                        // Update the table row with the new data
-                        const rowToUpdate = document.querySelector(`tr [data-rule-id="${ruleId}"]`)?.closest('tr');
-                        if (rowToUpdate) {
-                            rowToUpdate.cells[1].textContent = formData.get('updateruletitle');
-                            rowToUpdate.cells[2].textContent = formData.get('updaterule');
-                            const iconCell = rowToUpdate.cells[3];
-                            iconCell.innerHTML = `<i class="${formData.get('updateruleicon')} ${formData.get('updateruleiconsize')}"></i>`;
-                        }
-                    } else {
-                        document.getElementById('updateRuleTitleInput').value = '';
-                        document.getElementById('updateRuleInput').value = '';
-                        document.getElementById('updateRuleIconInput').value = '';
-                        updateRuleForm.reset();
+                        // Fetch and render the updated rules with current pagination
+                        fetchAndRenderRules();
                     }
                 })
                 .catch(err => {
@@ -3266,7 +2601,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const formData = new FormData(ruleDeleteForm);
                 formData.append('deleterule', true);
-                const ruleId = formData.get('ruleid');
 
                 fetch('../Admin/AddRule.php', {
                     method: 'POST',
@@ -3284,21 +2618,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         darkOverlay2.classList.add('opacity-0', 'invisible');
                         darkOverlay2.classList.remove('opacity-100');
                         
-                        const rowToRemove = document.querySelector(`[data-rule-id="${ruleId}"]`).closest('tr');
-                        if (rowToRemove) {
-                            rowToRemove.remove();
-                        }
-                        
-                        const tableBody = document.querySelector('tbody');
-                        if (tableBody && tableBody.querySelectorAll('tr').length === 0) {
-                            const emptyRow = document.createElement('tr');
-                            emptyRow.innerHTML = `
-                                <td colspan="7" class="p-3 text-center text-gray-500 py-52">
-                                    No rules available.
-                                </td>
-                            `;
-                            tableBody.appendChild(emptyRow);
-                        }
+                        // Fetch and render the updated rules with current pagination
+                        fetchAndRenderRules();
                         
                         showAlert('The rule has been successfully deleted.');
                     } else {
@@ -3512,573 +2833,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// // Add Product Size Form
-// document.addEventListener("DOMContentLoaded", () => {
-//     const addProductSizeModal = document.getElementById('addProductSizeModal');
-//     const addProductSizeBtn = document.getElementById('addProductSizeBtn');
-//     const addProductSizeCancelBtn = document.getElementById('addProductSizeCancelBtn');
-//     const loader = document.getElementById('loader');
-//     const alertMessage = document.getElementById('alertMessage').value;
-//     const addProductSizeSuccess = document.getElementById('addProductSizeSuccess').value === 'true';
-
-//     if (addProductSizeModal && addProductSizeBtn && addProductSizeCancelBtn) {
-//         // Show modal
-//         addProductSizeBtn.addEventListener('click', () => {
-//             darkOverlay2.classList.remove('opacity-0', 'invisible');
-//             darkOverlay2.classList.add('opacity-100');
-//             addProductSizeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-//         });
-
-//         // Cancel button functionality
-//         addProductSizeCancelBtn.addEventListener('click', () => {
-//             addProductSizeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//             darkOverlay2.classList.add('opacity-0', 'invisible');
-//             darkOverlay2.classList.remove('opacity-100');
-
-//             // Clear error messages
-//             const errors = ['sizeError', 'priceModifierError'];
-//             errors.forEach(error => {
-//                 hideError(document.getElementById(error));
-//             });
-
-//             document.getElementById('product').value = '';
-//         });
-//     }
-
-//     if (addProductSizeSuccess) {
-//         loader.style.display = 'flex';
-
-//         // Show Alert
-//         setTimeout(() => {
-//             loader.style.display = 'none';
-//             showAlert('A new product size has been successfully added.');
-//             setTimeout(() => {
-//                 window.location.href = 'AddSize.php';
-//             }, 5000);
-//         }, 1000);
-//     } else if (alertMessage) {
-//         // Show Alert
-//         showAlert(alertMessage);
-//     }
-
-//     // Add keyup event listeners for real-time validation
-//     document.getElementById("sizeInput").addEventListener("keyup", validateProductSize);
-//     document.getElementById("priceModifierInput").addEventListener("keyup", validatePriceModifier);
-
-//     const productSizeForm = document.getElementById("productSizeForm");
-//     if (productSizeForm) {
-//         productSizeForm.addEventListener("submit", (e) => {
-//             if (!validateProductSizeForm()) {
-//                 e.preventDefault();
-//             }
-//         });
-//     }
-// });
-
-// // Product Size Details Modal
-// document.addEventListener('DOMContentLoaded', () => {
-//     const updateProductSizeModal = document.getElementById('updateProductSizeModal');
-//     const updateProductSizeModalCancelBtn = document.getElementById('updateProductSizeModalCancelBtn');
-//     const alertMessage = document.getElementById('alertMessage').value;
-//     const updateProductSizeSuccess = document.getElementById('updateProductSizeSuccess').value === 'true';
-
-//     // Get all details buttons
-//     const detailsBtns = document.querySelectorAll('.details-btn');
-
-//     if (updateProductSizeModal && updateProductSizeModalCancelBtn && detailsBtns) {
-//         // Add click event to each button
-//         detailsBtns.forEach(btn => {
-//             btn.addEventListener('click', function () {
-//                 const productSizeId = this.getAttribute('data-productsize-id');
-//                 darkOverlay2.classList.remove('opacity-0', 'invisible');
-//                 darkOverlay2.classList.add('opacity-100');
-
-//                 // Fetch product  details
-//                 fetch(`../Admin/AddSize.php?action=getProductSizeDetails&id=${productSizeId}`)
-//                     .then(response => response.json())
-//                     .then(data => {
-//                         if (data.success) {
-//                             // Fill the modal form with product  data
-//                             document.getElementById('updateProductSizeID').value = productSizeId;
-//                             document.querySelector('[name="updatesize"]').value = data.productsize.Size;
-//                             document.querySelector('[name="updateprice"]').value = data.productsize.PriceModifier;
-//                             document.querySelector('[name="updateproduct"]').value = data.productsize.ProductID;
-//                             // Show the modal
-//                             updateProductSizeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-//                         } else {
-//                             console.error('Failed to load product size details');
-//                         }
-//                     })
-//                     .catch(error => console.error('Fetch error:', error));
-//             });
-//         });
-
-//         updateProductSizeModalCancelBtn.addEventListener('click', () => {
-//             updateProductSizeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//             darkOverlay2.classList.add('opacity-0', 'invisible');
-//             darkOverlay2.classList.remove('opacity-100');
-
-//             // Clear error messages
-//             const errors = ['updateSizeError', 'updatePriceModifierError'];
-//             errors.forEach(error => {
-//                 hideError(document.getElementById(error));
-//             });
-//         });
-
-//         if (updateProductSizeSuccess) {
-//             // Show Alert
-//             setTimeout(() => {
-//                 showAlert('The product size has been successfully updated.');
-//                 setTimeout(() => {
-//                     window.location.href = 'AddSize.php';
-//                 }, 5000);
-//             }, 500);
-//         } else if (alertMessage) {
-//             // Show Alert
-//             showAlert(alertMessage);
-//         }
-//         // Add keyup event listeners for real-time validation
-//         document.getElementById("updateSizeInput").addEventListener("keyup", validateUpdateProductSize);
-//         document.getElementById("updatePriceModifierInput").addEventListener("keyup", validateUpdateProductModifier);
-
-//         const updateProductSizeForm = document.getElementById("updateProductSizeForm");
-//         if (updateProductSizeForm) {
-//             updateProductSizeForm.addEventListener("submit", (e) => {
-//                 if (!validateProductSizeUpdateForm()) {
-//                     e.preventDefault();
-//                 }
-//             });
-//         }
-//     }
-// });
-
-// // Product Size Delete Modal
-// document.addEventListener('DOMContentLoaded', () => {
-//     const productSizeConfirmDeleteModal = document.getElementById('productSizeConfirmDeleteModal');
-//     const productSizeCancelDeleteBtn = document.getElementById('productSizeCancelDeleteBtn');
-//     const alertMessage = document.getElementById('alertMessage').value;
-//     const deleteProductSizeSuccess = document.getElementById('deleteProductSizeSuccess').value === 'true';
-
-//     // Get all delete buttons
-//     const deleteBtns = document.querySelectorAll('.delete-btn');
-
-//     if (productSizeConfirmDeleteModal && productSizeCancelDeleteBtn && deleteBtns) {
-//         // Add click event to each delete button
-//         deleteBtns.forEach(btn => {
-//             btn.addEventListener('click', function () {
-//                 const productSizeId = this.getAttribute('data-productsize-id');
-
-//                 // Fetch fafcility details
-//                 fetch(`../Admin/AddSize.php?action=getProductSizeDetails&id=${productSizeId}`)
-//                     .then(response => response.json())
-//                     .then(data => {
-//                         if (data.success) {
-//                             document.getElementById('deleteProductSizeID').value = productSizeId;
-//                             document.getElementById('productSizeDeleteName').textContent = data.productsize.Size;
-//                         } else {
-//                             console.error('Failed to load product size details');
-//                         }
-//                     })
-//                     .catch(error => console.error('Fetch error:', error));
-
-//                 // Show modal
-//                 darkOverlay2.classList.remove('opacity-0', 'invisible');
-//                 darkOverlay2.classList.add('opacity-100');
-//                 productSizeConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-//             });
-//         });
-
-//         // Cancel button functionality
-//         productSizeCancelDeleteBtn.addEventListener('click', () => {
-//             productSizeConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//             darkOverlay2.classList.add('opacity-0', 'invisible');
-//             darkOverlay2.classList.remove('opacity-100');
-//         });
-
-//         if (deleteProductSizeSuccess) {
-//             // Show Alert
-//             showAlert('The product size has been successfully deleted.');
-//             setTimeout(() => {
-//                 window.location.href = 'AddSize.php';
-//             }, 5000);
-//         } else if (alertMessage) {
-//             // Show Alert
-//             showAlert(alertMessage);
-//         }
-//     }
-// });
-
-// // Product Size Form and Modals
-// document.addEventListener("DOMContentLoaded", () => {
-//     // Add Product Size Modal Elements
-//     const addProductSizeModal = document.getElementById('addProductSizeModal');
-//     const addProductSizeBtn = document.getElementById('addProductSizeBtn');
-//     const addProductSizeCancelBtn = document.getElementById('addProductSizeCancelBtn');
-//     const loader = document.getElementById('loader');
-//     const darkOverlay2 = document.getElementById('darkOverlay2'); 
-
-//     // Update Product Size Modal Elements
-//     const updateProductSizeModal = document.getElementById('updateProductSizeModal');
-//     const updateProductSizeModalCancelBtn = document.getElementById('updateProductSizeModalCancelBtn');
-
-//     // Delete Product Size Modal Elements
-//     const productSizeConfirmDeleteModal = document.getElementById('productSizeConfirmDeleteModal');
-//     const productSizeCancelDeleteBtn = document.getElementById('productSizeCancelDeleteBtn');
-
-//     // Function to close the add modal
-//     const closeModal = () => {
-//         addProductSizeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//         darkOverlay2.classList.add('opacity-0', 'invisible');
-//         darkOverlay2.classList.remove('opacity-100');
-
-//         const errors = ['sizeError', 'priceModifierError'];
-//         errors.forEach(error => {
-//             hideError(document.getElementById(error));
-//         });
-//     };
-
-//     // Function to fetch product name by ID
-//     const fetchProductName = async (productId) => {
-//         try {
-//             const response = await fetch(`../Admin/AddSize.php?action=getProductName&id=${productId}`);
-//             const data = await response.json();
-//             return data.success ? data.productName : 'None';
-//         } catch (error) {
-//             console.error('Error fetching product name:', error);
-//             return 'None';
-//         }
-//     };
-
-//     // Function to update product names in existing rows
-//     const updateProductNames = async () => {
-//         const rows = document.querySelectorAll('tbody tr');
-//         for (const row of rows) {
-//             const productCell = row.querySelector('td:nth-child(4)');
-//             if (productCell) {
-//                 const productId = productCell.getAttribute('data-product-id');
-//                 if (productId) {
-//                     const productName = await fetchProductName(productId);
-//                     productCell.textContent = `${productId} (${productName})`;
-//                 }
-//             }
-//         }
-//     };
-
-//     // Function to attach event listeners to a row
-//     const attachEventListenersToRow = (row) => {
-//         // Details button
-//         const detailsBtn = row.querySelector('.details-btn');
-//         if (detailsBtn) {
-//             detailsBtn.addEventListener('click', function() {
-//                 const productSizeId = this.getAttribute('data-productsize-id');
-//                 darkOverlay2.classList.remove('opacity-0', 'invisible');
-//                 darkOverlay2.classList.add('opacity-100');
-
-//                 fetch(`../Admin/AddSize.php?action=getProductSizeDetails&id=${productSizeId}`)
-//                     .then(response => response.json())
-//                     .then(data => {
-//                         if (data.success) {
-//                             document.getElementById('updateProductSizeID').value = productSizeId;
-//                             document.querySelector('[name="updatesize"]').value = data.productsize.Size;
-//                             document.querySelector('[name="updateprice"]').value = data.productsize.PriceModifier;
-//                             document.querySelector('[name="updateproduct"]').value = data.productsize.ProductID;
-//                             updateProductSizeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-//                         } else {
-//                             console.error('Failed to load product size details');
-//                         }
-//                     })
-//                     .catch(error => console.error('Fetch error:', error));
-//             });
-//         }
-
-//         // Delete button
-//         const deleteBtn = row.querySelector('.delete-btn');
-//         if (deleteBtn) {
-//             deleteBtn.addEventListener('click', function() {
-//                 const productSizeId = this.getAttribute('data-productsize-id');
-//                 darkOverlay2.classList.remove('opacity-0', 'invisible');
-//                 darkOverlay2.classList.add('opacity-100');
-
-//                 fetch(`../Admin/AddSize.php?action=getProductSizeDetails&id=${productSizeId}`)
-//                     .then(response => response.json())
-//                     .then(data => {
-//                         if (data.success) {
-//                             document.getElementById('deleteProductSizeID').value = productSizeId;
-//                             document.getElementById('productSizeDeleteName').textContent = data.productsize.Size;
-//                             productSizeConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-//                         } else {
-//                             console.error('Failed to load product size details');
-//                         }
-//                     })
-//                     .catch(error => console.error('Fetch error:', error));
-//             });
-//         }
-//     };
-
-//     // Initialize event listeners for existing rows
-//     const initializeExistingRows = () => {
-//         const rows = document.querySelectorAll('tbody tr');
-//         rows.forEach(row => {
-//             attachEventListenersToRow(row);
-//         });
-//     };
-
-//     // Add Product Size Modal
-//     if (addProductSizeModal && addProductSizeBtn && addProductSizeCancelBtn) {
-//         addProductSizeBtn.addEventListener('click', () => {
-//             darkOverlay2.classList.remove('opacity-0', 'invisible');
-//             darkOverlay2.classList.add('opacity-100');
-//             addProductSizeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-//         });
-
-//         addProductSizeCancelBtn.addEventListener('click', () => {
-//             closeModal();
-//             document.getElementById('sizeInput').value = '';
-//             document.getElementById('priceModifierInput').value = '';
-//         });
-//     }
-
-//     // Product Size Form Submission
-//     document.getElementById("sizeInput")?.addEventListener("keyup", validateProductSize);
-//     document.getElementById("priceModifierInput")?.addEventListener("keyup", validatePriceModifier);
-    
-//     const productSizeForm = document.getElementById("productSizeForm");
-//     if (productSizeForm) {
-//         productSizeForm.addEventListener("submit", async (e) => {
-//             e.preventDefault();
-
-//             if (!validateProductSizeForm()) return;
-
-//             loader.style.display = 'flex';
-
-//             const formData = new FormData(productSizeForm);
-//             formData.append('addproductsize', true);
-
-//             try {
-//                 const response = await fetch('AddSize.php', {
-//                     method: 'POST',
-//                     body: formData
-//                 });
-                
-//                 if (!response.ok) {
-//                     throw new Error('Network response was not ok');
-//                 }
-                
-//                 const data = await response.json();
-//                 loader.style.display = 'none';
-//                 showAlert(data.message, !data.success);
-
-//                 if (data.success) {
-//                     document.getElementById('sizeInput').value = '';
-//                     document.getElementById('priceModifierInput').value = '';
-//                     productSizeForm.reset();
-//                     closeModal();
-                    
-//                     const tableBody = document.querySelector('tbody');
-//                     const noDataRow = tableBody.querySelector('td[colspan="7"]');
-
-//                     if (noDataRow) {
-//                         noDataRow.closest('tr').remove();
-//                     }
-
-//                     // First create the row with placeholder for product name
-//                     const newRow = document.createElement('tr');
-//                     newRow.className = 'border-b border-gray-200 hover:bg-gray-50';
-//                     newRow.innerHTML = `
-//                         <td class="p-3 text-start whitespace-nowrap">
-//                             <div class="flex items-center gap-2 font-medium text-gray-500">
-//                                 <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-//                                 <span>${data.generatedId}</span>
-//                             </div>
-//                         </td>
-//                         <td class="p-3 text-start">
-//                             ${formData.get('size')}
-//                         </td>
-//                         <td class="p-3 text-start">
-//                             ${formData.get('price')}
-//                         </td>
-//                         <td class="p-3 text-start hidden sm:table-cell" data-product-id="${formData.get('product')}">
-//                             Loading...
-//                         </td>
-//                         <td class="p-3 text-start space-x-1 select-none">
-//                             <i class="details-btn ri-eye-line text-lg cursor-pointer"
-//                                 data-productsize-id="${data.generatedId}"></i>
-//                             <button class="text-red-500">
-//                                 <i class="delete-btn ri-delete-bin-7-line text-xl"
-//                                     data-productsize-id="${data.generatedId}"></i>
-//                             </button>
-//                         </td>
-//                     `;
-
-//                     tableBody.appendChild(newRow);
-                    
-//                     // Now fetch and update the product name
-//                     const productId = formData.get('product');
-//                     const productName = await fetchProductName(productId);
-//                     const productCell = newRow.querySelector('td:nth-child(4)');
-//                     if (productCell) {
-//                         productCell.textContent = `${productId} (${productName})`;
-//                     }
-
-//                     attachEventListenersToRow(newRow);
-//                 } else {
-//                     document.getElementById('sizeInput').value = '';
-//                     document.getElementById('priceModifierInput').value = '';
-//                     productSizeForm.reset();
-//                     closeModal();
-//                 }
-//             } catch (err) {
-//                 loader.style.display = 'none';
-//                 showAlert("Something went wrong. Please try again.", true);
-//                 console.error(err);
-//             }
-//         });
-//     }
-
-//     // Update Product Size Modal 
-//     if (updateProductSizeModal && updateProductSizeModalCancelBtn) {
-//         updateProductSizeModalCancelBtn.addEventListener('click', () => {
-//             updateProductSizeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//             darkOverlay2.classList.add('opacity-0', 'invisible');
-//             darkOverlay2.classList.remove('opacity-100');
-
-//             const errors = ['updateSizeError', 'updatePriceModifierError'];
-//             errors.forEach(error => {
-//                 hideError(document.getElementById(error));
-//             });
-//         });
-
-//         document.getElementById("updateSizeInput")?.addEventListener("keyup", validateUpdateProductSize);
-//         document.getElementById("updatePriceModifierInput")?.addEventListener("keyup", validateUpdateProductModifier);
-
-//         const updateProductSizeForm = document.getElementById("updateProductSizeForm");
-//         if (updateProductSizeForm) {
-//             updateProductSizeForm.addEventListener("submit", async (e) => {
-//                 e.preventDefault();
-
-//                 if (!validateProductSizeUpdateForm()) return;
-
-//                 const loader = document.getElementById('loader');
-//                 loader.style.display = 'flex';
-
-//                 try {
-//                     const formData = new FormData(updateProductSizeForm);
-//                     formData.append('editproductsize', true);
-
-//                     const response = await fetch('AddSize.php', {
-//                         method: 'POST',
-//                         body: formData
-//                     });
-                    
-//                     if (!response.ok) {
-//                         throw new Error('Network response was not ok');
-//                     }
-                    
-//                     const data = await response.json();
-//                     loader.style.display = 'none';
-//                     showAlert(data.message, !data.success);
-
-//                     if (data.success) {
-//                         // Clear form and close modal
-//                         document.getElementById('updateSizeInput').value = '';
-//                         document.getElementById('updatePriceModifierInput').value = '';
-//                         updateProductSizeForm.reset();
-                        
-//                         updateProductSizeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//                         darkOverlay2.classList.add('opacity-0', 'invisible');
-//                         darkOverlay2.classList.remove('opacity-100');
-
-//                         // Update the table row with the new data
-//                         const rowToUpdate = document.querySelector(`tr [data-productsize-id="${data.generatedId}"]`)?.closest('tr');
-//                         if (rowToUpdate) {
-//                             rowToUpdate.querySelector('td:nth-child(2)').textContent = data.updateSize;
-//                             rowToUpdate.querySelector('td:nth-child(3)').textContent = data.updatePrice;
-                            
-//                             // Fetch and update the product name
-//                             const productName = await fetchProductName(data.updateProduct);
-//                             rowToUpdate.querySelector('td:nth-child(4)').textContent = `${data.updateProduct} (${productName})`;
-//                         }
-//                     } else {
-//                         document.getElementById('updateSizeInput').value = '';
-//                         document.getElementById('updatePriceModifierInput').value = '';
-//                         updateProductSizeForm.reset();
-//                     }
-//                 } catch (err) {
-//                     loader.style.display = 'none';
-//                     showAlert("Something went wrong. Please try again.", true);
-//                     console.error(err);
-//                 }
-//             });
-//         }
-//     }
-
-//     // Delete Product Size Modal
-//     if (productSizeConfirmDeleteModal && productSizeCancelDeleteBtn) {
-//         productSizeCancelDeleteBtn.addEventListener('click', () => {
-//             productSizeConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//             darkOverlay2.classList.add('opacity-0', 'invisible');
-//             darkOverlay2.classList.remove('opacity-100');
-//         });
-
-//         const productSizeDeleteForm = document.getElementById('productSizeDeleteForm');
-//         if (productSizeDeleteForm) {
-//             productSizeDeleteForm.addEventListener('submit', function (e) {
-//                 e.preventDefault();
-
-//                 const formData = new FormData(productSizeDeleteForm);
-//                 formData.append('deleteproductsize', true);
-//                 const productSizeId = formData.get('productsizeid');
-
-//                 fetch('../Admin/AddSize.php', {
-//                     method: 'POST',
-//                     body: formData
-//                 })
-//                 .then(res => {
-//                     if (!res.ok) {
-//                         throw new Error('Network response was not ok');
-//                     }
-//                     return res.json();
-//                 })
-//                 .then(data => {
-//                     if (data.success) {
-//                         productSizeConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-//                         darkOverlay2.classList.add('opacity-0', 'invisible');
-//                         darkOverlay2.classList.remove('opacity-100');
-                        
-//                         const rowToRemove = document.querySelector(`[data-productsize-id="${productSizeId}"]`).closest('tr');
-//                         if (rowToRemove) {
-//                             rowToRemove.remove();
-//                         }
-                        
-//                         const tableBody = document.querySelector('tbody');
-//                         if (tableBody && tableBody.querySelectorAll('tr').length === 0) {
-//                             const emptyRow = document.createElement('tr');
-//                             emptyRow.innerHTML = `
-//                                 <td colspan="7" class="p-3 text-center text-gray-500 py-52">
-//                                     No product sizes available.
-//                                 </td>
-//                             `;
-//                             tableBody.appendChild(emptyRow);
-//                         }
-                        
-//                         showAlert('The product size has been successfully deleted.');
-//                     } else {
-//                         showAlert(data.message || 'Failed to delete product size.');
-//                     }
-//                 })
-//                 .catch((err) => {
-//                     console.error('Error:', err);
-//                     showAlert('An error occurred. Please try again.');
-//                 });
-//             });
-//         }
-//     }
-
-//     // Initialize existing rows on page load and update product names
-//     initializeExistingRows();
-//     updateProductNames();
-// });
-
 // Product Size Form and Modals
 document.addEventListener("DOMContentLoaded", () => {
     // Add Product Size Modal Elements
@@ -4096,6 +2850,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const productSizeConfirmDeleteModal = document.getElementById('productSizeConfirmDeleteModal');
     const productSizeCancelDeleteBtn = document.getElementById('productSizeCancelDeleteBtn');
 
+    // Get current pagination and search parameters from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentPage = urlParams.get('productsizepage') || 1;
+    const currentSearch = urlParams.get('size_search') || '';
+    const currentSort = urlParams.get('sort') || 'random';
+
     // Function to close the add modal
     const closeModal = () => {
         addProductSizeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
@@ -4106,6 +2866,49 @@ document.addEventListener("DOMContentLoaded", () => {
         errors.forEach(error => {
             hideError(document.getElementById(error));
         });
+    };
+
+    // Function to fetch and render product sizes with current pagination
+    const fetchAndRenderProductSizes = () => {
+        let fetchUrl = `../Admin/AddSize.php?productsizepage=${currentPage}`;
+        
+        if (currentSearch) {
+            fetchUrl += `&size_search=${encodeURIComponent(currentSearch)}`;
+        }
+        if (currentSort !== 'random') {
+            fetchUrl += `&sort=${currentSort}`;
+        }
+
+        fetch(fetchUrl)
+            .then(response => response.text())
+            .then(html => {
+                // Parse the HTML to extract the table body content
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTableBody = doc.querySelector('tbody');
+                const newPagination = doc.querySelector('.flex.justify-center.items-center.mt-1');
+                
+                if (newTableBody) {
+                    const currentTableBody = document.querySelector('tbody');
+                    currentTableBody.innerHTML = newTableBody.innerHTML;
+                    
+                    // Reattach event listeners to the new rows
+                    initializeExistingRows();
+                    // Update product names in the new rows
+                    updateProductNames();
+                }
+
+                if (newPagination) {
+                    const currentPagination = document.querySelector('.flex.justify-center.items-center.mt-1');
+                    if (currentPagination) {
+                        currentPagination.innerHTML = newPagination.innerHTML;
+                    } else {
+                        const tableContainer = document.querySelector('table').parentNode;
+                        tableContainer.appendChild(newPagination);
+                    }
+                }
+            })
+            .catch(error => console.error('Error fetching product sizes:', error));
     };
 
     // Function to fetch product name by ID
@@ -4220,7 +3023,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     const productSizeForm = document.getElementById("productSizeForm");
     if (productSizeForm) {
-        productSizeForm.addEventListener("submit", async (e) => {
+        productSizeForm.addEventListener("submit", (e) => {
             e.preventDefault();
 
             if (!validateProductSizeForm()) return;
@@ -4230,86 +3033,35 @@ document.addEventListener("DOMContentLoaded", () => {
             const formData = new FormData(productSizeForm);
             formData.append('addproductsize', true);
 
-            try {
-                const response = await fetch('AddSize.php', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (!response.ok) {
+            fetch('AddSize.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => {
+                if (!res.ok) {
                     throw new Error('Network response was not ok');
                 }
-                
-                const data = await response.json();
+                return res.json();
+            })
+            .then(data => {
                 loader.style.display = 'none';
                 showAlert(data.message, !data.success);
 
                 if (data.success) {
-    document.getElementById('sizeInput').value = '';
-    document.getElementById('priceModifierInput').value = '';
-    productSizeForm.reset();
-    closeModal();
-
-    const tableBody = document.querySelector('tbody');
-    const noDataRow = tableBody.querySelector('td[colspan="7"]');
-
-    if (noDataRow) {
-        noDataRow.closest('tr').remove();
-    }
-
-    // Calculate the row count for numbering
-    const rowCount = tableBody.querySelectorAll('tr').length + 1;
-
-    // Create the new row
-    const newRow = document.createElement('tr');
-    newRow.className = 'border-b border-gray-200 hover:bg-gray-50';
-    newRow.innerHTML = `
-        <td class="p-3 text-start whitespace-nowrap">
-            <div class="flex items-center gap-2 font-medium text-gray-500">
-                <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                <span class="count-cell">${rowCount}</span>
-            </div>
-        </td>
-        <td class="p-3 text-start">
-            ${formData.get('size')}
-        </td>
-        <td class="p-3 text-start">
-            ${formData.get('price')}
-        </td>
-        <td class="p-3 text-start hidden sm:table-cell" data-product-id="${formData.get('product')}">
-            ${formData.get('product')} (Loading...)
-        </td>
-        <td class="p-3 text-start space-x-1 select-none">
-            <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                data-productsize-id="${data.generatedId}"></i>
-            <button class="text-red-500">
-                <i class="delete-btn ri-delete-bin-7-line text-xl"
-                    data-productsize-id="${data.generatedId}"></i>
-            </button>
-        </td>
-    `;
-
-    tableBody.appendChild(newRow);
-
-    // Immediately update the product name for the new row
-    const productCell = newRow.querySelector('td:nth-child(4)');
-    if (productCell) {
-        await updateProductNameForCell(productCell);
-    }
-
-    attachEventListenersToRow(newRow);
-} else {
-    document.getElementById('sizeInput').value = '';
-    document.getElementById('priceModifierInput').value = '';
-    productSizeForm.reset();
-    closeModal();
-}
-
-            } catch (err) {
+                    document.getElementById('sizeInput').value = '';
+                    document.getElementById('priceModifierInput').value = '';
+                    productSizeForm.reset();
+                    closeModal();
+                    
+                    // Fetch and render the updated product sizes with current pagination
+                    fetchAndRenderProductSizes();
+                }
+            })
+            .catch(err => {
                 loader.style.display = 'none';
                 showAlert("Something went wrong. Please try again.", true);
                 console.error(err);
-            }
+            });
         });
     }
 
@@ -4331,7 +3083,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const updateProductSizeForm = document.getElementById("updateProductSizeForm");
         if (updateProductSizeForm) {
-            updateProductSizeForm.addEventListener("submit", async (e) => {
+            updateProductSizeForm.addEventListener("submit", (e) => {
                 e.preventDefault();
 
                 if (!validateProductSizeUpdateForm()) return;
@@ -4339,20 +3091,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 const loader = document.getElementById('loader');
                 loader.style.display = 'flex';
 
-                try {
-                    const formData = new FormData(updateProductSizeForm);
-                    formData.append('editproductsize', true);
+                const formData = new FormData(updateProductSizeForm);
+                formData.append('editproductsize', true);
 
-                    const response = await fetch('AddSize.php', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    if (!response.ok) {
+                fetch('AddSize.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => {
+                    if (!res.ok) {
                         throw new Error('Network response was not ok');
                     }
-                    
-                    const data = await response.json();
+                    return res.json();
+                })
+                .then(data => {
                     loader.style.display = 'none';
                     showAlert(data.message, !data.success);
 
@@ -4366,29 +3118,15 @@ document.addEventListener("DOMContentLoaded", () => {
                         darkOverlay2.classList.add('opacity-0', 'invisible');
                         darkOverlay2.classList.remove('opacity-100');
 
-                        // Update the table row with the new data
-                        const rowToUpdate = document.querySelector(`tr [data-productsize-id="${data.generatedId}"]`)?.closest('tr');
-                        if (rowToUpdate) {
-                            rowToUpdate.querySelector('td:nth-child(2)').textContent = data.updateSize;
-                            rowToUpdate.querySelector('td:nth-child(3)').textContent = data.updatePrice;
-                            
-                            // Update the product name immediately
-                            const productCell = rowToUpdate.querySelector('td:nth-child(4)');
-                            if (productCell) {
-                                productCell.setAttribute('data-product-id', data.updateProduct);
-                                await updateProductNameForCell(productCell);
-                            }
-                        }
-                    } else {
-                        document.getElementById('updateSizeInput').value = '';
-                        document.getElementById('updatePriceModifierInput').value = '';
-                        updateProductSizeForm.reset();
+                        // Fetch and render the updated product sizes with current pagination
+                        fetchAndRenderProductSizes();
                     }
-                } catch (err) {
+                })
+                .catch(err => {
                     loader.style.display = 'none';
                     showAlert("Something went wrong. Please try again.", true);
                     console.error(err);
-                }
+                });
             });
         }
     }
@@ -4408,7 +3146,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const formData = new FormData(productSizeDeleteForm);
                 formData.append('deleteproductsize', true);
-                const productSizeId = formData.get('productsizeid');
 
                 fetch('../Admin/AddSize.php', {
                     method: 'POST',
@@ -4426,21 +3163,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         darkOverlay2.classList.add('opacity-0', 'invisible');
                         darkOverlay2.classList.remove('opacity-100');
                         
-                        const rowToRemove = document.querySelector(`[data-productsize-id="${productSizeId}"]`).closest('tr');
-                        if (rowToRemove) {
-                            rowToRemove.remove();
-                        }
-                        
-                        const tableBody = document.querySelector('tbody');
-                        if (tableBody && tableBody.querySelectorAll('tr').length === 0) {
-                            const emptyRow = document.createElement('tr');
-                            emptyRow.innerHTML = `
-                                <td colspan="7" class="p-3 text-center text-gray-500 py-52">
-                                    No product sizes available.
-                                </td>
-                            `;
-                            tableBody.appendChild(emptyRow);
-                        }
+                        // Fetch and render the updated product sizes with current pagination
+                        fetchAndRenderProductSizes();
                         
                         showAlert('The product size has been successfully deleted.');
                     } else {
@@ -4874,8 +3598,8 @@ const validateProductTypeForm = () => {
     return isTypeValid && isDescriptionValid;
 };
 
-const validateUpdateProductType = () => {
-    const isTypeValid = validateUpdateProductTypeInput();
+const validateUpdateProductTypeForm = () => {
+    const isTypeValid = validateUpdateProductType();
     const isDescriptionValid = validateUpdateDescription();
 
     return isTypeValid && isDescriptionValid;
@@ -4894,7 +3618,7 @@ const validateProductForm = () => {
     return isProductTitleValid && isProductBrandValid && isProductDescriptionValid && isProductSpecificationValid && isProductInformationValid && isProductDeliveryValid && isProductPriceValid && isProductDiscountPriceValid;
 }
 
-const validateUpdateProduct = () => {
+const validateProductUpdateForm = () => {
     const isProductTitleValid = validateUpdateProductTitle();
     const isProductBrandValid = validateUpdateBrand();
     const isProductDescriptionValid = validateUpdateProductDescription();
@@ -4994,6 +3718,12 @@ const validateRoomForm = () => {
     return isRoomNameValid;
 }
 
+const validateRoomUpdateForm = () => {
+    const isRoomNameValid = validateUpdateRoomName();
+
+    return isRoomNameValid;
+}
+
 const validateFacilityTypeForm = () => {
     const isFacilityTypeValid = validateFacilityType();
     const isFacilityTypeIconValid = validateFacilityTypeIcon();
@@ -5063,7 +3793,7 @@ const validateProductType = () => {
     );
 };
 
-const validateUpdateProductTypeInput = () => {
+const validateUpdateProductType = () => {
     return validateField(
         "updateProductTypeInput",
         "updateProductTypeError",
@@ -5491,6 +4221,14 @@ const validateRoomName = () => {
     return validateField(
         "roomNameInput",
         "roomNameError",
+        (input) => (!input ? "Room name is required." : null)
+    );
+}
+
+const validateUpdateRoomName = () => {
+    return validateField(
+        "updateRoomNameInput",
+        "updateRoomNameError",
         (input) => (!input ? "Room name is required." : null)
     );
 }

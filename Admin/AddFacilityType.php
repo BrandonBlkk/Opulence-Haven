@@ -53,8 +53,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         default => null
     };
     if ($query) {
-        $result = $connect->query($query);
-        $facilitytype = $result->fetch_assoc();
+        $facilitytype = $connect->query($query)->fetch_assoc();
 
         if ($facilitytype) {
             $response['success'] = true;

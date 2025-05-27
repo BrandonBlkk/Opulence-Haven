@@ -2,6 +2,7 @@
 session_start();
 include('../config/dbConnection.php');
 include('../includes/AutoIDFunc.php');
+include('../includes/AdminPagination.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -53,8 +54,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     };
 
     if ($query) {
-        $result = $connect->query($query);
-        $producttype = $result->fetch_assoc();
+        $producttype = $connect->query($query)->fetch_assoc();
 
         if ($producttype) {
             $response['success'] = true;
@@ -113,6 +113,42 @@ if (isset($_POST['deleteproducttype'])) {
     echo json_encode($response);
     exit();
 }
+
+// Initialize search and filter variables for product type
+$searchProductTypeQuery = isset($_GET['producttype_search']) ? mysqli_real_escape_string($connect, $_GET['producttype_search']) : '';
+$filterProductTypeID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
+
+// Construct the product type query based on search
+if (!empty($searchProductTypeQuery)) {
+    $productTypeSelect = "SELECT * FROM producttypetb WHERE ProductType LIKE '%$searchProductTypeQuery%' OR Description LIKE '%$searchProductTypeQuery%' LIMIT $rowsPerPage OFFSET $productTypeOffset";
+} else {
+    $productTypeSelect = "SELECT * FROM producttypetb LIMIT $rowsPerPage OFFSET $productTypeOffset";
+}
+
+$productTypeSelectQuery = $connect->query($productTypeSelect);
+$productTypes = [];
+
+if (mysqli_num_rows($productTypeSelectQuery) > 0) {
+    while ($row = $productTypeSelectQuery->fetch_assoc()) {
+        $productTypes[] = $row;
+    }
+}
+
+// Construct the prooducttype count query based on search
+if (!empty($searchProductTypeQuery)) {
+    $productTypeQuery = "SELECT COUNT(*) as count FROM producttypetb WHERE ProductType LIKE '%$searchProductTypeQuery%' OR Description LIKE '%$searchProductTypeQuery%'";
+} else {
+    $productTypeQuery = "SELECT COUNT(*) as count FROM producttypetb";
+}
+
+// Execute the count query
+$productTypeResult = $connect->query($productTypeQuery);
+$productTypeCount = $productTypeResult->fetch_assoc()['count'];
+
+// Fetch product type count
+$productTypeCountQuery = "SELECT COUNT(*) as count FROM producttypetb";
+$productTypeCountResult = $connect->query($productTypeCountQuery);
+$allProductTypeCount = $productTypeCountResult->fetch_assoc()['count'];
 ?>
 
 <!DOCTYPE html>
@@ -268,7 +304,7 @@ if (isset($_POST['deleteproducttype'])) {
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             name="updatedescription"
                             placeholder="Enter product type description"></textarea>
-                        <small id="updateProductTypeDescriptionError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                        <small id="updateProductTypeDescriptionError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
                     <!-- Submit Button -->
                     <div class="flex justify-end gap-4 select-none">

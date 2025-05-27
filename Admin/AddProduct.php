@@ -2,15 +2,13 @@
 session_start();
 include('../config/dbConnection.php');
 include('../includes/AutoIDFunc.php');
+include('../includes/AdminPagination.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
 $alertMessage = '';
-$addProductSuccess = false;
-$updateProductSuccess = false;
-$deleteProductSuccess = false;
 $productID = AutoID('producttb', 'ProductID', 'PD-', 6);
 $response = ['success' => false, 'message' => '', 'generatedId' => $productID];
 
@@ -64,8 +62,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         default => null
     };
     if ($query) {
-        $result = $connect->query($query);
-        $product = $result->fetch_assoc();
+        $product = $connect->query($query)->fetch_assoc();
 
         if ($product) {
             $response['success'] = true;
@@ -140,6 +137,45 @@ if (isset($_POST['deleteproduct'])) {
     echo json_encode($response);
     exit();
 }
+
+// Initialize search and filter variables for product
+$searchProductQuery = isset($_GET['product_search']) ? mysqli_real_escape_string($connect, $_GET['product_search']) : '';
+$filterProductID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
+
+// Construct the product query based on search and product type filter
+if ($filterProductID !== 'random' && !empty($searchProductQuery)) {
+    $productSelect = "SELECT * FROM producttb WHERE ProductTypeID = '$filterProductID' AND (Title LIKE '%$searchProductQuery%' OR Description LIKE '%$searchProductQuery%' OR Specification LIKE '%$searchProductQuery%' OR Information LIKE '%$searchProductQuery%' OR Brand LIKE '%$searchProductQuery%') LIMIT $rowsPerPage OFFSET $productOffset";
+} elseif ($filterProductID !== 'random') {
+    $productSelect = "SELECT * FROM producttb WHERE ProductTypeID = '$filterProductID' LIMIT $rowsPerPage OFFSET $productOffset";
+} elseif (!empty($searchProductQuery)) {
+    $productSelect = "SELECT * FROM producttb WHERE Title LIKE '%$searchProductQuery%' OR Description LIKE '%$searchProductQuery%' OR Specification LIKE '%$searchProductQuery%' OR Information LIKE '%$searchProductQuery%' OR Brand LIKE '%$searchProductQuery%' LIMIT $rowsPerPage OFFSET $productOffset";
+} else {
+    $productSelect = "SELECT * FROM producttb LIMIT $rowsPerPage OFFSET $productOffset";
+}
+
+$productSelectQuery = $connect->query($productSelect);
+$products = [];
+
+if (mysqli_num_rows($productSelectQuery) > 0) {
+    while ($row = $productSelectQuery->fetch_assoc()) {
+        $products[] = $row;
+    }
+}
+
+// Construct the product count query based on search and product type filter
+if ($filterProductID !== 'random' && !empty($searchProductQuery)) {
+    $productQuery = "SELECT COUNT(*) as count FROM producttb WHERE ProductTypeID = '$filterProductID' AND (Title LIKE '%$searchProductQuery%' OR Description LIKE '%$searchProductQuery%' OR Specification LIKE '%$searchProductQuery%' OR Information LIKE '%$searchProductQuery%' OR Brand LIKE '%$searchProductQuery%')";
+} elseif ($filterProductID !== 'random') {
+    $productQuery = "SELECT COUNT(*) as count FROM producttb WHERE ProductTypeID = '$filterProductID'";
+} elseif (!empty($searchProductQuery)) {
+    $productQuery = "SELECT COUNT(*) as count FROM producttb WHERE Title LIKE '%$searchProductQuery%' OR Description LIKE '%$searchProductQuery%' OR Specification LIKE '%$searchProductQuery%' OR Information LIKE '%$searchProductQuery%' OR Brand LIKE '%$searchProductQuery%'";
+} else {
+    $productQuery = "SELECT COUNT(*) as count FROM producttb";
+}
+
+// Execute the count query
+$productResult = $connect->query($productQuery);
+$productCount = $productResult->fetch_assoc()['count'];
 ?>
 
 <!DOCTYPE html>

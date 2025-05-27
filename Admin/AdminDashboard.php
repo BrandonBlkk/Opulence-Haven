@@ -33,6 +33,20 @@ $lowStock = $lowStockResult->fetch_assoc()['LowStock'];
 $outOfStockQuery = "SELECT COUNT(*) AS OutOfStock FROM producttb WHERE Stock = 0";
 $outOfStockResult = $connect->query($outOfStockQuery);
 $outOfStock = $outOfStockResult->fetch_assoc()['OutOfStock'];
+
+$roomQuery = "SELECT COUNT(*) as count FROM roomtb WHERE RoomStatus = 'Available'";
+$roomResult = $connect->query($roomQuery);
+$roomCount = $roomResult->fetch_assoc()['count'];
+if ($roomCount > 0) {
+    $roomAvailable = $roomCount;
+}
+
+$roomQuery = "SELECT COUNT(*) as count FROM roomtb WHERE RoomStatus = 'Reserved'";
+$roomResult = $connect->query($roomQuery);
+$roomCount = $roomResult->fetch_assoc()['count'];
+if ($roomCount > 0) {
+    $roomReserved = $roomCount;
+}
 ?>
 
 <!DOCTYPE html>
@@ -231,12 +245,12 @@ $outOfStock = $outOfStockResult->fetch_assoc()['OutOfStock'];
                 <p class="text-sm text-gray-500 mb-4">Current availability of rooms across different time periods.</p>
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <div class="text-center">
-                        <h3 class="text-xl font-semibold text-red-600">45</h3>
+                        <h3 class="text-xl font-semibold text-red-600"><?= $roomReserved ?></h3>
                         <p class="text-gray-500 text-xs">Booked</p>
                         <p class="text-red-500 text-sm">↓ 2.45%</p>
                     </div>
                     <div class="text-center">
-                        <h3 class="text-xl font-semibold text-green-600">15</h3>
+                        <h3 class="text-xl font-semibold text-green-600"><?= $roomAvailable ?></h3>
                         <p class="text-gray-500 text-xs">Available</p>
                         <p class="text-green-500 text-sm">↑ 3.18%</p>
                     </div>
