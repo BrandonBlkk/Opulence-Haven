@@ -1,26 +1,95 @@
 <?php
 session_start();
 include('../config/dbConnection.php');
+include('../includes/AutoIDFunc.php');
+require '../vendor/autoload.php';
 
 $alertMessage = '';
 $signinSuccess = false;
 $isAccountLocked = false;
 
+$client = new Google\Client();
+$client->setClientId('92855576167-fmia8d3b9oqnm3h581h8e355i2kfu28d.apps.googleusercontent.com');
+$client->setClientSecret('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');
+$client->setRedirectUri('http://localhost/OpulenceHaven/User/UserSignIn.php');
+$client->addScope('email');
+$client->addScope('profile');
+
+$url = $client->createAuthUrl();
+
+// Handle Google OAuth Callback
+if (isset($_GET['code'])) {
+    $token = $client->fetchAccessTokenWithAuthCode($_GET['code']);
+
+    if (!isset($token['error'])) {
+        $client->setAccessToken($token['access_token']);
+        $google_oauth = new Google\Service\Oauth2($client);
+        $google_account_info = $google_oauth->userinfo->get();
+
+        $email = $google_account_info['email'];
+        $name = $google_account_info['name'];
+        $picture = $google_account_info['picture'];
+
+        $checkEmailQuery = "SELECT * FROM usertb WHERE UserEmail = '$email'";
+        $result = $connect->query($checkEmailQuery);
+
+        if ($result->num_rows > 0) {
+            $array = $result->fetch_assoc();
+            $user_id = $array["UserID"];
+            $user_username = $array["UserName"];
+            $last_signin = $array["LastSignIn"];
+
+            $_SESSION["UserID"] = $user_id;
+            $_SESSION["UserName"] = $user_username;
+            $_SESSION["UserEmail"] = $email;
+            $_SESSION["welcome_message"] = $last_signin === null ? "Welcome" : "Welcome back";
+
+            $connect->query("UPDATE usertb SET Status = 'active', LastSignIn = NOW() WHERE UserID = '$user_id'");
+        } else {
+            $userID = AutoID('usertb', 'UserID', 'USR-', 6);
+            $colors = ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#673AB7', '#FF6D00', '#00ACC1', '#D81B60', '#8E24AA', '#039BE5', '#7CB342', '#F4511E', '#546E7A', '#E53935', '#00897B', '#5E35B1'];
+            $bgColor = $colors[array_rand($colors)];
+
+            $insertQuery = "INSERT INTO usertb (UserID, UserName, UserEmail, UserPassword, Status, LastSignIn, Profile, ProfileBgColor, SignupDate) 
+                            VALUES ('$userID', '$name', '$email', '', 'active', NOW(), '$picture', '$bgColor', NOW())";
+
+            if ($connect->query($insertQuery)) {
+                $_SESSION["UserID"] = $userID;
+                $_SESSION["UserName"] = $name;
+                $_SESSION["UserEmail"] = $email;
+                $_SESSION["welcome_message"] = "Welcome";
+            } else {
+                die("Error creating account.");
+            }
+        }
+
+        header("Location: HomePage.php");
+        exit;
+    } else {
+        echo "Google Sign-In Failed";
+    }
+}
+
+// If user clicked "Continue with Google"
+elseif (isset($_GET['google'])) {
+    header("Location: $url");
+    exit;
+}
+
+// Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
     $email = mysqli_real_escape_string($connect, trim($_POST['email']));
     $password = mysqli_real_escape_string($connect, trim($_POST['password']));
 
     // Check if the email exists
-    $checkEmailQuery = "SELECT * FROM usertb 
-    WHERE UserEmail = '$email'";
+    $checkEmailQuery = "SELECT * FROM usertb WHERE UserEmail = '$email'";
     $emailExist = $connect->query($checkEmailQuery)->num_rows;
 
     if (!$emailExist) {
         $alertMessage = "No account found with the provided email. Please try again.";
     } else {
         // Check if the email exists and fetch data
-        $checkAccQuery = "SELECT * FROM usertb 
-        WHERE UserEmail = '$email' AND UserPassword = '$password';";
+        $checkAccQuery = "SELECT * FROM usertb WHERE UserEmail = '$email' AND UserPassword = '$password'";
         $rowCount = $connect->query($checkAccQuery)->num_rows;
 
         // Initialize or reset sign-in attempt counter based on email consistency
@@ -48,8 +117,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
                 $_SESSION["welcome_message"] = "Welcome back";
             }
 
-            $updateSignInQuery = "UPDATE usertb SET Status = 'active' 
-            WHERE UserID = '$user_id'";
+            $updateSignInQuery = "UPDATE usertb SET Status = 'active', LastSignIn = NOW() WHERE UserID = '$user_id'";
             $connect->query($updateSignInQuery);
 
             // Reset sign-in attempts on successful sign-in
@@ -147,6 +215,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
                     name="signin"
                     value="Sign In">
 
+                <a href="<?= $client->createAuthUrl() ?>" class="flex items-center justify-center gap-2 border border-gray-300 rounded-md px-4 py-2 font-semibold text-slate-700 hover:bg-gray-50 transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                    </svg>
+                    <span>Sign in with Google</span>
+                </a>
+
                 <div class="relative my-6">
                     <div class="absolute inset-0 flex items-center">
                         <div class="w-full border-t border-gray-200"></div>
@@ -161,6 +239,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
                     <p class="relative z-10 text-blue-900 font-semibold">Sign Up Now</p>
                     <div class="absolute inset-0 rounded-md group-hover:bg-gray-100 transition-colors duration-300"></div>
                 </a>
+
                 <p class="text-xs text-slate-700">By signing in, you agree to our
                     <a href="../Policies/PrivacyPolicy.php" class="hover:underline underline-offset-2">Privacy Policy</a> and
                     <a href="../Policies/TermOfUse.php" class="hover:underline underline-offset-2">Terms of Use</a>.
