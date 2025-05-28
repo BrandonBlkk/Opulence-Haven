@@ -36,16 +36,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     $profileBgColor = $googleColors[array_rand($googleColors)];
 
     // Check if the email already exists
-    $checkEmailQuery = "SELECT UserEmail FROM usertb WHERE UserEmail = '$email'";
-    $count = $connect->query($checkEmailQuery)->num_rows;
+    $checkEmailQuery = $connect->prepare("SELECT UserEmail FROM usertb WHERE UserEmail = ?");
+    $checkEmailQuery->bind_param("s", $email);
+    $checkEmailQuery->execute();
+    $checkEmailQuery->store_result();
+    $count = $checkEmailQuery->num_rows;
 
     if ($count > 0) {
         $alertMessage = 'Email you signed up with is already taken.';
     } else {
         // Insert the new user data
-        $insertQuery = "INSERT INTO usertb (UserID, UserName, UserEmail, UserPassword, UserPhone, ProfileBgColor) 
-                        VALUES ('$userID', '$username', '$email', '$password', '$phone', '$profileBgColor')";
-        $insert_Query = $connect->query($insertQuery);
+        $insert_Query = $connect->prepare("INSERT INTO usertb (UserID, UserName, UserEmail, UserPassword, UserPhone, ProfileBgColor) 
+                        VALUES (? , ?, ?, ?, ?, ?)");
+        $insert_Query->bind_param("ssssss", $userID, $username, $email, $password, $phone, $profileBgColor);
+        $insert_Query->execute();
+        $insert_Query->get_result();
 
         if ($insert_Query) {
             $_SESSION["welcome_message"] = "Welcome";

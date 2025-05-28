@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Sign In
+// // Sign In
 document.addEventListener("DOMContentLoaded", () => {
     const loader = document.getElementById('loader');
     const signInSuccess = document.getElementById('signinSuccess').value === 'true';
@@ -91,6 +91,60 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+// Sign In
+// document.addEventListener("DOMContentLoaded", () => {
+//     // Add keyup event listeners for real-time validation
+//     document.getElementById("emailInput")?.addEventListener("keyup", validateEmail);
+//     document.getElementById("passwordInput2")?.addEventListener("keyup", validatePasswordSignIn);
+
+//     const signinForm = document.getElementById("signinForm");
+//     if (signinForm) {
+//         signinForm.addEventListener("submit", function(e) {
+//             e.preventDefault();
+            
+//             if (validateSignInForm()) {
+//                 const loader = document.getElementById('loader');
+//                 const formData = new FormData(this);
+                
+//                 loader.style.display = 'flex';
+                
+//                 fetch('../User/UserSignIn.php', {
+//                     method: 'POST',
+//                     body: formData
+//                 })
+//                 .then(response => {
+//                     if (!response.ok) {
+//                         throw new Error('Network response was not ok');
+//                     }
+//                     return response.json();
+//                 })
+//                 .then(data => {
+//                     loader.style.display = 'none';
+                    
+//                     if (data.success) {
+//                         // Successful sign-in
+//                         loader.style.display = 'flex';
+//                         setTimeout(() => {
+//                             window.location.href = '../User/HomePage.php';
+//                         }, 1000);
+//                     } else if (data.locked) {
+//                         // Account locked
+//                         window.location.href = '../User/WaitingRoom.php';
+//                     } else {
+//                         // Show error message
+//                         showAlert(data.message, 'error');
+//                     }
+//                 })
+//                 .catch(error => {
+//                     loader.style.display = 'none';
+//                     showAlert('An error occurred. Please try again.', 'error');
+//                     console.error('Error:', error);
+//                 });
+//             }
+//         });
+//     }
+// });
 
 // Reset Password
 document.addEventListener("DOMContentLoaded", () => {
