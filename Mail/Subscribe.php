@@ -14,14 +14,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $mail = new PHPMailer(true);
 
         try {
-            // Server settings
-            $mail->isSMTP(); // Send using SMTP
-            $mail->Host       = 'smtp.gmail.com'; // Gmail's SMTP server
-            $mail->SMTPAuth   = true; // Enable SMTP authentication
-            $mail->Username   = 'opulencehaven25@gmail.com'; // Your Gmail address
-            $mail->Password   = 'xzjd xttt bhwd gilx'; // Your Gmail app password
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Enable TLS encryption
-            $mail->Port       = 587; // TCP port to connect to
+            $mailConfig = require __DIR__ . '/../config/mail.php';
+
+            $mail->isSMTP();
+            $mail->Host       = $mailConfig['host'];
+            $mail->SMTPAuth   = true;
+            $mail->Username   = $mailConfig['username'];
+            $mail->Password   = $mailConfig['password'];
+            $mail->SMTPSecure = $mailConfig['encryption'];
+            $mail->Port       = $mailConfig['port'];
+
 
             // Recipients
             $mail->setFrom('opulencehaven25@gmail.com', 'Opulence Haven'); // Sender

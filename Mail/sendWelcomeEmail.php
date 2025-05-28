@@ -20,13 +20,15 @@ try {
     $mail = new PHPMailer(true);
 
     // Server settings
+    $mailConfig = require __DIR__ . '/../config/mail.php';
+
     $mail->isSMTP();
-    $mail->Host       = 'smtp.gmail.com';
+    $mail->Host       = $mailConfig['host'];
     $mail->SMTPAuth   = true;
-    $mail->Username   = 'opulencehaven25@gmail.com';
-    $mail->Password   = 'xzjd xttt bhwd gilx';
-    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-    $mail->Port       = 587;
+    $mail->Username   = $mailConfig['username'];
+    $mail->Password   = $mailConfig['password'];
+    $mail->SMTPSecure = $mailConfig['encryption'];
+    $mail->Port       = $mailConfig['port'];
 
     // Recipients
     $mail->setFrom('opulencehaven25@gmail.com', 'Opulence Haven');

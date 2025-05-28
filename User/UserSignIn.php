@@ -3,17 +3,19 @@ session_start();
 include('../config/dbConnection.php');
 include('../includes/AutoIDFunc.php');
 require '../vendor/autoload.php';
+$googleConfig = require __DIR__ . '/../config/google.php';
 
 $alertMessage = '';
 $signinSuccess = false;
 $isAccountLocked = false;
 
 $client = new Google\Client();
-$client->setClientId('92855576167-fmia8d3b9oqnm3h581h8e355i2kfu28d.apps.googleusercontent.com');
-$client->setClientSecret('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');
-$client->setRedirectUri('http://localhost/OpulenceHaven/User/UserSignIn.php');
+$client->setClientId($googleConfig['client_id']);
+$client->setClientSecret($googleConfig['client_secret']);
+$client->setRedirectUri($googleConfig['redirect_uri']);
 $client->addScope('email');
 $client->addScope('profile');
+
 
 $url = $client->createAuthUrl();
 
@@ -30,8 +32,11 @@ if (isset($_GET['code'])) {
         $name = $google_account_info['name'];
         $picture = $google_account_info['picture'];
 
-        $checkEmailQuery = "SELECT * FROM usertb WHERE UserEmail = '$email'";
-        $result = $connect->query($checkEmailQuery);
+        // Check if the email already exists
+        $checkEmailQuery = $connect->prepare("SELECT * FROM usertb WHERE UserEmail = ?");
+        $checkEmailQuery->bind_param("s", $email);
+        $checkEmailQuery->execute();
+        $result = $checkEmailQuery->get_result();
 
         if ($result->num_rows > 0) {
             $array = $result->fetch_assoc();
@@ -44,16 +49,25 @@ if (isset($_GET['code'])) {
             $_SESSION["UserEmail"] = $email;
             $_SESSION["welcome_message"] = $last_signin === null ? "Welcome" : "Welcome back";
 
-            $connect->query("UPDATE usertb SET Status = 'active', LastSignIn = NOW() WHERE UserID = '$user_id'");
+            $stmt = $connect->prepare("UPDATE usertb SET Status = ?, LastSignIn = NOW() WHERE UserID = ?");
+            $status = 'active';
+            $stmt->bind_param("ss", $status, $user_id);
+            $stmt->execute();
+            $stmt->close();
         } else {
             $userID = AutoID('usertb', 'UserID', 'USR-', 6);
             $colors = ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#673AB7', '#FF6D00', '#00ACC1', '#D81B60', '#8E24AA', '#039BE5', '#7CB342', '#F4511E', '#546E7A', '#E53935', '#00897B', '#5E35B1'];
             $bgColor = $colors[array_rand($colors)];
 
-            $insertQuery = "INSERT INTO usertb (UserID, UserName, UserEmail, UserPassword, Status, LastSignIn, Profile, ProfileBgColor, SignupDate) 
-                            VALUES ('$userID', '$name', '$email', '', 'active', NOW(), '$picture', '$bgColor', NOW())";
+            $insertQuery = $connect->prepare("INSERT INTO usertb (
+                UserID, UserName, UserEmail, UserPassword, Status, LastSignIn, Profile, ProfileBgColor, SignupDate
+            ) VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, NOW())");
+            $insertQuery->bind_param("sssssss", $userID, $name, $email, $password, $status, $picture, $bgColor);
+            $status = 'active';
+            $insertQuery->execute();
+            $insertQuery->get_result();
 
-            if ($connect->query($insertQuery)) {
+            if ($insertQuery) {
                 $_SESSION["UserID"] = $userID;
                 $_SESSION["UserName"] = $name;
                 $_SESSION["UserEmail"] = $email;
@@ -82,15 +96,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
     $password = mysqli_real_escape_string($connect, trim($_POST['password']));
 
     // Check if the email exists
-    $checkEmailQuery = "SELECT * FROM usertb WHERE UserEmail = '$email'";
-    $emailExist = $connect->query($checkEmailQuery)->num_rows;
+    $checkEmailQuery = $connect->prepare("SELECT * FROM usertb WHERE UserEmail = ?");
+    $checkEmailQuery->bind_param("s", $email);
+    $checkEmailQuery->execute();
+    $result = $checkEmailQuery->get_result();
+
+    // Check if any rows were returned
+    $emailExist = $result->num_rows;
+
 
     if (!$emailExist) {
         $alertMessage = "No account found with the provided email. Please try again.";
     } else {
         // Check if the email exists and fetch data
-        $checkAccQuery = "SELECT * FROM usertb WHERE UserEmail = '$email' AND UserPassword = '$password'";
-        $rowCount = $connect->query($checkAccQuery)->num_rows;
+        $checkAccQuery = $connect->prepare("SELECT * FROM usertb WHERE UserEmail = ? AND UserPassword = ?");
+        $checkAccQuery->bind_param("ss", $email, $password);
+        $checkAccQuery->execute();
+        $result = $checkAccQuery->get_result();
+
+        $rowCount = $result->num_rows;
 
         // Initialize or reset sign-in attempt counter based on email consistency
         if (!isset($_SESSION['last_email']) || $_SESSION['last_email'] !== $email) {
@@ -100,7 +124,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
 
         // Check customer account match with signup account
         if ($rowCount > 0) {
-            $array = $connect->query($checkAccQuery)->fetch_assoc();
+            $array = $result->fetch_assoc();
             $user_id = $array["UserID"];
             $user_username = $array["UserName"];
             $user_email = $array["UserEmail"];
@@ -117,8 +141,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
                 $_SESSION["welcome_message"] = "Welcome back";
             }
 
-            $updateSignInQuery = "UPDATE usertb SET Status = 'active', LastSignIn = NOW() WHERE UserID = '$user_id'";
-            $connect->query($updateSignInQuery);
+            // Update sign-in status
+            $updateSignInQuery = "UPDATE usertb SET Status = ?, LastSignIn = NOW() WHERE UserID = ?";
+            $stmt = $connect->prepare($updateSignInQuery);
+            $status = 'active';
+            $stmt->bind_param("si", $status, $user_id);
+            $stmt->execute();
+            $stmt->close();
 
             // Reset sign-in attempts on successful sign-in
             $_SESSION['signin_attempts'] = 0;
@@ -141,6 +170,91 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
         }
     }
 }
+
+// Handle form submission
+// if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
+//     $email = mysqli_real_escape_string($connect, trim($_POST['email']));
+//     $password = mysqli_real_escape_string($connect, trim($_POST['password']));
+
+//     $response = [
+//         'success' => false,
+//         'message' => '',
+//         'locked' => false,
+//         'attemptsLeft' => null
+//     ];
+
+//     // Check if the email exists
+//     $checkEmailQuery = $connect->prepare("SELECT * FROM usertb WHERE UserEmail = ?");
+//     $checkEmailQuery->bind_param("s", $email);
+//     $checkEmailQuery->execute();
+//     $result = $checkEmailQuery->get_result();
+//     $emailExist = $result->num_rows;
+
+//     if (!$emailExist) {
+//         $response['message'] = "No account found with the provided email. Please try again.";
+//     } else {
+//         // Check if the email exists and fetch data
+//         $checkAccQuery = $connect->prepare("SELECT * FROM usertb WHERE UserEmail = ? AND UserPassword = ?");
+//         $checkAccQuery->bind_param("ss", $email, $password);
+//         $checkAccQuery->execute();
+//         $result = $checkAccQuery->get_result();
+//         $rowCount = $result->num_rows;
+
+//         // Initialize or reset sign-in attempt counter based on email consistency
+//         if (!isset($_SESSION['last_email']) || $_SESSION['last_email'] !== $email) {
+//             $_SESSION['signin_attempts'] = 0;
+//             $_SESSION['last_email'] = $email;
+//         }
+
+//         // Check customer account match with signup account
+//         if ($rowCount > 0) {
+//             $array = $result->fetch_assoc();
+//             $user_id = $array["UserID"];
+//             $user_username = $array["UserName"];
+//             $user_email = $array["UserEmail"];
+//             $last_signin = $array["LastSignIn"];
+
+//             $_SESSION["UserID"] = $user_id;
+//             $_SESSION["UserName"] = $user_username;
+//             $_SESSION["UserEmail"] = $user_email;
+
+//             // Update sign-in status
+//             $updateSignInQuery = "UPDATE usertb SET Status = ?, LastSignIn = NOW() WHERE UserID = ?";
+//             $stmt = $connect->prepare($updateSignInQuery);
+//             $status = 'active';
+//             $stmt->bind_param("si", $status, $user_id);
+//             $stmt->execute();
+//             $stmt->close();
+
+//             // Reset sign-in attempts on successful sign-in
+//             $_SESSION['signin_attempts'] = 0;
+//             $_SESSION['last_email'] = null;
+
+//             $response['success'] = true;
+//         } else {
+//             // Increment sign-in attempt counter for the same email
+//             $_SESSION['signin_attempts']++;
+//             $attemptsLeft = 3 - $_SESSION['signin_attempts'];
+//             $response['attemptsLeft'] = $attemptsLeft;
+
+//             // Check if sign-in attempts exceed limit
+//             if ($_SESSION['signin_attempts'] >= 3) {
+//                 // Reset sign-in attempts
+//                 $_SESSION['signin_attempts'] = 0;
+//                 $response['locked'] = true;
+//                 $response['message'] = "Too many failed attempts. Your account has been temporarily locked.";
+//             } else if ($_SESSION['signin_attempts'] === 2) {
+//                 $response['message'] = "Multiple failed attempts. One more may lock your account temporarily.";
+//             } else {
+//                 $response['message'] = "The password you entered is incorrect. Please try again.";
+//             }
+//         }
+//     }
+
+//     header('Content-Type: application/json');
+//     echo json_encode($response);
+//     exit();
+// }
 ?>
 
 <!DOCTYPE html>
@@ -215,7 +329,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
                     name="signin"
                     value="Sign In">
 
-                <a href="<?= $client->createAuthUrl() ?>" class="flex items-center justify-center gap-2 border border-gray-300 rounded-md px-4 py-2 font-semibold text-slate-700 hover:bg-gray-50 transition-colors duration-200">
+                <a href="<?= $client->createAuthUrl() ?>" class="flex items-center justify-center gap-2 border border-gray-200 rounded-md px-4 py-2 font-semibold text-slate-700 hover:bg-gray-50 transition-colors duration-200">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                         <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
