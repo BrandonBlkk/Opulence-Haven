@@ -1,3 +1,6 @@
+<?php
+include('../User/CleanupReservations.php');
+?>
 <section class="bg-gray-100 px-3 min-w-[380px]">
     <div class="flex items-center justify-end max-w-[1050px] mx-auto gap-5 select-none">
         <!-- Search Icon -->

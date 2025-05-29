@@ -6,6 +6,38 @@
             <p class="text-slate-400 text-xs <?php echo empty($_SESSION['UserEmail']) ? 'hidden' : 'flex' ?>">
                 <?php echo $_SESSION['UserEmail'] ?>
             </p>
+            <!-- Points Balance Display -->
+            <?php if (!empty($_SESSION['UserID'])): ?>
+                <?php
+                // Initialize points balance with default value
+                $pointsBalance = 0;
+
+                // Prepare and execute the query safely
+                $stmt = $connect->prepare("SELECT PointsBalance FROM usertb WHERE UserID = ?");
+                if ($stmt) {
+                    $stmt->bind_param("s", $_SESSION['UserID']);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+
+                    if ($result && $result->num_rows > 0) {
+                        $userPoints = $result->fetch_assoc();
+                        $pointsBalance = $userPoints['PointsBalance'] ?? 0;
+                        $membership = $userPoints['Membership'] ?? 0;
+                    }
+                    $stmt->close();
+                }
+                ?>
+                <div class="flex items-center gap-2 mt-2">
+                    <div class="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center">
+                        <i class="ri-copper-coin-line text-white text-sm"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-700">
+                        <?php echo number_format($pointsBalance) ?>
+                        <?php echo ($pointsBalance > 1) ? 'Points' : 'Point'; ?>
+                        Available to Redeem
+                    </span>
+                </div>
+            <?php endif; ?>
         </div>
         <i id="closeBtn" class="ri-close-line text-2xl cursor-pointer rounded transition-colors duration-300"></i>
     </div>

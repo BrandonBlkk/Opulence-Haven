@@ -491,6 +491,7 @@ if ($productReviewSelectQuery->num_rows > 0) {
                             $reviewdate = $row['AddedDate'];
                             $rating = $row['Rating'];
                             $comment = $row['Comment'];
+                            $member = $row['Membership'];
 
                             // Logic to handle truncated comments
                             $comment_words = explode(' ', $comment);
@@ -528,7 +529,7 @@ if ($productReviewSelectQuery->num_rows > 0) {
                                                     echo "<span class='text-sm text-green-500 font-semibold'> (You)</span>";
                                                 }
                                                 ?>
-                                                • Verified Buyer <i class="ri-checkbox-circle-line text-green-500"></i>
+                                                <?php echo ($member == 1) ? '• Verified Member <i class="ri-checkbox-circle-line text-green-500"></i>' : ''; ?>
                                             </span>
                                             <span class="text-xs text-gray-500">Reviewed on <span><?= htmlspecialchars(date('Y-m-d', strtotime($reviewdate))) ?></span></span>
                                         </div>
