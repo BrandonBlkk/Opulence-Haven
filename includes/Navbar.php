@@ -1,4 +1,6 @@
 <?php
+include('../User/CleanupReservations.php');
+
 // Get the current file name
 $current_page = basename($_SERVER['PHP_SELF']);
 ?>

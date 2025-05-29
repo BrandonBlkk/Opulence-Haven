@@ -38,48 +38,6 @@ if (isset($_GET["roomTypeID"])) {
     $availableRooms = $availableRoomsResult['available'];
 }
 
-// Function to cleanup expired reservations
-function cleanupExpiredReservations($connect)
-{
-    try {
-        // Get current datetime 
-        $currentDateTime = date('Y-m-d H:i:s');
-
-        // Get all expired reservation IDs
-        $getExpiredQuery = "SELECT ReservationID FROM reservationtb 
-                          WHERE Status = 'Pending' AND ExpiryDate <= ?";
-        $stmtGet = $connect->prepare($getExpiredQuery);
-        $stmtGet->bind_param("s", $currentDateTime);
-        $stmtGet->execute();
-        $expiredResult = $stmtGet->get_result();
-
-        // Process each expired reservation
-        while ($row = $expiredResult->fetch_assoc()) {
-            $reservationID = $row['ReservationID'];
-
-            // Delete from reservationdetailtb first (due to foreign key constraints)
-            $deleteDetails = "DELETE FROM reservationdetailtb WHERE ReservationID = ?";
-            $stmtDetails = $connect->prepare($deleteDetails);
-            $stmtDetails->bind_param("s", $reservationID);
-            $stmtDetails->execute();
-
-            // Then delete from reservationtb
-            $deleteReservation = "DELETE FROM reservationtb WHERE ReservationID = ?";
-            $stmtReservation = $connect->prepare($deleteReservation);
-            $stmtReservation->bind_param("s", $reservationID);
-            $stmtReservation->execute();
-        }
-
-        return true;
-    } catch (Exception $e) {
-        error_log("Cleanup failed: " . $e->getMessage());
-        return false;
-    }
-}
-
-// Call this function at the start of your reservation processing
-cleanupExpiredReservations($connect);
-
 // Reserve room
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
     $roomID = $_POST['reserve_room_id'];
@@ -163,7 +121,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
             } else {
                 // Create new reservation
                 $reservationID = uniqid('RSV');
-                $expiryDate = date('Y-m-d H:i:s', strtotime('+1 day'));
+                $expiryDate = date('Y-m-d H:i:s', strtotime('+30 minutes'));
 
                 // Insert into reservationtb
                 $reservationQuery = "INSERT INTO reservationtb (ReservationID, UserID, TotalPrice, ExpiryDate, Status) VALUES (?, ?, ?, ?, 'Pending')";
@@ -184,6 +142,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
             $stmtUpdate->bind_param("ss", $reservationID, $reservationID);
             $stmtUpdate->execute();
 
+            // Update Room Status
+            $updateRoomStatus = "UPDATE roomtb SET RoomStatus = 'Reserved' WHERE RoomID = ?";
+            $stmtRoomStatus = $connect->prepare($updateRoomStatus);
+            $stmtRoomStatus->bind_param("s", $roomID);
+            $stmtRoomStatus->execute();
+
             header("Location: Reservation.php");
             exit();
         } else {
@@ -195,11 +159,44 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
 }
 
 // Add room to favorites
+// if (isset($_POST['room_favourite'])) {
+//     if ($userID) {
+//         $roomTypeID = $_POST['roomTypeID'];
+
+//         // Get search parameters from POST data 
+//         $checkin_date = isset($_POST['checkin_date']) ? $_POST['checkin_date'] : '';
+//         $checkout_date = isset($_POST['checkout_date']) ? $_POST['checkout_date'] : '';
+//         $adults = isset($_POST['adults']) ? intval($_POST['adults']) : 1;
+//         $children = isset($_POST['children']) ? intval($_POST['children']) : 0;
+
+//         $check = "SELECT COUNT(*) as count FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
+//         $result = $connect->query($check);
+//         $count = $result->fetch_assoc()['count'];
+
+//         if ($count == 0) {
+//             $insert = "INSERT INTO roomtypefavoritetb (UserID, RoomTypeID, CheckInDate, CheckOutDate, Adult, Children) 
+//                       VALUES ('$userID', '$roomTypeID', '$checkin_date', '$checkout_date', '$adults', '$children')";
+//             $connect->query($insert);
+//         } else {
+//             $delete = "DELETE FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
+//             $connect->query($delete);
+//         }
+
+//         // Redirect back with the same search parameters
+//         $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children";
+//         header("Location: $redirect_url");
+//         exit();
+//     } else {
+//         $showLoginModal = true;
+//     }
+// }
+
+// Add room to favorites
 if (isset($_POST['room_favourite'])) {
+    header('Content-Type: application/json');
+
     if ($userID) {
         $roomTypeID = $_POST['roomTypeID'];
-
-        // Get search parameters from POST data 
         $checkin_date = isset($_POST['checkin_date']) ? $_POST['checkin_date'] : '';
         $checkout_date = isset($_POST['checkout_date']) ? $_POST['checkout_date'] : '';
         $adults = isset($_POST['adults']) ? intval($_POST['adults']) : 1;
@@ -213,18 +210,17 @@ if (isset($_POST['room_favourite'])) {
             $insert = "INSERT INTO roomtypefavoritetb (UserID, RoomTypeID, CheckInDate, CheckOutDate, Adult, Children) 
                       VALUES ('$userID', '$roomTypeID', '$checkin_date', '$checkout_date', '$adults', '$children')";
             $connect->query($insert);
+            echo json_encode(['status' => 'added']);
         } else {
             $delete = "DELETE FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
             $connect->query($delete);
+            echo json_encode(['status' => 'removed']);
         }
-
-        // Redirect back with the same search parameters
-        $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children";
-        header("Location: $redirect_url");
-        exit();
     } else {
-        $showLoginModal = true;
+        echo json_encode(['status' => 'not_logged_in']);
     }
+
+    exit();
 }
 
 // Get average rating
@@ -493,6 +489,53 @@ if (isset($_POST['submitreview'])) {
                         $favorite_result = $connect->query($check_favorite);
                         $is_favorited = $favorite_result->fetch_assoc()['count'] > 0;
                         ?>
+
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                document.querySelectorAll('button[name="room_favourite"]').forEach(button => {
+                                    button.addEventListener('click', function(e) {
+                                        e.preventDefault();
+
+                                        const form = this.closest('form');
+                                        const formData = new FormData(form);
+                                        const heartIcon = this.querySelector('i');
+
+                                        heartIcon.classList.add('ri-loader-4-line', 'animate-spin');
+                                        heartIcon.classList.remove('ri-heart-fill');
+
+                                        fetch(location.href, {
+                                                method: 'POST',
+                                                body: formData
+                                            })
+                                            .then(response => {
+                                                if (!response.ok) throw new Error('Network response was not ok');
+                                                return response.json();
+                                            })
+                                            .then(data => {
+                                                heartIcon.classList.remove('ri-loader-4-line', 'animate-spin');
+                                                heartIcon.classList.add('ri-heart-fill');
+
+                                                if (data.status === 'added') {
+                                                    heartIcon.classList.add('text-red-500', 'hover:text-red-600');
+                                                    heartIcon.classList.remove('text-slate-400', 'hover:text-red-300');
+                                                } else if (data.status === 'removed') {
+                                                    heartIcon.classList.add('text-slate-400', 'hover:text-red-300');
+                                                    heartIcon.classList.remove('text-red-500', 'hover:text-red-600');
+                                                } else if (data.status === 'not_logged_in') {
+                                                    document.getElementById('loginModal').classList.remove('hidden');
+                                                }
+                                            })
+                                            .catch(error => {
+                                                console.error('Error:', error);
+                                                window.alert('Error: ' + error.message);
+                                                heartIcon.classList.remove('ri-loader-4-line', 'animate-spin');
+                                                heartIcon.classList.add('ri-heart-fill');
+                                            });
+                                    });
+                                });
+                            });
+                        </script>
+
                         <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post">
                             <input type="hidden" name="checkin_date" value="<?= $checkin_date ?>">
                             <input type="hidden" name="checkout_date" value="<?= $checkout_date ?>">
@@ -500,7 +543,6 @@ if (isset($_POST['submitreview'])) {
                             <input type="hidden" name="children" value="<?= $children ?>">
                             <input type="hidden" name="roomTypeID" value="<?= $roomtype['RoomTypeID'] ?>">
                             <button type="submit" name="room_favourite">
-                                <!-- Changed this line to use $is_favorited -->
                                 <i class="ri-heart-fill text-2xl cursor-pointer flex items-center justify-center bg-white w-11 h-11 rounded-full hover:bg-slate-100 transition-colors duration-300 <?= $is_favorited ? 'text-red-500 hover:text-red-600' : 'text-slate-400 hover:text-red-300' ?>"></i>
                             </button>
                         </form>
@@ -856,10 +898,10 @@ if (isset($_POST['submitreview'])) {
                             <tbody class="bg-white divide-y divide-gray-200">
                                 <?php
                                 $roomSelect = "SELECT r.*, rt.RoomType
-FROM roomtb r 
-JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID 
-WHERE r.RoomTypeID = '" . $roomtype['RoomTypeID'] . "'
-ORDER BY r.RoomStatus = 'Available' DESC";
+                                FROM roomtb r 
+                                JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID 
+                                WHERE r.RoomTypeID = '" . $roomtype['RoomTypeID'] . "'
+                                ORDER BY r.RoomStatus = 'Available' DESC";
                                 $roomSelectResult = $connect->query($roomSelect);
 
                                 if ($roomSelectResult->num_rows > 0) {

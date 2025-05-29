@@ -335,12 +335,19 @@ if (isset($_POST['room_favourite'])) {
                                         echo '</a>';
                                         echo '</div>';
                                     } else {
+                                        // Get user's current points balance
+                                        $pointsQuery = "SELECT PointsBalance, Membership FROM usertb WHERE UserID = '$userID'";
+                                        $pointsResult = mysqli_query($connect, $pointsQuery);
+                                        $userPoints = mysqli_fetch_assoc($pointsResult);
+                                        $pointsBalance = $userPoints['PointsBalance'] ?? 0;
+                                        $membership = $userPoints['Membership'] ?? 0;
+
                                         // Query to get all reservation details with room information
                                         $detailsQuery = "SELECT rd.*, rt.RoomType, r.RoomName, rt.RoomCoverImage 
-                        FROM reservationdetailtb rd
-                        JOIN roomtb r ON rd.RoomID = r.RoomID
-                        JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
-                        WHERE rd.ReservationID = '$reservationID'";
+                          FROM reservationdetailtb rd
+                          JOIN roomtb r ON rd.RoomID = r.RoomID
+                          JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
+                          WHERE rd.ReservationID = '$reservationID'";
                                         $detailsResult = mysqli_query($connect, $detailsQuery);
 
                                         if (!$detailsResult) {
@@ -348,14 +355,78 @@ if (isset($_POST['room_favourite'])) {
                                         }
 
                                         $grandTotal = 0;
+                                        $subtotal = 0;
+                                        $pointsDiscount = 0;
+                                        $pointsRedeemed = 0;
+                                        $showPointsOption = false;
 
                                         if (mysqli_num_rows($detailsResult) > 0) {
+                                            // Calculate room totals
                                             while ($roomItem = mysqli_fetch_assoc($detailsResult)) {
                                                 $checkIn = new DateTime($roomItem['CheckInDate']);
                                                 $checkOut = new DateTime($roomItem['CheckOutDate']);
                                                 $totalNights = $checkOut->diff($checkIn)->days;
                                                 $roomTotal = $roomItem['Price'] * $totalNights;
                                                 $grandTotal += $roomTotal;
+                                                $subtotal += $roomTotal;
+                                            }
+                                            mysqli_data_seek($detailsResult, 0); // Reset pointer for display
+
+                                            // Calculate maximum possible discount (100 points = $1, max 20%)
+                                            $maxDiscountAmount = $subtotal * 0.2;
+                                            $maxPointsDiscount = floor($pointsBalance / 100);
+                                            $actualDiscount = min($maxDiscountAmount, $maxPointsDiscount);
+
+                                            // Check if user can redeem points
+                                            $showPointsOption = ($pointsBalance >= 100 && $actualDiscount > 0);
+
+                                            // Process points redemption if requested
+                                            if (isset($_POST['apply_points']) && $showPointsOption) {
+                                                $pointsDiscount = $actualDiscount;
+                                                $pointsRedeemed = $actualDiscount * 100;
+                                                $grandTotal -= $pointsDiscount;
+
+                                                // Update reservation with points info
+                                                $updateQuery = "UPDATE reservationtb 
+                                            SET PointsDiscount = '$pointsDiscount', 
+                                                PointsRedeemed = '$pointsRedeemed'
+                                            WHERE ReservationID = '$reservationID'";
+                                                mysqli_query($connect, $updateQuery);
+
+                                                // Update user's points balance
+                                                $newBalance = $pointsBalance - $pointsRedeemed;
+                                                $updatePoints = "UPDATE usertb SET PointsBalance = '$newBalance' WHERE UserID = '$userID'";
+                                                mysqli_query($connect, $updatePoints);
+                                                $pointsBalance = $newBalance;
+                                            }
+
+                                            // Handle remove discount request 
+                                            if (isset($_POST['remove_points'])) {
+                                                // Get the redeemed points first before resetting
+                                                $getPointsQuery = "SELECT PointsRedeemed FROM reservationtb WHERE ReservationID = '$reservationID'";
+                                                $result = $connect->query($getPointsQuery);
+                                                $row = $result->fetch_assoc();
+                                                $pointsToReturn = $row['PointsRedeemed'];
+
+                                                // Reset points in reservationtb
+                                                $removeQuery = "UPDATE reservationtb 
+                                                SET PointsDiscount = 0, PointsRedeemed = 0 
+                                                WHERE ReservationID = '$reservationID'";
+                                                $connect->query($removeQuery);
+
+                                                // Return points to usertb
+                                                $returnPointsQuery = "UPDATE usertb 
+                                                SET PointsBalance = PointsBalance + $pointsToReturn 
+                                                WHERE UserID = '$userID'";
+                                                $connect->query($returnPointsQuery);
+                                            }
+
+                                            // Display room details
+                                            while ($roomItem = mysqli_fetch_assoc($detailsResult)) {
+                                                $checkIn = new DateTime($roomItem['CheckInDate']);
+                                                $checkOut = new DateTime($roomItem['CheckOutDate']);
+                                                $totalNights = $checkOut->diff($checkIn)->days;
+                                                $roomTotal = $roomItem['Price'] * $totalNights;
                                     ?>
                                                 <div>
                                                     <div class="flex justify-between">
@@ -379,17 +450,158 @@ if (isset($_POST['room_favourite'])) {
                                             <div class="pt-3 border-t border-gray-100">
                                                 <div class="flex justify-between items-center">
                                                     <p class="text-base font-semibold text-gray-800">Subtotal</p>
-                                                    <p class="text-gray-800">$<?= number_format($grandTotal, 2) ?></p>
+                                                    <p class="text-gray-800">$<?= number_format($subtotal, 2) ?></p>
                                                 </div>
+
+                                                <!-- Points Discount Section -->
+                                                <?php if ($showPointsOption): ?>
+                                                    <div class="mt-4">
+                                                        <?php if ($pointsDiscount > 0): ?>
+                                                            <!-- Confetti container (hidden by default) -->
+                                                            <div id="confetti-container" class="fixed inset-0 pointer-events-none z-50 hidden"></div>
+
+                                                            <!-- Applied Voucher Style -->
+                                                            <div class="border-2 border-green-400 rounded-lg bg-green-50 p-3">
+                                                                <div class="flex justify-between items-center">
+                                                                    <div class="flex items-center">
+                                                                        <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                                        </svg>
+                                                                        <span class="font-semibold text-green-700">Points Applied</span>
+                                                                    </div>
+                                                                    <span class="font-bold text-green-700">-$<?= number_format($pointsDiscount, 2) ?></span>
+                                                                </div>
+                                                                <div class="flex justify-between items-center mt-2 pt-2 border-t border-green-200">
+                                                                    <span class="text-xs text-gray-600">
+                                                                        Used <?= $pointsRedeemed ?> points (<?= number_format($pointsDiscount, 2) ?> discount)
+                                                                    </span>
+                                                                    <form method="post">
+                                                                        <button type="submit" name="remove_points" class="text-xs font-medium text-red-600 hover:text-red-800 underline">
+                                                                            Remove
+                                                                        </button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+
+                                                            <script>
+                                                                // Show confetti only if points were just applied
+                                                                <?php if (isset($_POST['apply_points'])): ?>
+                                                                    document.addEventListener('DOMContentLoaded', function() {
+                                                                        const container = document.getElementById('confetti-container');
+                                                                        container.classList.remove('hidden');
+
+                                                                        // Confetti colors
+                                                                        const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5',
+                                                                            '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50',
+                                                                            '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722'
+                                                                        ];
+
+                                                                        // Create confetti pieces
+                                                                        for (let i = 0; i < 100; i++) {
+                                                                            setTimeout(() => {
+                                                                                const confetti = document.createElement('div');
+                                                                                confetti.className = 'confetti';
+
+                                                                                // Random properties
+                                                                                const color = colors[Math.floor(Math.random() * colors.length)];
+                                                                                const size = Math.random() * 10 + 5;
+                                                                                const left = Math.random() * 100;
+                                                                                const animationDuration = Math.random() * 3 + 2;
+                                                                                const delay = Math.random();
+
+                                                                                confetti.style.backgroundColor = color;
+                                                                                confetti.style.width = `${size}px`;
+                                                                                confetti.style.height = `${size}px`;
+                                                                                confetti.style.left = `${left}%`;
+                                                                                confetti.style.animationDuration = `${animationDuration}s`;
+                                                                                confetti.style.animationDelay = `${delay}s`;
+                                                                                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+
+                                                                                container.appendChild(confetti);
+
+                                                                                // Remove after animation
+                                                                                confetti.addEventListener('animationend', function() {
+                                                                                    confetti.remove();
+                                                                                });
+                                                                            }, i * 30);
+                                                                        }
+
+                                                                        // Hide container after animation
+                                                                        setTimeout(() => {
+                                                                            container.classList.add('hidden');
+                                                                        }, 10000);
+                                                                    });
+
+                                                                    // Confetti animation
+                                                                    const style = document.createElement('style');
+                                                                    style.textContent = `
+                                                                    .confetti {
+                                                                        position: absolute;
+                                                                        width: 10px;
+                                                                        height: 10px;
+                                                                        opacity: 0;
+                                                                        animation: confetti-fall 3s ease-in-out forwards;
+                                                                        top: -10px;
+                                                                        z-index: 1000;
+                                                                    }
+                                                                    @keyframes confetti-fall {
+                                                                        0% {
+                                                                            transform: translateY(0) rotate(0deg);
+                                                                            opacity: 1;
+                                                                        }
+                                                                        100% {
+                                                                            transform: translateY(100vh) rotate(360deg);
+                                                                            opacity: 0;
+                                                                        }
+                                                                    }
+                                                                `;
+                                                                    document.head.appendChild(style);
+                                                                <?php endif; ?>
+                                                            </script>
+                                                        <?php else: ?>
+                                                            <!-- Redeem Voucher Style -->
+                                                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-3 hover:border-blue-400 transition-colors">
+                                                                <form method="post" class="flex items-center justify-between">
+                                                                    <div class="flex items-center">
+                                                                        <svg class="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
+                                                                        </svg>
+                                                                        <div>
+                                                                            <p class="text-sm font-medium text-gray-700">Redeem Points</p>
+                                                                            <p class="text-xs text-gray-500">
+                                                                                <?= $pointsBalance ?> points available (Save up to $<?= number_format($actualDiscount, 2) ?>)
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <button type="submit" name="apply_points" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-full text-sm font-medium transition-colors">
+                                                                        Apply
+                                                                    </button>
+                                                                </form>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                <?php endif; ?>
+
                                                 <div class="flex justify-between items-center mt-1">
                                                     <p class="text-sm text-gray-600">Taxes and fees</p>
-                                                    <p class="text-gray-800">$<?= number_format($grandTotal * 0.1, 2) ?></p> <!-- Assuming 10% tax -->
+                                                    <p class="text-gray-800">$<?= number_format($grandTotal * 0.1, 2) ?></p>
                                                 </div>
+
                                                 <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-200">
                                                     <p class="text-lg font-bold text-gray-900">Total</p>
-                                                    <p class="text-lg font-bold text-blue-600">$<?= number_format($grandTotal * 1.1, 2) ?></p> <!-- Total with tax -->
+                                                    <p class="text-lg font-bold text-blue-600">$<?= number_format(($grandTotal * 1.1), 2) ?></p>
                                                 </div>
-                                                <p class="text-xs text-green-600 mt-1">✓ Includes all taxes and fees</p>
+
+                                                <!-- Points Earned Notification -->
+                                                <?php
+                                                $pointsEarned = floor($subtotal);
+                                                if ($membership == 1) $pointsEarned = floor($subtotal * 1.5); // Gold
+                                                if ($membership == 2) $pointsEarned = floor($subtotal * 2); // Platinum
+                                                ?>
+                                                <p class="text-xs text-green-600 mt-1">
+                                                    ✓ Earn <?= $pointsEarned ?> points after payment
+                                                    <?= $membership > 0 ? '(Membership bonus applied)' : '' ?>
+                                                </p>
                                             </div>
                                     <?php
                                         } else {
