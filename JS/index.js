@@ -472,6 +472,36 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+    const checkInDateInput = document.getElementById('checkin-date');
+    const checkOutDateInput = document.getElementById('checkout-date');
+
+    if (checkInDateInput && checkOutDateInput) {
+        // Get tomorrow's date in YYYY-MM-DD format
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+        // Set min attributes
+        checkInDateInput.setAttribute('min', tomorrowStr);
+        checkOutDateInput.setAttribute('min', tomorrowStr);
+
+        // Update checkout min date when checkin changes
+        checkInDateInput.addEventListener('change', function() {
+            if (this.value) {
+                const nextDay = new Date(this.value);
+                nextDay.setDate(nextDay.getDate() + 1);
+                const nextDayStr = nextDay.toISOString().split('T')[0];
+                checkOutDateInput.min = nextDayStr;
+
+                if (checkOutDateInput.value && checkOutDateInput.value < nextDayStr) {
+                    checkOutDateInput.value = '';
+                }
+            }
+        });
+    }
+});
+
 // Full form validation function
 const validateProfileUpdateForm = () => {
     const isUsernameValid = validateUsername();

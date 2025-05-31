@@ -11,11 +11,18 @@ $alertMessage = '';
 $showLoginModal = false;
 
 // Get search parameters from URL
+$reservation_id = isset($_GET['reservation_id']) ? $_GET['reservation_id'] : '';
+$room_id = isset($_GET['room_id']) ? $_GET['room_id'] : '';
 $checkin_date = isset($_GET['checkin_date']) ? $_GET['checkin_date'] : '';
 $checkout_date = isset($_GET['checkout_date']) ? $_GET['checkout_date'] : '';
 $adults = isset($_GET['adults']) ? intval($_GET['adults']) : 1;
 $children = isset($_GET['children']) ? intval($_GET['children']) : 0;
+$edit = isset($_GET['edit']) ? intval($_GET['edit']) : 0;
 $totelGuest = $adults + $children;
+
+if ($checkin_date == '' || $checkout_date == '') {
+    $_SESSION['alert'] = "Check-in and check-out dates are required.";
+}
 
 // Validate dates
 $has_dates = !empty($checkin_date) && !empty($checkout_date);
@@ -246,7 +253,7 @@ if (isset($_POST['room_favourite'])) {
 
     <main class="pb-4">
         <div class="relative swiper-container flex justify-center">
-            <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="get" class="w-full sm:max-w-[1030px] z-10 p-4 bg-white rounded-sm shadow-lg flex justify-between items-center space-x-4">
+            <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="get" class="w-full sm:max-w-[1030px] z-10 p-4 bg-white border-b flex justify-between items-center space-x-4">
                 <div class="flex items-center space-x-4">
                     <div class="flex gap-3">
                         <!-- Check-in Date -->
@@ -256,6 +263,12 @@ if (isset($_POST['room_favourite'])) {
                                 class="p-3 border border-gray-300 rounded-sm outline-none"
                                 value="<?php echo isset($_GET['checkin_date']) ? $_GET['checkin_date'] : ''; ?>"
                                 placeholder="Check-in Date">
+                            <?php if (isset($_SESSION['alert'])): ?>
+                                <div class="absolute -bottom-5 text-sm text-red-500">
+                                    <?= $_SESSION['alert'] ?>
+                                </div>
+                                <?php unset($_SESSION['alert']); ?>
+                            <?php endif; ?>
                         </div>
                         <!-- Check-out Date -->
                         <div>
@@ -504,7 +517,7 @@ if (isset($_POST['room_favourite'])) {
                             </div>
                         </div>
 
-                        <!-- Hotel Listings -->
+                        <!-- Room Listings -->
                         <?php foreach ($available_rooms as $roomtype):
                             // Check if room is favorited
                             $check_favorite = "SELECT COUNT(*) as count FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '" . $roomtype['RoomTypeID'] . "'";
@@ -512,7 +525,7 @@ if (isset($_POST['room_favourite'])) {
                             $is_favorited = $favorite_result->fetch_assoc()['count'] > 0;
                         ?>
                             <div class="bg-white overflow-hidden hotel-listings-container">
-                                <a href="../User/RoomDetails.php?roomTypeID=<?php echo htmlspecialchars($roomtype['RoomTypeID']) ?>&checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="flex flex-col md:flex-row rounded-md shadow-sm border">
+                                <a href="../User/RoomDetails.php?roomTypeID=<?php echo htmlspecialchars($roomtype['RoomTypeID']) ?>&reservation_id=<?= $reservation_id ?>&room_id=<?= $room_id ?>&checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>&edit=<?= $edit ?>" class="flex flex-col md:flex-row rounded-md shadow-sm border">
                                     <div class="md:w-[28%] h-64 overflow-hidden select-none rounded-l-md relative">
                                         <img src="../Admin/<?= htmlspecialchars($roomtype['RoomCoverImage']) ?>" alt="<?= htmlspecialchars($roomtype['RoomType']) ?>" class="w-full h-full object-cover">
                                         <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post">

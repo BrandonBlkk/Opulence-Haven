@@ -143,11 +143,37 @@ if ($userID) {
 if (isset($_POST['remove_room'])) {
     $reservation_id = $_POST["reservation_id"];
     $room_id = $_POST["room_id"];
-    $query = "DELETE FROM reservationdetailtb WHERE RoomID = '$room_id' AND ReservationID = '$reservation_id'";
-    $connect->query($query);
+
+    // Remove room from reservation
+    $query = "DELETE FROM reservationdetailtb WHERE RoomID = ? AND ReservationID = ?";
+    $stmt = $connect->prepare($query);
+    $stmt->bind_param("ss", $room_id, $reservation_id);
+    $stmt->execute();
+
+    // Update room status
+    $room = "UPDATE roomtb SET RoomStatus = 'Available' WHERE RoomID = ?";
+    $stmt = $connect->prepare($room);
+    $stmt->bind_param("s", $room_id);
+    $stmt->execute();
+
+    // Check if reservation has any rooms left
+    $query = "SELECT COUNT(*) as count FROM reservationdetailtb WHERE ReservationID = ?";
+    $stmt = $connect->prepare($query);
+    $stmt->bind_param("s", $reservation_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $count = $result->fetch_assoc()['count'];
+
+    if ($count == 0) {
+        // Delete empty reservation
+        $delete = "DELETE FROM reservationtb WHERE ReservationID = ?";
+        $stmt = $connect->prepare($delete);
+        $stmt->bind_param("s", $reservation_id);
+        $stmt->execute();
+    }
 
     // Redirect back to the reservation page
-    header("Location: Reservation.php");
+    header("Location: Reservation.php?checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children");
     exit();
 }
 
@@ -163,8 +189,11 @@ if (isset($_POST['room_favourite'])) {
         $adults = isset($_POST['adults']) ? intval($_POST['adults']) : 1;
         $children = isset($_POST['children']) ? intval($_POST['children']) : 0;
 
-        $check = "SELECT COUNT(*) as count FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
-        $result = $connect->query($check);
+        $check = "SELECT COUNT(*) as count FROM roomtypefavoritetb WHERE UserID = ? AND RoomTypeID = ?";
+        $stmt = $connect->prepare($check);
+        $stmt->bind_param("ss", $userID, $roomTypeID);
+        $stmt->execute();
+        $result = $stmt->get_result();
         $count = $result->fetch_assoc()['count'];
 
         if ($count == 0) {
@@ -172,8 +201,10 @@ if (isset($_POST['room_favourite'])) {
                       VALUES ('$userID', '$roomTypeID', '$checkin_date', '$checkout_date', '$adults', '$children')";
             $connect->query($insert);
         } else {
-            $delete = "DELETE FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
-            $connect->query($delete);
+            $delete = "DELETE FROM roomtypefavoritetb WHERE UserID = ? AND RoomTypeID = ?";
+            $stmt = $connect->prepare($delete);
+            $stmt->bind_param("ss", $userID, $roomTypeID);
+            $stmt->execute();
         }
 
         // Redirect back with the same search parameters
@@ -182,6 +213,28 @@ if (isset($_POST['room_favourite'])) {
         exit();
     } else {
         $showLoginModal = true;
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['edit_room'])) {
+        // Update the room status to "Edit"
+        $roomId = $_POST['room_id'];
+        $reservationId = $_POST['reservation_id'];
+        $checkin_date = $_POST['checkin_date'];
+        $checkout_date = $_POST['checkout_date'];
+        $adults = $_POST['adults'];
+        $children = $_POST['children'];
+
+        // Execute your database update here
+        $updateQuery = "UPDATE roomtb SET RoomStatus = 'Edit' WHERE RoomID = ?";
+        $stmt = $connect->prepare($updateQuery);
+        $stmt->bind_param("s", $roomId);
+        $stmt->execute();
+
+        // Then redirect to the RoomBooking.php page with parameters
+        header("Location: RoomBooking.php?reservation_id=$reservationId&room_id=$roomId&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children&edit=1");
+        exit();
     }
 }
 ?>
@@ -312,9 +365,6 @@ if (isset($_POST['room_favourite'])) {
                                             </div>
                                             <h4 class="text-sm font-medium text-gray-500 mb-1">No booking details found</h4>
                                             <p class="text-xs text-gray-400 mb-4">Please select dates to see booking information</p>
-                                            <a href="RoomBooking.php" class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-800">
-                                                Browse available rooms <i class="ri-arrow-right-line ml-1"></i>
-                                            </a>
                                         </div>
                                     <?php endif; ?>
                                 </div>
@@ -330,9 +380,6 @@ if (isset($_POST['room_favourite'])) {
                                         echo '<div class="text-center py-6">';
                                         echo '<i class="ri-hotel-bed-line text-4xl text-gray-300 mb-3"></i>';
                                         echo '<p class="text-gray-500">You don\'t have any active reservations</p>';
-                                        echo '<a href="RoomBooking.php" class="mt-2 inline-block text-blue-600 hover:text-blue-800 text-sm font-medium">';
-                                        echo 'Browse available rooms →';
-                                        echo '</a>';
                                         echo '</div>';
                                     } else {
                                         // Get user's current points balance
@@ -667,10 +714,22 @@ if (isset($_POST['room_favourite'])) {
                                                 <?= $room['Children'] > 0 ? ' + ' . $room['Children'] . ' child' . ($room['Children'] > 1 ? 'ren' : '') : '' ?>
                                             </div>
 
-                                            <!-- Remove room button -->
-                                            <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" class="mt-4">
+                                            <!-- Edit and Remove room button -->
+                                            <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" class="mt-4 flex gap-3">
                                                 <input type="hidden" name="reservation_id" value="<?= $reservationID ?>">
                                                 <input type="hidden" name="room_id" value="<?= $room['RoomID'] ?>">
+                                                <input type="hidden" name="checkin_date" value="<?= $room['CheckInDate'] ?>">
+                                                <input type="hidden" name="checkout_date" value="<?= $room['CheckOutDate'] ?>">
+                                                <input type="hidden" name="adults" value="<?= $room['Adult'] ?>">
+                                                <input type="hidden" name="children" value="<?= $room['Children'] ?>">
+
+                                                <!-- Edit Room Button (now a submit button with a specific action) -->
+                                                <button type="submit" name="edit_room"
+                                                    class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                                    Edit Room
+                                                </button>
+
+                                                <!-- Remove Room Button -->
                                                 <button type="submit" name="remove_room"
                                                     class="text-red-600 hover:text-red-800 text-sm font-medium">
                                                     Remove Room
@@ -681,7 +740,7 @@ if (isset($_POST['room_favourite'])) {
                                 <?php endforeach; ?>
                             </div>
                         <?php else: ?>
-                            <div class="text-center py-8">
+                            <div class="text-center py-32">
                                 <p class="text-gray-500">You don't have any rooms reserved yet.</p>
                                 <a href="RoomBooking.php" class="text-blue-600 hover:underline mt-2 inline-block">
                                     Browse available rooms
@@ -748,7 +807,7 @@ if (isset($_POST['room_favourite'])) {
                             </div>
 
                             <div class="flex justify-between items-center">
-                                <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">Back</a>
+                                <a href="../User/RoomBooking.php?checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="text-blue-600 hover:text-blue-800 font-medium">Back</a>
                                 <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md">
                                     Continue to payment
                                 </button>

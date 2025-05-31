@@ -351,34 +351,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
                             <label class="font-semibold text-blue-900">Check-Out Date</label>
                             <input type="date" id="checkout-date" name="checkout_date" class="p-3 border border-gray-300 rounded-sm outline-none" placeholder="Check-out Date" required>
                         </div>
-
-                        <script>
-                            document.addEventListener('DOMContentLoaded', () => {
-                                // Get the current date in YYYY-MM-DD format
-                                const today = new Date().toISOString().split('T')[0];
-
-                                // Set the min attribute of the date input to today
-                                const checkInDateInput = document.getElementById('checkin-date');
-                                const checkOutDateInput = document.getElementById('checkout-date');
-
-                                checkInDateInput.setAttribute('min', today);
-                                checkOutDateInput.setAttribute('min', today);
-
-                                // Set checkout date to be at least 1 day after checkin
-                                checkInDateInput.addEventListener('change', function() {
-                                    if (this.value) {
-                                        const nextDay = new Date(this.value);
-                                        nextDay.setDate(nextDay.getDate() + 1);
-                                        checkOutDateInput.min = nextDay.toISOString().split('T')[0];
-
-                                        // Reset checkout date if it's now invalid
-                                        if (checkOutDateInput.value && checkOutDateInput.value < checkOutDateInput.min) {
-                                            checkOutDateInput.value = '';
-                                        }
-                                    }
-                                });
-                            });
-                        </script>
                     </div>
                     <div class="flex">
                         <!-- Adults -->

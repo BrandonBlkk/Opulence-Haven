@@ -16,11 +16,14 @@ date_default_timezone_set('Asia/Yangon');
 
 // Get search parameters from URL with strict validation
 if (isset($_GET["roomTypeID"])) {
+    $reservation_id = isset($_GET['reservation_id']) ? $_GET['reservation_id'] : '';
     $roomtype_id = $_GET["roomTypeID"];
+    $room_id = isset($_GET['room_id']) ? $_GET['room_id'] : '';
     $checkin_date = isset($_GET['checkin_date']) ? htmlspecialchars($_GET['checkin_date']) : '';
     $checkout_date = isset($_GET['checkin_date']) ? htmlspecialchars($_GET['checkout_date']) : '';
     $adults = isset($_GET['adults']) ? (int)$_GET['adults'] : 1;
     $children = isset($_GET['children']) ? (int)$_GET['children'] : 0;
+    $edit = isset($_GET['edit']) ? intval($_GET['edit']) : 0;
     $totalGuest = $adults + $children;
 
     $query = "SELECT * FROM roomtypetb WHERE RoomTypeID = '$roomtype_id'";
@@ -45,10 +48,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
     $checkOutDate = $_POST['checkout_date'];
     $adults = $_POST['adults'];
     $children = $_POST['children'];
+    $guests = $adults + $children;
+
+    if ($checkInDate == '' || $checkOutDate == '') {
+        $_SESSION['alert'] = "Check-in and check-out dates are required.";
+        header("Location: RoomDetails.php?roomTypeID=$roomtype_id&room_id=$room_id&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children");
+        exit();
+    }
 
     try {
+        // Validate dates
+        $today = new DateTime();
+        $today->setTime(0, 0, 0);
+        $checkIn = new DateTime($checkInDate);
+
+        if ($checkIn <= $today) {
+            $_SESSION['alert'] = "Check-in date must be at least tomorrow.";
+            header("Location: RoomDetails.php?roomTypeID=$roomtype_id&room_id=$room_id&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
+            exit();
+        }
+
+        $checkOut = new DateTime($checkOutDate);
+        if ($checkOut <= $checkIn) {
+            $_SESSION['alert'] = "Check-out date must be after check-in date.";
+            header("Location: RoomDetails.php?roomTypeID=$roomtype_id&room_id=$room_id&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
+            exit();
+        }
+
         // First get the room price from roomtypetb
-        $priceQuery = "SELECT rt.RoomPrice 
+        $priceQuery = "SELECT rt.RoomPrice, rt.RoomCapacity
                       FROM roomtb r
                       JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
                       WHERE r.RoomID = ?";
@@ -63,6 +91,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
 
         $priceData = $priceResult->fetch_assoc();
         $price = $priceData['RoomPrice'];
+
+        if ($guests) {
+            if ($priceData['RoomCapacity'] < $guests) {
+                $_SESSION['alert'] = "Room capacity (" . $priceData['RoomCapacity'] . ") is less than the number of guests ($guests).";
+                header("Location: RoomDetails.php?roomTypeID=$roomtype_id&room_id=$room_id&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
+                exit();
+            }
+        }
 
         // Check if this specific room is already reserved
         $check = "SELECT COUNT(*) as count FROM reservationdetailtb 
@@ -148,13 +184,109 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
             $stmtRoomStatus->bind_param("s", $roomID);
             $stmtRoomStatus->execute();
 
-            header("Location: Reservation.php");
+            header("Location: Reservation.php?checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
             exit();
         } else {
             $alertMessage = "Room is already reserved for the selected dates.";
         }
     } catch (Exception $e) {
         echo "Reservation failed: " . $e->getMessage();
+    }
+}
+
+// Edit reservation
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
+    $roomTypeID = $_POST['roomTypeID'];
+    $roomID = $_POST['edit_room_id'];
+    $checkInDate = $_POST['checkin_date'];
+    $checkOutDate = $_POST['checkout_date'];
+    $adults = $_POST['adults'];
+    $children = $_POST['children'];
+    $guests = $adults + $children;
+    $reservationID = $_POST['reservation_id'];
+
+    // Validate dates first
+    $today = new DateTime();
+    $today->setTime(0, 0, 0);
+    $checkIn = new DateTime($checkInDate);
+    $checkOut = new DateTime($checkOutDate);
+
+    if ($checkIn <= $today) {
+        $_SESSION['alert'] = "Check-in date must be in the future.";
+        $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&reservation_id=$reservationID&room_id=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children&edit=1";
+        header("Location: $redirect_url");
+        exit();
+    }
+
+    if ($checkOut <= $checkIn) {
+        $_SESSION['alert'] = "Check-out date must be after check-in date.";
+        $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&reservation_id=$reservationID&room_id=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children&edit=1";
+        header("Location: $redirect_url");
+        exit();
+    }
+
+    // Check room capacity
+    $checkRoomCapacity = "SELECT r.RoomID, rt.RoomCapacity FROM roomtb r 
+                         JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
+                         WHERE r.RoomID = ?";
+    $stmt = $connect->prepare($checkRoomCapacity);
+    $stmt->bind_param("s", $roomID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $roomData = $result->fetch_assoc();
+
+    if ($guests > $roomData['RoomCapacity']) {
+        $_SESSION['alert'] = "Room capacity (" . $roomData['RoomCapacity'] . ") is less than the number of guests ($guests).";
+        $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&reservation_id=$reservationID&room_id=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children&edit=1";
+        header("Location: $redirect_url");
+        exit();
+    }
+
+    // Check for overlapping reservations (excluding current reservation)
+    $checkAvailability = "SELECT COUNT(*) as count FROM reservationdetailtb 
+                         WHERE RoomID = ? AND ReservationID != ? AND (
+                               (? BETWEEN CheckInDate AND CheckOutDate) OR 
+                               (? BETWEEN CheckInDate AND CheckOutDate) OR
+                               (CheckInDate BETWEEN ? AND ?) OR
+                               (CheckOutDate BETWEEN ? AND ?)
+                         )";
+    $stmtCheck = $connect->prepare($checkAvailability);
+    $stmtCheck->bind_param(
+        "ssssssss",
+        $roomID,
+        $reservationID,
+        $checkInDate,
+        $checkOutDate,
+        $checkInDate,
+        $checkOutDate,
+        $checkInDate,
+        $checkOutDate
+    );
+    $stmtCheck->execute();
+    $availabilityResult = $stmtCheck->get_result();
+    $count = $availabilityResult->fetch_assoc()['count'];
+
+    // Update reservation detail 
+    $update_room = "UPDATE reservationdetailtb SET 
+                    CheckInDate = ?, 
+                    CheckOutDate = ?, 
+                    Adult = ?, 
+                    Children = ? 
+                    WHERE RoomID = ? AND ReservationID = ?";
+
+    $stmt = $connect->prepare($update_room);
+    $stmt->bind_param("ssiiii", $checkInDate, $checkOutDate, $adults, $children, $roomID, $reservationID);
+
+    if ($stmt->execute()) {
+        $_SESSION['success'] = "Reservation updated successfully!";
+        $redirect_url = "Reservation.php?roomID=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children";
+        header("Location: $redirect_url");
+        exit();
+    } else {
+        $_SESSION['alert'] = "Error updating reservation: " . $connect->error;
+        $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&reservation_id=$reservationID&room_id=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children&edit=1";
+        header("Location: $redirect_url");
+        exit();
     }
 }
 
@@ -193,7 +325,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
 
 // Add room to favorites
 if (isset($_POST['room_favourite'])) {
-    header('Content-Type: application/json');
+    $res = ['status' => ''];
 
     if ($userID) {
         $roomTypeID = $_POST['roomTypeID'];
@@ -210,16 +342,17 @@ if (isset($_POST['room_favourite'])) {
             $insert = "INSERT INTO roomtypefavoritetb (UserID, RoomTypeID, CheckInDate, CheckOutDate, Adult, Children) 
                       VALUES ('$userID', '$roomTypeID', '$checkin_date', '$checkout_date', '$adults', '$children')";
             $connect->query($insert);
-            echo json_encode(['status' => 'added']);
+            $res['status'] = 'added';
         } else {
             $delete = "DELETE FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
             $connect->query($delete);
-            echo json_encode(['status' => 'removed']);
+            $res['status'] = 'removed';
         }
     } else {
-        echo json_encode(['status' => 'not_logged_in']);
+        $res['status'] = 'not_logged_in';
     }
-
+    header('Content-Type: application/json');
+    echo json_encode($res);
     exit();
 }
 
@@ -419,9 +552,94 @@ if (isset($_POST['submitreview'])) {
 
     <main class="pb-4">
         <div class="relative swiper-container flex justify-center">
-            <div class="max-w-[1150px] mx-auto px-4 py-8">
+            <div class="max-w-[1150px] mx-auto px-4 pb-8">
+                <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="get" class="w-full p-4 bg-white border-b border-gray-100 flex justify-between items-center space-x-4 relative">
+                    <input type="hidden" name="roomTypeID" value="<?= $roomtype['RoomTypeID'] ?>">
+                    <input type="hidden" name="reservation_id" value="<?= $reservation_id ?>">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex gap-3">
+                            <!-- Check-in Date -->
+                            <div>
+                                <label class="font-semibold text-blue-900">Check-In Date</label>
+                                <input type="date" id="checkin-date" name="checkin_date"
+                                    class="p-3 border border-gray-300 rounded-sm outline-none"
+                                    value="<?php echo isset($_GET['checkin_date']) ? $_GET['checkin_date'] : ''; ?>"
+                                    placeholder="Check-in Date">
+                            </div>
+                            <!-- Check-out Date -->
+                            <div>
+                                <label class="font-semibold text-blue-900">Check-Out Date</label>
+                                <input type="date" id="checkout-date" name="checkout_date"
+                                    class="p-3 border border-gray-300 rounded-sm outline-none"
+                                    value="<?php echo isset($_GET['checkout_date']) ? $_GET['checkout_date'] : ''; ?>"
+                                    placeholder="Check-out Date">
+                            </div>
+                        </div>
+                        <div class="flex">
+                            <!-- Adults -->
+                            <select id="adults" name="adults" class="p-3 border border-gray-300 rounded-sm outline-none">
+                                <?php for ($i = 1; $i <= 6; $i++): ?>
+                                    <option value="<?= $i ?>" <?= $adults == $i ? 'selected' : '' ?>><?= $i ?> Adult<?= $i > 1 ? 's' : '' ?></option>
+                                <?php endfor; ?>
+                            </select>
+                            <!-- Children -->
+                            <select id="children" name="children" class="p-3 border border-gray-300 rounded-sm outline-none">
+                                <?php for ($i = 0; $i <= 5; $i++): ?>
+                                    <option value="<?= $i ?>" <?= $children == $i ? 'selected' : '' ?>><?= $i ?> <?= $i == 1 ? 'Child' : 'Children' ?></option>
+                                <?php endfor; ?>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Search Button -->
+                    <div class="flex items-center space-x-2 select-none">
+                        <button type="submit" name="check_availability"
+                            class="p-3 bg-blue-900 text-white rounded-sm hover:bg-blue-950 uppercase font-semibold transition-colors duration-300">
+                            Check Availability
+                        </button>
+                    </div>
+
+                    <?php if (isset($_SESSION['alert'])): ?>
+                        <div class="absolute -bottom-2 text-sm text-red-500">
+                            <?= $_SESSION['alert'] ?>
+                        </div>
+                        <?php unset($_SESSION['alert']); ?>
+                    <?php endif; ?>
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', () => {
+                            const checkInDateInput = document.getElementById('checkin-date');
+                            const checkOutDateInput = document.getElementById('checkout-date');
+
+                            if (checkInDateInput && checkOutDateInput) {
+                                // Get tomorrow's date in YYYY-MM-DD format
+                                const tomorrow = new Date();
+                                tomorrow.setDate(tomorrow.getDate() + 1);
+                                const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+                                // Set min attributes
+                                checkInDateInput.setAttribute('min', tomorrowStr);
+                                checkOutDateInput.setAttribute('min', tomorrowStr);
+
+                                // Update checkout min date when checkin changes
+                                checkInDateInput.addEventListener('change', function() {
+                                    if (this.value) {
+                                        const nextDay = new Date(this.value);
+                                        nextDay.setDate(nextDay.getDate() + 1);
+                                        const nextDayStr = nextDay.toISOString().split('T')[0];
+                                        checkOutDateInput.min = nextDayStr;
+
+                                        if (checkOutDateInput.value && checkOutDateInput.value < nextDayStr) {
+                                            checkOutDateInput.value = '';
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                    </script>
+                </form>
                 <!-- Breadcrumbs -->
-                <div class="flex text-sm text-slate-600 mb-4">
+                <div class="flex text-sm text-slate-600 my-4">
                     <a href="../User/HomePage.php" class="underline">Home</a>
                     <span><i class="ri-arrow-right-s-fill"></i></span>
                     <a href="../User/RoomBooking.php?checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="underline">Rooms</a>
@@ -664,7 +882,7 @@ if (isset($_POST['submitreview'])) {
                         <div class="flex justify-between items-start mb-6">
                             <div class="flex items-start">
                                 <div class="flex flex-col items-center mr-3">
-                                    <span class="bg-blue-600 text-white px-3 py-1 rounded-md text-sm font-medium"><?= $ratingDescription ?></span>
+                                    <span class="bg-blue-600 text-white px-3 py-1 rounded-md text-sm font-medium select-none"><?= $ratingDescription ?></span>
                                     <p class="text-gray-700 text-sm mt-1">
                                         <?= $totalReviews ?> <?= ($totalReviews > 1) ? 'reviews' : 'review' ?>
                                     </p>
@@ -907,7 +1125,7 @@ if (isset($_POST['submitreview'])) {
                                 if ($roomSelectResult->num_rows > 0) {
                                     while ($room = $roomSelectResult->fetch_assoc()) {
                                 ?>
-                                        <tr class="<?= ($room['RoomStatus'] == 'Available') ? '' : 'opacity-50'; ?>">
+                                        <tr class="<?= ($room['RoomStatus'] == 'Available' || $room['RoomStatus'] == 'Edit') ? '' : 'opacity-50'; ?>">
                                             <td class="px-3 md:px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($room['RoomName']) ?> (<?= htmlspecialchars($room['RoomType']) ?>)</td>
                                             <td class="px-3 md:px-6 py-4 whitespace-nowrap text-gray-600"><?= htmlspecialchars($room['RoomStatus']) ?></td>
                                             <td class="px-3 md:px-6 py-4 whitespace-nowrap">
@@ -923,11 +1141,25 @@ if (isset($_POST['submitreview'])) {
                                                             Reserve
                                                         </button>
                                                     </form>
+                                                <?php elseif ($room['RoomStatus'] == 'Edit') : ?>
+                                                    <form method="POST" style="display:inline;">
+                                                        <input type="hidden" name="edit_room_id" value="<?= htmlspecialchars($room['RoomID']) ?>">
+                                                        <input type="hidden" name="checkin_date" value="<?= $checkin_date ?>">
+                                                        <input type="hidden" name="checkout_date" value="<?= $checkout_date ?>">
+                                                        <input type="hidden" name="adults" value="<?= $adults ?>">
+                                                        <input type="hidden" name="children" value="<?= $children ?>">
+                                                        <!-- You should also include the ReservationID if you have it -->
+                                                        <input type="hidden" name="reservation_id" value="<?= $reservation_id ?>">
+                                                        <input type="hidden" name="roomTypeID" value="<?= $roomtype['RoomTypeID'] ?>">
+                                                        <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded text-sm select-none">
+                                                            Edit
+                                                        </button>
+                                                    </form>
                                                 <?php else : ?>
                                                     <button
                                                         class="bg-gray-400 text-white font-semibold py-1 px-3 rounded text-sm select-none cursor-not-allowed"
                                                         disabled>
-                                                        Reserve
+                                                        Reserved
                                                     </button>
                                                 <?php endif; ?>
                                             </td>
