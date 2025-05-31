@@ -64,6 +64,31 @@
                         </div>
                     </a>
                     <div class="pl-3">
+                        <a href="../User/Reservation.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
+                            <div class="flex items-center gap-1">
+                                <i class="ri-hotel-bed-line text-xl"></i>
+                                <p class="font-semibold text-sm">Current Selections</p>
+                            </div>
+                            <?php
+                            // Show reservation count if user is logged in
+                            if (!empty($_SESSION['UserID'])) {
+                                $reservationCount = 0;
+                                $stmt = $connect->prepare("SELECT COUNT(*) as count FROM reservationtb WHERE UserID = ?");
+                                if ($stmt) {
+                                    $stmt->bind_param("s", $_SESSION['UserID']);
+                                    $stmt->execute();
+                                    $result = $stmt->get_result();
+                                    if ($result && $result->num_rows > 0) {
+                                        $reservationCount = $result->fetch_assoc()['count'];
+                                    }
+                                    $stmt->close();
+                                }
+                                if ($reservationCount > 0) {
+                                    echo '<p class="px-2 text-white bg-blue-950 rounded-sm ml-5">' . $reservationCount . '</p>';
+                                }
+                            }
+                            ?>
+                        </a>
                         <a href="#" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
                             <div class="flex items-center gap-1">
                                 <i class="ri-calendar-event-line text-xl"></i>
