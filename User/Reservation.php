@@ -237,6 +237,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 }
+
+// Handle payment callback
+if (isset($_GET['payment'])) {
+    if ($_GET['payment'] === 'success') {
+        $_SESSION['success'] = "Payment successful! Your reservation is confirmed.";
+
+        // Update reservation status to confirmed
+        if (isset($reservationID)) {
+            $update = "UPDATE reservationtb SET Status = 'Confirmed' WHERE ReservationID = ?";
+            $stmt = $connect->prepare($update);
+            $stmt->bind_param("s", $reservationID);
+            $stmt->execute();
+        }
+    } elseif ($_GET['payment'] === 'cancel') {
+        $_SESSION['alert'] = "Payment was cancelled. Your reservation is still pending.";
+    }
+
+    // Remove payment parameter from URL
+    header("Location: Reservation.php");
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -808,9 +829,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                             <div class="flex justify-between items-center">
                                 <a href="../User/RoomBooking.php?checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="text-blue-600 hover:text-blue-800 font-medium">Back</a>
-                                <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md">
-                                    Continue to payment
-                                </button>
+                                <a href="../User/Stripe.php?reservation_id=<?= $reservationID ?>" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md">Continue to payment</a>
                             </div>
                         </div>
                     </div>
@@ -825,7 +844,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     include('../includes/Alert.php');
     include('../includes/Footer.php');
     ?>
-
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle payment success/cancel messages
+            <?php if (isset($_SESSION['success'])): ?>
+                alert('<?= $_SESSION['success'] ?>');
+                <?php unset($_SESSION['success']); ?>
+            <?php elseif (isset($_SESSION['alert'])): ?>
+                alert('<?= $_SESSION['alert'] ?>');
+                <?php unset($_SESSION['alert']); ?>
+            <?php endif; ?>
+        });
+    </script>
     <script src="//unpkg.com/alpinejs" defer></script>
     <script type="module" src="../JS/index.js"></script>
 </body>
