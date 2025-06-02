@@ -1694,7 +1694,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initializeExistingRows();
 });
 
-// bType Form and Modals
+// Facility Type Form and Modals
 document.addEventListener("DOMContentLoaded", () => {
     // Add Facility Type Modal Elements
     const addFacilityTypeModal = document.getElementById('addFacilityTypeModal');

@@ -49,44 +49,33 @@ if ($nights < 1) {
     $nights = 1;
 }
 
+// Calculate total price for all rooms
+$totalPrice = 0;
+foreach ($items as $item) {
+    $totalPrice += $item['RoomPrice'] * $nights;
+}
+
+// Calculate tax (10% of total price)
+$tax = $totalPrice * 0.1;
+
 // Prepare line items for Stripe
 $line_items = [];
 foreach ($items as $item) {
-    // Format check-in/out times for display
-    $checkInTime = '14:00'; // Default check-in time
-    $checkOutTime = '12:00'; // Default check-out time
+    $checkInTime = '14:00';
+    $checkOutTime = '12:00';
 
-    // Build the description with check-in/out times
     $description = "Check-in: " . $item['CheckInDate'] . " at " . $checkInTime . "\n";
-    $description .= "Check-out: " . $item['CheckOutDate'] . " at " . $checkOutTime;
-
-    // Get full image URL (ensure it's properly formatted)
-    $imagePath = $item['RoomCoverImage'];
-    if (!empty($imagePath)) {
-        // Remove any leading slashes or backslashes
-        $imagePath = ltrim($imagePath, '/\\');
-        // Construct full URL
-        $imageUrl = "../Admin/" . $imagePath;
-
-        // Validate URL format
-        if (!filter_var($imageUrl, FILTER_VALIDATE_URL)) {
-            // Fallback to a default image if URL is invalid
-            $imageUrl = "http://localhost/OpulenceHaven/assets/images/default-room.jpg";
-        }
-    } else {
-        // Use default image if no image path is provided
-        $imageUrl = "http://localhost/OpulenceHaven/assets/images/default-room.jpg";
-    }
+    $description .= "Check-out: " . $item['CheckOutDate'] . " at " . $checkOutTime . "\n";
+    $description .= "Duration: " . $nights . ($nights > 1 ? ' nights' : ' night') . " stay\n";
 
     $line_items[] = [
-        'quantity' => 1, // Set quantity to 1
+        'quantity' => 1,
         'price_data' => [
             'currency' => 'usd',
-            'unit_amount' => ($item['RoomPrice'] * $nights) * 100, // Multiply by nights
+            'unit_amount' => ($item['RoomPrice'] * $nights) * 100,
             'product_data' => [
                 'name' => $item['RoomType'],
                 'description' => $description,
-                'images' => [$imageUrl],
                 'metadata' => [
                     'room_id' => $item['RoomID'],
                     'checkin' => $item['CheckInDate'] . ' ' . $checkInTime,
@@ -99,16 +88,14 @@ foreach ($items as $item) {
     ];
 }
 
-// Add taxes as a separate line item
-$subtotal = $reservation['TotalPrice'];
-$tax = $subtotal * 0.1; // 10% tax
+// Add taxes as a separate line item (now calculated on total price)
 $line_items[] = [
     'quantity' => 1,
     'price_data' => [
         'currency' => 'usd',
-        'unit_amount' => round($tax * 100), // Convert to cents
+        'unit_amount' => round($tax * 100), // Convert tax amount to cents
         'product_data' => [
-            'name' => 'Taxes and Fees'
+            'name' => 'Taxes and Fees (10%)'
         ]
     ]
 ];

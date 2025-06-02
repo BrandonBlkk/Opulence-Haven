@@ -89,12 +89,27 @@
                             }
                             ?>
                         </a>
+                        <?php
+                        $stay = "SELECT COUNT(*) as count FROM reservationtb WHERE UserID = ? AND Status = 'Confirmed'";
+                        $stmt = $connect->prepare($stay);
+                        $stmt->bind_param("s", $_SESSION['UserID']);
+                        $stmt->execute();
+                        $result = $stmt->get_result();
+                        $count = $result->fetch_assoc()['count'];
+                        $stmt->close();
+                        ?>
                         <a href="#" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
                             <div class="flex items-center gap-1">
                                 <i class="ri-calendar-event-line text-xl"></i>
                                 <p class="font-semibold text-sm">Upcoming Stays</p>
                             </div>
-                            <p class="px-2 text-white bg-blue-950 rounded-sm ml-5">1</p>
+                            <?php
+                            if ($count) {
+                            ?>
+                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= $count ?></p>
+                            <?php
+                            }
+                            ?>
                         </a>
                         <a href="#" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
                             <div class="flex items-center gap-1">

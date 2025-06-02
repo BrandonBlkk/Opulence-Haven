@@ -22,6 +22,7 @@ if (count($nameParts) > 1) {
 // Get search parameters from URL with strict validation
 if (isset($_GET["roomID"])) {
     $room_id = $_GET["roomID"];
+    $reservation_id = isset($_GET['reservation_id']) ? $_GET['reservation_id'] : '';
     $checkin_date = isset($_GET['checkin_date']) ? htmlspecialchars($_GET['checkin_date']) : '';
     $checkout_date = isset($_GET['checkout_date']) ? htmlspecialchars($_GET['checkout_date']) : '';
     $adults = isset($_GET['adults']) ? (int)$_GET['adults'] : 1;
@@ -117,6 +118,7 @@ if ($userID) {
 
                     // Store room data with additional calculated fields
                     $room['nights'] = $nights;
+                    $room['total'] = $room['Price'] * $nights * 1.1;
                     $room['subtotal'] = $room['Price'] * $nights;
                     $reservedRooms[] = $room;
 
@@ -234,6 +236,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Then redirect to the RoomBooking.php page with parameters
         header("Location: RoomBooking.php?reservation_id=$reservationId&room_id=$roomId&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children&edit=1");
+        exit();
+    }
+}
+
+// Submit reservation
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_reservation'])) {
+    // Get form data
+    $reservationID = $_POST['reservation_id'] ?? '';
+    $travelling = isset($_POST['work_travel']) && $_POST['work_travel'] === 'on' ? 1 : 0; // Ensure this is 0 or 1
+    $title = $_POST['title'] ?? 'Mr.';
+    $firstName = $_POST['first_name'] ?? '';
+    $lastName = $_POST['last_name'] ?? '';
+    $phone = $_POST['phone'] ?? '';
+
+    try {
+        // Update reservation with personal details
+        $updateQuery = "UPDATE reservationtb SET Travelling = '$travelling', Title = '$title', FirstName = '$firstName', LastName = '$lastName', UserPhone = '$phone', WHERE ReservationID = ?";
+        $stmt = $connect->prepare($update);
+        $stmt->bind_param("s", $reservationID);
+
+        if ($stmt->execute()) {
+            // Return success response
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'reservation_id' => $reservationID,
+                'message' => 'Reservation confirmed successfully'
+            ]);
+            exit();
+        } else {
+            throw new Exception("Failed to execute query: " . $stmt->error);
+        }
+    } catch (Exception $e) {
+        header('Content-Type: application/json');
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
+        ]);
         exit();
     }
 }
@@ -411,11 +452,11 @@ if (isset($_GET['payment'])) {
                                         $membership = $userPoints['Membership'] ?? 0;
 
                                         // Query to get all reservation details with room information
-                                        $detailsQuery = "SELECT rd.*, rt.RoomType, r.RoomName, rt.RoomCoverImage 
-                          FROM reservationdetailtb rd
-                          JOIN roomtb r ON rd.RoomID = r.RoomID
-                          JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
-                          WHERE rd.ReservationID = '$reservationID'";
+                                        $detailsQuery = "SELECT rd.*, rt.RoomType, r.RoomName, rt.RoomCoverImage, rt.RoomPrice 
+                    FROM reservationdetailtb rd
+                    JOIN roomtb r ON rd.RoomID = r.RoomID
+                    JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
+                    WHERE rd.ReservationID = '$reservationID'";
                                         $detailsResult = mysqli_query($connect, $detailsQuery);
 
                                         if (!$detailsResult) {
@@ -434,7 +475,7 @@ if (isset($_GET['payment'])) {
                                                 $checkIn = new DateTime($roomItem['CheckInDate']);
                                                 $checkOut = new DateTime($roomItem['CheckOutDate']);
                                                 $totalNights = $checkOut->diff($checkIn)->days;
-                                                $roomTotal = $roomItem['Price'] * $totalNights;
+                                                $roomTotal = $roomItem['RoomPrice'] * $totalNights;
                                                 $grandTotal += $roomTotal;
                                                 $subtotal += $roomTotal;
                                             }
@@ -456,9 +497,9 @@ if (isset($_GET['payment'])) {
 
                                                 // Update reservation with points info
                                                 $updateQuery = "UPDATE reservationtb 
-                                            SET PointsDiscount = '$pointsDiscount', 
-                                                PointsRedeemed = '$pointsRedeemed'
-                                            WHERE ReservationID = '$reservationID'";
+                          SET PointsDiscount = '$pointsDiscount', 
+                              PointsRedeemed = '$pointsRedeemed'
+                          WHERE ReservationID = '$reservationID'";
                                                 mysqli_query($connect, $updateQuery);
 
                                                 // Update user's points balance
@@ -470,23 +511,38 @@ if (isset($_GET['payment'])) {
 
                                             // Handle remove discount request 
                                             if (isset($_POST['remove_points'])) {
-                                                // Get the redeemed points first before resetting
+                                                // Get the current points balance first
+                                                $currentPointsQuery = "SELECT PointsBalance FROM usertb WHERE UserID = '$userID'";
+                                                $currentResult = $connect->query($currentPointsQuery);
+                                                $currentRow = $currentResult->fetch_assoc();
+                                                $currentPoints = $currentRow['PointsBalance'];
+
+                                                // Get the redeemed points from the reservation
                                                 $getPointsQuery = "SELECT PointsRedeemed FROM reservationtb WHERE ReservationID = '$reservationID'";
                                                 $result = $connect->query($getPointsQuery);
                                                 $row = $result->fetch_assoc();
                                                 $pointsToReturn = $row['PointsRedeemed'];
 
+                                                // Calculate the original points balance before redemption
+                                                $originalPoints = $currentPoints + $pointsToReturn;
+
                                                 // Reset points in reservationtb
                                                 $removeQuery = "UPDATE reservationtb 
-                                                SET PointsDiscount = 0, PointsRedeemed = 0 
-                                                WHERE ReservationID = '$reservationID'";
+                          SET PointsDiscount = 0, PointsRedeemed = 0 
+                          WHERE ReservationID = '$reservationID'";
                                                 $connect->query($removeQuery);
 
-                                                // Return points to usertb
+                                                // Return FULL original points to usertb (not just the redeemed amount)
                                                 $returnPointsQuery = "UPDATE usertb 
-                                                SET PointsBalance = PointsBalance + $pointsToReturn 
-                                                WHERE UserID = '$userID'";
+                               SET PointsBalance = $originalPoints 
+                               WHERE UserID = '$userID'";
                                                 $connect->query($returnPointsQuery);
+
+                                                // Update local variable to reflect changes
+                                                $pointsBalance = $originalPoints;
+                                                $pointsDiscount = 0;
+                                                $pointsRedeemed = 0;
+                                                $grandTotal = $subtotal; // Reset grand total to original amount
                                             }
 
                                             // Display room details
@@ -494,14 +550,14 @@ if (isset($_GET['payment'])) {
                                                 $checkIn = new DateTime($roomItem['CheckInDate']);
                                                 $checkOut = new DateTime($roomItem['CheckOutDate']);
                                                 $totalNights = $checkOut->diff($checkIn)->days;
-                                                $roomTotal = $roomItem['Price'] * $totalNights;
+                                                $roomTotal = $roomItem['RoomPrice'] * $totalNights;
                                     ?>
                                                 <div>
                                                     <div class="flex justify-between">
                                                         <h4 class="font-medium text-gray-800">
                                                             <?= htmlspecialchars($roomItem['RoomName'] ?? 'Room') ?> <?= htmlspecialchars($roomItem['RoomType']) ?>
                                                         </h4>
-                                                        <p class="font-semibold text-gray-800">$<?= number_format($roomTotal, 2) ?></p>
+                                                        <p class="font-semibold text-gray-800">$<?= number_format($roomItem['RoomPrice'], 2) ?></p>
                                                     </div>
                                                     <p class="text-sm text-gray-500 mt-1">
                                                         <?= $checkIn->format('M j, Y') ?> - <?= $checkOut->format('M j, Y') ?>
@@ -720,7 +776,7 @@ if (isset($_GET['payment'])) {
                                                         <?= $room['nights'] ?> night<?= $room['nights'] > 1 ? 's' : '' ?>
                                                     </div>
                                                     <div class="text-lg font-bold text-orange-500">
-                                                        USD<?= number_format($room['subtotal'], 2) ?>
+                                                        USD<?= number_format($room['RoomPrice'], 2) ?>
                                                     </div>
                                                 </div>
                                             </div>
@@ -769,7 +825,7 @@ if (isset($_GET['payment'])) {
                             </div>
                         <?php endif; ?>
 
-                        <div class="py-6">
+                        <form id="reservationForm" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" class="py-6">
                             <h2 class="text-xl font-semibold text-gray-800 mb-4">Enter your details</h2>
 
                             <div class="mb-6">
@@ -786,11 +842,11 @@ if (isset($_GET['payment'])) {
                                 <p class="text-gray-600 mb-4">Are you travelling for work?</p>
                                 <div class="flex space-x-4">
                                     <label class="inline-flex items-center">
-                                        <input type="radio" name="work_travel" class="h-4 w-4 text-blue-600">
+                                        <input type="radio" name="work_travel" value="on" class="h-4 w-4 text-blue-600">
                                         <span class="ml-2">Yes</span>
                                     </label>
                                     <label class="inline-flex items-center">
-                                        <input type="radio" name="work_travel" class="h-4 w-4 text-blue-600" checked>
+                                        <input type="radio" name="work_travel" value="on" class="h-4 w-4 text-blue-600">
                                         <span class="ml-2">No</span>
                                     </label>
                                 </div>
@@ -799,39 +855,47 @@ if (isset($_GET['payment'])) {
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                                    <select class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <select name="title" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                         <option>Mr.</option>
                                         <option>Mrs.</option>
                                         <option>Ms.</option>
                                         <option>Dr.</option>
                                     </select>
                                 </div>
-                                <div>
+                                <div class="relative">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">First name <span class="text-red-500">*</span></label>
-                                    <input type="text" value="<?= $userData['UserName'] ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <input type="text" name="first_name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <small id="firstNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">First name is required</small>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Last name (Optional)</label>
-                                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <input type="text" name="last_name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                 </div>
                             </div>
 
                             <div class="mb-6">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Email address <span class="text-red-500">*</span></label>
                                 <input type="email" value="<?= $userData['UserEmail'] ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" disabled>
-                                <input type="hidden" name="email" value="<?= $userData['UserEmail'] ?>">
                             </div>
 
-                            <div class="mb-6">
+                            <div class="mb-6 relative">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Phone <span class="text-red-500">*</span></label>
-                                <input type="tel" value="<?= $userData['UserPhone'] ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <input type="tel" name="phone" value="<?= $userData['UserPhone'] ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <small id="phoneError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">First name is required</small>
                             </div>
 
                             <div class="flex justify-between items-center">
                                 <a href="../User/RoomBooking.php?checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="text-blue-600 hover:text-blue-800 font-medium">Back</a>
-                                <a href="../User/Stripe.php?reservation_id=<?= $reservationID ?>" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md">Continue to payment</a>
+                                <!-- <a href="../User/Stripe.php?reservation_id=<?= $reservationID ?>" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md">Continue to payment</a> -->
+                                <button type="submit" id="submitButton" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md flex items-center justify-center">
+                                    <span id="buttonText">Continue to payment</span>
+                                    <svg id="buttonSpinner" class="hidden w-5 h-5 ml-2 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </button>
                             </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -841,6 +905,7 @@ if (isset($_GET['payment'])) {
     <!-- MoveUp Btn -->
     <?php
     include('../includes/MoveUpBtn.php');
+    include('../includes/Loader.php');
     include('../includes/Alert.php');
     include('../includes/Footer.php');
     ?>
