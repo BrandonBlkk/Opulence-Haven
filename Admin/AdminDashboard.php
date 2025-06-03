@@ -6,6 +6,9 @@ if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
+// Timezone 
+date_default_timezone_set('Asia/Yangon');
+
 $username = $_SESSION["UserName"];
 
 if (!isset($_SESSION["AdminEmail"])) {
@@ -41,7 +44,7 @@ if ($roomCount > 0) {
     $roomAvailable = $roomCount;
 }
 
-$roomQuery = "SELECT COUNT(*) as count FROM roomtb WHERE RoomStatus = 'Reserved'";
+$roomQuery = "SELECT COUNT(*) as count FROM reservationtb WHERE Status = 'Confirmed'";
 $roomResult = $connect->query($roomQuery);
 $roomCount = $roomResult->fetch_assoc()['count'];
 if ($roomCount > 0) {
@@ -217,24 +220,77 @@ if ($roomCount > 0) {
 
         <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
             <!-- Total Booking -->
+            <?php
+            // Get current period counts
+            $currentMonthQuery = "SELECT COUNT(*) as count FROM reservationtb 
+                     WHERE ReservationDate >= DATE_SUB(NOW(), INTERVAL 1 MONTH)";
+            $currentWeekQuery = "SELECT COUNT(*) as count FROM reservationtb 
+                    WHERE ReservationDate >= DATE_SUB(NOW(), INTERVAL 1 WEEK)";
+            $currentDayQuery = "SELECT COUNT(*) as count FROM reservationtb 
+                   WHERE ReservationDate >= DATE_SUB(NOW(), INTERVAL 1 DAY)";
+
+            $currentMonthResult = $connect->query($currentMonthQuery);
+            $currentWeekResult = $connect->query($currentWeekQuery);
+            $currentDayResult = $connect->query($currentDayQuery);
+
+            $currentMonthCount = $currentMonthResult->fetch_assoc()['count'];
+            $currentWeekCount = $currentWeekResult->fetch_assoc()['count'];
+            $currentDayCount = $currentDayResult->fetch_assoc()['count'];
+
+            // Get previous period counts for comparison
+            $prevMonthQuery = "SELECT COUNT(*) as count FROM reservationtb 
+                  WHERE ReservationDate BETWEEN DATE_SUB(NOW(), INTERVAL 2 MONTH) AND DATE_SUB(NOW(), INTERVAL 1 MONTH)";
+            $prevWeekQuery = "SELECT COUNT(*) as count FROM reservationtb 
+                 WHERE ReservationDate BETWEEN DATE_SUB(NOW(), INTERVAL 2 WEEK) AND DATE_SUB(NOW(), INTERVAL 1 WEEK)";
+            $prevDayQuery = "SELECT COUNT(*) as count FROM reservationtb 
+                WHERE ReservationDate BETWEEN DATE_SUB(NOW(), INTERVAL 2 DAY) AND DATE_SUB(NOW(), INTERVAL 1 DAY)";
+
+            $prevMonthResult = $connect->query($prevMonthQuery);
+            $prevWeekResult = $connect->query($prevWeekQuery);
+            $prevDayResult = $connect->query($prevDayQuery);
+
+            $prevMonthCount = $prevMonthResult->fetch_assoc()['count'];
+            $prevWeekCount = $prevWeekResult->fetch_assoc()['count'];
+            $prevDayCount = $prevDayResult->fetch_assoc()['count'];
+
+            // Calculate percentage changes
+            function calculateChange($current, $previous)
+            {
+                if ($previous == 0) {
+                    return $current > 0 ? 100 : 0; // Handle division by zero
+                }
+                return (($current - $previous) / $previous) * 100;
+            }
+
+            $monthlyChange = calculateChange($currentMonthCount, $prevMonthCount);
+            $weeklyChange = calculateChange($currentWeekCount, $prevWeekCount);
+            $dailyChange = calculateChange($currentDayCount, $prevDayCount);
+            ?>
+
             <div class="bg-white rounded-sm p-3">
                 <h2 class="text-lg font-bold text-gray-700">Total Booking</h2>
                 <p class="text-sm text-gray-500 mb-4">Total number of bookings recorded.</p>
                 <div class="grid grid-cols-3 gap-4 mb-4">
                     <div class="text-center">
-                        <h3 class="text-xl font-semibold text-blue-600">1,200</h3>
+                        <h3 class="text-xl font-semibold text-blue-600"><?= number_format($currentMonthCount) ?></h3>
                         <p class="text-gray-500 text-xs">Monthly</p>
-                        <p class="text-green-500 text-sm">↑ 5.12%</p>
+                        <p class="<?= $monthlyChange >= 0 ? 'text-green-500' : 'text-red-500' ?> text-sm">
+                            <?= $monthlyChange >= 0 ? '↑' : '↓' ?> <?= number_format(abs($monthlyChange), 2) ?>%
+                        </p>
                     </div>
                     <div class="text-center">
-                        <h3 class="text-xl font-semibold text-red-600">300</h3>
+                        <h3 class="text-xl font-semibold text-red-600"><?= number_format($currentWeekCount) ?></h3>
                         <p class="text-gray-500 text-xs">Weekly</p>
-                        <p class="text-red-500 text-sm">↓ 2.45%</p>
+                        <p class="<?= $weeklyChange >= 0 ? 'text-green-500' : 'text-red-500' ?> text-sm">
+                            <?= $weeklyChange >= 0 ? '↑' : '↓' ?> <?= number_format(abs($weeklyChange), 2) ?>%
+                        </p>
                     </div>
                     <div class="text-center">
-                        <h3 class="text-xl font-semibold text-green-600">45</h3>
+                        <h3 class="text-xl font-semibold text-green-600"><?= number_format($currentDayCount) ?></h3>
                         <p class="text-gray-500 text-xs">Daily (Avg)</p>
-                        <p class="text-green-500 text-sm">↑ 3.18%</p>
+                        <p class="<?= $dailyChange >= 0 ? 'text-green-500' : 'text-red-500' ?> text-sm">
+                            <?= $dailyChange >= 0 ? '↑' : '↓' ?> <?= number_format(abs($dailyChange), 2) ?>%
+                        </p>
                     </div>
                 </div>
             </div>
@@ -611,26 +667,93 @@ if ($roomCount > 0) {
                 <?php endforeach; ?>
             </div>
 
+            <?php
+            $reservation = "SELECT rt.ReservationID, rt.UserID, rt.ReservationDate, rt.Status, rt.TotalPrice, u.ProfileBgColor, u.UserName FROM reservationtb rt
+                JOIN usertb u ON rt.UserID = u.UserID 
+                ORDER BY rt.ReservationDate DESC LIMIT 4";
+            $stmt = $connect->prepare($reservation);
+            $stmt->execute();
+            $resResult = $stmt->get_result();
+            $count = $resResult->num_rows;
+            ?>
+
             <div class="flex-1 divide-y-2 divide-slate-100 bg-white p-3">
-                <h1 class="text-lg font-bold text-gray-700 mb-2">Recent Activities</h1>
-                <div class="p-2">
-                    <div class="flex items-center gap-2">
-                        <p class="w-10 h-10 rounded-full bg-[<?= $bgColor ?>] text-white font-semibold flex items-center justify-center select-none">B</p>
-                        <div class="text-gray-600 text-sm">
-                            <h1 class="font-semibold">Brandon requested for room.</h1>
-                            <p>2 hours ago</p>
+                <h1 class="text-lg font-bold text-gray-700 mb-2">Recent Reservations</h1>
+                <?php
+                if ($count > 0) {
+                    while ($row = $resResult->fetch_assoc()):
+                        $bgColor = $row['ProfileBgColor'];
+                        $status = $row['Status'];
+
+                        // Set status color based on reservation status
+                        $statusColor = match ($status) {
+                            'Confirmed' => 'bg-green-100 text-green-800',
+                            'Pending' => 'bg-yellow-100 text-yellow-800',
+                            'Cancelled' => 'bg-red-100 text-red-800',
+                            default => 'bg-gray-100 text-gray-800'
+                        };
+
+                        $noti = match ($status) {
+                            'Confirmed' => 'has confirmed a reservation',
+                            'Pending' => 'has a pending reservation',
+                            'Cancelled' => 'cancelled a reservation',
+                            default => 'bg-gray-100 text-gray-800'
+                        };
+
+                        // Extract initials from the UserName
+                        $nameParts = explode(' ', trim($row['UserName']));
+                        $initials = strtoupper(substr($nameParts[0], 0, 1));
+                        if (count($nameParts) > 1) {
+                            $initials .= strtoupper(substr(end($nameParts), 0, 1));
+                        }
+
+                        // Calculate time difference
+                        $reservationDate = new DateTime($row['ReservationDate']);
+                        $currentDate = new DateTime();
+                        $interval = $currentDate->diff($reservationDate);
+
+                        if ($interval->y > 0) {
+                            $timeAgo = $interval->y . ' year' . ($interval->y > 1 ? 's' : '') . ' ago';
+                        } elseif ($interval->m > 0) {
+                            $timeAgo = $interval->m . ' month' . ($interval->m > 1 ? 's' : '') . ' ago';
+                        } elseif ($interval->d >= 7) {
+                            $weeks = floor($interval->d / 7);
+                            $timeAgo = $weeks . ' week' . ($weeks > 1 ? 's' : '') . ' ago';
+                        } elseif ($interval->d > 0) {
+                            $timeAgo = $interval->d . ' day' . ($interval->d > 1 ? 's' : '') . ' ago';
+                        } elseif ($interval->h > 0) {
+                            $timeAgo = $interval->h . ' hour' . ($interval->h > 1 ? 's' : '') . ' ago';
+                        } elseif ($interval->i > 0) {
+                            $timeAgo = $interval->i . ' minute' . ($interval->i > 1 ? 's' : '') . ' ago';
+                        } else {
+                            $timeAgo = 'Just now';
+                        }
+                ?>
+                        <div class="p-2 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-[<?= htmlspecialchars($bgColor) ?>] text-white font-semibold flex items-center justify-center select-none shrink-0">
+                                    <?= htmlspecialchars($initials) ?>
+                                </div>
+                                <div class="text-gray-600 text-sm flex-1">
+                                    <div class="flex justify-between items-start">
+                                        <h1 class="font-semibold"><?= htmlspecialchars($row['FirstName'] ?? $nameParts[0]) ?> <?= $noti ?></h1>
+                                        <span class="text-xs px-2 py-1 rounded-full <?= $statusColor ?>">
+                                            <?= htmlspecialchars($status) ?>
+                                        </span>
+                                    </div>
+                                    <div class="flex justify-between items-center mt-1">
+                                        <p class="text-xs text-gray-500"><?= $timeAgo ?></p>
+                                        <p class="text-xs font-medium">$<?= number_format($row['TotalPrice'], 2) ?></p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="p-2">
-                    <div class="flex items-center gap-2">
-                        <p class="w-10 h-10 rounded-full bg-[<?= $bgColor ?>] text-white font-semibold flex items-center justify-center select-none">F</p>
-                        <div class="text-gray-600 text-sm">
-                            <h1 class="font-semibold">Franco cancelled booking.</h1>
-                            <p>1 hour ago</p>
-                        </div>
-                    </div>
-                </div>
+                <?php
+                    endwhile;
+                } else {
+                    echo '<p class="text-gray-500 text-center text-sm py-24">No reservations found.</p>';
+                }
+                ?>
             </div>
         </section>
     </div>
