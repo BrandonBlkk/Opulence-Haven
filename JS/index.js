@@ -478,14 +478,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const checkOutDateInput = document.getElementById('checkout-date');
 
     if (checkInDateInput && checkOutDateInput) {
-        // Get tomorrow's date in YYYY-MM-DD format
+        // Get today's and tomorrow's dates in YYYY-MM-DD format
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
-        // Set min attributes
-        checkInDateInput.setAttribute('min', tomorrowStr);
-        checkOutDateInput.setAttribute('min', tomorrowStr);
+        const dayaftertomorrow = new Date();
+        dayaftertomorrow.setDate(dayaftertomorrow.getDate() + 2);
+        const dayaftertomorrowStr = dayaftertomorrow.toISOString().split('T')[0];
+
+        if (window.location.pathname.includes('/User/HomePage.php')) { 
+            // Set default values
+            checkInDateInput.value = tomorrowStr;
+            checkOutDateInput.value = dayaftertomorrowStr;
+        }
 
         // Update checkout min date when checkin changes
         checkInDateInput.addEventListener('change', function() {
@@ -495,8 +504,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const nextDayStr = nextDay.toISOString().split('T')[0];
                 checkOutDateInput.min = nextDayStr;
 
-                if (checkOutDateInput.value && checkOutDateInput.value < nextDayStr) {
-                    checkOutDateInput.value = '';
+                // If current checkout date is before new min date, update it
+                if (checkOutDateInput.value < nextDayStr) {
+                    checkOutDateInput.value = nextDayStr;
                 }
             }
         });
