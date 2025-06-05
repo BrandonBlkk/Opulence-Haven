@@ -56,6 +56,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
         exit();
     }
 
+    if ($userID == null) {
+        $_SESSION['alert'] = "Please log in to reserve a room.";
+        header("Location: RoomDetails.php?roomTypeID=$roomtype_id&room_id=$room_id&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
+        exit();
+    }
+
     try {
         // Validate dates
         $today = new DateTime();
@@ -195,231 +201,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
     }
 }
 
-// // Edit reservation
-// if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
-//     $roomTypeID = $_POST['roomTypeID'];
-//     $roomID = $_POST['edit_room_id'];
-//     $checkInDate = $_POST['checkin_date'];
-//     $checkOutDate = $_POST['checkout_date'];
-//     $adults = $_POST['adults'];
-//     $children = $_POST['children'];
-//     $guests = $adults + $children;
-//     $reservationID = $_POST['reservation_id'];
-
-//     // Validate dates first
-//     $today = new DateTime();
-//     $today->setTime(0, 0, 0);
-//     $checkIn = new DateTime($checkInDate);
-//     $checkOut = new DateTime($checkOutDate);
-
-//     if ($checkIn <= $today) {
-//         $_SESSION['alert'] = "Check-in date must be in the future.";
-//         $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&reservation_id=$reservationID&room_id=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children&edit=1";
-//         header("Location: $redirect_url");
-//         exit();
-//     }
-
-//     if ($checkOut <= $checkIn) {
-//         $_SESSION['alert'] = "Check-out date must be after check-in date.";
-//         $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&reservation_id=$reservationID&room_id=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children&edit=1";
-//         header("Location: $redirect_url");
-//         exit();
-//     }
-
-//     // Check room capacity
-//     $checkRoomCapacity = "SELECT r.RoomID, rt.RoomCapacity FROM roomtb r 
-//                          JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
-//                          WHERE r.RoomID = ?";
-//     $stmt = $connect->prepare($checkRoomCapacity);
-//     $stmt->bind_param("s", $roomID);
-//     $stmt->execute();
-//     $result = $stmt->get_result();
-//     $roomData = $result->fetch_assoc();
-
-//     if ($guests > $roomData['RoomCapacity']) {
-//         $_SESSION['alert'] = "Room capacity (" . $roomData['RoomCapacity'] . ") is less than the number of guests ($guests).";
-//         $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&reservation_id=$reservationID&room_id=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children&edit=1";
-//         header("Location: $redirect_url");
-//         exit();
-//     }
-
-//     // Check for overlapping reservations (excluding current reservation)
-//     $checkAvailability = "SELECT COUNT(*) as count FROM reservationdetailtb 
-//                          WHERE RoomID = ? AND ReservationID != ? AND (
-//                                (? BETWEEN CheckInDate AND CheckOutDate) OR 
-//                                (? BETWEEN CheckInDate AND CheckOutDate) OR
-//                                (CheckInDate BETWEEN ? AND ?) OR
-//                                (CheckOutDate BETWEEN ? AND ?)
-//                          )";
-//     $stmtCheck = $connect->prepare($checkAvailability);
-//     $stmtCheck->bind_param(
-//         "ssssssss",
-//         $roomID,
-//         $reservationID,
-//         $checkInDate,
-//         $checkOutDate,
-//         $checkInDate,
-//         $checkOutDate,
-//         $checkInDate,
-//         $checkOutDate
-//     );
-//     $stmtCheck->execute();
-//     $availabilityResult = $stmtCheck->get_result();
-//     $count = $availabilityResult->fetch_assoc()['count'];
-
-//     // Extend the expiry time
-//     $newExpiry = date('Y-m-d H:i:s', strtotime('+30 minutes'));
-//     $updateExpiry = "UPDATE reservationtb SET ExpiryDate = ? WHERE ReservationID = ?";
-//     $stmtExpiry = $connect->prepare($updateExpiry);
-//     $stmtExpiry->bind_param("ss", $newExpiry, $reservationID);
-//     $stmtExpiry->execute();
-
-//     // Update reservation detail 
-//     $update_room = "UPDATE reservationdetailtb SET 
-//                     CheckInDate = ?, 
-//                     CheckOutDate = ?, 
-//                     Adult = ?, 
-//                     Children = ? 
-//                     WHERE RoomID = ? AND ReservationID = ?";
-
-//     $stmt = $connect->prepare($update_room);
-//     $stmt->bind_param("ssiiii", $checkInDate, $checkOutDate, $adults, $children, $roomID, $reservationID);
-
-//     if ($stmt->execute()) {
-//         $_SESSION['success'] = "Reservation updated successfully!";
-//         $redirect_url = "Reservation.php?roomID=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children";
-//         header("Location: $redirect_url");
-//         exit();
-//     } else {
-//         $_SESSION['alert'] = "Error updating reservation: " . $connect->error;
-//         $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&reservation_id=$reservationID&room_id=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children&edit=1";
-//         header("Location: $redirect_url");
-//         exit();
-//     }
-// }
-
-// // Edit reservation
-// if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
-//     $roomTypeID = $_POST['roomTypeID'];
-//     $roomID = $_POST['edit_room_id'];
-//     $checkInDate = $_POST['checkin_date'];
-//     $checkOutDate = $_POST['checkout_date'];
-//     $adults = $_POST['adults'];
-//     $children = $_POST['children'];
-//     $guests = $adults + $children;
-//     $reservationID = $_POST['reservation_id'];
-
-//     // Validate dates first
-//     $today = new DateTime();
-//     $today->setTime(0, 0, 0);
-//     $checkIn = new DateTime($checkInDate);
-//     $checkOut = new DateTime($checkOutDate);
-
-//     if ($checkIn <= $today) {
-//         $_SESSION['alert'] = "Check-in date must be in the future.";
-//         $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&reservation_id=$reservationID&room_id=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children&edit=1";
-//         header("Location: $redirect_url");
-//         exit();
-//     }
-
-//     if ($checkOut <= $checkIn) {
-//         $_SESSION['alert'] = "Check-out date must be after check-in date.";
-//         $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&reservation_id=$reservationID&room_id=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children&edit=1";
-//         header("Location: $redirect_url");
-//         exit();
-//     }
-
-//     // Check room capacity
-//     $checkRoomCapacity = "SELECT r.RoomID, rt.RoomCapacity FROM roomtb r 
-//                          JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
-//                          WHERE r.RoomID = ?";
-//     $stmt = $connect->prepare($checkRoomCapacity);
-//     $stmt->bind_param("s", $roomID);
-//     $stmt->execute();
-//     $result = $stmt->get_result();
-//     $roomData = $result->fetch_assoc();
-
-//     if ($guests > $roomData['RoomCapacity']) {
-//         $_SESSION['alert'] = "Room capacity (" . $roomData['RoomCapacity'] . ") is less than the number of guests ($guests).";
-//         $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&reservation_id=$reservationID&room_id=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children&edit=1";
-//         header("Location: $redirect_url");
-//         exit();
-//     }
-
-//     // Check for overlapping reservations (excluding current reservation)
-//     $checkAvailability = "SELECT COUNT(*) as count FROM reservationdetailtb 
-//                          WHERE RoomID = ? AND ReservationID != ? AND (
-//                                (? BETWEEN CheckInDate AND CheckOutDate) OR 
-//                                (? BETWEEN CheckInDate AND CheckOutDate) OR
-//                                (CheckInDate BETWEEN ? AND ?) OR
-//                                (CheckOutDate BETWEEN ? AND ?)
-//                          )";
-//     $stmtCheck = $connect->prepare($checkAvailability);
-//     $stmtCheck->bind_param(
-//         "ssssssss",
-//         $roomID,
-//         $reservationID,
-//         $checkInDate,
-//         $checkOutDate,
-//         $checkInDate,
-//         $checkOutDate,
-//         $checkInDate,
-//         $checkOutDate
-//     );
-//     $stmtCheck->execute();
-//     $availabilityResult = $stmtCheck->get_result();
-//     $count = $availabilityResult->fetch_assoc()['count'];
-
-//     // Calculate new total price based on nights and room price
-//     $nights = $checkOut->diff($checkIn)->days;
-//     $getRoomPrice = "SELECT RoomPrice FROM roomtypetb rt JOIN roomtb r ON rt.RoomTypeID = r.RoomTypeID WHERE r.RoomID = ?";
-//     $stmtPrice = $connect->prepare($getRoomPrice);
-//     $stmtPrice->bind_param("s", $roomID);
-//     $stmtPrice->execute();
-//     $priceResult = $stmtPrice->get_result();
-//     $roomPrice = $priceResult->fetch_assoc()['RoomPrice'];
-//     $newTotal = $roomPrice * $nights * 1.1; // Including 10% tax
-
-//     // Begin transaction
-//     $connect->begin_transaction();
-
-//     try {
-//         // Extend the expiry time
-//         $newExpiry = date('Y-m-d H:i:s', strtotime('+30 minutes'));
-//         $updateExpiry = "UPDATE reservationtb SET ExpiryDate = ?, TotalPrice = ? WHERE ReservationID = ?";
-//         $stmtExpiry = $connect->prepare($updateExpiry);
-//         $stmtExpiry->bind_param("sds", $newExpiry, $newTotal, $reservationID);
-//         $stmtExpiry->execute();
-
-//         // Update reservation detail 
-//         $update_room = "UPDATE reservationdetailtb SET 
-//                         CheckInDate = ?, 
-//                         CheckOutDate = ?, 
-//                         Adult = ?, 
-//                         Children = ? 
-//                         WHERE RoomID = ? AND ReservationID = ?";
-
-//         $stmt = $connect->prepare($update_room);
-//         $stmt->bind_param("ssiiii", $checkInDate, $checkOutDate, $adults, $children, $roomID, $reservationID);
-//         $stmt->execute();
-
-//         // Commit transaction
-//         $connect->commit();
-
-//         $_SESSION['success'] = "Reservation updated successfully!";
-//         $redirect_url = "Reservation.php?roomID=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children";
-//         header("Location: $redirect_url");
-//         exit();
-//     } catch (Exception $e) {
-//         // Rollback transaction on error
-//         $connect->rollback();
-//         $_SESSION['alert'] = "Error updating reservation: " . $e->getMessage();
-//         $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&reservation_id=$reservationID&room_id=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children&edit=1";
-//         header("Location: $redirect_url");
-//         exit();
-//     }
-// }
-
 // Edit reservation
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
     $roomTypeID = $_POST['roomTypeID'];
@@ -448,6 +229,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
         $_SESSION['alert'] = "Check-out date must be after check-in date.";
         $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&reservation_id=$reservationID&room_id=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children&edit=1";
         header("Location: $redirect_url");
+        exit();
+    }
+
+    if ($userID == null) {
+        $_SESSION['alert'] = "Please log in to reserve a room.";
+        header("Location: RoomDetails.php?roomTypeID=$roomtype_id&room_id=$room_id&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
         exit();
     }
 

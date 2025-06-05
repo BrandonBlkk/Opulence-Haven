@@ -60,19 +60,30 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         <!-- Date -->
                         <div class="flex flex-1 flex-col gap-2">
                             <label for="date" class="font-semibold">Date</label>
-                            <input type="date" id="date" name="date" min="<?php echo date('Y-m-d'); ?>" max="<?php echo date('Y-m-d', strtotime('+30 days')); ?>" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" required>
+                            <input
+                                type="date"
+                                id="date"
+                                name="date"
+                                min="<?php echo date('Y-m-d', strtotime('+1 day')); ?>"
+                                max="<?php echo date('Y-m-d', strtotime('+30 days')); ?>"
+                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                required>
                         </div>
-                        <!-- Set the minimum date to today -->
+
                         <script>
                             document.addEventListener('DOMContentLoaded', () => {
-                                // Get the current date in YYYY-MM-DD format
-                                const today = new Date().toISOString().split('T')[0];
-
-                                // Set the min attribute of the date input to today
                                 const dateInput = document.getElementById('date');
-                                dateInput.setAttribute('min', today);
+
+                                const tomorrow = new Date();
+                                tomorrow.setDate(tomorrow.getDate() + 1);
+                                const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+                                // Set both min and default (value) to tomorrow
+                                dateInput.min = tomorrowStr;
+                                dateInput.value = tomorrowStr;
                             });
                         </script>
+
                         <!-- Time -->
                         <div class="flex flex-1 flex-col gap-2">
                             <label for="time" class="font-semibold">Time</label>
