@@ -122,6 +122,11 @@ $facilityCountQuery = "SELECT COUNT(*) as count FROM facilitytb";
 $facilityCountResult = $connect->query($facilityCountQuery);
 $allFacilityCount = $facilityCountResult->fetch_assoc()['count'];
 
+// Fetch reservation count
+$reservationCountQuery = "SELECT COUNT(*) as count FROM reservationtb WHERE Status = 'Pending'";
+$reservationCountResult = $connect->query($reservationCountQuery);
+$allReservationCount = $reservationCountResult->fetch_assoc()['count'];
+
 // Initialize search variables for user
 $searchUserQuery = isset($_GET['user_search']) ? mysqli_real_escape_string($connect, $_GET['user_search']) : '';
 
@@ -518,7 +523,7 @@ if (mysqli_num_rows($query) > 0) {
                                     <i class="ri-booklet-line text-xl"></i>
                                     <span class="font-semibold text-sm">Booking</span>
                                 </div>
-                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= htmlspecialchars($allProductCount) ?></p>
+                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= htmlspecialchars($allReservationCount) ?></p>
                             </a>
                             <a href="../Admin/AddProduct.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">

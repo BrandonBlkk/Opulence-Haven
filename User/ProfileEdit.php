@@ -1,6 +1,7 @@
 <?php
 session_start();
 include('../config/dbConnection.php');
+include('../includes/MaskEmail.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -119,7 +120,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['resetPassword'])) {
                                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                             type="email"
                                             name="email"
-                                            value="<?php echo $userData['UserEmail'] ?>"
+                                            value="<?php echo maskEmail($userData['UserEmail']) ?>"
                                             placeholder="Enter your email">
                                         <small id="emailError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                                     </div>

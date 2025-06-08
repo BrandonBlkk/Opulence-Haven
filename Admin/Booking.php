@@ -9,149 +9,47 @@ if (!$connect) {
 }
 
 $alertMessage = '';
-$productID = AutoID('producttb', 'ProductID', 'PD-', 6);
-$response = ['success' => false, 'message' => '', 'generatedId' => $productID];
 
-// Add Product
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproduct'])) {
-    $productTitle = mysqli_real_escape_string($connect, $_POST['productTitle']);
-    $description = mysqli_real_escape_string($connect, $_POST['description']);
-    $specification = mysqli_real_escape_string($connect, $_POST['specification']);
-    $information = mysqli_real_escape_string($connect, $_POST['information']);
-    $delivery = mysqli_real_escape_string($connect, $_POST['delivery']);
-    $brand = mysqli_real_escape_string($connect, $_POST['brand']);
-    $price = mysqli_real_escape_string($connect, $_POST['price']);
-    $discountPrice = mysqli_real_escape_string($connect, $_POST['discountPrice']);
-    $sellingFast = mysqli_real_escape_string($connect, $_POST['sellingfast']);
-    $stock = 0;
-    $productType = mysqli_real_escape_string($connect, $_POST['productType']);
+// Initialize search and filter variables for reservations
+$searchBookingQuery = isset($_GET['booking_search']) ? mysqli_real_escape_string($connect, $_GET['booking_search']) : '';
+$filterStatus = isset($_GET['sort']) ? $_GET['sort'] : 'random';
+$bookingCurrentPage = isset($_GET['bookingpage']) ? (int)$_GET['bookingpage'] : 1;
+$rowsPerPage = 1; // Number of rows per page
+$bookingOffset = ($bookingCurrentPage - 1) * $rowsPerPage;
 
-    // Check if the product already exists using prepared statement
-    $checkQuery = "SELECT Title FROM producttb WHERE Title = '$productTitle'";
-    $count = $connect->query($checkQuery)->num_rows;
-
-    if ($count > 0) {
-        $response['message'] = 'Product you added is already existed.';
-    } else {
-        $addProductQuery = "INSERT INTO producttb (ProductID, Title, Price, DiscountPrice, Description, Specification, Information, DeliveryInfo, Brand, SellingFast, Stock, ProductTypeID)
-        VALUES ('$productID', '$productTitle', '$price', '$discountPrice', '$description', '$specification', '$information', '$delivery', '$brand', '$sellingFast', '$stock', '$productType')";
-
-        if ($connect->query($addProductQuery)) {
-            $response['success'] = true;
-            $response['message'] = 'A new product has been successfully added.';
-            // Keep the generated ID in the response
-            $response['generatedId'] = $productID;
-        } else {
-            $response['message'] = "Failed to add product. Please try again.";
-        }
-    }
-
-    header('Content-Type: application/json');
-    echo json_encode($response);
-    exit();
-}
-
-// Get Product Details
-if (isset($_GET['action']) && isset($_GET['id'])) {
-    $id = mysqli_real_escape_string($connect, $_GET['id']);
-    $action = $_GET['action'];
-
-    // Build query based on action
-    $query = match ($action) {
-        'getProductDetails' => "SELECT * FROM producttb WHERE ProductID = '$id'",
-        default => null
-    };
-    if ($query) {
-        $product = $connect->query($query)->fetch_assoc();
-
-        if ($product) {
-            $response['success'] = true;
-            $response['product'] = $product;
-        } else {
-            $response['success'] = true;
-        }
-    }
-
-    header('Content-Type: application/json');
-    echo json_encode($response);
-    exit();
-}
-
-// Update Product
-if (isset($_POST['editproduct'])) {
-    $productId = mysqli_real_escape_string($connect, $_POST['productid']);
-    $productTitle = mysqli_real_escape_string($connect, $_POST['updateproductTitle']);
-    $brand = mysqli_real_escape_string($connect, $_POST['updatebrand']);
-    $description = mysqli_real_escape_string($connect, $_POST['updatedescription']);
-    $specification = mysqli_real_escape_string($connect, $_POST['updatespecification']);
-    $information = mysqli_real_escape_string($connect, $_POST['updateinformation']);
-    $delivery = mysqli_real_escape_string($connect, $_POST['updatedelivery']);
-    $price = mysqli_real_escape_string($connect, $_POST['updateprice']);
-    $discountPrice = mysqli_real_escape_string($connect, $_POST['updatediscountPrice']);
-    $sellingFast = mysqli_real_escape_string($connect, $_POST['updatesellingfast']);
-    $productType = mysqli_real_escape_string($connect, $_POST['updateproductType']);
-
-    // Update query
-    $updateQuery = "UPDATE producttb SET Title = '$productTitle', Brand = '$brand', Description = '$description', Specification = '$specification', Information = '$information', DeliveryInfo = '$delivery', 
-    Price = '$price', DiscountPrice = '$discountPrice', SellingFast = '$sellingFast', ProductTypeID = '$productType' WHERE ProductID = '$productId'";
-
-    if ($connect->query($updateQuery)) {
-        $response['success'] = true;
-        $response['message'] = 'The product has been successfully updated.';
-        $response['generatedId'] = $productId;
-        $response['productTitle'] = $productTitle;
-        $response['brand'] = $brand;
-        $response['description'] = $description;
-        $response['specification'] = $specification;
-        $response['information'] = $information;
-        $response['delivery'] = $delivery;
-        $response['price'] = $price;
-        $response['discountPrice'] = $discountPrice;
-        $response['sellingFast'] = $sellingFast;
-        $response['productType'] = $productType;
-    } else {
-        $response['message'] = "Failed to update product. Please try again.";
-    }
-
-    header('Content-Type: application/json');
-    echo json_encode($response);
-    exit();
-}
-
-// Delete Product
-if (isset($_POST['deleteproduct'])) {
-    $productId = mysqli_real_escape_string($connect, $_POST['productid']);
-
-    // Build query based on action
-    $deleteQuery = "DELETE FROM producttb WHERE ProductID = '$productId'";
-
-    if ($connect->query($deleteQuery)) {
-        $response['success'] = true;
-        $response['generatedId'] = $productId;
-    } else {
-        $response['success'] = false;
-        $response['message'] = 'Failed to delete product. Please try again.';
-    }
-
-    header('Content-Type: application/json');
-    echo json_encode($response);
-    exit();
-}
-
-// Initialize search and filter variables for product
-$searchBookingQuery = isset($_GET['product_search']) ? mysqli_real_escape_string($connect, $_GET['product_search']) : '';
-$filterProductID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
-
-// Construct the product query based on search and product type filter
-if ($filterProductID !== 'random' && !empty($searchBookingQuery)) {
-    $bookingSelect = "SELECT * FROM reservationtb WHERE ReservationID = '$filterProductID' AND (Title LIKE '%$searchBookingQuery%' OR Description LIKE '%$searchBookingQuery%' OR Specification LIKE '%$searchBookingQuery%' OR Information LIKE '%$searchBookingQuery%' OR Brand LIKE '%$searchBookingQuery%') LIMIT $rowsPerPage OFFSET $productOffset";
-} elseif ($filterProductID !== 'random') {
-    $bookingSelect = "SELECT * FROM reservationtb WHERE ReservationID = '$filterProductID' LIMIT $rowsPerPage OFFSET $productOffset";
+// Construct the reservation query based on search and status filter
+if ($filterStatus !== 'random' && !empty($searchBookingQuery)) {
+    $bookingSelect = "SELECT r.*, u.UserName, u.UserPhone 
+                     FROM reservationtb r 
+                     JOIN usertb u ON r.UserID = u.UserID  
+                     WHERE r.Status = '$filterStatus' 
+                     AND (r.FirstName LIKE '%$searchBookingQuery%' 
+                          OR r.LastName LIKE '%$searchBookingQuery%'
+                          OR r.UserPhone LIKE '%$searchBookingQuery%'
+                          OR r.ReservationID LIKE '%$searchBookingQuery%'
+                          OR u.UserName LIKE '%$searchBookingQuery%') 
+                     LIMIT $rowsPerPage OFFSET $bookingOffset";
+} elseif ($filterStatus !== 'random') {
+    $bookingSelect = "SELECT r.*, u.UserName, u.UserPhone 
+                     FROM reservationtb r 
+                     JOIN usertb u ON r.UserID = u.UserID 
+                     WHERE r.Status = '$filterStatus' 
+                     LIMIT $rowsPerPage OFFSET $bookingOffset";
 } elseif (!empty($searchBookingQuery)) {
-    $bookingSelect = "SELECT * FROM reservationtb WHERE Title LIKE '%$searchBookingQuery%' OR Description LIKE '%$searchBookingQuery%' OR Specification LIKE '%$searchBookingQuery%' OR Information LIKE '%$searchBookingQuery%' OR Brand LIKE '%$searchBookingQuery%' LIMIT $rowsPerPage OFFSET $productOffset";
+    $bookingSelect = "SELECT r.*, u.UserName, u.UserPhone 
+                     FROM reservationtb r 
+                     JOIN usertb u ON r.UserID = u.UserID 
+                     WHERE (r.FirstName LIKE '%$searchBookingQuery%'
+                           OR r.LastName LIKE '%$searchBookingQuery%'
+                           OR r.UserPhone LIKE '%$searchBookingQuery%'
+                           OR r.ReservationID LIKE '%$searchBookingQuery%'
+                           OR u.UserName LIKE '%$searchBookingQuery%') 
+                     LIMIT $rowsPerPage OFFSET $bookingOffset";
 } else {
-    $bookingSelect = "SELECT r.*, u.UserName, u.UserPhone FROM reservationtb r
-    JOIN usertb u ON r.UserID = u.UserID LIMIT $rowsPerPage OFFSET $productOffset";
+    $bookingSelect = "SELECT r.*, u.UserName, u.UserPhone 
+                     FROM reservationtb r
+                     JOIN usertb u ON r.UserID = u.UserID 
+                     LIMIT $rowsPerPage OFFSET $bookingOffset";
 }
 
 $bookingSelectQuery = $connect->query($bookingSelect);
@@ -163,20 +61,40 @@ if (mysqli_num_rows($bookingSelectQuery) > 0) {
     }
 }
 
-// Construct the product count query based on search and product type filter
-if ($filterProductID !== 'random' && !empty($searchBookingQuery)) {
-    $productQuery = "SELECT COUNT(*) as count FROM reservationtb WHERE ReservationID = '$filterProductID' AND (Title LIKE '%$searchBookingQuery%' OR Description LIKE '%$searchBookingQuery%' OR Specification LIKE '%$searchBookingQuery%' OR Information LIKE '%$searchBookingQuery%' OR Brand LIKE '%$searchBookingQuery%')";
-} elseif ($filterProductID !== 'random') {
-    $productQuery = "SELECT COUNT(*) as count FROM reservationtb WHERE ReservationID = '$filterProductID'";
+// Count query - simplified using the same conditions
+if ($filterStatus !== 'random' && !empty($searchBookingQuery)) {
+    $BookingQuery = "SELECT COUNT(*) as count 
+                    FROM reservationtb r
+                    JOIN usertb u ON r.UserID = u.UserID  
+                    WHERE r.Status = '$filterStatus' 
+                    AND (r.FirstName LIKE '%$searchBookingQuery%' 
+                         OR r.LastName LIKE '%$searchBookingQuery%'
+                         OR r.UserPhone LIKE '%$searchBookingQuery%'
+                         OR r.ReservationID LIKE '%$searchBookingQuery%'
+                         OR u.UserName LIKE '%$searchBookingQuery%')";
+} elseif ($filterStatus !== 'random') {
+    $BookingQuery = "SELECT COUNT(*) as count 
+                    FROM reservationtb r
+                    JOIN usertb u ON r.UserID = u.UserID 
+                    WHERE r.Status = '$filterStatus'";
 } elseif (!empty($searchBookingQuery)) {
-    $productQuery = "SELECT COUNT(*) as count FROM reservationtb WHERE Title LIKE '%$searchBookingQuery%' OR Description LIKE '%$searchBookingQuery%' OR Specification LIKE '%$searchBookingQuery%' OR Information LIKE '%$searchBookingQuery%' OR Brand LIKE '%$searchBookingQuery%'";
+    $BookingQuery = "SELECT COUNT(*) as count 
+                    FROM reservationtb r
+                    JOIN usertb u ON r.UserID = u.UserID 
+                    WHERE (r.FirstName LIKE '%$searchBookingQuery%'
+                          OR r.LastName LIKE '%$searchBookingQuery%'
+                          OR r.UserPhone LIKE '%$searchBookingQuery%'
+                          OR r.ReservationID LIKE '%$searchBookingQuery%'
+                          OR u.UserName LIKE '%$searchBookingQuery%')";
 } else {
-    $productQuery = "SELECT COUNT(*) as count FROM reservationtb";
+    $BookingQuery = "SELECT COUNT(*) as count 
+                    FROM reservationtb r
+                    JOIN usertb u ON r.UserID = u.UserID";
 }
 
 // Execute the count query
-$productResult = $connect->query($productQuery);
-$productCount = $productResult->fetch_assoc()['count'];
+$bookingResult = $connect->query($BookingQuery);
+$bookingCount = $bookingResult->fetch_assoc()['count'];
 ?>
 
 <!DOCTYPE html>
@@ -198,31 +116,18 @@ $productCount = $productResult->fetch_assoc()['count'];
     <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px] min-w-[380px]">
         <!-- Left Side Content -->
         <div class="w-full bg-white p-2">
-            <div class="flex justify-between items-end">
-                <div>
-                    <h2 class="text-xl text-gray-700 font-bold mb-4">Add Product Overview</h2>
-                    <p>Add product information to monitor inventory, track orders, and manage product details for efficient operations.</p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <!-- Image Button -->
-                    <a href="ProductImage.php" class="bg-amber-500 text-white px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
-                        <i class="ri-folder-image-line text-xl"></i>
-                    </a>
-                    <!-- Add Product Button -->
-                    <button id="addProductBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
-                        <i class="ri-add-line text-xl"></i>
-                    </button>
-                </div>
-
+            <div>
+                <h2 class="text-xl text-gray-700 font-bold mb-4">User Reservation Overview</h2>
+                <p>Monitor active reservations, process cancellations, and analyze booking trends to optimize resource allocation.</p>
             </div>
 
             <!-- Product Table -->
             <div class="overflow-x-auto">
                 <!-- Product Search and Filter -->
                 <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
-                    <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Products <span class="text-gray-400 text-sm ml-2"><?php echo $productCount ?></span></h1>
+                    <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Reservations <span class="text-gray-400 text-sm ml-2"><?php echo $bookingCount ?></span></h1>
                     <div class="flex items-center w-full">
-                        <input type="text" name="product_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full outline-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" placeholder="Search for product..." value="<?php echo isset($_GET['product_search']) ? htmlspecialchars($_GET['product_search']) : ''; ?>">
+                        <input type="text" name="booking_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full outline-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" placeholder="Search for reservation..." value="<?php echo isset($_GET['booking_search']) ? htmlspecialchars($_GET['booking_search']) : ''; ?>">
                         <div class="flex items-center">
                             <label for="sort" class="ml-4 mr-2 flex items-center cursor-pointer select-none">
                                 <i class="ri-filter-2-line text-xl"></i>
@@ -231,25 +136,10 @@ $productCount = $productResult->fetch_assoc()['count'];
                             <!-- Search and filter form -->
                             <form method="GET" class="flex flex-col md:flex-row items-center gap-4 mb-4">
                                 <select name="sort" id="sort" class="border p-2 rounded text-sm" onchange="this.form.submit()">
-                                    <option value="random">All Product Types</option>
-                                    <?php
-                                    $select = "SELECT * FROM producttypetb";
-                                    $query = $connect->query($select);
-                                    $count = $query->num_rows;
-
-                                    if ($count) {
-                                        for ($i = 0; $i < $count; $i++) {
-                                            $row = $query->fetch_assoc();
-                                            $producttype_id = $row['ProductTypeID'];
-                                            $producttype = $row['ProductType'];
-                                            $selected = ($filterProductTypeID == $producttype_id) ? 'selected' : '';
-
-                                            echo "<option value='$producttype_id' $selected>$producttype</option>";
-                                        }
-                                    } else {
-                                        echo "<option value='' disabled>No data yet</option>";
-                                    }
-                                    ?>
+                                    <option value="random">All Statuses</option>
+                                    <option value="Pending" <?= ($filterStatus == 'Pending') ? 'selected' : '' ?>>Pending</option>
+                                    <option value="Confirmed" <?= ($filterStatus == 'Confirmed') ? 'selected' : '' ?>>Confirmed</option>
+                                    <option value="Cancelled" <?= ($filterStatus == 'Cancelled') ? 'selected' : '' ?>>Cancelled</option>
                                 </select>
                             </form>
                         </div>
@@ -273,8 +163,7 @@ $productCount = $productResult->fetch_assoc()['count'];
                                 <?php foreach ($bookings as $booking): ?>
                                     <tr class="hover:bg-gray-50 transition-colors">
                                         <td class="p-3 text-start whitespace-nowrap">
-                                            <div class="flex items-center gap-2 font-medium text-gray-500">
-                                                <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                                            <div class="font-medium text-gray-500">
                                                 <span>#<?= htmlspecialchars($booking['ReservationID']) ?></span>
                                             </div>
                                         </td>
@@ -328,18 +217,8 @@ $productCount = $productResult->fetch_assoc()['count'];
                                             </span>
                                         </td>
                                         <td class="p-3 text-start whitespace-nowrap">
-                                            <div class="flex items-center gap-2">
-                                                <button class="p-1 text-gray-400 hover:text-amber-500 transition-colors">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                                    </svg>
-                                                </button>
-                                                <button class="p-1 text-gray-400 hover:text-red-500 transition-colors">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                                    </svg>
-                                                </button>
-                                            </div>
+                                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
+                                                data-booking-id="<?= htmlspecialchars($booking['ReservationID']) ?>"></i>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -356,10 +235,10 @@ $productCount = $productResult->fetch_assoc()['count'];
                     <!-- Pagination Controls -->
                     <div class="flex justify-center items-center mt-1 <?= (!empty($bookings) ? 'flex' : 'hidden') ?>">
                         <!-- Previous Btn -->
-                        <?php if ($productCurrentPage > 1) {
+                        <?php if ($bookingCurrentPage > 1) {
                         ?>
-                            <a href="?productpage=<?= $productCurrentPage - 1 ?>"
-                                class="px-3 py-1 mx-1 border rounded <?= $productpage == $productCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                            <a href="?bookingpage=<?= $bookingCurrentPage - 1 ?>&sort=<?= htmlspecialchars($filterStatus) ?>&booking_search=<?= htmlspecialchars($searchBookingQuery) ?>"
+                                class="px-3 py-1 mx-1 border rounded <?= $bookingpage == $bookingCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                                 <i class="ri-arrow-left-s-line"></i>
                             </a>
                         <?php
@@ -371,17 +250,17 @@ $productCount = $productResult->fetch_assoc()['count'];
                         <?php
                         }
                         ?>
-                        <?php for ($productpage = 1; $productpage <= $totalProductPages; $productpage++): ?>
-                            <a href="?productpage=<?= $productpage ?>&product_search=<?= htmlspecialchars($searchBookingQuery) ?>"
-                                class="px-3 py-1 mx-1 border rounded select-none <?= $productpage == $productCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                                <?= $productpage ?>
+                        <?php for ($bookingpage = 1; $bookingpage <= $totalBookingPages; $bookingpage++): ?>
+                            <a href="?bookingpage=<?= $bookingpage ?>&sort=<?= htmlspecialchars($filterStatus) ?>&booking_search=<?= htmlspecialchars($searchBookingQuery) ?>"
+                                class="px-3 py-1 mx-1 border rounded select-none <?= $bookingpage == $bookingCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                                <?= $bookingpage ?>
                             </a>
                         <?php endfor; ?>
                         <!-- Next Btn -->
-                        <?php if ($productCurrentPage < $totalProductPages) {
+                        <?php if ($bookingCurrentPage < $totalBookingPages) {
                         ?>
-                            <a href="?productpage=<?= $productCurrentPage + 1 ?>"
-                                class="px-3 py-1 mx-1 border rounded <?= $productpage == $productCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                            <a href="?bookingpage=<?= $bookingCurrentPage + 1 ?>&sort=<?= htmlspecialchars($filterStatus) ?>&booking_search=<?= htmlspecialchars($searchBookingQuery) ?>"
+                                class="px-3 py-1 mx-1 border rounded <?= $bookingpage == $bookingCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                                 <i class="ri-arrow-right-s-line"></i>
                             </a>
                         <?php

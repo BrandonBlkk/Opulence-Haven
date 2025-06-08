@@ -737,7 +737,7 @@ if ($roomCount > 0) {
                                 <div class="text-gray-600 text-sm flex-1">
                                     <div class="flex justify-between items-start">
                                         <h1 class="font-semibold"><?= htmlspecialchars($row['FirstName'] ?? $nameParts[0]) ?> <?= $noti ?></h1>
-                                        <span class="text-xs px-2 py-1 rounded-full <?= $statusColor ?>">
+                                        <span class="text-xs px-2 py-1 rounded-full select-none <?= $statusColor ?>">
                                             <?= htmlspecialchars($status) ?>
                                         </span>
                                     </div>

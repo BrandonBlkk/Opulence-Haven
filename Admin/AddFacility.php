@@ -312,7 +312,7 @@ $allFacilityCount = $facilityCountResult->fetch_assoc()['count'];
                 <div class="flex justify-center items-center mt-1 <?= (!empty($facilities) ? 'flex' : 'hidden') ?>">
                     <?php if ($facilityCurrentPage > 1) {
                     ?>
-                        <a href="?facilitytypepage=<?= $facilityCurrentPage - 1 ?>"
+                        <a href="?facilitypage=<?= $facilityCurrentPage - 1 ?>&facility_search=<?= htmlspecialchars($searchFacilityQuery) ?>&sort=<?= $filterFacilityTypeID ?>"
                             class="px-3 py-1 mx-1 border rounded <?= $facilitypage == $facilityCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-left-s-line"></i>
                         </a>
@@ -326,7 +326,7 @@ $allFacilityCount = $facilityCountResult->fetch_assoc()['count'];
                     }
                     ?>
                     <?php for ($facilitypage = 1; $facilitypage <= $totalFacilityPages; $facilitypage++): ?>
-                        <a href="?facilitypage=<?= $facilitypage ?>&facility_search=<?= htmlspecialchars($searchFacilityQuery) ?>"
+                        <a href="?facilitypage=<?= $facilitypage ?>&facility_search=<?= htmlspecialchars($searchFacilityQuery) ?>&sort=<?= $filterFacilityTypeID ?>"
                             class="px-3 py-1 mx-1 border rounded select-none <?= $facilitypage == $facilityCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <?= $facilitypage ?>
                         </a>
@@ -334,7 +334,7 @@ $allFacilityCount = $facilityCountResult->fetch_assoc()['count'];
                     <!-- Next Btn -->
                     <?php if ($facilityCurrentPage < $totalFacilityPages) {
                     ?>
-                        <a href="?facilitypage=<?= $facilityCurrentPage + 1 ?>"
+                        <a href="?facilitypage=<?= $facilityCurrentPage + 1 ?>&facility_search=<?= htmlspecialchars($searchFacilityQuery) ?>&sort=<?= $filterFacilityTypeID ?>"
                             class="px-3 py-1 mx-1 border rounded <?= $facilitypage == $facilityCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-right-s-line"></i>
                         </a>

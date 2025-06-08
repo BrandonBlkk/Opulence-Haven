@@ -141,16 +141,35 @@ if (isset($_POST['deletesupplier'])) {
 // Initialize search and filter variables for supplier
 $searchSupplierQuery = isset($_GET['supplier_search']) ? mysqli_real_escape_string($connect, $_GET['supplier_search']) : '';
 $filterSupplierID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
+$supplierCurrentPage = isset($_GET['supplierpage']) ? (int)$_GET['supplierpage'] : 1;
+$rowsPerPage = 1; // Number of rows per page
+$supplierOffset = ($supplierCurrentPage - 1) * $rowsPerPage;
 
 // Construct the supplier query based on search and role filter
 if ($filterSupplierID !== 'random' && !empty($searchSupplierQuery)) {
-    $supplierSelect = "SELECT * FROM suppliertb WHERE ProductTypeID = '$filterSupplierID' AND (SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%') LIMIT $rowsPerPage OFFSET $supplierOffset";
+    $supplierSelect = "SELECT * FROM suppliertb 
+                      WHERE ProductTypeID = '$filterSupplierID' 
+                      AND (SupplierName LIKE '%$searchSupplierQuery%' 
+                           OR SupplierEmail LIKE '%$searchSupplierQuery%' 
+                           OR SupplierContact LIKE '%$searchSupplierQuery%' 
+                           OR SupplierCompany LIKE '%$searchSupplierQuery%' 
+                           OR Country LIKE '%$searchSupplierQuery%') 
+                      LIMIT $rowsPerPage OFFSET $supplierOffset";
 } elseif ($filterSupplierID !== 'random') {
-    $supplierSelect = "SELECT * FROM suppliertb WHERE ProductTypeID = '$filterSupplierID' LIMIT $rowsPerPage OFFSET $supplierOffset";
+    $supplierSelect = "SELECT * FROM suppliertb 
+                      WHERE ProductTypeID = '$filterSupplierID' 
+                      LIMIT $rowsPerPage OFFSET $supplierOffset";
 } elseif (!empty($searchSupplierQuery)) {
-    $supplierSelect = "SELECT * FROM suppliertb WHERE SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%' LIMIT $rowsPerPage OFFSET $supplierOffset";
+    $supplierSelect = "SELECT * FROM suppliertb 
+                      WHERE SupplierName LIKE '%$searchSupplierQuery%' 
+                      OR SupplierEmail LIKE '%$searchSupplierQuery%' 
+                      OR SupplierContact LIKE '%$searchSupplierQuery%' 
+                      OR SupplierCompany LIKE '%$searchSupplierQuery%' 
+                      OR Country LIKE '%$searchSupplierQuery%' 
+                      LIMIT $rowsPerPage OFFSET $supplierOffset";
 } else {
-    $supplierSelect = "SELECT * FROM suppliertb LIMIT $rowsPerPage OFFSET $supplierOffset";
+    $supplierSelect = "SELECT * FROM suppliertb 
+                      LIMIT $rowsPerPage OFFSET $supplierOffset";
 }
 
 $supplierSelectQuery = $connect->query($supplierSelect);
@@ -162,20 +181,32 @@ if (mysqli_num_rows($supplierSelectQuery) > 0) {
     }
 }
 
-// Construct the supplier count query based on search and product type filter
+// Count query
 if ($filterSupplierID !== 'random' && !empty($searchSupplierQuery)) {
-    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb WHERE ProductTypeID = '$filterSupplierID' AND (SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%')";
+    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb 
+                     WHERE ProductTypeID = '$filterSupplierID' 
+                     AND (SupplierName LIKE '%$searchSupplierQuery%' 
+                          OR SupplierEmail LIKE '%$searchSupplierQuery%' 
+                          OR SupplierContact LIKE '%$searchSupplierQuery%' 
+                          OR SupplierCompany LIKE '%$searchSupplierQuery%' 
+                          OR Country LIKE '%$searchSupplierQuery%')";
 } elseif ($filterSupplierID !== 'random') {
-    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb WHERE ProductTypeID = '$filterSupplierID'";
+    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb 
+                     WHERE ProductTypeID = '$filterSupplierID'";
 } elseif (!empty($searchSupplierQuery)) {
-    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb WHERE SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%'";
+    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb 
+                     WHERE SupplierName LIKE '%$searchSupplierQuery%' 
+                     OR SupplierEmail LIKE '%$searchSupplierQuery%' 
+                     OR SupplierContact LIKE '%$searchSupplierQuery%' 
+                     OR SupplierCompany LIKE '%$searchSupplierQuery%' 
+                     OR Country LIKE '%$searchSupplierQuery%'";
 } else {
     $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb";
 }
 
-// Execute the count query
 $supplierResult = $connect->query($supplierQuery);
 $supplierCount = $supplierResult->fetch_assoc()['count'];
+$totalSupplierPages = ceil($supplierCount / $rowsPerPage);
 ?>
 
 <!DOCTYPE html>
@@ -219,22 +250,28 @@ $supplierCount = $supplierResult->fetch_assoc()['count'];
                                 <i class="ri-filter-2-line text-xl"></i>
                                 <p>Filters</p>
                             </label>
-                            <!-- Search and filter form -->
                             <form method="GET" class="flex flex-col md:flex-row items-center gap-4 mb-4">
+                                <!-- Keep existing search parameter -->
+                                <?php if (!empty($searchSupplierQuery)): ?>
+                                    <input type="hidden" name="supplier_search" value="<?= htmlspecialchars($searchSupplierQuery) ?>">
+                                <?php endif; ?>
+                                <!-- Keep pagination parameter -->
+                                <?php if (isset($_GET['supplierpage'])): ?>
+                                    <input type="hidden" name="supplierpage" value="<?= (int)$_GET['supplierpage'] ?>">
+                                <?php endif; ?>
+
                                 <select name="sort" id="sort" class="border p-2 rounded text-sm" onchange="this.form.submit()">
-                                    <option value="random">All Supplied Products</option>
+                                    <option value="random" <?= $filterSupplierID === 'random' ? 'selected' : '' ?>>All Supplied Products</option>
                                     <?php
                                     $select = "SELECT * FROM producttypetb";
                                     $query = $connect->query($select);
                                     $count = $query->num_rows;
 
                                     if ($count) {
-                                        for ($i = 0; $i < $count; $i++) {
-                                            $row = $query->fetch_assoc();
+                                        while ($row = $query->fetch_assoc()) {
                                             $producttype_id = $row['ProductTypeID'];
                                             $producttype = $row['ProductType'];
-                                            $selected = ($filterProductTypeID == $producttype_id) ? 'selected' : '';
-
+                                            $selected = ($filterSupplierID == $producttype_id) ? 'selected' : '';
                                             echo "<option value='$producttype_id' $selected>$producttype</option>";
                                         }
                                     } else {
@@ -325,7 +362,7 @@ $supplierCount = $supplierResult->fetch_assoc()['count'];
                     <!-- Previous Btn -->
                     <?php if ($supplierCurrentPage > 1) {
                     ?>
-                        <a href="?supplierpage=<?= $supplierCurrentPage - 1 ?>"
+                        <a href="?supplierpage=<?= $supplierCurrentPage - 1 ?>&supplier_search=<?= htmlspecialchars($searchSupplierQuery) ?>&sort=<?= $filterSupplierID ?>"
                             class="px-3 py-1 mx-1 border rounded <?= $supplierpage == $supplierCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-left-s-line"></i>
                         </a>
@@ -339,7 +376,7 @@ $supplierCount = $supplierResult->fetch_assoc()['count'];
                     }
                     ?>
                     <?php for ($supplierpage = 1; $supplierpage <= $totalSupplierPages; $supplierpage++): ?>
-                        <a href="?supplierpage=<?= $supplierpage ?>&supplier_search=<?= htmlspecialchars($searchSupplierQuery) ?>"
+                        <a href="?supplierpage=<?= $supplierpage ?>&supplier_search=<?= htmlspecialchars($searchSupplierQuery) ?>&sort=<?= $filterSupplierID ?>"
                             class="px-3 py-1 mx-1 border rounded select-none <?= $supplierpage == $supplierCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <?= $supplierpage ?>
                         </a>
@@ -347,7 +384,7 @@ $supplierCount = $supplierResult->fetch_assoc()['count'];
                     <!-- Next Btn -->
                     <?php if ($supplierCurrentPage < $totalSupplierPages) {
                     ?>
-                        <a href="?supplierpage=<?= $supplierCurrentPage + 1 ?>"
+                        <a href="?supplierpage=<?= $supplierCurrentPage + 1 ?>&supplier_search=<?= htmlspecialchars($searchSupplierQuery) ?>&sort=<?= $filterSupplierID ?>"
                             class="px-3 py-1 mx-1 border rounded <?= $supplierpage == $supplierCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-right-s-line"></i>
                         </a>
