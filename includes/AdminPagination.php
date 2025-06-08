@@ -1,6 +1,6 @@
 <?php
 // Set the number of rows per page
-$rowsPerPage = 10;
+$rowsPerPage = 1;
 
 // Get the current page number from the URL or default to 1
 $currentPage = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -15,6 +15,7 @@ $facilityTypeCurrentPage = isset($_GET['facilitytypepage']) && is_numeric($_GET[
 $facilityCurrentPage = isset($_GET['facilitypage']) && is_numeric($_GET['facilitypage']) ? (int)$_GET['facilitypage'] : 1;
 $ruleCurrentPage = isset($_GET['rulepage']) && is_numeric($_GET['rulepage']) ? (int)$_GET['rulepage'] : 1;
 $userCurrentPage = isset($_GET['userpage']) && is_numeric($_GET['userpage']) ? (int)$_GET['userpage'] : 1;
+$bookingCurrentPage = isset($_GET['bookingpage']) && is_numeric($_GET['bookingpage']) ? (int)$_GET['bookingpage'] : 1;
 
 
 // Calculate the offset for the query
@@ -30,6 +31,7 @@ $facilityTypeOffset = ($facilityTypeCurrentPage - 1) * $rowsPerPage;
 $facilityOffset = ($facilityCurrentPage - 1) * $rowsPerPage;
 $ruleOffset = ($ruleCurrentPage - 1) * $rowsPerPage;
 $userOffset = ($userCurrentPage - 1) * $rowsPerPage;
+$bookingOffset = ($bookingCurrentPage - 1) * $rowsPerPage;
 
 $filterRoleID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterStatus = isset($_GET['sort']) ? $_GET['sort'] : 'random';
@@ -37,6 +39,7 @@ $filterSupplierID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterProductID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterSizes = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterImages = isset($_GET['sort']) ? $_GET['sort'] : 'random';
+$filterFacilityTypeID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 
 $dateCondition = '';
 if (!empty($searchFromDate) && !empty($searchToDate)) {
@@ -100,8 +103,6 @@ $totalProductSizeRows = $totalProductSizeRowsResult->fetch_assoc()['total'];
 
 // Calculate the total number of pages
 $totalProductSizePages = ceil($totalProductSizeRows / $rowsPerPage);
-
-
 
 // Fetch total number of rows for pagination calculation
 $totalProductImageRowsQuery = "SELECT COUNT(*) as total FROM productimagetb";
@@ -172,7 +173,14 @@ $totalFacilityTypePages = ceil($totalFacilityTypeRows / $rowsPerPage);
 $totalFacilityRowsQuery = "SELECT COUNT(*) as total FROM facilitytb";
 if (!empty($searchFacilityQuery)) {
     $totalFacilityRowsQuery = "SELECT COUNT(*) as total FROM facilitytb WHERE Facility LIKE '%$searchFacilityQuery%'";
+} elseif ($filterFacilityTypeID !== 'random' && !empty($searchFacilityQuery)) {
+    $totalFacilityRowsQuery = "SELECT COUNT(*) as total FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID' AND (Facility LIKE '%$searchFacilityQuery%')";
+} elseif ($filterFacilityTypeID !== 'random') {
+    $totalFacilityRowsQuery = "SELECT COUNT(*) as total FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID'";
+} elseif (!empty($searchFacilityQuery)) {
+    $totalFacilityRowsQuery = "SELECT COUNT(*) as total FROM facilitytb WHERE Facility LIKE '%$searchFacilityQuery%'";
 }
+
 $totalFacilityRowsResult = $connect->query($totalFacilityRowsQuery);
 $totalFacilityRows = $totalFacilityRowsResult->fetch_assoc()['total'];
 
@@ -200,3 +208,36 @@ $totalUserRows = $totalUserRowsResult->fetch_assoc()['total'];
 
 // Calculate the total number of pages
 $totalUserPages = ceil($totalUserRows / $rowsPerPage);
+
+// Fetch total number of rows for pagination calculation
+$totalBookingRowsQuery = "SELECT COUNT(*) as total FROM reservationtb";
+if ($filterStatus !== 'random' && !empty($searchProductQuery)) {
+    $totalBookingRowsQuery = "SELECT COUNT(*) as total 
+                    FROM reservationtb r
+                    JOIN usertb u ON r.UserID = u.UserID  
+                    WHERE r.Status = '$filterStatus' 
+                    AND (r.FirstName LIKE '%$searchBookingQuery%' 
+                         OR r.LastName LIKE '%$searchBookingQuery%'
+                         OR r.UserPhone LIKE '%$searchBookingQuery%'
+                         OR r.ReservationID LIKE '%$searchBookingQuery%'
+                         OR u.UserName LIKE '%$searchBookingQuery%')";
+} elseif ($filterStatus !== 'random') {
+    $totalBookingRowsQuery = "SELECT COUNT(*) as total 
+                    FROM reservationtb r
+                    JOIN usertb u ON r.UserID = u.UserID 
+                    WHERE r.Status = '$filterStatus'";
+} elseif (!empty($searchProductQuery)) {
+    $totalBookingRowsQuery = "SELECT COUNT(*) as total 
+                    FROM reservationtb r
+                    JOIN usertb u ON r.UserID = u.UserID 
+                    WHERE (r.FirstName LIKE '%$searchBookingQuery%'
+                          OR r.LastName LIKE '%$searchBookingQuery%'
+                          OR r.UserPhone LIKE '%$searchBookingQuery%'
+                          OR r.ReservationID LIKE '%$searchBookingQuery%'
+                          OR u.UserName LIKE '%$searchBookingQuery%')";
+}
+$totalBookingRowsResult = $connect->query($totalBookingRowsQuery);
+$totalBookingRows = $totalBookingRowsResult->fetch_assoc()['total'];
+
+// Calculate the total number of pages
+$totalBookingPages = ceil($totalBookingRows / $rowsPerPage);

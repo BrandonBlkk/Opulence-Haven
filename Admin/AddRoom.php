@@ -120,7 +120,7 @@ $searchRoomQuery = isset($_GET['room_search']) ? mysqli_real_escape_string($conn
 
 // Construct the room type query based on search
 if (!empty($searchRoomQuery)) {
-    $roomSelect = "SELECT * FROM roomtb WHERE RoomName LIKE '%$searchRoomQuery%' OR RoomDescription LIKE '%$searchRoomQuery%'";
+    $roomSelect = "SELECT * FROM roomtb WHERE RoomName LIKE '%$searchRoomQuery%'";
 } else {
     $roomSelect = "SELECT * FROM roomtb";
 }
@@ -136,7 +136,7 @@ if (mysqli_num_rows($roomSelectQuery) > 0) {
 
 // Construct the roomtype count query based on search
 if (!empty($searchRoomQuery)) {
-    $roomQuery = "SELECT COUNT(*) as count FROM roomtb WHERE RoomName LIKE '%$searchRoomQuery%' OR RoomDescription LIKE '%$searchRoomQuery%'";
+    $roomQuery = "SELECT COUNT(*) as count FROM roomtb WHERE RoomName LIKE '%$searchRoomQuery%'";
 } else {
     $roomQuery = "SELECT COUNT(*) as count FROM roomtb";
 }

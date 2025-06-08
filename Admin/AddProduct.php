@@ -229,6 +229,11 @@ $productCount = $productResult->fetch_assoc()['count'];
                             </label>
                             <!-- Search and filter form -->
                             <form method="GET" class="flex flex-col md:flex-row items-center gap-4 mb-4">
+                                <!-- Preserve the search query if it exists -->
+                                <?php if (!empty($searchProductQuery)): ?>
+                                    <input type="hidden" name="product_search" value="<?php echo htmlspecialchars($searchProductQuery); ?>">
+                                <?php endif; ?>
+
                                 <select name="sort" id="sort" class="border p-2 rounded text-sm" onchange="this.form.submit()">
                                     <option value="random">All Product Types</option>
                                     <?php
@@ -241,7 +246,8 @@ $productCount = $productResult->fetch_assoc()['count'];
                                             $row = $query->fetch_assoc();
                                             $producttype_id = $row['ProductTypeID'];
                                             $producttype = $row['ProductType'];
-                                            $selected = ($filterProductTypeID == $producttype_id) ? 'selected' : '';
+                                            // Make sure to use the same variable name as in your query ($filterProductID)
+                                            $selected = (isset($_GET['sort']) && $_GET['sort'] == $producttype_id) ? 'selected' : '';
 
                                             echo "<option value='$producttype_id' $selected>$producttype</option>";
                                         }
