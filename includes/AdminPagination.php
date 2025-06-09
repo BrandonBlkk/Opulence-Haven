@@ -1,6 +1,6 @@
 <?php
 // Set the number of rows per page
-$rowsPerPage = 1;
+$rowsPerPage = 10;
 
 // Get the current page number from the URL or default to 1
 $currentPage = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -40,6 +40,7 @@ $filterProductID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterSizes = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterImages = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterFacilityTypeID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
+$filterMembershipID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 
 $dateCondition = '';
 if (!empty($searchFromDate) && !empty($searchToDate)) {
@@ -120,11 +121,11 @@ $totalProductImagePages = ceil($totalProductImageRows / $rowsPerPage);
 // Fetch total number of rows for pagination calculation
 $totalContactRowsQuery = "SELECT COUNT(*) as total FROM contacttb";
 if ($filterStatus !== 'random' && !empty($searchContactQuery)) {
-    $totalContactRowsQuery = "SELECT COUNT(*) as total FROM contacttb WHERE Status = '$filterStatus' AND (FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%') $dateCondition";
+    $totalContactRowsQuery = "SELECT COUNT(*) as total FROM contacttb WHERE Status = '$filterStatus' AND (FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%')";
 } elseif ($filterStatus !== 'random') {
-    $totalContactRowsQuery = "SELECT COUNT(*) as total FROM contacttb WHERE Status = '$filterStatus' LIMIT $rowsPerPage OFFSET $contactOffset $dateCondition";
+    $totalContactRowsQuery = "SELECT COUNT(*) as total FROM contacttb WHERE Status = '$filterStatus'";
 } elseif (!empty($searchContactQuery)) {
-    $totalContactRowsQuery = "SELECT COUNT(*) as total FROM contacttb WHERE FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%' LIMIT $rowsPerPage OFFSET $contactOffset $dateCondition";
+    $totalContactRowsQuery = "SELECT COUNT(*) as total FROM contacttb WHERE FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%'";
 }
 $totalContactRowsResult = $connect->query($totalContactRowsQuery);
 $totalContactRows = $totalContactRowsResult->fetch_assoc()['total'];
@@ -171,9 +172,7 @@ $totalFacilityTypePages = ceil($totalFacilityTypeRows / $rowsPerPage);
 
 // Fetch total number of rows for pagination calculation
 $totalFacilityRowsQuery = "SELECT COUNT(*) as total FROM facilitytb";
-if (!empty($searchFacilityQuery)) {
-    $totalFacilityRowsQuery = "SELECT COUNT(*) as total FROM facilitytb WHERE Facility LIKE '%$searchFacilityQuery%'";
-} elseif ($filterFacilityTypeID !== 'random' && !empty($searchFacilityQuery)) {
+if ($filterFacilityTypeID !== 'random' && !empty($searchFacilityQuery)) {
     $totalFacilityRowsQuery = "SELECT COUNT(*) as total FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID' AND (Facility LIKE '%$searchFacilityQuery%')";
 } elseif ($filterFacilityTypeID !== 'random') {
     $totalFacilityRowsQuery = "SELECT COUNT(*) as total FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID'";
@@ -200,9 +199,15 @@ $totalRulePages = ceil($totalRuleRows / $rowsPerPage);
 
 // Fetch total number of rows for pagination calculation
 $totalUserRowsQuery = "SELECT COUNT(*) as total FROM usertb";
-if (!empty($searchRuleQuery)) {
+if ($filterMembershipID !== 'random' && !empty($searchUserQuery)) {
+    $totalUserRowsQuery = "SELECT COUNT(*) as total FROM usertb WHERE Membership = '$filterMembershipID' AND (UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%')";
+} elseif ($filterMembershipID !== 'random') {
+    $totalUserRowsQuery = "SELECT COUNT(*) as total FROM usertb WHERE Membership = '$filterMembershipID'";
+} elseif (!empty($searchUserQuery)) {
     $totalUserRowsQuery = "SELECT COUNT(*) as total FROM usertb WHERE UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%'";
 }
+
+
 $totalUserRowsResult = $connect->query($totalUserRowsQuery);
 $totalUserRows = $totalUserRowsResult->fetch_assoc()['total'];
 

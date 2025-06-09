@@ -317,7 +317,7 @@ $productSizeCount = $productSizeResult->fetch_assoc()['count'];
                     <!-- Previous Btn -->
                     <?php if ($productSizeCurrentPage > 1) {
                     ?>
-                        <a href="?productsizepage=<?= $productSizeCurrentPage - 1 ?>"
+                        <a href="?productsizepage=<?= $productSizeCurrentPage - 1 ?>&size_search=<?= htmlspecialchars($searchSizeQuery) ?>&sort=<?= htmlspecialchars($filterSizes) ?>"
                             class="px-3 py-1 mx-1 border rounded <?= $productsizepage == $productSizeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-left-s-line"></i>
                         </a>
@@ -331,7 +331,7 @@ $productSizeCount = $productSizeResult->fetch_assoc()['count'];
                     }
                     ?>
                     <?php for ($productsizepage = 1; $productsizepage <= $totalProductSizePages; $productsizepage++): ?>
-                        <a href="?productsizepage=<?= $productsizepage ?>&size_search=<?= htmlspecialchars($searchRuleQuery) ?>"
+                        <a href="?productsizepage=<?= $productsizepage ?>&size_search=<?= htmlspecialchars($searchSizeQuery) ?>&sort=<?= htmlspecialchars($filterSizes) ?>"
                             class="px-3 py-1 mx-1 border rounded select-none <?= $productsizepage == $productSizeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <?= $productsizepage ?>
                         </a>
@@ -339,7 +339,7 @@ $productSizeCount = $productSizeResult->fetch_assoc()['count'];
                     <!-- Next Btn -->
                     <?php if ($productSizeCurrentPage < $totalProductSizePages) {
                     ?>
-                        <a href="?productsizepage=<?= $productSizeCurrentPage + 1 ?>"
+                        <a href="?productsizepage=<?= $productSizeCurrentPage + 1 ?>&size_search=<?= htmlspecialchars($searchSizeQuery) ?>&sort=<?= htmlspecialchars($filterSizes) ?>"
                             class="px-3 py-1 mx-1 border rounded <?= $productsizepage == $productSizeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-right-s-line"></i>
                         </a>

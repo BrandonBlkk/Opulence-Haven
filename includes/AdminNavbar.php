@@ -127,36 +127,6 @@ $reservationCountQuery = "SELECT COUNT(*) as count FROM reservationtb WHERE Stat
 $reservationCountResult = $connect->query($reservationCountQuery);
 $allReservationCount = $reservationCountResult->fetch_assoc()['count'];
 
-// Initialize search variables for user
-$searchUserQuery = isset($_GET['user_search']) ? mysqli_real_escape_string($connect, $_GET['user_search']) : '';
-
-// Construct the user query based on search
-if (!empty($searchUserQuery)) {
-    $userSelect = "SELECT * FROM usertb WHERE UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%' LIMIT $rowsPerPage OFFSET $userOffset";
-} else {
-    $userSelect = "SELECT * FROM usertb LIMIT $rowsPerPage OFFSET $userOffset";
-}
-
-$userSelectQuery = $connect->query($userSelect);
-$users = [];
-
-if (mysqli_num_rows($userSelectQuery) > 0) {
-    while ($row = $userSelectQuery->fetch_assoc()) {
-        $users[] = $row;
-    }
-}
-
-// Construct the user count query based on search
-if (!empty($searchUserQuery)) {
-    $userQuery = "SELECT COUNT(*) as count FROM usertb WHERE UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%'";
-} else {
-    $userQuery = "SELECT COUNT(*) as count FROM usertb";
-}
-
-// Execute the count query
-$userResult = $connect->query($userQuery);
-$userCount = $userResult->fetch_assoc()['count'];
-
 // Initialize search and filter variables for contact
 $searchContactQuery = isset($_GET['contact_search']) ? mysqli_real_escape_string($connect, $_GET['contact_search']) : '';
 $searchFromDate = isset($_GET['from_date']) ? $_GET['from_date'] : '';
@@ -486,19 +456,17 @@ if (mysqli_num_rows($query) > 0) {
                         :style="{ height: expanded ? height + 'px' : '0px' }"
                         class="overflow-hidden transition-all duration-300 select-none">
                         <div class="pl-3">
-                            <a href="../Admin/ProductPurchase.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
+                            <a href="../Admin/ProductPurchase.php" class="text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">
                                     <i class="ri-truck-line text-xl"></i>
                                     <span class="font-semibold text-sm">Purchase Product</span>
                                 </div>
-                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= htmlspecialchars($allProductCount) ?></p>
                             </a>
-                            <a href="../Admin/AddProduct.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
+                            <a href="../Admin/AddProduct.php" class="text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">
                                     <i class="ri-history-line purchase-history-icon text-xl"></i>
                                     <span class="font-semibold text-sm">Purchase History</span>
                                 </div>
-                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allProductCount ?></p>
                             </a>
                         </div>
                     </div>
