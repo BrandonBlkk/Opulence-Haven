@@ -145,8 +145,14 @@ if ($roomCount > 0) {
         <!-- Confirmation Modal -->
         <div id="confirmModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white p-6 rounded-lg shadow-lg w-96">
-                <h3 class="text-lg font-bold text-gray-800 mb-4">Confirm Action</h3>
+                <h3 class="text-lg font-bold text-gray-800">Confirm Action</h3>
                 <p class="text-sm text-gray-600 mb-6">Are you sure you want to change the website status?</p>
+                <div class="text-xs text-gray-500 mb-5">
+                    <p class="flex items-start gap-1">
+                        <i class="ri-information-line mt-0.5"></i>
+                        <span>This action will immediately affect all visitors. Maintenance mode shows a temporary modal.</span>
+                    </p>
+                </div>
                 <div class="flex justify-end gap-4 select-none">
                     <button
                         onclick="cancelToggle()"

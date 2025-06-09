@@ -182,6 +182,42 @@ $roomCount = $roomResult->fetch_assoc()['count'];
                     <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Rooms <span class="text-gray-400 text-sm ml-2"><?php echo $allRoomCount ?></span></h1>
                     <div class="flex items-center w-full">
                         <input type="text" name="room_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full outline-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" placeholder="Search for room..." value="<?php echo isset($_GET['room_search']) ? htmlspecialchars($_GET['room_search']) : ''; ?>">
+                        <div class="flex items-center">
+                            <label for="sort" class="ml-4 mr-2 flex items-center cursor-pointer select-none">
+                                <i class="ri-filter-2-line text-xl"></i>
+                                <p>Filters</p>
+                            </label>
+                            <!-- Search and filter form -->
+                            <form method="GET" class="flex flex-col md:flex-row items-center gap-4 mb-4">
+                                <!-- Preserve the search query if it exists -->
+                                <?php if (!empty($searchProductQuery)): ?>
+                                    <input type="hidden" name="room_search" value="<?php echo htmlspecialchars($searchProductQuery); ?>">
+                                <?php endif; ?>
+
+                                <select name="sort" id="sort" class="border p-2 rounded text-sm" onchange="this.form.submit()">
+                                    <option value="random">All Room Types</option>
+                                    <?php
+                                    $select = "SELECT * FROM roomtypetb";
+                                    $query = $connect->query($select);
+                                    $count = $query->num_rows;
+
+                                    if ($count) {
+                                        for ($i = 0; $i < $count; $i++) {
+                                            $row = $query->fetch_assoc();
+                                            $roomtype_id = $row['RoomTypeID'];
+                                            $roomtype = $row['RoomType'];
+                                            // Make sure to use the same variable name as in your query ($filterProductID)
+                                            $selected = (isset($_GET['sort']) && $_GET['sort'] == $roomtype_id) ? 'selected' : '';
+
+                                            echo "<option value='$roomtype_id' $selected>$roomtype</option>";
+                                        }
+                                    } else {
+                                        echo "<option value='' disabled>No data yet</option>";
+                                    }
+                                    ?>
+                                </select>
+                            </form>
+                        </div>
                     </div>
                 </form>
                 <div class="tableScrollBar overflow-y-auto max-h-[510px]">
@@ -246,7 +282,7 @@ $roomCount = $roomResult->fetch_assoc()['count'];
                 </div>
 
                 <!-- Pagination Controls -->
-                <div class="flex justify-center items-center mt-1 <?= (!empty($roomTypes) ? 'flex' : 'hidden') ?>">
+                <div class="flex justify-center items-center mt-1 <?= (!empty($rooms) ? 'flex' : 'hidden') ?>">
                     <!-- Previous Btn -->
                     <?php if ($roomTypeCurrentPage > 1) {
                     ?>

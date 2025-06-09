@@ -256,7 +256,7 @@ if (isset($_POST['deleteproductimage'])) {
                     <!-- Previous Btn -->
                     <?php if ($productImageCurrentPage > 1) {
                     ?>
-                        <a href="?productimagepage=<?= $productImageCurrentPage - 1 ?>"
+                        <a href="?productimagepage=<?= $productImageCurrentPage - 1 ?>&sort=<?= htmlspecialchars($filterImages) ?>"
                             class="px-3 py-1 mx-1 border rounded <?= $productimagepage == $productImageCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-left-s-line"></i>
                         </a>
@@ -278,7 +278,7 @@ if (isset($_POST['deleteproductimage'])) {
                     <!-- Next Btn -->
                     <?php if ($productImageCurrentPage < $totalProductImagePages) {
                     ?>
-                        <a href="?productimagepage=<?= $productImageCurrentPage + 1 ?>"
+                        <a href="?productimagepage=<?= $productImageCurrentPage + 1 ?>&sort=<?= htmlspecialchars($filterImages) ?>"
                             class="px-3 py-1 mx-1 border rounded <?= $productimagepage == $productImageCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-right-s-line"></i>
                         </a>

@@ -13,9 +13,6 @@ $alertMessage = '';
 // Initialize search and filter variables for reservations
 $searchBookingQuery = isset($_GET['booking_search']) ? mysqli_real_escape_string($connect, $_GET['booking_search']) : '';
 $filterStatus = isset($_GET['sort']) ? $_GET['sort'] : 'random';
-$bookingCurrentPage = isset($_GET['bookingpage']) ? (int)$_GET['bookingpage'] : 1;
-$rowsPerPage = 1; // Number of rows per page
-$bookingOffset = ($bookingCurrentPage - 1) * $rowsPerPage;
 
 // Construct the reservation query based on search and status filter
 if ($filterStatus !== 'random' && !empty($searchBookingQuery)) {

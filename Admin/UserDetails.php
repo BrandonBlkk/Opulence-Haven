@@ -1,10 +1,50 @@
 <?php
 session_start();
 include('../config/dbConnection.php');
+include('../includes/AdminPagination.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
+
+// Initialize search variables for user
+$searchUserQuery = isset($_GET['user_search']) ? mysqli_real_escape_string($connect, $_GET['user_search']) : '';
+$filterMembershipID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
+
+// Construct the user query based on search
+if ($filterMembershipID !== 'random' && !empty($searchUserQuery)) {
+    $userSelect = "SELECT * FROM usertb WHERE Membership = '$filterMembershipID' AND (UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%') LIMIT $rowsPerPage OFFSET $userOffset";
+} elseif ($filterMembershipID !== 'random') {
+    $userSelect = "SELECT * FROM usertb WHERE Membership = '$filterMembershipID' LIMIT $rowsPerPage OFFSET $userOffset";
+} elseif (!empty($searchUserQuery)) {
+    $userSelect = "SELECT * FROM usertb WHERE UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%' LIMIT $rowsPerPage OFFSET $userOffset";
+} else {
+    $userSelect = "SELECT * FROM usertb LIMIT $rowsPerPage OFFSET $userOffset";
+}
+
+$userSelectQuery = $connect->query($userSelect);
+$users = [];
+
+if (mysqli_num_rows($userSelectQuery) > 0) {
+    while ($row = $userSelectQuery->fetch_assoc()) {
+        $users[] = $row;
+    }
+}
+
+// Construct the user count query based on search
+if ($filterMembershipID !== 'random' && !empty($searchUserQuery)) {
+    $userQuery = "SELECT COUNT(*) as count FROM usertb WHERE Membership = '$filterMembershipID' AND (UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%')";
+} elseif ($filterMembershipID !== 'random') {
+    $userQuery = "SELECT COUNT(*) as count FROM usertb WHERE Membership = '$filterMembershipID'";
+} elseif (!empty($searchUserQuery)) {
+    $userQuery = "SELECT COUNT(*) as count FROM usertb WHERE UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%'";
+} else {
+    $userQuery = "SELECT COUNT(*) as count FROM usertb";
+}
+
+// Execute the count query
+$userResult = $connect->query($userQuery);
+$userCount = $userResult->fetch_assoc()['count'];
 ?>
 
 <!DOCTYPE html>
@@ -39,7 +79,28 @@ if (!$connect) {
                 <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
                     <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Users <span class="text-gray-400 text-sm ml-2"><?php echo $userCount ?></span></h1>
                     <div class="flex flex-col sm:flex-row items-start sm:items-center w-full gap-2 sm:gap-0">
-                        <input type="text" name="user_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full" placeholder="Search for user account..." value="<?php echo isset($_GET['user_search']) ? htmlspecialchars($_GET['user_search']) : ''; ?>">
+                        <input type="text" name="user_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full"
+                            placeholder="Search for user account..."
+                            value="<?php echo isset($_GET['user_search']) ? htmlspecialchars($_GET['user_search']) : ''; ?>">
+
+                        <div class="flex items-center">
+                            <label for="sort" class="ml-4 mr-2 flex items-center cursor-pointer select-none">
+                                <i class="ri-filter-2-line text-xl"></i>
+                                <p>Filters</p>
+                            </label>
+
+                            <!-- Removed the nested form and moved the select here -->
+                            <select name="sort" id="sort" class="border p-2 rounded text-sm" onchange="this.form.submit()">
+                                <option value="random" <?= ($filterMembershipID === 'random') ? 'selected' : '' ?>>All Users</option>
+                                <option value='1' <?= ($filterMembershipID === '1') ? 'selected' : '' ?>>Member</option>
+                                <option value="0" <?= ($filterMembershipID === '0') ? 'selected' : '' ?>>Standard</option>
+                            </select>
+                        </div>
+
+                        <!-- Add hidden inputs for pagination if needed -->
+                        <?php if (isset($_GET['userpage'])): ?>
+                            <input type="hidden" name="userpage" value="<?= $_GET['userpage'] ?>">
+                        <?php endif; ?>
                     </div>
                 </form>
                 <div class="tableScrollBar overflow-y-auto max-h-[510px]">
@@ -48,7 +109,7 @@ if (!$connect) {
                             <tr class="bg-gray-100 text-gray-600 text-sm">
                                 <th class="p-3 text-start">User</th>
                                 <th class="p-3 text-start hidden md:table-cell">Phone</th>
-                                <th class="p-3 text-start hidden lg:table-cell">Verified</th>
+                                <th class="p-3 text-start hidden lg:table-cell">Membership</th>
                                 <th class="p-3 text-start text-nowrap hidden xl:table-cell">Last Check Out</th>
                                 <th class="p-3 text-start text-nowrap hidden xl:table-cell">Last Sign In</th>
                                 <th class="p-3 text-start">Actions</th>
@@ -80,10 +141,14 @@ if (!$connect) {
                                             <a class="opacity-0 group-hover:opacity-100 transition-all duration-200" href="mailto:<?= htmlspecialchars($user['UserEmail']) ?>"><i class="ri-mail-fill text-lg"></i></a>
                                         </td>
                                         <td class="p-3 text-start hidden md:table-cell">
-                                            <?= htmlspecialchars($user['UserPhone']) ?>
+                                            <?= htmlspecialchars($user['UserPhone']) ? htmlspecialchars($user['UserPhone']) : 'N/A' ?>
                                         </td>
                                         <td class="p-3 text-start space-x-1 select-none hidden lg:table-cell">
-                                            <span><i class="ri-checkbox-circle-line text-green-500"></i> Email</span>
+                                            <?php if ($user['Membership'] == '1'): ?>
+                                                <span><i class="ri-vip-crown-line text-yellow-500"></i> VIP Email</span>
+                                            <?php else: ?>
+                                                <span><i class="ri-mail-line text-gray-500"></i> Standard Email</span>
+                                            <?php endif; ?>
                                         </td>
                                         <td class="p-3 text-start hidden md:table-cell">
                                             <?= htmlspecialchars(date('d M Y', strtotime($user['LastSignIn']))) ?>
@@ -117,7 +182,7 @@ if (!$connect) {
                     <!-- Previous Btn -->
                     <?php if ($userCurrentPage > 1) {
                     ?>
-                        <a href="?userpage=<?= $userCurrentPage - 1 ?>"
+                        <a href="?userpage=<?= $userCurrentPage - 1 ?>&user_search=<?= htmlspecialchars($searchUserQuery) ?>&sort=<?= htmlspecialchars($filterMembershipID) ?>"
                             class="px-3 py-1 mx-1 border rounded <?= $userpage == $userCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-left-s-line"></i>
                         </a>
@@ -131,7 +196,7 @@ if (!$connect) {
                     }
                     ?>
                     <?php for ($userpage = 1; $userpage <= $totalUserPages; $userpage++): ?>
-                        <a href="?userpage=<?= $userpage ?>&user_search=<?= htmlspecialchars($searchUserQuery) ?>"
+                        <a href="?userpage=<?= $userpage ?>&user_search=<?= htmlspecialchars($searchUserQuery) ?>&sort=<?= htmlspecialchars($filterMembershipID) ?>"
                             class="px-3 py-1 mx-1 border rounded select-none <?= $userpage == $userCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <?= $userpage ?>
                         </a>
@@ -139,7 +204,7 @@ if (!$connect) {
                     <!-- Next Btn -->
                     <?php if ($userCurrentPage < $totalUserPages) {
                     ?>
-                        <a href="?userpage=<?= $userCurrentPage + 1 ?>"
+                        <a href="?userpage=<?= $userCurrentPage + 1 ?>&user_search=<?= htmlspecialchars($searchUserQuery) ?>&sort=<?= htmlspecialchars($filterMembershipID) ?>"
                             class="px-3 py-1 mx-1 border rounded <?= $userpage == $userCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-right-s-line"></i>
                         </a>

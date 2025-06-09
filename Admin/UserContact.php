@@ -174,7 +174,7 @@ if (isset($_POST['respondcontact'])) {
                     <!-- Previous Btn -->
                     <?php if ($contactCurrentPage > 1) {
                     ?>
-                        <a href="?contactpage=<?= $contactCurrentPage - 1 ?>"
+                        <a href="?contactpage=<?= $contactCurrentPage - 1 ?>&sort=<?= htmlspecialchars($filterStatus) ?>&contact_search=<?= htmlspecialchars($searchContactQuery) ?>"
                             class="px-3 py-1 mx-1 border rounded <?= $contactpage == $contactCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-left-s-line"></i>
                         </a>
@@ -196,7 +196,7 @@ if (isset($_POST['respondcontact'])) {
                     <!-- Next Btn -->
                     <?php if ($contactCurrentPage < $totalContactPages) {
                     ?>
-                        <a href="?contactpage=<?= $contactCurrentPage + 1 ?>"
+                        <a href="?contactpage=<?= $contactCurrentPage + 1 ?>&sort=<?= htmlspecialchars($filterStatus) ?>&contact_search=<?= htmlspecialchars($searchContactQuery) ?>"
                             class="px-3 py-1 mx-1 border rounded <?= $contactpage == $contactCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-right-s-line"></i>
                         </a>
