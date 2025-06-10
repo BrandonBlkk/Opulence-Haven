@@ -3294,6 +3294,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmContactModalCancelBtn = document.getElementById('confirmContactModalCancelBtn');
     const alertMessage = document.getElementById('alertMessage')?.value || '';
     const confirmContactSuccess = document.getElementById('confirmContactSuccess')?.value === 'true';
+    const loader = document.getElementById('loader'); // Make sure you have this element in your HTML
 
     // Get all details buttons
     const detailsBtns = document.querySelectorAll('.details-btn');
@@ -3315,11 +3316,24 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (data.success) {
                             // Fill the modal form with contact data
                             document.getElementById('confirmContactID').value = contactId;
+                            document.getElementById('contactDate').textContent = data.contact.ContactDate;
                             document.getElementById('contactMessage').textContent = data.contact.ContactMessage;
                             document.getElementById('username').textContent = data.contact.FullName;
                             document.getElementById('useremail').textContent = data.contact.UserEmail;
                             document.getElementById('userphone').textContent = data.contact.UserPhone;
                             document.getElementById('usercountry').textContent = data.contact.Country;
+
+                            // Add hidden input for contact message if not exists
+                            if (!document.getElementById('contactMessageInput')) {
+                                const input = document.createElement('input');
+                                input.type = 'hidden';
+                                input.id = 'contactMessageInput';
+                                input.name = 'contactMessage';
+                                input.value = data.contact.ContactMessage;
+                                document.getElementById('confirmContactForm').appendChild(input);
+                            } else {
+                                document.getElementById('contactMessageInput').value = data.contact.ContactMessage;
+                            }
 
                             // Show the modal
                             confirmContactModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
@@ -3338,13 +3352,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (confirmContactSuccess) {
-            // Show Alert
-            setTimeout(() => {
-                showAlert('The contact has been successfully responded.');
-                setTimeout(() => {
-                    window.location.href = 'UserContact.php';
-                }, 5000);
-            }, 500);
+            // Show loader
+            if (loader) loader.style.display = 'flex';
+            
+            // Send email
+            fetch('../Mail/Contact.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'sendContactResponse'
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (loader) loader.style.display = 'none';
+                
+                if (data.success) {
+                    showAlert('Response sent successfully and email notification delivered.', 'success');
+                    window.location.href = '../Admin/UserContact.php';
+                } else {
+                    showAlert(`Response saved but failed to send email notification: ${data.message || 'Please try again.'}`, 'error');
+                    window.location.href = '../Admin/UserContact.php';
+                }
+            })
+            .catch(error => {
+                if (loader) loader.style.display = 'none';
+                showAlert(`Response saved but failed to send email notification: ${error.message}`, 'error');
+                window.location.href = '../Admin/UserContact.php';
+            });
         } else if (alertMessage) {
             // Show Alert
             showAlert(alertMessage);

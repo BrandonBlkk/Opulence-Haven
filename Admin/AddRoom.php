@@ -2,6 +2,7 @@
 session_start();
 include('../config/dbConnection.php');
 include('../includes/AutoIDFunc.php');
+include('../includes/AdminPagination.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -117,12 +118,17 @@ if (isset($_POST['deleteroom'])) {
 
 // Initialize search variables for room type
 $searchRoomQuery = isset($_GET['room_search']) ? mysqli_real_escape_string($connect, $_GET['room_search']) : '';
+$filterRoomType = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 
 // Construct the room type query based on search
-if (!empty($searchRoomQuery)) {
-    $roomSelect = "SELECT * FROM roomtb WHERE RoomName LIKE '%$searchRoomQuery%'";
+if ($filterRoomType !== 'random' && !empty($searchRoomQuery)) {
+    $roomSelect = "SELECT * FROM roomtb WHERE RoomTypeID = '$filterRoomType' AND (RoomName LIKE '%$searchRoomQuery%') LIMIT $rowsPerPage OFFSET $roomOffset";
+} elseif ($filterRoomType !== 'random') {
+    $roomSelect = "SELECT * FROM roomtb WHERE RoomTypeID = '$filterRoomType' LIMIT $rowsPerPage OFFSET $roomOffset";
+} elseif (!empty($searchRoomQuery)) {
+    $roomSelect = "SELECT * FROM roomtb WHERE RoomName LIKE '%$searchRoomQuery%' LIMIT $rowsPerPage roomOffset";
 } else {
-    $roomSelect = "SELECT * FROM roomtb";
+    $roomSelect = "SELECT * FROM roomtb LIMIT $rowsPerPage OFFSET $roomOffset";
 }
 
 $roomSelectQuery = $connect->query($roomSelect);
@@ -135,7 +141,11 @@ if (mysqli_num_rows($roomSelectQuery) > 0) {
 }
 
 // Construct the roomtype count query based on search
-if (!empty($searchRoomQuery)) {
+if ($filterRoomType !== 'random' && !empty($searchRoomQuery)) {
+    $roomQuery = "SELECT COUNT(*) as count FROM roomtb WHERE RoomTypeID = '$filterRoomType' AND (RoomName LIKE '%$searchRoomQuery%')";
+} elseif ($filterRoomType !== 'random') {
+    $roomQuery = "SELECT COUNT(*) as count FROM roomtb WHERE RoomTypeID = '$filterRoomType'";
+} elseif (!empty($searchRoomQuery)) {
     $roomQuery = "SELECT COUNT(*) as count FROM roomtb WHERE RoomName LIKE '%$searchRoomQuery%'";
 } else {
     $roomQuery = "SELECT COUNT(*) as count FROM roomtb";
@@ -284,10 +294,10 @@ $roomCount = $roomResult->fetch_assoc()['count'];
                 <!-- Pagination Controls -->
                 <div class="flex justify-center items-center mt-1 <?= (!empty($rooms) ? 'flex' : 'hidden') ?>">
                     <!-- Previous Btn -->
-                    <?php if ($roomTypeCurrentPage > 1) {
+                    <?php if ($roomCurrentPage > 1) {
                     ?>
-                        <a href="?roomtypepage=<?= $roomTypeCurrentPage - 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $roomtypepage == $roomTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                        <a href="?roompage=<?= $roomCurrentPage - 1 ?>&roomtype_search=<?= htmlspecialchars($searchRoomTypeQuery) ?>&sort=<?= $filterRoomType ?>"
+                            class="px-3 py-1 mx-1 border rounded <?= $roompage == $roomCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-left-s-line"></i>
                         </a>
                     <?php
@@ -299,17 +309,17 @@ $roomCount = $roomResult->fetch_assoc()['count'];
                     <?php
                     }
                     ?>
-                    <?php for ($roomtypepage = 1; $roomtypepage <= $totalRoomTypePages; $roomtypepage++): ?>
-                        <a href="?roomtypepage=<?= $roomtypepage ?>&roomtype_search=<?= htmlspecialchars($searchRoomTypeQuery) ?>"
-                            class="px-3 py-1 mx-1 border rounded select-none <?= $roomtypepage == $roomTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <?= $roomtypepage ?>
+                    <?php for ($roompage = 1; $roompage <= $totalRoomPages; $roompage++): ?>
+                        <a href="?roompage=<?= $roompage ?>&roomtype_search=<?= htmlspecialchars($searchRoomTypeQuery) ?>&sort=<?= $filterRoomType ?>"
+                            class="px-3 py-1 mx-1 border rounded select-none <?= $roompage == $roomCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                            <?= $roompage ?>
                         </a>
                     <?php endfor; ?>
                     <!-- Next Btn -->
-                    <?php if ($roomTypeCurrentPage < $totalRoomTypePages) {
+                    <?php if ($roomCurrentPage < $totalRoomPages) {
                     ?>
-                        <a href="?roomtypepage=<?= $roomTypeCurrentPage + 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $roomtypepage == $roomTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
+                        <a href="?roompage=<?= $roomCurrentPage + 1 ?>&roomtype_search=<?= htmlspecialchars($searchRoomTypeQuery) ?>&sort=<?= $filterRoomType ?>"
+                            class="px-3 py-1 mx-1 border rounded <?= $roompage == $roomCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                             <i class="ri-arrow-right-s-line"></i>
                         </a>
                     <?php

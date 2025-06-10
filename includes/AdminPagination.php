@@ -1,6 +1,6 @@
 <?php
 // Set the number of rows per page
-$rowsPerPage = 10;
+$rowsPerPage = 1;
 
 // Get the current page number from the URL or default to 1
 $currentPage = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -10,6 +10,7 @@ $supplierCurrentPage = isset($_GET['supplierpage']) && is_numeric($_GET['supplie
 $productCurrentPage = isset($_GET['productpage']) && is_numeric($_GET['productpage']) ? (int)$_GET['productpage'] : 1;
 $productSizeCurrentPage = isset($_GET['productsizepage']) && is_numeric($_GET['productsizepage']) ? (int)$_GET['productsizepage'] : 1;
 $productImageCurrentPage = isset($_GET['productimagepage']) && is_numeric($_GET['productimagepage']) ? (int)$_GET['productimagepage'] : 1;
+$roomCurrentPage = isset($_GET['roompage']) && is_numeric($_GET['roompage']) ? (int)$_GET['roompage'] : 1;
 $roomTypeCurrentPage = isset($_GET['roomtypepage']) && is_numeric($_GET['roomtypepage']) ? (int)$_GET['roomtypepage'] : 1;
 $facilityTypeCurrentPage = isset($_GET['facilitytypepage']) && is_numeric($_GET['facilitytypepage']) ? (int)$_GET['facilitytypepage'] : 1;
 $facilityCurrentPage = isset($_GET['facilitypage']) && is_numeric($_GET['facilitypage']) ? (int)$_GET['facilitypage'] : 1;
@@ -26,6 +27,7 @@ $productOffset = ($productCurrentPage - 1) * $rowsPerPage;
 $productSizeOffset = ($productSizeCurrentPage - 1) * $rowsPerPage;
 $productImageOffset = ($productImageCurrentPage - 1) * $rowsPerPage;
 $supplierOffset = ($supplierCurrentPage - 1) * $rowsPerPage;
+$roomOffset = ($roomCurrentPage - 1) * $rowsPerPage;
 $roomTypeOffset = ($roomTypeCurrentPage - 1) * $rowsPerPage;
 $facilityTypeOffset = ($facilityTypeCurrentPage - 1) * $rowsPerPage;
 $facilityOffset = ($facilityCurrentPage - 1) * $rowsPerPage;
@@ -41,6 +43,7 @@ $filterSizes = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterImages = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterFacilityTypeID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterMembershipID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
+$filterRoomType = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 
 $dateCondition = '';
 if (!empty($searchFromDate) && !empty($searchToDate)) {
@@ -116,8 +119,6 @@ $totalProductImageRows = $totalProductImageRowsResult->fetch_assoc()['total'];
 // Calculate the total number of pages
 $totalProductImagePages = ceil($totalProductImageRows / $rowsPerPage);
 
-
-
 // Fetch total number of rows for pagination calculation
 $totalContactRowsQuery = "SELECT COUNT(*) as total FROM contacttb";
 if ($filterStatus !== 'random' && !empty($searchContactQuery)) {
@@ -158,6 +159,24 @@ $totalRoomTypeRows = $totalRoomTypeRowsResult->fetch_assoc()['total'];
 
 // Calculate the total number of pages
 $totalRoomTypePages = ceil($totalRoomTypeRows / $rowsPerPage);
+
+
+// Fetch total number of rows for pagination calculation
+$totalRoomRowsQuery = "SELECT COUNT(*) as total FROM roomtb";
+if (!empty($roomTypeSelectQuery)) {
+    $totalRoomRowsQuery = "SELECT COUNT(*) as total FROM roomtb WHERE RoomTypeID LIKE '%$searchRoomTypeQuery%' OR RoomDescription LIKE '%$searchRoomTypeQuery%'";
+} elseif ($filterRoomType !== 'random' && !empty($searchRoomQuery)) {
+    $totalRoomRowsQuery = "SELECT COUNT(*) as total FROM roomtb WHERE RoomTypeID = '$filterRoomType' AND (RoomName LIKE '%$searchRoomQuery%')";
+} elseif ($filterRoomType !== 'random') {
+    $totalRoomRowsQuery = "SELECT COUNT(*) as total FROM roomtb WHERE RoomTypeID = '$filterRoomType'";
+} elseif (!empty($searchRoomQuery)) {
+    $totalRoomRowsQuery = "SELECT COUNT(*) as total FROM roomtb WHERE RoomName LIKE '%$searchRoomQuery%'";
+}
+$totalRoomRowsResult = $connect->query($totalRoomRowsQuery);
+$totalRoomRows = $totalRoomRowsResult->fetch_assoc()['total'];
+
+// Calculate the total number of pages
+$totalRoomPages = ceil($totalRoomRows / $rowsPerPage);
 
 // Fetch total number of rows for pagination calculation
 $totalFacilityTypeRowsQuery = "SELECT COUNT(*) as total FROM facilitytypetb";
