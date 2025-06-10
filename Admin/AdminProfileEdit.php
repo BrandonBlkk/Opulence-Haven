@@ -414,7 +414,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['changePassword'])) {
                 </div>
 
                 <div class="flex items-center justify-end gap-3 select-none">
-                    <button id="cancelChangeBtn" type="button" class="px-4 py-2 rounded-sm bg-gray-200 text-black hover:bg-gray-300 rounded-sm transition duration-300 ease-in-out">Cancel</button>
+                    <button id="cancelChangeBtn" type="button" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm transition duration-300 ease-in-out">Cancel</button>
                     <button id="confirmChangeBtn" type="submit" name="changePassword" class="px-4 py-2 rounded-sm bg-amber-500 text-white hover:bg-amber-600 transition duration-300 ease-in-out">Change Password</button>
                 </div>
             </form>

@@ -352,7 +352,7 @@ $productCount = $productResult->fetch_assoc()['count'];
                         <!-- Previous Btn -->
                         <?php if ($productCurrentPage > 1) {
                         ?>
-                            <a href="?productpage=<?= $productCurrentPage - 1 ?>"
+                            <a href="?productpage=<?= $productCurrentPage - 1 ?>&product_search=<?= htmlspecialchars($searchProductQuery) ?>&sort=<?= $filterProductID ?>"
                                 class="px-3 py-1 mx-1 border rounded <?= $productpage == $productCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                                 <i class="ri-arrow-left-s-line"></i>
                             </a>
@@ -366,7 +366,7 @@ $productCount = $productResult->fetch_assoc()['count'];
                         }
                         ?>
                         <?php for ($productpage = 1; $productpage <= $totalProductPages; $productpage++): ?>
-                            <a href="?productpage=<?= $productpage ?>&product_search=<?= htmlspecialchars($searchProductQuery) ?>"
+                            <a href="?productpage=<?= $productpage ?>&product_search=<?= htmlspecialchars($searchProductQuery) ?>&sort=<?= $filterProductID ?>"
                                 class="px-3 py-1 mx-1 border rounded select-none <?= $productpage == $productCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                                 <?= $productpage ?>
                             </a>
@@ -374,7 +374,7 @@ $productCount = $productResult->fetch_assoc()['count'];
                         <!-- Next Btn -->
                         <?php if ($productCurrentPage < $totalProductPages) {
                         ?>
-                            <a href="?productpage=<?= $productCurrentPage + 1 ?>"
+                            <a href="?productpage=<?= $productCurrentPage + 1 ?>&product_search=<?= htmlspecialchars($searchProductQuery) ?>&sort=<?= $filterProductID ?>"
                                 class="px-3 py-1 mx-1 border rounded <?= $productpage == $productCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
                                 <i class="ri-arrow-right-s-line"></i>
                             </a>

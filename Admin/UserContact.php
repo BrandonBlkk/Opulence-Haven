@@ -34,14 +34,32 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
 // Update Contact
 if (isset($_POST['respondcontact'])) {
     $contactId = mysqli_real_escape_string($connect, $_POST['contactid']);
+    $response = mysqli_real_escape_string($connect, $_POST['adminResponse']);
+    $username = 'Bran';
+    $useremail = 'kyawzayartun0527@gmail.com';
 
-    // Update query
-    $updateQuery = "UPDATE contacttb SET Status = 'responded' WHERE ContactID = '$contactId'";
+    // Prepare and execute update query
+    $updateQuery = "UPDATE contacttb SET Status = ? WHERE ContactID = '$contactId'";
+    $stmt = $connect->prepare($updateQuery);
 
-    if ($connect->query($updateQuery)) {
-        $confirmContactSuccess = true;
+    if ($stmt) {
+        $status = 'responded';
+        $stmt->bind_param("s", $status);
+
+        if ($stmt->execute()) {
+            $confirmContactSuccess = true;
+            $_SESSION['contact_data'] = [
+                'useremail' => $useremail,
+                'username' => $username,
+                'response' => $response
+            ];
+        } else {
+            $alertMessage = "Failed to update contact. Please try again.";
+        }
+
+        $stmt->close();
     } else {
-        $alertMessage = "Failed to update product type. Please try again.";
+        $alertMessage = "Failed to prepare the update statement.";
     }
 }
 ?>
@@ -214,43 +232,80 @@ if (isset($_POST['respondcontact'])) {
         </div>
 
         <!-- Contact Details Modal -->
-        <div id="confirmContactModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
-            <div class="bg-white max-w-5xl p-6 rounded-md shadow-lg text-center w-full sm:max-w-[500px]">
+        <div id="confirmContactModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-4 -translate-y-5 transition-all duration-300">
+            <div class="bg-white max-w-4xl w-full rounded-lg shadow-xl overflow-hidden">
                 <!-- Modal Header -->
-                <h2 class="text-xl font-bold text-gray-800 border-b pb-3">User Contact Details</h2>
+                <div class="bg-gray-50 px-6 py-4 border-b">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-semibold text-gray-800">Contact Inquiry Details</h2>
+                    </div>
+                    <div class="flex items-center mt-2 text-sm text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span id="contactDate"></span>
+                    </div>
+                </div>
 
                 <!-- Form -->
-                <form class="flex flex-col space-y-4 mt-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="confirmContactForm">
+                <form class="flex flex-col" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="confirmContactForm">
                     <input type="hidden" name="contactid" id="confirmContactID">
 
-                    <!-- User Information -->
-                    <div class="text-gray-700 text-left space-y-2">
-                        <h3 class="text-lg font-medium text-gray-800">User Information</h3>
-                        <p><span class="font-semibold">Name:</span> <span id="username"></span></p>
-                        <p><span class="font-semibold">Email:</span> <span id="useremail"></span></p>
-                        <p><span class="font-semibold">Phone:</span> <span id="userphone"></span></p>
-                        <p><span class="font-semibold">Country:</span> <span id="usercountry"></span></p>
-                    </div>
+                    <div class="p-6 space-y-6">
+                        <!-- User Information -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="block text-sm font-medium text-gray-500">Full Name</label>
+                                <div id="username" name="username" class="text-gray-800 font-medium p-2 bg-gray-50 rounded"></div>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="block text-sm font-medium text-gray-500">Email Address</label>
+                                <div id="useremail" name="useremail" class="text-gray-800 p-2 bg-gray-50 rounded"></div>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="block text-sm font-medium text-gray-500">Phone Number</label>
+                                <div id="userphone" class="text-gray-800 p-2 bg-gray-50 rounded"></div>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="block text-sm font-medium text-gray-500">Country</label>
+                                <div id="usercountry" class="text-gray-800 p-2 bg-gray-50 rounded"></div>
+                            </div>
+                        </div>
 
-                    <!-- Message Display -->
-                    <div class="w-full text-left">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
-                        <div id="contactMessage" class="p-3 border border-gray-300 rounded-md bg-gray-50 text-gray-700"></div>
+                        <!-- Original Message -->
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-gray-700">Original Message</label>
+                            <div id="contactMessage" class="p-3 border border-gray-200 rounded-md bg-gray-50 text-gray-700 min-h-[100px] max-h-[200px] overflow-y-auto"></div>
+                        </div>
+
+                        <!-- Admin Response -->
+                        <div class="space-y-2">
+                            <label for="adminResponse" class="block text-sm font-medium text-gray-700">Your Response</label>
+                            <textarea name="adminResponse" id="adminResponse" rows="4" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" placeholder="Type your response here..." required></textarea>
+                            <div class="flex items-center text-sm text-gray-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                This response will be emailed to the user
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Action Buttons -->
-                    <div class="flex justify-end gap-4 select-none pt-3 border-t">
-                        <div id="confirmContactModalCancelBtn" class="px-4 py-2 bg-gray-200 text-gray-800 hover:bg-gray-300 rounded-md cursor-pointer">
+                    <div class="bg-gray-50 px-6 py-3 gap-4 flex justify-end border-t select-none">
+                        <div id="confirmContactModalCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm">
                             Cancel
                         </div>
-                        <button type="submit" name="respondcontact" class="bg-amber-500 text-white px-4 py-2 hover:bg-amber-600 rounded-md">
-                            Respond
+                        <button
+                            type="submit"
+                            name="respondcontact"
+                            class="bg-amber-500 text-white px-4 py-2 select-none hover:bg-amber-600 rounded-sm">
+                            Send Response
                         </button>
                     </div>
                 </form>
             </div>
         </div>
-
 
         <!-- Date Filter -->
         <div id="contactDateFilterModal" class="fixed top-36 right-0 sm:right-5 z-50 w-full sm:max-w-[500px] flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
