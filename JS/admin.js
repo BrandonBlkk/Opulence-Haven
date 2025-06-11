@@ -3394,7 +3394,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Change Password Modal
+// Change Password Modal 
 const changePasswordBtn = document.getElementById("changePasswordBtn");
 const changePasswordModal = document.getElementById("changePasswordModal");
 const cancelChangeBtn = document.getElementById("cancelChangeBtn");
@@ -3425,26 +3425,6 @@ if (changePasswordBtn && changePasswordModal && cancelChangeBtn && darkOverlay2)
         hideError(document.getElementById("confirmPasswordError"));
     });
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const passwordChangeSuccess = urlParams.get('passwordChangeSuccess') === 'true';
-    const alertMessage = urlParams.get('alertMessage');
-    
-    if (passwordChangeSuccess) {
-        showAlert('You have successfully changed a password.');
-    
-        // Remove the query params after showing the alert
-        urlParams.delete('passwordChangeSuccess');
-        const newUrl = window.location.pathname + '?' + urlParams.toString();
-        window.history.replaceState({}, '', newUrl);
-    } else if (alertMessage) {
-        showAlert(decodeURIComponent(alertMessage));
-        
-        // Remove error message after displaying
-        urlParams.delete('alertMessage');
-        const newUrl = window.location.pathname + '?' + urlParams.toString();
-        window.history.replaceState({}, '', newUrl);
-    }
-    
     // Add keyup event listeners for real-time validation
     document.getElementById("oldPasswordInput").addEventListener("keyup", validateOldPassword);
     document.getElementById("newPasswordInput").addEventListener("keyup", validateNewPassword);
@@ -3453,9 +3433,52 @@ if (changePasswordBtn && changePasswordModal && cancelChangeBtn && darkOverlay2)
     const changePasswordForm = document.getElementById("changePasswordForm");
     if (changePasswordForm) {
         changePasswordForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+
             if (!validateChangePasswordForm()) {
-                e.preventDefault();
+                return;
             }
+
+            const loader = document.getElementById("loader");
+            if (loader) loader.style.display = 'flex';
+
+            const formData = new FormData(changePasswordForm);
+            formData.append('changePassword', true);
+
+            fetch('../Admin/AdminProfileEdit.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (loader) loader.style.display = 'none';
+
+                if (data.success) {
+                    showAlert('You have successfully changed your password.');
+                    
+                    // Close modal and clear fields
+                    changePasswordModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+                    changePasswordModal.classList.remove("opacity-100", "translate-y-0");
+                    darkOverlay2.classList.add("opacity-0", "invisible");
+                    darkOverlay2.classList.remove("opacity-100");
+                    
+                    document.getElementById("oldPasswordInput").value = "";
+                    document.getElementById("newPasswordInput").value = "";
+                    document.getElementById("confirmPasswordInput").value = "";
+                } else {
+                    showAlert(data.message || 'Failed to change password. Please try again.');
+                }
+            })
+            .catch(error => {
+                if (loader) loader.style.display = 'none';
+                showAlert('An error occurred. Please try again.');
+                console.error('Error:', error);
+            });
         });
     }
 }
@@ -3520,35 +3543,88 @@ if (adminProfileDeleteBtn && confirmDeleteModal && cancelDeleteBtn && confirmDel
     });
 }
 
-// Profile Update Form Validation
+// Admin Profile Update 
 document.addEventListener("DOMContentLoaded", () => {
-    const alertMessage = document.getElementById('alertMessage').value;
-    const profileUpdate = document.getElementById('profileUpdate').value === 'true';
+    // Get form elements
+    const updateAdminProfileForm = document.getElementById("updateAdminProfileForm");
+    const loader = document.getElementById("loader");
+    const alertMessage = document.getElementById('alertMessage')?.value;
+    const profileUpdate = document.getElementById('profileUpdate')?.value === 'true';
 
+    // Show initial alerts if any
     if (profileUpdate) {
-        // Show Alert
-        showAlert('You have successfully changed a profile.');
-        setTimeout(() => {
-            window.location.href = 'AdminProfileEdit.php';
-        }, 5000);
+        showAlert('You have successfully changed your profile.');
     } else if (alertMessage) {
-        // Show Alert
         showAlert(alertMessage);
     }
 
-    document.getElementById("firstnameInput").addEventListener("keyup", validateFirstName);
-    document.getElementById("lastnameInput").addEventListener("keyup", validateLastName);
-    document.getElementById("usernameInput").addEventListener("keyup", validateUsername);
-    document.getElementById("emailInput").addEventListener("keyup", validateEmail);
-    document.getElementById("phoneInput").addEventListener("keyup", validatePhone);
+    // Initialize form validation
+    document.getElementById("firstnameInput")?.addEventListener("keyup", validateFirstName);
+    document.getElementById("lastnameInput")?.addEventListener("keyup", validateLastName);
+    document.getElementById("usernameInput")?.addEventListener("keyup", validateUsername);
+    document.getElementById("emailInput")?.addEventListener("keyup", validateEmail);
+    document.getElementById("phoneInput")?.addEventListener("keyup", validatePhone);
 
-    // Add submit event listener for form validation
-    const updateAdminProfileForm = document.getElementById("updateAdminProfileForm");
+    // Handle form submission with AJAX
     if (updateAdminProfileForm) {
         updateAdminProfileForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+
             if (!validateProfileUpdateForm()) {
-                e.preventDefault();
+                return;
             }
+
+            // Show loader
+            if (loader) loader.style.display = 'flex';
+
+            // Create FormData object
+            const formData = new FormData(updateAdminProfileForm);
+            formData.append('modify', true);
+
+            // AJAX request
+            fetch('../Admin/AdminProfileEdit.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Hide loader
+                if (loader) loader.style.display = 'none';
+
+                if (data.success) {
+                    if (data.changesMade) {
+                        showAlert('You have successfully changed your profile.');
+
+                        // Update profile image in UI if changed
+                        if (data.adminProfile) {
+                            const profileImg = document.querySelector('.profile-image');
+                            if (profileImg) {
+                                // Add timestamp to prevent caching
+                                profileImg.src = data.adminProfile + '?' + new Date().getTime();
+                            }
+                        } else if (data.removeProfile) {
+                            const profileImg = document.querySelector('.profile-image');
+                            if (profileImg) {
+                                profileImg.src = 'path/to/default/image.jpg';
+                            }
+                        }
+                    } else if (data.message) {
+                        showAlert(data.message);
+                    }
+                } else {
+                    showAlert(data.message || 'Failed to update profile. Please try again.');
+                }
+            })
+            .catch(error => {
+                if (loader) loader.style.display = 'none';
+                showAlert('An error occurred. Please try again.');
+                console.error('Error:', error);
+            });
         });
     }
 });

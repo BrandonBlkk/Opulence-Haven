@@ -18,87 +18,151 @@ $admin_username = $adminRow['UserName'];
 $profile_color = $adminRow['ProfileBgColor'];
 
 $alertMessage = '';
-$profileUpdate = false;
 $passwordChangeSuccess = false;
+$response = ['success' => false, 'message' => '', 'adminProfile' => null, 'removeProfile' => false, 'changesMade' => false];
 
 // Fetch admin profile
 $adminQuery = "SELECT * FROM admintb WHERE AdminID = '$adminID'";
 $adminRow = $connect->query($adminQuery)->fetch_assoc();
 
+
+// Handle form submission for profile update
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
-    $firstname = mysqli_real_escape_string($connect, $_POST['firstname']);
-    $lastname = mysqli_real_escape_string($connect, $_POST['lastname']);
-    $username = mysqli_real_escape_string($connect, $_POST['username']);
-    $phone = mysqli_real_escape_string($connect, $_POST['phone']);
-    $role = mysqli_real_escape_string($connect, $_POST['role']);
 
-    // Initialize with current profile
-    $adminProfile = $adminprofile;
+    try {
+        // Get current admin data
+        $currentQuery = "SELECT FirstName, LastName, UserName, AdminPhone, RoleID, AdminProfile FROM admintb WHERE AdminID = '$adminID'";
+        $currentResult = $connect->query($currentQuery);
+        $currentData = $currentResult->fetch_assoc();
 
-    // Process image upload if file was provided
-    if (isset($_FILES['AdminProfile']) && $_FILES['AdminProfile']['error'] == UPLOAD_ERR_OK) {
-        $imageFile = $_FILES['AdminProfile'];
-        $result = uploadProductImage($imageFile, $adminprofile);
+        // Get form data
+        $firstname = mysqli_real_escape_string($connect, $_POST['firstname'] ?? '');
+        $lastname = mysqli_real_escape_string($connect, $_POST['lastname'] ?? '');
+        $username = mysqli_real_escape_string($connect, $_POST['username'] ?? '');
+        $phone = mysqli_real_escape_string($connect, $_POST['phone'] ?? '');
+        $role = mysqli_real_escape_string($connect, $_POST['role'] ?? '');
 
-        if (isset($result['adminPath'])) {
-            $adminProfile = $result['adminPath'];
-        } elseif (isset($result['image'])) {
-            $alertMessage = $result['image'];
-        } else {
-            $alertMessage = 'Error processing profile image upload';
+        // Check if any fields were actually changed
+        $changesDetected = false;
+        if (
+            $firstname != $currentData['FirstName'] ||
+            $lastname != $currentData['LastName'] ||
+            $username != $currentData['UserName'] ||
+            $phone != $currentData['AdminPhone'] ||
+            $role != $currentData['RoleID']
+        ) {
+            $changesDetected = true;
         }
-    }
 
-    // Handle profile removal
-    if (isset($_POST['removeProfile']) && $_POST['removeProfile'] == '1') {
-        // Delete the old profile image if it exists
-        if (!empty($adminprofile) && file_exists($adminprofile)) {
-            @unlink($adminprofile);
+        // Initialize with current profile
+        $adminProfile = $adminprofile;
+        $profileChanged = false;
+
+        // Process image upload if file was provided
+        if (isset($_FILES['AdminProfile']) && $_FILES['AdminProfile']['error'] == UPLOAD_ERR_OK) {
+            $imageFile = $_FILES['AdminProfile'];
+            $result = uploadProductImage($imageFile, $adminprofile);
+
+            if (isset($result['adminPath'])) {
+                $adminProfile = $result['adminPath'];
+                $response['adminProfile'] = $adminProfile;
+                $profileChanged = true;
+            } elseif (isset($result['image'])) {
+                throw new Exception($result['image']);
+            } else {
+                throw new Exception('Error processing profile image upload');
+            }
         }
-        $adminProfile = 'NULL';
-    }
 
-    if (empty($alertMessage)) {
-        // Build the query with proper NULL handling
-        $updateProfileQuery = "UPDATE admintb SET 
-            AdminProfile = " . ($adminProfile === null ? 'NULL' : "'$adminProfile'") . ", 
-            FirstName = '$firstname', 
-            LastName = '$lastname', 
-            UserName = '$username', 
-            AdminPhone = '$phone',  
-            RoleID = '$role' 
-            WHERE AdminID = '$adminID'";
+        // Handle profile removal
+        $removeProfile = isset($_POST['removeProfile']) && $_POST['removeProfile'] == '1';
+        if ($removeProfile) {
+            // Only mark as changed if there was a profile to remove
+            if (!empty($adminprofile) && $adminprofile != 'NULL') {
+                $profileChanged = true;
+            }
+            // Delete the old profile image if it exists
+            if (!empty($adminprofile) && file_exists($adminprofile)) {
+                @unlink($adminprofile);
+            }
+            $adminProfile = null;
+            $response['removeProfile'] = true;
+        }
 
-        $updateProfileQueryResult = $connect->query($updateProfileQuery);
+        // Only update if changes were detected
+        if ($changesDetected || $profileChanged) {
+            $response['changesMade'] = true;
 
-        if ($updateProfileQueryResult) {
-            $profileUpdate = true;
+            // Build the query with proper NULL handling
+            $updateProfileQuery = "UPDATE admintb SET 
+                AdminProfile = " . ($adminProfile === null ? 'NULL' : "'$adminProfile'") . ", 
+                FirstName = '$firstname', 
+                LastName = '$lastname', 
+                UserName = '$username', 
+                AdminPhone = '$phone',  
+                RoleID = '$role' 
+                WHERE AdminID = '$adminID'";
+
+            $updateProfileQueryResult = $connect->query($updateProfileQuery);
+
+            if (!$updateProfileQueryResult) {
+                throw new Exception('Error updating profile: ' . $connect->error);
+            }
+
+            $response['success'] = true;
+
             // Update session with new profile if needed
             if ($adminID == $_SESSION['AdminID']) {
-                $_SESSION['admin_profile'] = ($adminProfile === 'NULL' ? 'NULL' : $adminProfile);
+                $_SESSION['admin_profile'] = ($adminProfile === null ? null : $adminProfile);
             }
         } else {
-            $alertMessage = 'Error updating profile: ' . $connect->error;
+            $response['success'] = true;
+            $response['message'] = 'No changes were made to your profile.';
         }
+    } catch (Exception $e) {
+        $response['message'] = $e->getMessage();
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
+// Handle password change 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['changePassword'])) {
-    $oldPassword = mysqli_real_escape_string($connect, $_POST['oldPassword']);
-    $newPassword = mysqli_real_escape_string($connect, $_POST['newPassword']);
-    $confirmPassword = mysqli_real_escape_string($connect, $_POST['confirmPassword']);
 
-    $updatePasswordQuery = "UPDATE admintb SET AdminPassword = '$newPassword' WHERE AdminID = '$adminID' AND AdminPassword = '$oldPassword'";
-    $updatePasswordQueryResult = $connect->query($updatePasswordQuery);
+    try {
+        $oldPassword = isset($_POST['oldPassword']) ? mysqli_real_escape_string($connect, $_POST['oldPassword']) : '';
+        $newPassword = isset($_POST['newPassword']) ? mysqli_real_escape_string($connect, $_POST['newPassword']) : '';
+        $confirmPassword = isset($_POST['confirmPassword']) ? mysqli_real_escape_string($connect, $_POST['confirmPassword']) : '';
 
-    if ($updatePasswordQueryResult) {
-        header("Location: AdminProfileEdit.php?passwordChangeSuccess=true");
-        exit();
-    } else {
-        $error = urlencode('Error updating password: ' . $connect->error);
-        header("Location: AdminProfileEdit.php?alertMessage=$error");
-        exit();
+        // Verify old password first
+        $checkQuery = "SELECT AdminID FROM admintb WHERE AdminID = '$adminID' AND AdminPassword = '$oldPassword'";
+        $checkResult = $connect->query($checkQuery);
+
+        if ($checkResult->num_rows === 0) {
+            throw new Exception('Current password is incorrect');
+        }
+
+        if ($newPassword !== $confirmPassword) {
+            throw new Exception('New password and confirmation password do not match');
+        }
+
+        $updatePasswordQuery = "UPDATE admintb SET AdminPassword = '$newPassword' WHERE AdminID = '$adminID'";
+        $updatePasswordQueryResult = $connect->query($updatePasswordQuery);
+
+        if (!$updatePasswordQueryResult) {
+            throw new Exception('Error updating password: ' . $connect->error);
+        }
+
+        $response['success'] = true;
+    } catch (Exception $e) {
+        $response['message'] = $e->getMessage();
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 ?>
 

@@ -338,7 +338,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
             </div>
 
             <!-- Search Form at Bottom Center -->
-            <form action="../User/RoomBooking.php" method="GET" class="absolute bottom-10 left-1/2 transform -translate-x-1/2 w-full sm:max-w-[1030px] z-10 p-4 bg-white rounded-sm shadow-lg flex justify-between items-center space-x-4">
+            <form action="../User/RoomBooking.php" method="GET" class="absolute bottom-10 left-1/2 transform -translate-x-1/2 w-full sm:max-w-[1030px] z-10 p-4 bg-white rounded-sm shadow-sm border flex justify-between items-center space-x-4">
                 <div class="flex items-center space-x-4">
                     <div class="flex gap-3">
                         <!-- Check-in Date -->
