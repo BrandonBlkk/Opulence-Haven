@@ -1,9 +1,6 @@
 <input type="hidden" id="alertMessage" value="<?php echo htmlspecialchars($alertMessage); ?>">
-<input type="hidden" id="signupSuccess" value="<?php echo $signupSuccess ? 'true' : 'false'; ?>">
-<input type="hidden" id="signinSuccess" value="<?php echo $signinSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="resetSuccess" value="<?php echo $resetSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="resetAdminPasswordSuccess" value="<?php echo $resetAdminPasswordSuccess ? 'true' : 'false'; ?>">
-<input type="hidden" id="isAccountLocked" value="<?php echo $isAccountLocked ? 'true' : 'false'; ?>">
 <input type="hidden" id="addProductImageSuccess" value="<?php echo $addProductImageSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="updateProductImageSuccess" value="<?php echo $updateProductImageSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="deleteProductImageSuccess" value="<?php echo $deleteProductImageSuccess ? 'true' : 'false'; ?>">
@@ -14,7 +11,6 @@
 <input type="hidden" id="confirmContactSuccess" value="<?php echo $confirmContactSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="contactSuccess" value="<?php echo $contactSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="reservationSuccess" value="<?php echo $reservationSuccess ? 'true' : 'false'; ?>">
-<input type="hidden" id="passwordChangeSuccess" value="<?php echo $passwordChangeSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="purchaseSuccess" value="<?php echo $purchaseSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="addToBagSuccess" value="<?php echo $addToBagSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="resetPasswordSuccess" value="<?php echo $resetPasswordSuccess ? 'true' : 'false'; ?>">

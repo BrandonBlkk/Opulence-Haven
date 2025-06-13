@@ -4,7 +4,7 @@ include('../config/dbConnection.php');
 include('../includes/AutoIDFunc.php');
 
 $alertMessage = '';
-$signupSuccess = false;
+$response = ['success' => false, 'message' => ''];
 $userID = AutoID('usertb', 'UserID', 'USR-', 6);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
@@ -56,7 +56,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
             $_SESSION["welcome_message"] = "Welcome";
             $_SESSION["UserID"] = $userID;
             $_SESSION["UserName"] = $username;
-            $signupSuccess = true;
+            $_SESSION["UserEmail"] = $email;
+            $response['success'] = true;
 
             // Store email data in session to send after page reload
             $_SESSION['email_data'] = [
@@ -65,6 +66,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
             ];
         }
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 ?>
 
@@ -159,6 +164,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                 <div class="flex justify-center">
                     <div class="g-recaptcha transform scale-75 md:scale-100" data-sitekey="6LcE3G0pAAAAAE1GU9UXBq0POWnQ_1AMwyldy8lX"></div>
                 </div>
+
+                <input type="hidden" name="signup" value="1">
 
                 <!-- Signup Button -->
                 <input

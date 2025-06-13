@@ -18,7 +18,6 @@ $admin_username = $adminRow['UserName'];
 $profile_color = $adminRow['ProfileBgColor'];
 
 $alertMessage = '';
-$passwordChangeSuccess = false;
 $response = ['success' => false, 'message' => '', 'adminProfile' => null, 'removeProfile' => false, 'changesMade' => false];
 
 // Fetch admin profile
@@ -95,21 +94,49 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
 
             // Build the query with proper NULL handling
             $updateProfileQuery = "UPDATE admintb SET 
-                AdminProfile = " . ($adminProfile === null ? 'NULL' : "'$adminProfile'") . ", 
-                FirstName = '$firstname', 
-                LastName = '$lastname', 
-                UserName = '$username', 
-                AdminPhone = '$phone',  
-                RoleID = '$role' 
-                WHERE AdminID = '$adminID'";
+            AdminProfile = ?, 
+            FirstName = ?, 
+            LastName = ?, 
+            UserName = ?, 
+            AdminPhone = ?,  
+            RoleID = ? 
+            WHERE AdminID = ?";
 
-            $updateProfileQueryResult = $connect->query($updateProfileQuery);
+            // Prepare the statement
+            $stmt = $connect->prepare($updateProfileQuery);
+
+            if ($stmt === false) {
+                die('Prepare failed: ' . htmlspecialchars($connect->error));
+            }
+
+            // Bind parameters - handle NULL for AdminProfile
+            $adminProfileParam = ($adminProfile === null) ? null : $adminProfile;
+            $stmt->bind_param(
+                "sssssss",
+                $adminProfileParam,
+                $firstname,
+                $lastname,
+                $username,
+                $phone,
+                $role,
+                $adminID
+            );
+
+            // Execute the statement
+            $updateProfileQueryResult = $stmt->execute();
+
+            if ($updateProfileQueryResult === false) {
+                die('Execute failed: ' . htmlspecialchars($stmt->error));
+            }
+
+            $stmt->close();
 
             if (!$updateProfileQueryResult) {
                 throw new Exception('Error updating profile: ' . $connect->error);
             }
 
             $response['success'] = true;
+            $response['newUsername'] = $username;
 
             // Update session with new profile if needed
             if ($adminID == $_SESSION['AdminID']) {
@@ -148,8 +175,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['changePassword'])) {
             throw new Exception('New password and confirmation password do not match');
         }
 
-        $updatePasswordQuery = "UPDATE admintb SET AdminPassword = '$newPassword' WHERE AdminID = '$adminID'";
-        $updatePasswordQueryResult = $connect->query($updatePasswordQuery);
+        $updatePasswordQuery = $connect->prepare("UPDATE admintb SET AdminPassword = ? WHERE AdminID = ?");
+        $updatePasswordQuery->bind_param('ss', $newPassword, $adminID);
+        $updatePasswordQueryResult = $updatePasswordQuery->execute();
+        $updatePasswordQuery->close();
 
         if (!$updatePasswordQueryResult) {
             throw new Exception('Error updating password: ' . $connect->error);

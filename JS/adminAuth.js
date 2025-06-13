@@ -2,23 +2,6 @@ import { showError, hideError, showAlert } from './alertFunc.js';
 
 // Sign Up
 document.addEventListener("DOMContentLoaded", () => {
-    const loader = document.getElementById('loader');
-    const alertMessage = document.getElementById('alertMessage').value;
-    const signupSuccess = document.getElementById('signupSuccess').value === 'true';
-
-    if (signupSuccess) {
-        loader.style.display = 'flex';
-
-        // Show Alert
-        setTimeout(() => {
-            loader.style.display = 'none';
-            window.location.href = '../Admin/AdminDashboard.php';
-        }, 1000);
-    } else if (alertMessage) {
-        // Show Alert
-        showAlert(alertMessage);
-    }
-
     // Add keyup event listeners for real-time validation
     document.getElementById("firstnameInput").addEventListener("keyup", validateFirstname);
     document.getElementById("lastnameInput").addEventListener("keyup", validateLastname);
@@ -28,42 +11,114 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("phone").addEventListener("keyup", validatePhone);
 
     const signupForm = document.getElementById("signupForm");
+    const loader = document.getElementById('loader');
+
     if (signupForm) {
-        signupForm.addEventListener("submit", (e) => {
+        signupForm.addEventListener("submit", function(e) {
+            e.preventDefault();
+                
             if (!validateSignUpForm()) {
-                e.preventDefault();
+                return;
             }
+
+            const formData = new FormData(this);
+            
+            // Show loader
+            if (loader) loader.style.display = 'flex';
+            
+            fetch('../Admin/AdminSignUp.php', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Hide loader
+                if (loader) loader.style.display = 'none';
+                
+                if (data.success) {
+                    // Successful sign-in
+                    if (loader) loader.style.display = 'flex';
+                    window.location.href = '../Admin/AdminDashboard.php';
+                } else {
+                    // Show error message
+                    showAlert(data.message || 'Sign-up failed. Please try again.', 'error');
+                }
+            })
+            .catch(error => {
+                // Hide loader on error
+                if (loader) loader.style.display = 'none';
+                showAlert('An error occurred. Please try again.', 'error');
+                console.error('Error:', error);
+            });
         });
     }
 });
 
 // Sign In
 document.addEventListener("DOMContentLoaded", () => {
-    const loader = document.getElementById('loader');
-    const signInSuccess = document.getElementById('signinSuccess').value === 'true';
-    const isAccountLocked = document.getElementById('isAccountLocked').value === 'true';
-
-    if (signInSuccess) {
-        loader.style.display = 'flex'; 
-
-        setTimeout(() => {
-            loader.style.display = 'none'; 
-            window.location.href = '../Admin/AdminDashboard.php';
-        }, 1000); 
-    } else if (isAccountLocked) {
-        window.location.href = '../User/WaitingRoom.php';
-    }
-
     // Add keyup event listeners for real-time validation
     document.getElementById("emailInput").addEventListener("keyup", validateEmail);
     document.getElementById("signinPasswordInput").addEventListener("keyup", validatePasswordSignIn);
 
     const signinForm = document.getElementById("signinForm");
+    const loader = document.getElementById('loader');
+    
     if (signinForm) {
-        signinForm.addEventListener("submit", (e) => {
+        signinForm.addEventListener("submit", function(e) {
+            e.preventDefault();
+                
             if (!validateSignInForm()) {
-                e.preventDefault();
+                return;
             }
+
+            const formData = new FormData(this);
+            
+            // Show loader
+            if (loader) loader.style.display = 'flex';
+            
+            fetch('../Admin/AdminSignIn.php', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Hide loader
+                if (loader) loader.style.display = 'none';
+                
+                if (data.success) {
+                    // Successful sign-in
+                    if (loader) loader.style.display = 'flex';
+                    window.location.href = '../Admin/AdminDashboard.php';
+                } else if (data.locked) {
+                    // Account locked
+                    window.location.href = '../User/WaitingRoom.php';
+                } else {
+                    // Show error message
+                    showAlert(data.message || 'Sign-in failed. Please try again.', 'error');
+                }
+            })
+            .catch(error => {
+                // Hide loader on error
+                if (loader) loader.style.display = 'none';
+                showAlert('An error occurred. Please try again.', 'error');
+                console.error('Error:', error);
+            });
         });
     }
 });
