@@ -7,8 +7,7 @@ if (!$connect) {
 }
 
 $alertMessage = '';
-$signinSuccess = false;
-$isAccountLocked = false;
+$response = ['success' => false, 'message' => '', 'locked' => false, 'attemptsLeft' => null];
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
     $email = mysqli_real_escape_string($connect, trim($_POST['email']));
@@ -61,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
             // Reset sign-in attempts on successful sign-in
             $_SESSION['signin_attempts'] = 0;
             $_SESSION['last_email'] = null;
-            $signinSuccess = true;
+            $response['success'] = true;
         } else {
             // Increment sign-in attempt counter for the same email
             $_SESSION['signin_attempts']++;
@@ -70,14 +69,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
             if ($_SESSION['signin_attempts'] === 3) {
                 // Reset sign-in attempts
                 $_SESSION['signin_attempts'] = 0;
-                $isAccountLocked = true;
+                $response['locked'] = true;
             } else if ($_SESSION['signin_attempts'] === 2) {
-                $alertMessage = "Multiple failed attempts. One more may lock your account temporarily.";
+                $response['message'] = 'Multiple failed attempts. One more may lock your account temporarily.';
             } else {
-                $alertMessage = "The password you entered is incorrect. Please try again.";
+                $response['message'] = 'The password you entered is incorrect. Please try again.';
             }
         }
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 ?>
 
@@ -132,6 +135,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
             </div>
 
             <a href="ForgetPassword.php" class="text-xs text-gray-400 hover:text-gray-500">Forget your password?</a>
+
+            <input type="hidden" name="signin" value="1">
 
             <!-- Signin Button -->
             <input

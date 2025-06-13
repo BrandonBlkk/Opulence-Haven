@@ -8,7 +8,7 @@ if (!$connect) {
 }
 
 $alertMessage = '';
-$signupSuccess = false;
+$response = ['success' => false, 'message' => ''];
 $adminID = AutoID('admintb', 'AdminID', 'AD-', 6);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
@@ -53,20 +53,45 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
         $alertMessage = 'Please select a role to create an account.';
     } else {
         // Insert the new user data
-        $insertQuery = "INSERT INTO admintb (AdminID, ProfileBgColor, FirstName, LastName, UserName, AdminEmail, AdminPassword, AdminPhone, RoleID) 
-                        VALUES ('$adminID', '$profileBgColor', '$firstname', '$lastname', '$username', '$email', '$password', '$phone', '$role')";
-        $insert_Query = $connect->query($insertQuery);
+        $insertQuery = $connect->prepare("INSERT INTO admintb 
+        (AdminID, ProfileBgColor, FirstName, LastName, UserName, AdminEmail, AdminPassword, AdminPhone, RoleID) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-        if ($insert_Query) {
+        // Bind parameters
+        $insertQuery->bind_param(
+            "sssssssss",
+            $adminID,
+            $profileBgColor,
+            $firstname,
+            $lastname,
+            $username,
+            $email,
+            $password,
+            $phone,
+            $role
+        );
+
+        // Execute the prepared statement
+        $insertResult = $insertQuery->execute();
+
+        if (!$insertResult) {
+            // Handle error - you might want to log this or return an error message
+            $response['message'] = 'Error creating account: ' . $insertQuery->error;
+        } else {
             $_SESSION["welcome_message"] = "Welcome";
             $_SESSION["AdminID"] = $adminID;
             $_SESSION["UserName"] = $username;
             $_SESSION["AdminEmail"] = $email;
-            $signupSuccess = true;
-        } else {
-            $alertMessage = 'Error creating account. Please try again.';
+            $response['success'] = true;
         }
+
+        // Close the statement
+        $insertQuery->close();
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 ?>
 
@@ -199,6 +224,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
             <div class="flex justify-center">
                 <div class="g-recaptcha transform scale-75 md:scale-100" data-sitekey="6LcE3G0pAAAAAE1GU9UXBq0POWnQ_1AMwyldy8lX"></div>
             </div>
+
+            <input type="hidden" name="signup" value="1">
 
             <!-- Signup Button -->
             <input

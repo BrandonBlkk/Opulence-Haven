@@ -188,22 +188,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const userID = document.getElementById('userID');
-                const popup = document.getElementById('membershipPopup');
-                const form = document.getElementById('membershipForm');
+                const membershipPopup = document.getElementById('membershipPopup');
+                const membershipForm = document.getElementById('membershipForm');
                 const closeBtn = document.getElementById('closePopup');
 
                 // Auto-show popup after 3 seconds
                 setTimeout(() => {
-                    popup.classList.replace('right-[-320px]', 'right-0');
+                    membershipPopup.classList.replace('right-[-320px]', 'right-0');
                 }, 3000);
 
                 // Close popup
                 closeBtn.addEventListener('click', () => {
-                    popup.classList.replace('right-0', 'right-[-320px]');
+                    membershipPopup.classList.replace('right-0', 'right-[-320px]');
                 });
 
                 // Submit form and update membership
-                form.addEventListener('submit', function(e) {
+                membershipForm.addEventListener('submit', function(e) {
                     e.preventDefault();
 
                     const formData = new FormData();
@@ -224,7 +224,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
 
                             // Auto-close popup after 4 seconds
                             setTimeout(() => {
-                                popup.classList.replace('right-0', 'right-[-320px]');
+                                membershipPopup.classList.replace('right-0', 'right-[-320px]');
                             }, 4000);
                         })
                         .catch(err => {
@@ -338,7 +338,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
             </div>
 
             <!-- Search Form at Bottom Center -->
-            <form action="../User/RoomBooking.php" method="GET" class="absolute bottom-10 left-1/2 transform -translate-x-1/2 w-full sm:max-w-[1030px] z-10 p-4 bg-white rounded-sm shadow-sm border flex justify-between items-center space-x-4">
+            <form id="checkin-form" action="../User/RoomBooking.php" method="GET" class="fixed bottom-8 left-1/2 transform -translate-x-1/2 w-full sm:max-w-[1030px] z-10 p-4 bg-white rounded-sm shadow-sm border flex justify-between items-center space-x-4 transition-all duration-1000">
                 <div class="flex items-center space-x-4">
                     <div class="flex gap-3">
                         <!-- Check-in Date -->

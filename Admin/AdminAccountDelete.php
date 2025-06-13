@@ -6,8 +6,13 @@ if (isset($_SESSION['AdminID'])) {
     $admin_id = $_SESSION['AdminID'];
 
     // Delete the admin account
-    $accountDeleteQuery = "DELETE FROM admintb WHERE AdminID = '$admin_id'";
-    if (!$connect->query($accountDeleteQuery)) {
+    $accountDeleteQuery = "DELETE FROM admintb WHERE AdminID = ?";
+    $stmt = $connect->prepare($accountDeleteQuery);
+    $stmt->bind_param('s', $admin_id);
+    $success = $stmt->execute();
+    $stmt->close();
+
+    if (!$success) {
         http_response_code(500);
         exit("Failed to delete an account.");
     }

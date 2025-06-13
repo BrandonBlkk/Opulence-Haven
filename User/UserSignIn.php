@@ -6,8 +6,7 @@ require '../vendor/autoload.php';
 $googleConfig = require __DIR__ . '/../config/google.php';
 
 $alertMessage = '';
-$signinSuccess = false;
-$isAccountLocked = false;
+$response = ['success' => false, 'message' => '', 'locked' => false, 'attemptsLeft' => null];
 
 $client = new Google\Client();
 $client->setClientId($googleConfig['client_id']);
@@ -106,7 +105,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
 
 
     if (!$emailExist) {
-        $alertMessage = "No account found with the provided email. Please try again.";
+        $response['message'] = 'No account found with the provided email. Please try again.';
     } else {
         // Check if the email exists and fetch data
         $checkAccQuery = $connect->prepare("SELECT * FROM usertb WHERE UserEmail = ? AND UserPassword = ?");
@@ -152,7 +151,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
             // Reset sign-in attempts on successful sign-in
             $_SESSION['signin_attempts'] = 0;
             $_SESSION['last_email'] = null;
-            $signinSuccess = true;
+
+            $response['success'] = true;
         } else {
             // Increment sign-in attempt counter for the same email
             $_SESSION['signin_attempts']++;
@@ -161,100 +161,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
             if ($_SESSION['signin_attempts'] === 3) {
                 // Reset sign-in attempts
                 $_SESSION['signin_attempts'] = 0;
-                $isAccountLocked = true;
+                $response['locked'] = true;
             } else if ($_SESSION['signin_attempts'] === 2) {
-                $alertMessage = "Multiple failed attempts. One more may lock your account temporarily.";
+                $response['message'] = 'Multiple failed attempts. One more may lock your account temporarily.';
             } else {
-                $alertMessage = "The password you entered is incorrect. Please try again.";
+                $response['message'] = 'The password you entered is incorrect. Please try again.';
             }
         }
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
-
-// Handle form submission
-// if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
-//     $email = mysqli_real_escape_string($connect, trim($_POST['email']));
-//     $password = mysqli_real_escape_string($connect, trim($_POST['password']));
-
-//     $response = [
-//         'success' => false,
-//         'message' => '',
-//         'locked' => false,
-//         'attemptsLeft' => null
-//     ];
-
-//     // Check if the email exists
-//     $checkEmailQuery = $connect->prepare("SELECT * FROM usertb WHERE UserEmail = ?");
-//     $checkEmailQuery->bind_param("s", $email);
-//     $checkEmailQuery->execute();
-//     $result = $checkEmailQuery->get_result();
-//     $emailExist = $result->num_rows;
-
-//     if (!$emailExist) {
-//         $response['message'] = "No account found with the provided email. Please try again.";
-//     } else {
-//         // Check if the email exists and fetch data
-//         $checkAccQuery = $connect->prepare("SELECT * FROM usertb WHERE UserEmail = ? AND UserPassword = ?");
-//         $checkAccQuery->bind_param("ss", $email, $password);
-//         $checkAccQuery->execute();
-//         $result = $checkAccQuery->get_result();
-//         $rowCount = $result->num_rows;
-
-//         // Initialize or reset sign-in attempt counter based on email consistency
-//         if (!isset($_SESSION['last_email']) || $_SESSION['last_email'] !== $email) {
-//             $_SESSION['signin_attempts'] = 0;
-//             $_SESSION['last_email'] = $email;
-//         }
-
-//         // Check customer account match with signup account
-//         if ($rowCount > 0) {
-//             $array = $result->fetch_assoc();
-//             $user_id = $array["UserID"];
-//             $user_username = $array["UserName"];
-//             $user_email = $array["UserEmail"];
-//             $last_signin = $array["LastSignIn"];
-
-//             $_SESSION["UserID"] = $user_id;
-//             $_SESSION["UserName"] = $user_username;
-//             $_SESSION["UserEmail"] = $user_email;
-
-//             // Update sign-in status
-//             $updateSignInQuery = "UPDATE usertb SET Status = ?, LastSignIn = NOW() WHERE UserID = ?";
-//             $stmt = $connect->prepare($updateSignInQuery);
-//             $status = 'active';
-//             $stmt->bind_param("si", $status, $user_id);
-//             $stmt->execute();
-//             $stmt->close();
-
-//             // Reset sign-in attempts on successful sign-in
-//             $_SESSION['signin_attempts'] = 0;
-//             $_SESSION['last_email'] = null;
-
-//             $response['success'] = true;
-//         } else {
-//             // Increment sign-in attempt counter for the same email
-//             $_SESSION['signin_attempts']++;
-//             $attemptsLeft = 3 - $_SESSION['signin_attempts'];
-//             $response['attemptsLeft'] = $attemptsLeft;
-
-//             // Check if sign-in attempts exceed limit
-//             if ($_SESSION['signin_attempts'] >= 3) {
-//                 // Reset sign-in attempts
-//                 $_SESSION['signin_attempts'] = 0;
-//                 $response['locked'] = true;
-//                 $response['message'] = "Too many failed attempts. Your account has been temporarily locked.";
-//             } else if ($_SESSION['signin_attempts'] === 2) {
-//                 $response['message'] = "Multiple failed attempts. One more may lock your account temporarily.";
-//             } else {
-//                 $response['message'] = "The password you entered is incorrect. Please try again.";
-//             }
-//         }
-//     }
-
-//     header('Content-Type: application/json');
-//     echo json_encode($response);
-//     exit();
-// }
 ?>
 
 <!DOCTYPE html>
@@ -321,6 +240,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
                 </div>
 
                 <a href="ForgetPassword.php" class="text-xs text-gray-400 hover:text-gray-500">Forget your password?</a>
+
+                <input type="hidden" name="signin" value="1">
 
                 <!-- Signin Button -->
                 <input

@@ -308,7 +308,7 @@ if (mysqli_num_rows($query) > 0) {
                         }
                         ?>
                         <div class="text-start">
-                            <p class="font-semibold"><?php echo $admin_username ?></p>
+                            <p class="font-semibold" id="adminUsername"><?php echo $admin_username ?></p>
                             <p class="text-xs text-gray-400">Welcome</p>
                             <p class="text-xs text-gray-700">(<?php echo $admin_role ?>)</p>
                         </div>

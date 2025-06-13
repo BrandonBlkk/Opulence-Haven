@@ -2,149 +2,160 @@ import { showError, hideError, showAlert } from './alertFunc.js';
 
 // Sign Up
 document.addEventListener("DOMContentLoaded", () => {
-    const loader = document.getElementById('loader');
-    const alertMessage = document.getElementById('alertMessage').value;
-    const signupSuccess = document.getElementById('signupSuccess').value === 'true';
-
-    if (signupSuccess) {
-        loader.style.display = 'flex';
-
-        // Send email
-        fetch('../Mail/sendWelcomeEmail.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Redirect after email is sent
-                setTimeout(() => {
-                    loader.style.display = 'none';
-                    window.location.href = '../User/HomePage.php';
-                }, 1000);
-            } else {
-                // Handle email sending error
-                loader.style.display = 'none';
-                showAlert('Account created but failed to send welcome email. Please contact support.');
-                setTimeout(() => {
-                    window.location.href = '../User/HomePage.php';
-                }, 3000);
-            }
-        })
-        .catch(error => {
-            loader.style.display = 'none';
-            showAlert('Account created but failed to send welcome email. Please contact support.');
-            setTimeout(() => {
-                window.location.href = '../User/HomePage.php';
-            }, 3000);
-        });
-    } else if (alertMessage) {
-        // Show Alert
-        showAlert(alertMessage);
-    }
-
     // Add keyup event listeners for real-time validation
-    document.getElementById("username").addEventListener("keyup", validateUsername);
-    document.getElementById("emailInput").addEventListener("keyup", validateEmail);
-    document.getElementById("passwordInput").addEventListener("keyup", validatePassword);
-    document.getElementById("phone").addEventListener("keyup", validatePhone);
+    const usernameInput = document.getElementById("username");
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const phoneInput = document.getElementById("phone");
+
+    if (usernameInput) usernameInput.addEventListener("keyup", validateUsername);
+    if (emailInput) emailInput.addEventListener("keyup", validateEmail);
+    if (passwordInput) passwordInput.addEventListener("keyup", validatePassword);
+    if (phoneInput) phoneInput.addEventListener("keyup", validatePhone);
 
     const signupForm = document.getElementById("signupForm");
-    if (signupForm) {
-        signupForm.addEventListener("submit", (e) => {
-            if (!validateSignUpForm()) {
-                e.preventDefault();
-            }
-        });
-    }
-});
-
-// // Sign In
-document.addEventListener("DOMContentLoaded", () => {
     const loader = document.getElementById('loader');
-    const signInSuccess = document.getElementById('signinSuccess').value === 'true';
-    const isAccountLocked = document.getElementById('isAccountLocked').value === 'true';
 
-    if (signInSuccess) {
-        loader.style.display = 'flex'; 
-
-        setTimeout(() => {
-            loader.style.display = 'none'; 
-            window.location.href = '../User/HomePage.php';
-        }, 1000); 
-    } else if (isAccountLocked) {
-        window.location.href = '../User/WaitingRoom.php';
-    }
-
-    // Add keyup event listeners for real-time validation
-    document.getElementById("emailInput").addEventListener("keyup", validateEmail);
-    document.getElementById("passwordInput2").addEventListener("keyup", validatePasswordSignIn);
-
-    const signinForm = document.getElementById("signinForm");
-    if (signinForm) {
-        signinForm.addEventListener("submit", (e) => {
-            if (!validateSignInForm()) {
-                e.preventDefault();
+    if (signupForm) {
+        signupForm.addEventListener("submit", function(e) {
+            e.preventDefault();
+            
+            if (!validateSignUpForm()) {
+                return;
             }
+
+            const formData = new FormData(this);
+            
+            // Show loader
+            if (loader) loader.style.display = 'flex';
+            
+            fetch('../User/UserSignUp.php', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Hide loader
+                if (loader) loader.style.display = 'none';
+                
+                if (data.success) {
+                    // Successful sign-up
+                    if (loader) loader.style.display = 'flex';
+
+                    // Send email
+                    fetch('../Mail/sendWelcomeEmail.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Redirect after email is sent
+                            setTimeout(() => {
+                                if (loader) loader.style.display = 'none';
+                                window.location.href = '../User/HomePage.php';
+                            }, 1000);
+                        } else {
+                            // Handle email sending error
+                            if (loader) loader.style.display = 'none';
+                            showAlert('Account created but failed to send welcome email. Please contact support.');
+                            setTimeout(() => {
+                                window.location.href = '../User/HomePage.php';
+                            }, 3000);
+                        }
+                    })
+                    .catch(error => {
+                        if (loader) loader.style.display = 'none';
+                        showAlert('Account created but failed to send welcome email. Please contact support.');
+                        setTimeout(() => {
+                            window.location.href = '../User/HomePage.php';
+                        }, 3000);
+                    });
+                } else {
+                    // Show error message
+                    showAlert(data.message || 'Sign-up failed. Please try again.', 'error');
+                }
+            })
+            .catch(error => {
+                // Hide loader on error
+                if (loader) loader.style.display = 'none';
+                showAlert('An error occurred. Please try again.', 'error');
+                console.error('Error:', error);
+            });
         });
     }
 });
 
 // Sign In
-// document.addEventListener("DOMContentLoaded", () => {
-//     // Add keyup event listeners for real-time validation
-//     document.getElementById("emailInput")?.addEventListener("keyup", validateEmail);
-//     document.getElementById("passwordInput2")?.addEventListener("keyup", validatePasswordSignIn);
+document.addEventListener("DOMContentLoaded", () => {
+    // Add keyup event listeners for real-time validation
+    document.getElementById("emailInput")?.addEventListener("keyup", validateEmail);
+    document.getElementById("passwordInput2")?.addEventListener("keyup", validatePasswordSignIn);
 
-//     const signinForm = document.getElementById("signinForm");
-//     if (signinForm) {
-//         signinForm.addEventListener("submit", function(e) {
-//             e.preventDefault();
+    const signinForm = document.getElementById("signinForm");
+    const loader = document.getElementById('loader');
+
+    if (signinForm) {
+        signinForm.addEventListener("submit", function(e) {
+            e.preventDefault();
             
-//             if (validateSignInForm()) {
-//                 const loader = document.getElementById('loader');
-//                 const formData = new FormData(this);
+            if (!validateSignInForm()) {
+                return;
+            }
+
+            const formData = new FormData(this);
+            
+            // Show loader
+            if (loader) loader.style.display = 'flex';
+            
+            fetch('../User/UserSignIn.php', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Hide loader
+                if (loader) loader.style.display = 'none';
                 
-//                 loader.style.display = 'flex';
-                
-//                 fetch('../User/UserSignIn.php', {
-//                     method: 'POST',
-//                     body: formData
-//                 })
-//                 .then(response => {
-//                     if (!response.ok) {
-//                         throw new Error('Network response was not ok');
-//                     }
-//                     return response.json();
-//                 })
-//                 .then(data => {
-//                     loader.style.display = 'none';
-                    
-//                     if (data.success) {
-//                         // Successful sign-in
-//                         loader.style.display = 'flex';
-//                         setTimeout(() => {
-//                             window.location.href = '../User/HomePage.php';
-//                         }, 1000);
-//                     } else if (data.locked) {
-//                         // Account locked
-//                         window.location.href = '../User/WaitingRoom.php';
-//                     } else {
-//                         // Show error message
-//                         showAlert(data.message, 'error');
-//                     }
-//                 })
-//                 .catch(error => {
-//                     loader.style.display = 'none';
-//                     showAlert('An error occurred. Please try again.', 'error');
-//                     console.error('Error:', error);
-//                 });
-//             }
-//         });
-//     }
-// });
+                if (data.success) {
+                    // Successful sign-in
+                    if (loader) loader.style.display = 'flex';
+                    window.location.href = '../User/HomePage.php';
+                } else if (data.locked) {
+                    // Account locked
+                    window.location.href = '../User/WaitingRoom.php';
+                } else {
+                    // Show error message
+                    showAlert(data.message || 'Sign-in failed. Please try again.', 'error');
+                }
+            })
+            .catch(error => {
+                // Hide loader on error
+                if (loader) loader.style.display = 'none';
+                showAlert('An error occurred. Please try again.', 'error');
+                console.error('Error:', error);
+            });
+        });
+    }
+});
 
 // Reset Password
 document.addEventListener("DOMContentLoaded", () => {

@@ -14,6 +14,43 @@ window.addEventListener('scroll', () => {
     }
 });
 
+// Checkin Form
+let checkin_form = document.getElementById('checkin-form');
+let lastScrollPosition = window.scrollY;
+let isScrollingDown = false;
+
+if (checkin_form) {
+    // Show form initially at page load (top of page)
+    checkin_form.style.bottom = '32px';
+    
+    window.addEventListener('scroll', () => {
+        // Determine scroll direction
+        const currentScrollPosition = window.scrollY;
+        isScrollingDown = currentScrollPosition > lastScrollPosition;
+        lastScrollPosition = currentScrollPosition;
+        
+        // Calculate scroll position
+        let scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+        let scrollPercentage = (window.scrollY / scrollableHeight) * 100;
+        
+        // At very top of page (start point), always show
+        if (window.scrollY <= 10) {  
+            checkin_form.style.bottom = '32px';
+        }
+        else if (isScrollingDown) {
+            // When scrolling down, show until 80%
+            if (scrollPercentage < 80) {
+                checkin_form.style.bottom = '32px';  // Show form
+            } else {
+                checkin_form.style.bottom = '-100%'; // Hide after 80%
+            }
+        } else {
+            // When scrolling up, hide immediately
+            checkin_form.style.bottom = '-100%';
+        }
+    });
+}
+
 // Cookie Modal
 const cookieModal = document.getElementById('cookieModal');
 if (cookieModal) {
@@ -267,16 +304,14 @@ if (logoutBtn && confirmModal && cancelBtn && confirmLogoutBtn && darkOverlay2) 
         // Show the loader
         const loader = document.getElementById('loader');
         if (loader) {
-            loader.style.display = 'flex'; // Show the loader
+            loader.style.display = 'flex';
         }
     
         // Notify the server to destroy the session
         fetch('../User/UserLogout.php', { method: 'POST' })
             .then(() => {
                 // Redirect after logout
-                setTimeout(() => {
-                    window.location.href = 'HomePage.php';
-                }, 1000);
+                window.location.href = 'HomePage.php';
             })
             .catch((error) => {
                 console.error('Logout failed:', error);

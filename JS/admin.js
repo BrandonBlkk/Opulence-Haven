@@ -64,9 +64,7 @@ if (adminLogoutBtn && adminConfirmModal && cancelBtn && adminConfirmLogoutBtn &&
         fetch('AdminLogout.php', { method: 'POST' })
             .then(() => {
                 // Redirect after logout
-                setTimeout(() => {
-                    window.location.href = 'AdminSignin.php';
-                }, 1000);
+                window.location.href = 'AdminSignin.php';
             })
             .catch((error) => console.error('Logout failed:', error));
     });
@@ -3530,14 +3528,12 @@ if (adminProfileDeleteBtn && confirmDeleteModal && cancelDeleteBtn && confirmDel
         loader.style.display = "flex";
 
         // Notify the server to delete the account
-        fetch("AdminAccountDelete.php", {
+        fetch("../Admin/AdminAccountDelete.php", {
             method: "POST",
         })
             .then(() => {
                 // Redirect after account deletion
-                setTimeout(() => {
-                    window.location.href = "AdminSignin.php";
-                }, 1000);
+                window.location.href = "AdminSignin.php";
             })
             .catch((error) => console.error("Account deletion failed:", error));
     });
@@ -3547,7 +3543,6 @@ if (adminProfileDeleteBtn && confirmDeleteModal && cancelDeleteBtn && confirmDel
 document.addEventListener("DOMContentLoaded", () => {
     // Get form elements
     const updateAdminProfileForm = document.getElementById("updateAdminProfileForm");
-    const loader = document.getElementById("loader");
     const alertMessage = document.getElementById('alertMessage')?.value;
     const profileUpdate = document.getElementById('profileUpdate')?.value === 'true';
 
@@ -3574,9 +3569,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // Show loader
-            if (loader) loader.style.display = 'flex';
-
             // Create FormData object
             const formData = new FormData(updateAdminProfileForm);
             formData.append('modify', true);
@@ -3593,8 +3585,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 return response.json();
             })
             .then(data => {
-                // Hide loader
-                if (loader) loader.style.display = 'none';
+                if (data.newUsername) {
+                    const sidebarUsername = document.getElementById('adminUsername');
+                    if (sidebarUsername) {
+                        sidebarUsername.textContent = data.newUsername;
+                    }
+                }
 
                 if (data.success) {
                     if (data.changesMade) {
