@@ -2,6 +2,7 @@
 session_start();
 include('../config/dbConnection.php');
 include('../includes/AutoIDFunc.php');
+include('../includes/MaskEmail.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -143,6 +144,7 @@ if ($userID) {
 
 // Remove room from reservation
 if (isset($_POST['remove_room'])) {
+    $response = ['success' => false];
     $reservation_id = $_POST["reservation_id"];
     $room_id = $_POST["room_id"];
 
@@ -174,8 +176,11 @@ if (isset($_POST['remove_room'])) {
         $stmt->execute();
     }
 
-    // Redirect back to the reservation page
-    header("Location: Reservation.php?checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children");
+    $response['success'] = true;
+
+    // Return JSON response for AJAX
+    header('Content-Type: application/json');
+    echo json_encode($response);
     exit();
 }
 
@@ -756,9 +761,9 @@ if (isset($_GET['payment'])) {
                     <div class="w-full">
                         <!-- Display reserved rooms -->
                         <?php if (!empty($reservedRooms)): ?>
-                            <div class="space-y-2">
+                            <div id="reserved-rooms-container" class="space-y-2">
                                 <?php foreach ($reservedRooms as $room): ?>
-                                    <div class="flex flex-col md:flex-row rounded-md shadow-sm border">
+                                    <div class="reserved-room flex flex-col md:flex-row rounded-md shadow-sm border">
                                         <div class="md:w-[48%] h-56 overflow-hidden select-none rounded-l-md relative">
                                             <img src="../Admin/<?= htmlspecialchars($room['RoomCoverImage']) ?>"
                                                 alt="<?= htmlspecialchars($room['RoomType']) ?>"
@@ -792,8 +797,7 @@ if (isset($_GET['payment'])) {
                                                 <?= $room['Children'] > 0 ? ' + ' . $room['Children'] . ' child' . ($room['Children'] > 1 ? 'ren' : '') : '' ?>
                                             </div>
 
-                                            <!-- Edit and Remove room button -->
-                                            <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" class="mt-4 flex gap-3">
+                                            <form class="edit-remove-room-form" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" class="mt-4 flex gap-3">
                                                 <input type="hidden" name="reservation_id" value="<?= $reservationID ?>">
                                                 <input type="hidden" name="room_id" value="<?= $room['RoomID'] ?>">
                                                 <input type="hidden" name="checkin_date" value="<?= $room['CheckInDate'] ?>">
@@ -801,21 +805,25 @@ if (isset($_GET['payment'])) {
                                                 <input type="hidden" name="adults" value="<?= $room['Adult'] ?>">
                                                 <input type="hidden" name="children" value="<?= $room['Children'] ?>">
 
-                                                <!-- Edit Room Button (now a submit button with a specific action) -->
                                                 <button type="submit" name="edit_room"
                                                     class="text-blue-600 hover:text-blue-800 text-sm font-medium">
                                                     Edit Room
                                                 </button>
 
-                                                <!-- Remove Room Button -->
-                                                <button type="submit" name="remove_room"
-                                                    class="text-red-600 hover:text-red-800 text-sm font-medium">
+                                                <button type="button" name="remove_room" class="remove-room-btn text-red-600 hover:text-red-800 text-sm font-medium">
                                                     Remove Room
                                                 </button>
                                             </form>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
+                            </div>
+
+                            <div id="no-rooms-message" class="text-center py-32" style="display: none;">
+                                <p class="text-gray-500">You don't have any rooms reserved yet.</p>
+                                <a href="RoomBooking.php" class="text-blue-600 hover:underline mt-2 inline-block">
+                                    Browse available rooms
+                                </a>
                             </div>
                         <?php else: ?>
                             <div class="text-center py-32">
@@ -876,7 +884,7 @@ if (isset($_GET['payment'])) {
 
                             <div class="mb-6">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Email address <span class="text-red-500">*</span></label>
-                                <input type="email" value="<?= $userData['UserEmail'] ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" disabled>
+                                <input type="email" value="<?= maskEmail($userData['UserEmail']) ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" disabled>
                             </div>
 
                             <div class="mb-6 relative">
