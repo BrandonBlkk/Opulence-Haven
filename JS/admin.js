@@ -499,12 +499,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         
                         showAlert('The supplier has been successfully deleted.');
                     } else {
-                        showAlert(data.message || 'Failed to delete supplier.');
+                        showAlert(data.message || 'Failed to delete supplier.', true);
                     }
                 })
                 .catch((err) => {
                     console.error('Error:', err);
-                    showAlert('An error occurred. Please try again.');
+                    showAlert('An error occurred. Please try again.', true);
                 });
             });
         }
@@ -840,12 +840,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         
                         showAlert('The product type has been successfully deleted.');
                     } else {
-                        showAlert(data.message || 'Failed to delete product type.');
+                        showAlert(data.message || 'Failed to delete product type.', true);
                     }
                 })
                 .catch((err) => {
                     console.error('Error:', err);
-                    showAlert('An error occurred. Please try again.');
+                    showAlert('An error occurred. Please try again.', true);
                 });
             });
         }
@@ -1175,12 +1175,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         
                         showAlert('The product has been successfully deleted.');
                     } else {
-                        showAlert(data.message || 'Failed to delete product.');
+                        showAlert(data.message || 'Failed to delete product.', true);
                     }
                 })
                 .catch((err) => {
                     console.error('Error:', err);
-                    showAlert('An error occurred. Please try again.');
+                    showAlert('An error occurred. Please try again.', true);
                 });
             });
         }
@@ -1677,12 +1677,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         fetchAndRenderRooms();
                         showAlert('The room has been successfully deleted.');
                     } else {
-                        showAlert(data.message || 'Failed to delete room.');
+                        showAlert(data.message || 'Failed to delete room.', true);
                     }
                 })
                 .catch((err) => {
                     console.error('Error:', err);
-                    showAlert('An error occurred. Please try again.');
+                    showAlert('An error occurred. Please try again.', true);
                 });
             });
         }
@@ -1989,12 +1989,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         
                         showAlert('The facility type has been successfully deleted.');
                     } else {
-                        showAlert(data.message || 'Failed to delete facility type.');
+                        showAlert(data.message || 'Failed to delete facility type.', true);
                     }
                 })
                 .catch((err) => {
                     console.error('Error:', err);
-                    showAlert('An error occurred. Please try again.');
+                    showAlert('An error occurred. Please try again.', true);
                 });
             });
         }
@@ -2303,12 +2303,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         
                         showAlert('The facility has been successfully deleted.');
                     } else {
-                        showAlert(data.message || 'Failed to delete facility.');
+                        showAlert(data.message || 'Failed to delete facility.', true);
                     }
                 })
                 .catch((err) => {
                     console.error('Error:', err);
-                    showAlert('An error occurred. Please try again.');
+                    showAlert('An error occurred. Please try again.', true);
                 });
             });
         }
@@ -2621,12 +2621,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         
                         showAlert('The rule has been successfully deleted.');
                     } else {
-                        showAlert(data.message || 'Failed to delete rule.');
+                        showAlert(data.message || 'Failed to delete rule.', true);
                     }
                 })
                 .catch((err) => {
                     console.error('Error:', err);
-                    showAlert('An error occurred. Please try again.');
+                    showAlert('An error occurred. Please try again.', true);
                 });
             });
         }
@@ -3166,12 +3166,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         
                         showAlert('The product size has been successfully deleted.');
                     } else {
-                        showAlert(data.message || 'Failed to delete product size.');
+                        showAlert(data.message || 'Failed to delete product size.', true);
                     }
                 })
                 .catch((err) => {
                     console.error('Error:', err);
-                    showAlert('An error occurred. Please try again.');
+                    showAlert('An error occurred. Please try again.', true);
                 });
             });
         }
@@ -3376,13 +3376,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     showAlert('Response sent successfully and email notification delivered.', 'success');
                     window.location.href = '../Admin/UserContact.php';
                 } else {
-                    showAlert(`Response saved but failed to send email notification: ${data.message || 'Please try again.'}`, 'error');
+                    showAlert(`Response saved but failed to send email notification: ${data.message || 'Please try again.'}`, true);
                     window.location.href = '../Admin/UserContact.php';
                 }
             })
             .catch(error => {
                 if (loader) loader.style.display = 'none';
-                showAlert(`Response saved but failed to send email notification: ${error.message}`, 'error');
+                showAlert(`Response saved but failed to send email notification: ${error.message}`, true);
                 window.location.href = '../Admin/UserContact.php';
             });
         } else if (alertMessage) {
@@ -3469,13 +3469,12 @@ if (changePasswordBtn && changePasswordModal && cancelChangeBtn && darkOverlay2)
                     document.getElementById("newPasswordInput").value = "";
                     document.getElementById("confirmPasswordInput").value = "";
                 } else {
-                    showAlert(data.message || 'Failed to change password. Please try again.');
+                    showAlert(data.message || 'Failed to change password. Please try again.', true);
                 }
             })
             .catch(error => {
                 if (loader) loader.style.display = 'none';
-                showAlert('An error occurred. Please try again.');
-                console.error('Error:', error);
+                showAlert('An error occurred. Please try again.', true);
             });
         });
     }
@@ -3613,13 +3612,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         showAlert(data.message);
                     }
                 } else {
-                    showAlert(data.message || 'Failed to update profile. Please try again.');
+                    showAlert(data.message || 'Failed to update profile. Please try again.', true);
                 }
             })
             .catch(error => {
                 if (loader) loader.style.display = 'none';
-                showAlert('An error occurred. Please try again.');
-                console.error('Error:', error);
+                showAlert('An error occurred. Please try again.', true);
             });
         });
     }

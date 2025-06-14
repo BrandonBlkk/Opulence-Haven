@@ -6,11 +6,6 @@ if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-// Check if the user is logged in
-if (!isset($_SESSION['UserID'])) {
-    die("User not logged in.");
-}
-
 $userId = $_SESSION['UserID'];
 
 // Fetch all products favorited by the logged-in user
