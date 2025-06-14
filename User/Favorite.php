@@ -8,6 +8,7 @@ if (!$connect) {
 
 // Initialize array to store favorite rooms
 $favorite_rooms = [];
+$response = ['success' => false, 'message' => ''];
 $userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
 
 // Check if user is logged in
@@ -26,30 +27,20 @@ if (isset($_SESSION['UserID'])) {
     }
 }
 
-// Add room to favorites
+// Remove room from favorites
 if (isset($_POST['room_favourite'])) {
     if ($userID) {
         $roomTypeID = $_POST['roomTypeID'];
 
-        $check = "SELECT COUNT(*) as count FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
-        $result = $connect->query($check);
-        $count = $result->fetch_assoc()['count'];
+        $delete = "DELETE FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
+        $connect->query($delete);
 
-        if ($count == 0) {
-            $insert = "INSERT INTO roomtypefavoritetb (UserID, RoomTypeID, CheckInDate, CheckOutDate, Adult, Children) 
-                      VALUES ('$userID', '$roomTypeID', '$checkin_date', '$checkout_date', '$adults', '$children')";
-            $connect->query($insert);
-        } else {
-            $delete = "DELETE FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
-            $connect->query($delete);
-        }
-
-        // Refresh page
-        header("Location: Favorite.php");
-        exit();
-    } else {
-        $showLoginModal = true;
+        $response = ['success' => true];
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 ?>
 
@@ -102,14 +93,58 @@ if (isset($_POST['room_favourite'])) {
                             <!-- Image -->
                             <div class="md:w-[28%] h-64 overflow-hidden select-none rounded-l-md relative">
                                 <img src="../Admin/<?= htmlspecialchars($room['RoomCoverImage']) ?>" alt="" class="w-full h-full object-cover">
-                                <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post">
+                                <form class="favoriteForms" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post">
                                     <input type="hidden" name="roomTypeID" value="<?= $room['RoomTypeID'] ?>">
                                     <button type="submit" name="room_favourite">
-                                        <!-- Changed this line to use $is_favorited -->
                                         <i class="absolute top-3 right-3 ri-heart-fill text-xl cursor-pointer flex items-center justify-center bg-white w-9 h-9 rounded-full hover:bg-slate-100 transition-colors duration-300 <?= $is_favorited ? 'text-red-500 hover:text-red-600' : 'text-slate-400 hover:text-red-300' ?>"></i>
                                     </button>
                                 </form>
                             </div>
+
+                            <script>
+                                document.addEventListener("DOMContentLoaded", () => {
+                                    const favoriteForms = document.getElementById("favoriteForms");
+
+                                    if (favoriteForms) {
+                                        favoriteForms.forEach(form => {
+                                            form.addEventListener("submit", function(e) {
+                                                e.preventDefault();
+
+                                                const formData = new FormData(this);
+
+                                                fetch('../User/Favorite.php', {
+                                                        method: 'POST',
+                                                        body: formData,
+                                                        headers: {
+                                                            'Accept': 'application/json'
+                                                        }
+                                                    })
+                                                    .then(response => {
+                                                        if (!response.ok) {
+                                                            // Revert visual state if request failed
+                                                            icon.classList.toggle('text-red-500', isFavorited);
+                                                            icon.classList.toggle('text-slate-400', !isFavorited);
+                                                            icon.classList.toggle('hover:text-red-600', isFavorited);
+                                                            icon.classList.toggle('hover:text-red-300', !isFavorited);
+                                                            throw new Error('Network response was not ok');
+                                                        }
+                                                        return response.json();
+                                                    })
+                                                    .then(data => {
+                                                        if (data.success) {
+                                                            //
+                                                        } else {
+                                                            //
+                                                        }
+                                                    })
+                                                    .catch(error => {
+                                                        console.error('Error:', error);
+                                                    });
+                                            });
+                                        });
+                                    }
+                                });
+                            </script>
 
                             <!-- Details -->
                             <div class="md:w-2/3 p-5">

@@ -338,66 +338,46 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
 }
 
 // Add room to favorites
-// if (isset($_POST['room_favourite'])) {
-//     if ($userID) {
-//         $roomTypeID = $_POST['roomTypeID'];
-
-//         // Get search parameters from POST data 
-//         $checkin_date = isset($_POST['checkin_date']) ? $_POST['checkin_date'] : '';
-//         $checkout_date = isset($_POST['checkout_date']) ? $_POST['checkout_date'] : '';
-//         $adults = isset($_POST['adults']) ? intval($_POST['adults']) : 1;
-//         $children = isset($_POST['children']) ? intval($_POST['children']) : 0;
-
-//         $check = "SELECT COUNT(*) as count FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
-//         $result = $connect->query($check);
-//         $count = $result->fetch_assoc()['count'];
-
-//         if ($count == 0) {
-//             $insert = "INSERT INTO roomtypefavoritetb (UserID, RoomTypeID, CheckInDate, CheckOutDate, Adult, Children) 
-//                       VALUES ('$userID', '$roomTypeID', '$checkin_date', '$checkout_date', '$adults', '$children')";
-//             $connect->query($insert);
-//         } else {
-//             $delete = "DELETE FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
-//             $connect->query($delete);
-//         }
-
-//         // Redirect back with the same search parameters
-//         $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children";
-//         header("Location: $redirect_url");
-//         exit();
-//     } else {
-//         $showLoginModal = true;
-//     }
-// }
-
-// Add room to favorites
 if (isset($_POST['room_favourite'])) {
-    $res = ['status' => ''];
+    // Initialize response
+    $res = ['status' => '', 'error' => ''];
 
-    if ($userID) {
-        $roomTypeID = $_POST['roomTypeID'];
-        $checkin_date = isset($_POST['checkin_date']) ? $_POST['checkin_date'] : '';
-        $checkout_date = isset($_POST['checkout_date']) ? $_POST['checkout_date'] : '';
+    if (isset($userID) && $userID) {
+        $roomTypeID = $connect->real_escape_string($_POST['roomTypeID']);
+        $checkin_date = isset($_POST['checkin_date']) ? $connect->real_escape_string($_POST['checkin_date']) : '';
+        $checkout_date = isset($_POST['checkout_date']) ? $connect->real_escape_string($_POST['checkout_date']) : '';
         $adults = isset($_POST['adults']) ? intval($_POST['adults']) : 1;
         $children = isset($_POST['children']) ? intval($_POST['children']) : 0;
 
-        $check = "SELECT COUNT(*) as count FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
-        $result = $connect->query($check);
-        $count = $result->fetch_assoc()['count'];
+        // Check if already favorited
+        $check = $connect->query("SELECT COUNT(*) as count FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'");
 
-        if ($count == 0) {
-            $insert = "INSERT INTO roomtypefavoritetb (UserID, RoomTypeID, CheckInDate, CheckOutDate, Adult, Children) 
-                      VALUES ('$userID', '$roomTypeID', '$checkin_date', '$checkout_date', '$adults', '$children')";
-            $connect->query($insert);
-            $res['status'] = 'added';
+        if ($check && $row = $check->fetch_assoc()) {
+            if ($row['count'] == 0) {
+                // Add to favorites
+                $insert = $connect->query("INSERT INTO roomtypefavoritetb (UserID, RoomTypeID, CheckInDate, CheckOutDate, Adult, Children) 
+                                          VALUES ('$userID', '$roomTypeID', '$checkin_date', '$checkout_date', '$adults', '$children')");
+                if ($insert) {
+                    $res['status'] = 'added';
+                } else {
+                    $res['error'] = 'Insert failed: ' . $connect->error;
+                }
+            } else {
+                // Remove from favorites
+                $delete = $connect->query("DELETE FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'");
+                if ($delete) {
+                    $res['status'] = 'removed';
+                } else {
+                    $res['error'] = 'Delete failed: ' . $connect->error;
+                }
+            }
         } else {
-            $delete = "DELETE FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
-            $connect->query($delete);
-            $res['status'] = 'removed';
+            $res['error'] = 'Failed to check favorite status';
         }
     } else {
         $res['status'] = 'not_logged_in';
     }
+
     header('Content-Type: application/json');
     echo json_encode($res);
     exit();
@@ -755,62 +735,17 @@ if (isset($_POST['submitreview'])) {
                         $is_favorited = $favorite_result->fetch_assoc()['count'] > 0;
                         ?>
 
-                        <script>
-                            document.addEventListener('DOMContentLoaded', function() {
-                                document.querySelectorAll('button[name="room_favourite"]').forEach(button => {
-                                    button.addEventListener('click', function(e) {
-                                        e.preventDefault();
-
-                                        const form = this.closest('form');
-                                        const formData = new FormData(form);
-                                        const heartIcon = this.querySelector('i');
-
-                                        heartIcon.classList.add('ri-loader-4-line', 'animate-spin');
-                                        heartIcon.classList.remove('ri-heart-fill');
-
-                                        fetch(location.href, {
-                                                method: 'POST',
-                                                body: formData
-                                            })
-                                            .then(response => {
-                                                if (!response.ok) throw new Error('Network response was not ok');
-                                                return response.json();
-                                            })
-                                            .then(data => {
-                                                heartIcon.classList.remove('ri-loader-4-line', 'animate-spin');
-                                                heartIcon.classList.add('ri-heart-fill');
-
-                                                if (data.status === 'added') {
-                                                    heartIcon.classList.add('text-red-500', 'hover:text-red-600');
-                                                    heartIcon.classList.remove('text-slate-400', 'hover:text-red-300');
-                                                } else if (data.status === 'removed') {
-                                                    heartIcon.classList.add('text-slate-400', 'hover:text-red-300');
-                                                    heartIcon.classList.remove('text-red-500', 'hover:text-red-600');
-                                                } else if (data.status === 'not_logged_in') {
-                                                    document.getElementById('loginModal').classList.remove('hidden');
-                                                }
-                                            })
-                                            .catch(error => {
-                                                console.error('Error:', error);
-                                                window.alert('Error: ' + error.message);
-                                                heartIcon.classList.remove('ri-loader-4-line', 'animate-spin');
-                                                heartIcon.classList.add('ri-heart-fill');
-                                            });
-                                    });
-                                });
-                            });
-                        </script>
-
-                        <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post">
-                            <input type="hidden" name="checkin_date" value="<?= $checkin_date ?>">
-                            <input type="hidden" name="checkout_date" value="<?= $checkout_date ?>">
-                            <input type="hidden" name="adults" value="<?= $adults ?>">
-                            <input type="hidden" name="children" value="<?= $children ?>">
-                            <input type="hidden" name="roomTypeID" value="<?= $roomtype['RoomTypeID'] ?>">
+                        <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post" id="favoriteForms">
+                            <input type="hidden" name="checkin_date" value="<?= htmlspecialchars($checkin_date) ?>">
+                            <input type="hidden" name="checkout_date" value="<?= htmlspecialchars($checkout_date) ?>">
+                            <input type="hidden" name="adults" value="<?= htmlspecialchars($adults) ?>">
+                            <input type="hidden" name="children" value="<?= htmlspecialchars($children) ?>">
+                            <input type="hidden" name="roomTypeID" value="<?= htmlspecialchars($roomtype['RoomTypeID']) ?>">
                             <button type="submit" name="room_favourite">
                                 <i class="ri-heart-fill text-2xl cursor-pointer flex items-center justify-center bg-white w-11 h-11 rounded-full hover:bg-slate-100 transition-colors duration-300 <?= $is_favorited ? 'text-red-500 hover:text-red-600' : 'text-slate-400 hover:text-red-300' ?>"></i>
                             </button>
                         </form>
+
                         <button
                             onclick="scrollToAvailability()"
                             class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-2 rounded transition-colors select-none">

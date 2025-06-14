@@ -185,7 +185,6 @@ include('../User/CleanupReservations.php');
                     <p class="font-semibold text-gray-600 text-center py-4">You have no items in your cart.</p>
                 <?php endif; ?>
             </div>
-
         </div>
     </div>
 </section>

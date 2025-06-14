@@ -108,46 +108,59 @@ darkOverlay.addEventListener('click', () => {
 // Product Size Select
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById('addToBagForm');
-    const productId = document.getElementById('product_ID')?.value;
     const sizeDropdown = document.getElementById('size');
     const sizeError = document.getElementById('sizeError');
-    const addToBagSuccess = document.getElementById('addToBagSuccess')?.value === 'true';
-    const alertMessage = document.getElementById('alertMessage')?.value;
-    const loader = document.getElementById('loader');
 
     if (form && sizeDropdown && sizeError) {
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', function(e) {
             // Check if the submit button pressed was 'addtobag'
             const submitter = e.submitter;
             if (submitter && submitter.name === 'addtobag') {
+                e.preventDefault(); // Prevent default form submission
+                
                 if (sizeDropdown.value === '') {
-                    e.preventDefault();
                     sizeError.classList.remove('hidden');
                     sizeDropdown.classList.add('border-red-500');
-                } else {
-                    sizeError.classList.add('hidden');
-                    sizeDropdown.classList.remove('border-red-500');
+                    return; // Exit if no size selected
                 }
+                
+                sizeError.classList.add('hidden');
+                sizeDropdown.classList.remove('border-red-500');
+                
+                // Prepare form data
+                const formData = new FormData(form);
+                const stockDisplay = document.getElementById('stockDisplay');
+                
+                // AJAX request
+                fetch('../Store/StoreDetails.php', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {                    
+                    if (data.success) {
+                        showAlert('Product added to bag successfully!');
+                        stockDisplay.textContent = data.stock;
+                    } else if (data.outofstock) {
+                        showAlert('Product is out of stock', true);
+                    } else {
+                        showAlert(data.message || 'Failed to add product to bag', true);
+                    }
+                })
+                .catch(error => {
+                    if (loader) loader.style.display = 'none';
+                    showAlert('An error occurred. Please try again.', true);
+                });
             }
         });
-    }
-
-    // Handle success case after page load
-    if (addToBagSuccess && loader) {
-        loader.style.display = 'flex';
-   
-        setTimeout(() => {
-            loader.style.display = 'none';
-            showAlert('Product added to bag successfully!');
-            setTimeout(() => {
-                window.location.href = `../Store/StoreDetails.php?product_ID=${encodeURIComponent(productId)}`;
-            }, 5000);
-        }, 1000);
-    }
-
-    // Handle alert message if present
-    if (alertMessage) {
-        showAlert(alertMessage);
     }
 });
 

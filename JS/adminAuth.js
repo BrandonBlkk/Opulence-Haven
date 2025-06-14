@@ -49,13 +49,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     window.location.href = '../Admin/AdminDashboard.php';
                 } else {
                     // Show error message
-                    showAlert(data.message || 'Sign-up failed. Please try again.', 'error');
+                    showAlert(data.message || 'Sign-up failed. Please try again.', true);
                 }
             })
             .catch(error => {
                 // Hide loader on error
                 if (loader) loader.style.display = 'none';
-                showAlert('An error occurred. Please try again.', 'error');
+                showAlert('An error occurred. Please try again.', true);
                 console.error('Error:', error);
             });
         });
@@ -110,13 +110,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     window.location.href = '../User/WaitingRoom.php';
                 } else {
                     // Show error message
-                    showAlert(data.message || 'Sign-in failed. Please try again.', 'error');
+                    showAlert(data.message || 'Sign-in failed. Please try again.', true);
                 }
             })
             .catch(error => {
                 // Hide loader on error
                 if (loader) loader.style.display = 'none';
-                showAlert('An error occurred. Please try again.', 'error');
+                showAlert('An error occurred. Please try again.', true);
                 console.error('Error:', error);
             });
         });

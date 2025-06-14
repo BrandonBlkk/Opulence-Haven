@@ -7,7 +7,7 @@ if (!$connect) {
 }
 
 $alertMessage = "";
-$addToBagSuccess = false;
+$response = ['success' => false, 'message' => '', 'outofstock' => false, 'stock' => 0];
 $session_userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
 
 if (isset($_GET["product_ID"])) {
@@ -101,21 +101,25 @@ if (isset($_POST['removefromfavorites'])) {
     header("Location: ../Store/StoreDetails.php?product_ID=$product_id");
 }
 
-// // Add product to cart
+// Add product to cart
 if (isset($_POST['addtobag'])) {
-    $product_size = $_POST['size'];
+    $product_id = isset($_POST['product_Id']) ? $_POST['product_Id'] : '';
+    $product_size = isset($_POST['size']) ? $_POST['size'] : '';
 
-    // Get stock from database for this product and size
-    $stock_query = "SELECT Stock FROM producttb WHERE ProductID = '$product_id'";
-    $stock_result = $connect->query($stock_query);
+    // Get stock from database for this product
+    $stock_query = $connect->prepare("SELECT Stock FROM producttb WHERE ProductID = ?");
+    $stock_query->bind_param("s", $product_id);
+    $stock_query->execute();
+    $stock_result = $stock_query->get_result();
     $stock_data = $stock_result->fetch_assoc();
     $stock = isset($stock_data['Stock']) ? (int)$stock_data['Stock'] : 0;
 
     if ($stock > 0) {
         // Reduce stock in the database
         $new_stock = $stock - 1;
-        $update_stock = "UPDATE producttb SET Stock = '$new_stock' WHERE ProductID = '$product_id'";
-        $connect->query($update_stock);
+        $update_stock = $connect->prepare("UPDATE producttb SET Stock = ? WHERE ProductID = ?");
+        $update_stock->bind_param("is", $new_stock, $product_id);
+        $update_stock->execute();
 
         // Initialize cart in session if it doesn't exist
         if (!isset($_SESSION['cart'])) {
@@ -138,10 +142,15 @@ if (isset($_POST['addtobag'])) {
             );
         }
 
-        $addToBagSuccess = true;
+        $response['success'] = true;
+        $response['stock'] = $new_stock;
     } else {
-        $addToBagError = "Out of stock.";
+        $response['outofstock'] = true;
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Product Review
@@ -294,7 +303,7 @@ if ($productReviewSelectQuery->num_rows > 0) {
                         ?>
                     </div>
                     <div class="flex gap-1 items-center">
-                        <p class="text-sm text-gray-500">(<?= $stock; ?> <?= ($stock > 1) ? 'available' : 'available' ?>)</p>
+                        <p class="text-sm text-gray-500">(<span id="stockDisplay"><?= $stock; ?></span> <?= ($stock > 1) ? 'availables' : 'available' ?>)</p>
                         <?php if ($selling_fast == 1): ?>
                             <div class="inline-block bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-sm select-none">
                                 Selling Fast
@@ -393,6 +402,8 @@ if ($productReviewSelectQuery->num_rows > 0) {
                         document.getElementById("priceDisplay").textContent = `$ ${newPrice.toFixed(2)}`;
                     });
                 </script>
+
+                <input type="hidden" name="addtobag" value="1">
 
                 <div class="flex items-center justify-between mb-4 <?= !empty($sizes) ? '' : 'cursor-not-allowed' ?>">
                     <input

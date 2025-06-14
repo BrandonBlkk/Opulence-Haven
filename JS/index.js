@@ -14,6 +14,52 @@ window.addEventListener('scroll', () => {
     }
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle all favorite forms
+    const favoriteForms = document.getElementById('favoriteForms');
+
+    if (favoriteForms) {
+        favoriteForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            fetch('../User/RoomDetails.php', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 'added') {
+                        heartIcon.classList.remove('text-slate-400', 'hover:text-red-300');
+                        heartIcon.classList.add('text-red-500', 'hover:text-red-600');
+                    } else if (data.status === 'removed') {
+                        heartIcon.classList.remove('text-red-500', 'hover:text-red-600');
+                        heartIcon.classList.add('text-slate-400', 'hover:text-red-300');
+                    } else if (data.status === 'not_logged_in') {
+                        // Redirect to login or show login modal
+                        window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.href);
+                    } else {
+                        console.error('Error:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            });
+        });
+    }
+});
+
 // Checkin Form
 let checkin_form = document.getElementById('checkin-form');
 let lastScrollPosition = window.scrollY;
@@ -157,6 +203,7 @@ const viewAllReviews = document.getElementById('viewAllReviews');
 if (viewAllReviews) {
     const reviewCloseBtn = document.getElementById('reviewCloseBtn');
     const rooomReview = document.getElementById('rooomReview');
+    const darkOverlay = document.getElementById('darkOverlay');
 
     viewAllReviews.addEventListener('click', () => {
         rooomReview.style.top = '0%';
@@ -442,7 +489,6 @@ document.addEventListener("DOMContentLoaded", () => {
             alertBox.classList.add('opacity-0');
             alertBox.classList.remove('opacity-100');
             alertBox.classList.remove('bottom-3');
-            // window.location.href = 'ProfileEdit.php';
         }, 5000);
     } else if (profileUpdate)  {
         // Show Alert
@@ -1057,39 +1103,39 @@ const getYear = getDate.getFullYear();
 
 document.getElementById('year').textContent = getYear;
 
-// Animation
-ScrollReveal().reveal('#fade-in-section', {
-    duration: 500, // Duration of the animation
-    easing: 'ease-in-out', // Smooth easing
-    opacity: 0, // Start fully transparent
-    delay: 50, // Delay before animation starts
-    reset: true // Reset animation on scroll up
-});
+// // Animation
+// ScrollReveal().reveal('#fade-in-section', {
+//     duration: 500, // Duration of the animation
+//     easing: 'ease-in-out', // Smooth easing
+//     opacity: 0, // Start fully transparent
+//     delay: 50, // Delay before animation starts
+//     reset: true // Reset animation on scroll up
+// });
 
-ScrollReveal().reveal('#fade-in-section-once', {
-    duration: 500, // Duration of the animation
-    easing: 'ease-in-out', // Smooth easing
-    opacity: 0, // Start fully transparent
-    delay: 50, // Delay before animation starts
-    reset: false // Reset animation on scroll up
-});
+// ScrollReveal().reveal('#fade-in-section-once', {
+//     duration: 500, // Duration of the animation
+//     easing: 'ease-in-out', // Smooth easing
+//     opacity: 0, // Start fully transparent
+//     delay: 50, // Delay before animation starts
+//     reset: false // Reset animation on scroll up
+// });
 
-ScrollReveal().reveal('#fade-in-section-top', {
-    origin: 'top', // The text will come from the top
-    distance: '50px', // Distance it moves when revealed
-    duration: 500, // Duration of the animation
-    easing: 'ease-out', // Easing function
-    opacity: 0, // Start with opacity 0 for a fade-in effect
-    delay: 50, // Optional delay before starting the animation
-    reset: true // Reset the animation when the element is out of view
-});
+// ScrollReveal().reveal('#fade-in-section-top', {
+//     origin: 'top', // The text will come from the top
+//     distance: '50px', // Distance it moves when revealed
+//     duration: 500, // Duration of the animation
+//     easing: 'ease-out', // Easing function
+//     opacity: 0, // Start with opacity 0 for a fade-in effect
+//     delay: 50, // Optional delay before starting the animation
+//     reset: true // Reset the animation when the element is out of view
+// });
 
-ScrollReveal().reveal('#image-section', {
-    origin: 'right',
-    distance: '20px',
-    duration: 500,
-    easing: 'ease-out',
-    opacity: 0,
-    delay: 50,
-    reset: true
-});
+// ScrollReveal().reveal('#image-section', {
+//     origin: 'right',
+//     distance: '20px',
+//     duration: 500,
+//     easing: 'ease-out',
+//     opacity: 0,
+//     delay: 50,
+//     reset: true
+// });
