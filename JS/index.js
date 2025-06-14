@@ -60,6 +60,56 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Handle remove room
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle remove room with AJAX
+    document.querySelectorAll('.remove-room-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const form = this.closest('.edit-remove-room-form');
+            const formData = new FormData(form);
+            const roomCard = this.closest('.flex.flex-col.md\\:flex-row.rounded-md.shadow-sm.border');
+
+            // Add the remove_room parameter to the form data
+            formData.append('remove_room', 'true');
+
+            // Show loading state
+            this.disabled = true;
+            this.textContent = 'Removing...';
+
+            fetch('../User/Reservation.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Remove the room card from the DOM
+                        roomCard.remove();
+                       showAlert('The room has been successfully removed from your reservation.');
+
+                        document.getElementById('no-rooms-message').style.display = 'block';
+                    } else {
+                        // Show error message
+                        alert('Failed to remove room. Please try again.');
+                        button.disabled = false;
+                        button.textContent = 'Remove Room';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                    button.disabled = false;
+                    button.textContent = 'Remove Room';
+                });
+        });
+    });
+});
+
 // Checkin Form
 let checkin_form = document.getElementById('checkin-form');
 let lastScrollPosition = window.scrollY;
