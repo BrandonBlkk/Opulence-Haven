@@ -14,6 +14,7 @@ window.addEventListener('scroll', () => {
     }
 });
 
+// Handle all favorite forms
 document.addEventListener('DOMContentLoaded', function() {
     // Handle all favorite forms
     const favoriteForms = document.getElementById('favoriteForms');
@@ -471,9 +472,7 @@ if (profileDeleteBtn && confirmDeleteModal && cancelDeleteBtn && confirmDeleteBt
         }) 
             .then(() => {
                 // Redirect after account deletion
-                setTimeout(() => {
-                    window.location.href = "HomePage.php";
-                }, 1000);
+                window.location.href = "HomePage.php";
             })
             .catch((error) => console.error("Account deletion failed:", error));
     });
@@ -519,63 +518,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Reset Password and Profile Update Form Validation
 document.addEventListener("DOMContentLoaded", () => {
-    const alertBox = document.getElementById('alertBox');
-    const alertText = document.getElementById('alertText');
-    const alertMessage = document.getElementById('alertMessage').value;
-    const profileUpdate = document.getElementById('profileUpdate').value === 'true';
-    const resetSuccess = document.getElementById('resetSuccess').value === 'true';
-
-    if (resetSuccess) {
-        // Show Alert
-        alertText.textContent = 'You have successfully changed a password.';
-        alertBox.classList.remove('-bottom-5');
-        alertBox.classList.remove('opacity-0');
-        alertBox.classList.add('opacity-100');
-        alertBox.classList.add('bottom-3');
-
-        // Hide Alert
-        setTimeout(() => {
-            alertBox.classList.add('-bottom-1');
-            alertBox.classList.add('opacity-0');
-            alertBox.classList.remove('opacity-100');
-            alertBox.classList.remove('bottom-3');
-        }, 5000);
-    } else if (profileUpdate)  {
-        // Show Alert
-        alertText.textContent = 'You have successfully changed a profile.';
-        alertBox.classList.remove('-bottom-5');
-        alertBox.classList.remove('opacity-0');
-        alertBox.classList.add('opacity-100');
-        alertBox.classList.add('bottom-3');
-
-        // Hide Alert
-        setTimeout(() => {
-            alertBox.classList.add('-bottom-1');
-            alertBox.classList.add('opacity-0');
-            alertBox.classList.remove('opacity-100');
-            alertBox.classList.remove('bottom-3');
-            // window.location.href = 'ProfileEdit.php';
-        }, 5000);
-    }
-    else if (alertMessage) {
-        // Show Alert
-        alertText.textContent = alertMessage;
-        alertBox.classList.remove('-bottom-1');
-        alertBox.classList.remove('opacity-0');
-        alertBox.classList.add('opacity-100');
-        alertBox.classList.add('bottom-3');
-
-        // Hide Alert
-        setTimeout(() => {
-            alertBox.classList.add('-bottom-1');
-            alertBox.classList.add('opacity-0');
-            alertBox.classList.remove('opacity-100');
-            alertBox.classList.remove('bottom-3');
-        }, 5000);
-    }
-
+    // Add keyup event listeners for real-time validation
     document.getElementById("usernameInput").addEventListener("keyup", validateUsername);
-    document.getElementById("emailInput").addEventListener("keyup", validateEmail);
     document.getElementById("phoneInput").addEventListener("keyup", validatePhone);
 
     document.getElementById("resetpasswordInput").addEventListener("keyup", validateResetPassword);
@@ -585,10 +529,43 @@ document.addEventListener("DOMContentLoaded", () => {
     // Add submit event listener for form validation
     const updateProfileForm = document.getElementById("updateProfileForm");
     if (updateProfileForm) {
+        // In the updateProfileForm event listener
         updateProfileForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+
             if (!validateProfileUpdateForm()) {
-                e.preventDefault();
+                return;
             }
+
+            // Create FormData object
+            const formData = new FormData(updateProfileForm);
+            formData.append('modify', true);
+
+            // AJAX request
+            fetch('../User/ProfileEdit.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    if (data.profileChanged) {
+                        showAlert('You have successfully changed your profile.');
+                    } else {
+                        showAlert('No changes were made to your profile.');
+                    }
+                } else {
+                    showAlert(data.message || 'Failed to update profile. Please try again.', true);
+                }
+            })
+            .catch(error => {
+                showAlert('An error occurred. Please try again.', true);
+            });
         });
     }
     
@@ -596,9 +573,48 @@ document.addEventListener("DOMContentLoaded", () => {
     const resetPasswordForm = document.getElementById("resetPasswordForm");
     if (resetPasswordForm) {
         resetPasswordForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+
             if (!validateResetForm()) {
-                e.preventDefault();
+                return;
             }
+
+            // Create FormData object
+            const formData = new FormData(resetPasswordForm);
+            formData.append('resetPassword', true);
+
+            // Show loading state
+            const submitBtn = resetPasswordForm.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Updating...';
+
+            // AJAX request
+            fetch('../User/ProfileEdit.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    showAlert('You have successfully changed your password.');
+                    resetPasswordForm.reset();
+                } else {
+                    showAlert(data.message || 'Failed to update password. Please try again.', true);
+                }
+            })
+            .catch(error => {
+                showAlert('An error occurred. Please try again.', true);
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalBtnText;
+            });
         });
     }
 });

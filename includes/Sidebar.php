@@ -73,7 +73,7 @@
                             // Show reservation count if user is logged in
                             if (!empty($_SESSION['UserID'])) {
                                 $reservationCount = 0;
-                                $stmt = $connect->prepare("SELECT COUNT(*) as count FROM reservationtb WHERE UserID = ?");
+                                $stmt = $connect->prepare("SELECT COUNT(*) as count FROM reservationtb WHERE UserID = ? AND Status = 'Pending'");
                                 if ($stmt) {
                                     $stmt->bind_param("s", $_SESSION['UserID']);
                                     $stmt->execute();
@@ -98,7 +98,7 @@
                         $count = $result->fetch_assoc()['count'];
                         $stmt->close();
                         ?>
-                        <a href="#" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
+                        <a href="../User/UpcomingStays.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
                             <div class="flex items-center gap-1">
                                 <i class="ri-calendar-event-line text-xl"></i>
                                 <p class="font-semibold text-sm">Upcoming Stays</p>
