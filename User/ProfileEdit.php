@@ -9,8 +9,8 @@ if (!$connect) {
 $id = (isset($_SESSION['UserID']) && !empty($_SESSION['UserID'])) ? $_SESSION['UserID'] : $id = null;
 
 $alertMessage = '';
-$resetSuccess = false;
-$profileUpdate = false;
+$profileChanged = false;
+$response = ['success' => false, 'profileChanged' => false, 'message' => ''];
 
 // Fetch the current user data from the database
 $userQuery = "SELECT * FROM usertb WHERE UserID = '$id'";
@@ -22,43 +22,69 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
     $email = mysqli_real_escape_string($connect, trim($_POST['email']));
     $phone = mysqli_real_escape_string($connect, trim($_POST['phone']));
 
-    $updateProfileQuery = "UPDATE usertb SET UserName = '$username', UserEmail = '$email', UserPhone ='$phone' WHERE UserID = '$id'";
-    $updateProfileQueryResult = $connect->query($updateProfileQuery);
+    // Check if any field actually changed
+    $profileChanged = ($username !== $userData['UserName'] || $phone !== $userData['UserPhone']);
 
-    if ($updateProfileQueryResult) {
-        $profileUpdate = true;
+    if ($profileChanged) {
+        $updateProfileQuery = "UPDATE usertb SET 
+                             UserName = '$username', 
+                             UserPhone = '$phone' 
+                             WHERE UserID = '$id'";
+        $updateProfileQueryResult = $connect->query($updateProfileQuery);
+
+        if ($updateProfileQueryResult) {
+            $response['profileChanged'] = true;
+            $response['success'] = true;
+        } else {
+            $response['message'] = 'Error updating profile. Please try again.';
+        }
     } else {
-        $alertMessage = 'Error updating password. Please try again.';
+        $response['success'] = true; // Success but no changes
+        $response['profileChanged'] = false;
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Reset the user password
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['resetPassword'])) {
-    $password = mysqli_real_escape_string($connect, trim($_POST['password']));
+    $response = ['success' => false, 'message' => ''];
+    $currentPassword = mysqli_real_escape_string($connect, trim($_POST['password']));
     $newPassword = mysqli_real_escape_string($connect, trim($_POST['newpassword']));
     $confirmPassword = mysqli_real_escape_string($connect, trim($_POST['confirmpassword']));
 
-    // Check if the password is same from database
-    $checkPasswordQuery = "SELECT UserPassword FROM usertb WHERE UserPassword = '$password'";
-    $count = $connect->query($checkPasswordQuery)->num_rows;
+    $checkPasswordQuery = "SELECT UserPassword FROM usertb WHERE UserID = '$id'";
+    $result = $connect->query($checkPasswordQuery);
 
-    if ($count > 0) {
-        // Ensure the new password and confirmation password match
-        if ($newPassword === $confirmPassword) {
-            $updatePasswordQuery = "UPDATE usertb SET UserPassword = '$newPassword' WHERE UserID = '$id'";
-            $updatePasswordQueryResult = $connect->query($updatePasswordQuery);
+    if ($result && $result->num_rows > 0) {
+        $user = $result->fetch_assoc();
 
-            if ($updatePasswordQueryResult) {
-                $resetSuccess = true;
+        if ($currentPassword === $user['UserPassword']) {
+            // Ensure the new password and confirmation password match
+            if ($newPassword === $confirmPassword) {
+                $updatePasswordQuery = "UPDATE usertb SET UserPassword = '$newPassword' WHERE UserID = '$id'";
+                $updatePasswordQueryResult = $connect->query($updatePasswordQuery);
+
+                if ($updatePasswordQueryResult) {
+                    $response['success'] = true;
+                } else {
+                    $response['message'] = 'Error updating password. Please try again.';
+                }
             } else {
-                $alertMessage = 'Error updating password. Please try again.';
+                $response['message'] = 'New password and confirmation do not match.';
             }
         } else {
-            $alertMessage = 'New password and confirmation do not match.';
+            $response['message'] = "Current password is incorrect.";
         }
     } else {
-        $alertMessage = "Current password doesn't match our records.";
+        $response['message'] = "User not found.";
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 ?>
 
@@ -168,11 +194,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['resetPassword'])) {
                                         <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
                                         <div class="flex items-center justify-between border rounded">
                                             <input id="resetpasswordInput"
-                                                class="p-2 w-full rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                                class="p-2 w-full pr-10 rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                                 type="password"
                                                 name="password"
                                                 placeholder="Enter your password">
-                                            <i id="resettogglePassword" class="ri-eye-line p-2 cursor-pointer"></i>
+                                            <i id="resettogglePassword" class="absolute right-1 ri-eye-line p-2 cursor-pointer"></i>
                                         </div>
                                         <small id="resetpasswordError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                                     </div>
@@ -181,11 +207,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['resetPassword'])) {
                                         <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
                                         <div class="flex items-center justify-between border rounded">
                                             <input id="newpasswordInput"
-                                                class="p-2 w-full rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                                class="p-2 w-full pr-10 rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                                 type="password"
                                                 name="newpassword"
                                                 placeholder="Set new password">
-                                            <i id="newtogglePassword" class="ri-eye-line p-2 cursor-pointer"></i>
+                                            <i id="newtogglePassword" class="absolute right-1 ri-eye-line p-2 cursor-pointer"></i>
                                         </div>
                                         <small id="newpasswordError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                                     </div>
@@ -196,11 +222,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['resetPassword'])) {
                                 <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
                                 <div class="flex items-center justify-between border rounded">
                                     <input id="confirmpasswordInput"
-                                        class="p-2 w-full rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                        class="p-2 w-full pr-10 rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                         type="password"
                                         name="confirmpassword"
                                         placeholder="Confirm new password">
-                                    <i id="confirmtogglePassword" class="ri-eye-line p-2 cursor-pointer"></i>
+                                    <i id="confirmtogglePassword" class="absolute right-1 ri-eye-line p-2 cursor-pointer"></i>
                                 </div>
                                 <small id="confirmpasswordError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                             </div>
@@ -214,7 +240,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['resetPassword'])) {
                     <div class="px-0 sm:px-6 rounded-lg flex flex-col items-center justify-center">
                         <div class="bg-sky-100 p-3 rounded">
                             <h3 class="text-xl font-semibold text-gray-700 mb-2">Build Trust!</h3>
-                            <p class="text-gray-600">Your profile is displayed on your account and in communications, making it easy for others to recognize and connect with you.</p>
+                            <p class="text-sm text-gray-600">Your profile is displayed on your account and in communications, making it easy for others to recognize and connect with you.</p>
                         </div>
                         <div class="max-w-[500px] select-none">
                             <img src="../UserImages/account-concept-illustration_114360-409.avif" alt="Illustration" class="w-full h-full object-cover">

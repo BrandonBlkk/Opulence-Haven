@@ -51,41 +51,6 @@ if (isset($_GET["roomID"])) {
 }
 
 // Get reservation details
-// if ($userID) {
-//     $query = "SELECT * FROM reservationtb WHERE UserID = '$userID'";
-//     $reservation = $connect->query($query)->fetch_assoc();
-
-//     if ($reservation) {
-//         $reservationID = $reservation['ReservationID'];
-//         $totalPrice = $reservation['TotalPrice'];
-//     }
-
-//     $query = "SELECT * FROM reservationdetailtb rd
-//             JOIN roomtb r ON rd.RoomID = r.RoomID
-//             JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
-//             WHERE ReservationID = '$reservationID'";
-//     $room = $connect->query($query)->fetch_assoc();
-
-//     if ($room) {
-//         $roomID = $room['RoomID'];
-//         $adults = $room['Adult'];
-//         $children = $room['Children'];
-//         $totalGuest = $adults + $children;
-
-//         try {
-//             $checkin_date = $room['CheckInDate'];
-//             $checkout_date = $room['CheckOutDate'];
-
-//             $totalNights = (strtotime($checkout_date) - strtotime($checkin_date)) / (60 * 60 * 24);
-//         } catch (Exception $e) {
-//             // Handle invalid dates
-//             $alertMessage = "Invalid dates: " . $e->getMessage();
-//             header("Location: Reservation.php");
-//             exit();
-//         }
-//     }
-// }
-
 if ($userID) {
     // Get the user's reservation
     $query = "SELECT * FROM reservationtb WHERE UserID = '$userID' AND Status = 'Pending'";
