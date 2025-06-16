@@ -198,11 +198,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
                 <h1 class="text-xl font-bold mt-0 sm:mt-10">Get ready to:</h1>
                 <div class="flex items-center gap-2 mt-2">
                     <i class="ri-check-line font-semibold text-amber-500"></i>
-                    <p>Book your perfect room with access to exclusive offers</p>
+                    <p>Reserve your perfect room with access to exclusive offers</p>
                 </div>
                 <div class="flex items-center gap-2 mt-2">
                     <i class="ri-check-line font-semibold text-amber-500"></i>
-                    <p>Access your booking from any device, anytime, anywhere</p>
+                    <p>Access your reservation from any device, anytime, anywhere</p>
                 </div>
             </div>
         </div>

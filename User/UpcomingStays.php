@@ -10,11 +10,33 @@ $userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
 
 // Fetch reservations for the user
 if ($userID) {
-    $stmt = $connect->prepare("SELECT rs.*, rd.*, r.*, rt.*
+    $stmt = $connect->prepare("SELECT r.*
+                          FROM reservationtb r
+                          WHERE UserID = ? AND Status = 'Confirmed'");
+    $stmt->bind_param("s", $userID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        while ($reservation = $result->fetch_assoc()) {
+            // Calculate nights for each reservation 
+            try {
+                $reservations[] = $reservation;
+            } catch (Exception $e) {
+                // Handle invalid dates
+                $alertMessage = "Invalid dates: " . $e->getMessage();
+                header("Location: Reservation.php");
+                exit();
+            }
+        }
+    }
+
+    $stmt = $connect->prepare("SELECT rs.*, rd.*, r.*, rt.*, u.*
                           FROM reservationtb rs
                           JOIN reservationdetailtb rd ON rs.ReservationID = rd.ReservationID
                           JOIN roomtb r ON rd.RoomID = r.RoomID 
                           JOIN roomtypetb rt ON rt.RoomTypeID = r.RoomTypeID
+                          JOIN usertb u ON rs.UserID = u.UserID
                           WHERE rs.UserID = ? AND rs.Status = 'Confirmed'");
     $stmt->bind_param("s", $userID);
     $stmt->execute();
@@ -34,7 +56,7 @@ if ($userID) {
                 $room['nights'] = $nights;
                 $room['total'] = $room['Price'] * $nights * 1.1;
                 $room['subtotal'] = $room['Price'] * $nights;
-                $reservedRooms[] = $room;
+                $reserved_rooms[] = $room;
 
                 // Set total nights (same for all rooms in reservation)
                 $totalNights = $nights;
@@ -44,8 +66,6 @@ if ($userID) {
                 header("Location: Reservation.php");
                 exit();
             }
-
-            $reserved_rooms[] = $room;
         }
     }
 }
@@ -152,27 +172,54 @@ if ($userID) {
 
         <!-- Upcoming Stay Cards -->
         <div class="space-y-6">
-            <?php foreach ($reserved_rooms as $reservation): ?>
+            <?php foreach ($reservations as $data): ?>
                 <?php
-                $checkin = new DateTime($reservation['CheckInDate']);
-                $checkout = new DateTime($reservation['CheckOutDate']);
+                // Fetch data
+                $reservationID = $data['ReservationID'];
+
+                // Query to get all rooms for this reservation
+                $reservation = "SELECT rd.*, r.*, rb.*, rtb.*, u.UserName, u.UserPhone 
+                   FROM reservationdetailtb rd
+                   JOIN reservationtb r ON rd.ReservationID = r.ReservationID
+                   JOIN roomtb rb ON rd.RoomID = rb.RoomID
+                   JOIN roomtypetb rtb ON rb.RoomTypeID = rtb.RoomTypeID
+                   JOIN usertb u ON r.UserID = u.UserID 
+                   WHERE rd.ReservationID = '$reservationID'";
+
+                $result = $connect->query($reservation);
+                $rooms = []; // Array to store all rooms for this reservation
+
+                // Store all rooms
+                while ($roomData = $result->fetch_assoc()) {
+                    $rooms[] = $roomData;
+                }
+
+                // Use first room for check-in/check-out and other main details
+                $data = $rooms[0];
+
+                // Calculate nights
+                $checkin = new DateTime($data['CheckInDate']);
+                $checkout = new DateTime($data['CheckOutDate']);
                 $nights = $checkout->diff($checkin)->days;
-                $totalPrice = $reservation['Price'] * $nights;
+
+                // Calculate total price for all rooms
+                $totalPrice = 0;
+                foreach ($rooms as $room) {
+                    $totalPrice += $room['Price'] * $nights;
+                }
                 ?>
+
                 <!-- Stay Card -->
                 <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200 hover:shadow-md transition-shadow">
                     <div class="md:flex">
                         <!-- Hotel Image -->
                         <div class="md:w-1/3 relative">
-                            <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80"
+                            <img src="../Admin/<?php echo $data['RoomCoverImage']; ?>"
                                 alt="Hotel Room"
                                 class="w-full h-48 md:h-full object-cover">
                             <div class="absolute top-4 right-4 flex gap-2">
                                 <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                                    <?php echo $reservation['Status']; ?>
-                                </span>
-                                <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                                    <?php echo $reservation['PointsRedeemed'] > 0 ? 'Points Used' : 'Paid'; ?>
+                                    <?php echo $data['Status']; ?>
                                 </span>
                             </div>
                         </div>
@@ -182,14 +229,14 @@ if ($userID) {
                             <div class="flex justify-between items-start">
                                 <div>
                                     <h2 class="text-xl font-bold text-gray-800">
-                                        Reservation #<?php echo $reservation['ReservationID']; ?>
+                                        Reservation #<?php echo $data['ReservationID']; ?>
                                     </h2>
                                     <div class="flex items-center mt-1 text-gray-600">
                                         <i class="ri-user-line mr-1"></i>
-                                        <span><?php echo $reservation['Title'] . ' ' . $reservation['FirstName'] . ' ' . $reservation['LastName']; ?></span>
+                                        <span><?php echo $data['Title'] . ' ' . $data['FirstName'] . ' ' . $data['LastName']; ?></span>
                                         <span class="mx-2 text-gray-400">•</span>
                                         <i class="ri-phone-line mr-1"></i>
-                                        <span><?php echo $reservation['UserPhone']; ?></span>
+                                        <span><?php echo $data['UserPhone']; ?></span>
                                     </div>
                                 </div>
                                 <div class="text-right">
@@ -201,8 +248,8 @@ if ($userID) {
                                         $<?php echo number_format($totalPrice, 2); ?>
                                     </div>
                                     <div class="text-xs text-gray-500 mt-1">
-                                        <?php echo $reservation['PointsRedeemed'] > 0 ?
-                                            'Used ' . $reservation['PointsRedeemed'] . ' points' :
+                                        <?php echo $data['PointsRedeemed'] > 0 ?
+                                            'Used ' . $data['PointsRedeemed'] . ' points' :
                                             'Includes taxes & fees'; ?>
                                     </div>
                                 </div>
@@ -222,10 +269,14 @@ if ($userID) {
                                 </div>
                                 <div>
                                     <h3 class="text-sm font-medium text-gray-500">Room Details</h3>
-                                    <p class="font-medium"><?php echo $reservation['RoomName']; ?></p>
+                                    <div class="flex items-center gap-2">
+                                        <?php foreach ($rooms as $room): ?>
+                                            <p class="font-medium"><?php echo $room['RoomName']; ?></p>
+                                        <?php endforeach; ?>
+                                    </div>
                                     <p class="text-sm text-gray-600">
-                                        <?php echo $reservation['Adult']; ?> adult<?php echo $reservation['Adult'] > 1 ? 's' : ''; ?>
-                                        <?php echo $reservation['Children'] > 0 ? ' • ' . $reservation['Children'] . ' child' . ($reservation['Children'] > 1 ? 'ren' : '') : ''; ?>
+                                        <?php echo $room['Adult']; ?> adult<?php echo $room['Adult'] > 1 ? 's' : ''; ?>
+                                        <?php echo $room['Children'] > 0 ? ' • ' . $room['Children'] . ' child' . ($room['Children'] > 1 ? 'ren' : '') : ''; ?>
                                     </p>
                                 </div>
                             </div>
@@ -234,14 +285,14 @@ if ($userID) {
                             <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="p-3 bg-gray-50 rounded-lg">
                                     <h3 class="text-sm font-medium text-gray-500">Reservation Date</h3>
-                                    <p class="text-sm"><?php echo date('M j, Y H:i', strtotime($reservation['ReservationDate'])); ?></p>
+                                    <p class="text-sm"><?php echo date('M j, Y H:i', strtotime($data['ReservationDate'])); ?></p>
                                 </div>
                                 <div class="p-3 bg-gray-50 rounded-lg">
                                     <h3 class="text-sm font-medium text-gray-500">Reward Points</h3>
                                     <p class="text-sm">
-                                        Earned: <span class="font-medium text-green-600"><?php echo $reservation['PointsEarned']; ?></span>
-                                        <?php if ($reservation['PointsRedeemed'] > 0): ?>
-                                            • Redeemed: <span class="font-medium text-orange-600"><?php echo $reservation['PointsRedeemed']; ?></span>
+                                        Earned: <span class="font-medium text-green-600"><?php echo $data['PointsEarned']; ?></span>
+                                        <?php if ($data['PointsRedeemed'] > 0): ?>
+                                            • Redeemed: <span class="font-medium text-orange-600"><?php echo $data['PointsRedeemed']; ?></span>
                                         <?php endif; ?>
                                     </p>
                                 </div>
@@ -256,7 +307,7 @@ if ($userID) {
                                 <button class="flex-1 flex items-center justify-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2.5 px-4 rounded-md transition-colors">
                                     <i class="ri-pencil-line"></i> Modify
                                 </button>
-                                <button onclick="showCancelModal('<?php echo $reservation['ReservationID']; ?>', '<?php echo $checkin->format('M j, Y'); ?> - <?php echo $checkout->format('M j, Y'); ?>', <?php echo $totalPrice; ?>)"
+                                <button onclick="showCancelModal('<?php echo $data['ReservationID']; ?>', '<?php echo $checkin->format('M j, Y'); ?> - <?php echo $checkout->format('M j, Y'); ?>', <?php echo $totalPrice; ?>)"
                                     class="flex-1 flex items-center justify-center gap-2 bg-white border border-red-300 hover:bg-red-50 text-red-600 font-medium py-2.5 px-4 rounded-md transition-colors">
                                     <i class="ri-close-line"></i> Cancel
                                 </button>
@@ -299,19 +350,19 @@ if ($userID) {
                 <div class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="bg-gray-50 p-4 rounded-lg">
-                            <h4 class="font-medium text-gray-800 mb-3">Guest Information</h4>
+                            <h4 class="font-medium text-gray-800 mb-3">Your Information</h4>
                             <div class="space-y-2">
                                 <div class="flex justify-between">
                                     <span class="text-sm text-gray-600">Name:</span>
-                                    <span class="text-sm font-medium"><?= $reservation['Title'] ?> <?= $reservation['FirstName'] ?> <?= $reservation['LastName'] ?></span>
+                                    <span class="text-sm font-medium"><?= $data['Title'] ?> <?= $data['FirstName'] ?> <?= $data['LastName'] ?></span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-sm text-gray-600">Phone:</span>
-                                    <span class="text-sm font-medium"><?= $reservation['UserPhone'] ?></span>
+                                    <span class="text-sm font-medium"><?= $data['UserPhone'] ?></span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-sm text-gray-600">Reservation Date:</span>
-                                    <span class="text-sm font-medium"><?= date('M j, Y H:i', strtotime($reservation['ReservationDate'])) ?></span>
+                                    <span class="text-sm font-medium"><?= date('M j, Y H:i', strtotime($data['ReservationDate'])) ?></span>
                                 </div>
                             </div>
                         </div>
@@ -335,30 +386,38 @@ if ($userID) {
                         </div>
                     </div>
 
+
                     <div class="bg-gray-50 p-4 rounded-lg">
                         <h4 class="font-medium text-gray-800 mb-3">Room Information</h4>
-                        <div class="flex flex-col md:flex-row gap-4">
-                            <div class="md:w-1/3">
-                                <img src="../Admin/<?= $reservation['RoomCoverImage'] ?>"
-                                    alt="Room Image"
-                                    class="w-full h-auto rounded-lg">
-                            </div>
-                            <div class="md:w-2/3">
-                                <h5 class="font-bold text-lg"><?= $reservation['RoomName'] ?></h5>
-                                <p class="text-sm text-gray-600 mt-1"><?= $reservation['RoomDescription'] ?></p>
 
-                                <div class="mt-4 grid grid-cols-2 gap-4">
-                                    <div>
-                                        <span class="text-sm text-gray-600">Adults:</span>
-                                        <span class="text-sm font-medium ml-2"><?= $reservation['Adult'] ?></span>
-                                    </div>
-                                    <div>
-                                        <span class="text-sm text-gray-600">Children:</span>
-                                        <span class="text-sm font-medium ml-2"><?= $reservation['Children'] ?></span>
+                        <?php
+                        foreach ($reserved_rooms as $room) {
+                        ?>
+                            <div class="flex flex-col md:flex-row gap-4 py-1">
+                                <div class="md:w-1/3">
+                                    <img src="../Admin/<?= $room['RoomCoverImage'] ?>"
+                                        alt="Room Image"
+                                        class="w-full h-auto rounded-lg">
+                                </div>
+                                <div class="md:w-2/3">
+                                    <h5 class="font-bold text-lg"><?= $room['RoomName'] ?></h5>
+                                    <p class="text-sm text-gray-600 mt-1"><?= $room['RoomDescription'] ?></p>
+
+                                    <div class="mt-4 grid grid-cols-2 gap-4">
+                                        <div>
+                                            <span class="text-sm text-gray-600">Adults:</span>
+                                            <span class="text-sm font-medium ml-2"><?= $room['Adult'] ?></span>
+                                        </div>
+                                        <div>
+                                            <span class="text-sm text-gray-600">Children:</span>
+                                            <span class="text-sm font-medium ml-2"><?= $room['Children'] ?></span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        <?php
+                        }
+                        ?>
                     </div>
 
                     <div class="bg-gray-50 p-4 rounded-lg">
@@ -366,13 +425,13 @@ if ($userID) {
                         <div class="space-y-3">
                             <div class="flex justify-between">
                                 <span class="text-sm text-gray-600">Room Rate (<?= $nights . ' night' . ($nights > 1 ? 's' : '') ?>):</span>
-                                <span class="text-sm font-medium">$ <?= number_format($reservation['Price'] * $nights, 2) ?></span>
+                                <span class="text-sm font-medium">$ <?= number_format($data['TotalPrice'] * $nights, 2) ?></span>
                             </div>
 
-                            <?php if ($reservation['PointsRedeemed'] > 0) { ?>
+                            <?php if ($data['PointsRedeemed'] > 0) { ?>
                                 <div class="flex justify-between">
-                                    <span class="text-sm text-gray-600">Points Discount (<?= $reservation['PointsRedeemed'] ?>points):</span>
-                                    <span class="text-sm font-medium text-green-600">-$ <?= number_format($reservation['PointsDiscount'], 2) ?></span>
+                                    <span class="text-sm text-gray-600">Points Discount (<?= $data['PointsRedeemed'] ?>points):</span>
+                                    <span class="text-sm font-medium text-green-600">-$ <?= number_format($data['PointsDiscount'], 2) ?></span>
                                 </div>
                             <?php }
                             ?>
@@ -388,11 +447,11 @@ if ($userID) {
 
                             <?php
 
-                            if ($reservation['PointsEarned'] > 0) {
+                            if ($data['PointsEarned'] > 0) {
                             ?>
                                 <div class="pt-2 flex justify-between">
                                     <span class="text-sm text-gray-600">Points Earned:</span>
-                                    <span class="text-sm font-medium text-blue-600">+ <?= $reservation['PointsEarned'] ?> points</span>
+                                    <span class="text-sm font-medium text-blue-600">+ <?= $data['PointsEarned'] ?> points</span>
                                 </div>
                             <?php }
                             ?>
@@ -407,7 +466,7 @@ if ($userID) {
                             <div class="ml-3">
                                 <h4 class="text-sm font-medium text-blue-800">Cancellation Policy</h4>
                                 <p class="text-sm text-blue-700 mt-1">
-                                    Free cancellation until ' . $cancellationDeadline->format('M j, Y') . '.
+                                    Free cancellation until <?= date('F j, Y', strtotime($data['CheckInDate'] . ' -1 day')) ?>.
                                     After this date, a cancellation fee of $50 will apply.
                                 </p>
                             </div>
