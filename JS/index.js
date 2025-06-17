@@ -661,118 +661,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Reservation form validation
-// document.addEventListener("DOMContentLoaded", () => {
-//     const reservationForm = document.getElementById("reservationForm");
-//     const submitButton = document.getElementById("submitButton");
-//     const buttonText = document.getElementById("buttonText");
-//     const buttonSpinner = document.getElementById("buttonSpinner");
-
-//     // Error message elements
-//     const firstNameError = document.getElementById("firstNameError");
-//     const phoneError = document.getElementById("phoneError");
-
-//     // Initially hide all error messages
-//     [firstNameError, phoneError].forEach(error => {
-//         error.style.opacity = "0";
-//     });
-
-//     // Form validation
-//     function validateForm() {
-//         let isValid = true;
-//         const firstName = reservationForm.querySelector("[name='first_name']").value.trim();
-//         const phone = reservationForm.querySelector("[name='phone']").value.trim();
-
-//         // Validate first name
-//         if (!firstName) {
-//             firstNameError.style.opacity = "1";
-//             isValid = false;
-//         } else {
-//             firstNameError.style.opacity = "0";
-//         }
-
-//         // Validate phone
-//         if (!phone) {
-//             phoneError.style.opacity = "1";
-//             isValid = false;
-//         } else {
-//             phoneError.style.opacity = "0";
-//         }
-
-//         return isValid;
-//     }
-
-//     // AJAX form submission
-//     if (reservationForm) {
-//         reservationForm.addEventListener("submit", function(e) {
-//             e.preventDefault();
-
-//             if (!validateForm()) return;
-
-//             // Disable button and show spinner
-//             submitButton.disabled = true;
-//             buttonText.textContent = "Processing...";
-//             buttonSpinner.classList.remove("hidden");
-
-//             const formData = new FormData(reservationForm);
-//             formData.append("submit_reservation", true);
-
-//             fetch("../User/Reservation.php", {
-//                 method: "POST",
-//                 body: formData
-//             })
-//             .then(response => {
-//                 if (!response.ok) {
-//                     throw new Error("Network response was not ok");
-//                 }
-//                 return response.json();
-//             })
-//             .then(data => {
-//                 if (data.success) {
-//                     // Redirect to payment page on success
-//                     window.location.href = `../User/Stripe.php?reservation_id=${data.reservation_id}`;
-//                 } else {
-//                     // Re-enable button and hide spinner
-//                     submitButton.disabled = false;
-//                     buttonText.textContent = "Continue to payment";
-//                     buttonSpinner.classList.add("hidden");
-                    
-//                     // Show error message
-//                     alert(data.message || "Failed to create reservation. Please try again.");
-//                 }
-//             })
-//             .catch(error => {
-//                 // Re-enable button and hide spinner
-//                 submitButton.disabled = false;
-//                 buttonText.textContent = "Continue to payment";
-//                 buttonSpinner.classList.add("hidden");
-                
-//                 console.error("Error:", error);
-//                 alert("An error occurred. Please try again.");
-//             });
-//         });
-//     }
-
-//     // Real-time validation for first name
-//     const firstNameInput = reservationForm.querySelector("[name='first_name']");
-//     if (firstNameInput) {
-//         firstNameInput.addEventListener("input", function() {
-//             if (this.value.trim()) {
-//                 firstNameError.style.opacity = "0";
-//             }
-//         });
-//     }
-
-//     // Real-time validation for phone
-//     const phoneInput = reservationForm.querySelector("[name='phone']");
-//     if (phoneInput) {
-//         phoneInput.addEventListener("input", function() {
-//             if (this.value.trim()) {
-//                 phoneError.style.opacity = "0";
-//             }
-//         });
-//     }
-// });
-
 document.addEventListener("DOMContentLoaded", () => {
     const reservationForm = document.getElementById("reservationForm");
     const submitButton = document.getElementById("submitButton");
@@ -884,6 +772,25 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+// Upcoming Reservation Detail Modal
+const reservationDetailModal = document.getElementById('reservationDetailModal');
+const closeReservationDetailModal = document.getElementById('closeReservationDetailModal');
+
+const detailsBtn = document.querySelector('.details-btn');
+if (detailsBtn && reservationDetailModal && closeReservationDetailModal) {
+    detailsBtn.addEventListener('click', function() {
+        reservationDetailModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+        darkOverlay2.classList.remove('opacity-0', 'invisible');
+        darkOverlay2.classList.add('opacity-100');
+    });
+
+    closeReservationDetailModal.addEventListener('click', function() {
+        reservationDetailModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+        darkOverlay2.classList.add('opacity-0', 'invisible');
+        darkOverlay2.classList.remove('opacity-100');
+    });
+}
 
 // Full form validation function
 const validateProfileUpdateForm = () => {
