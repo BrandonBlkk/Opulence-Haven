@@ -740,8 +740,118 @@ if (isset($_GET['payment'])) {
                         </div>
                     </div>
 
-                    <!-- Right Column - Room Information (Keep existing code exactly as is) -->
+                    <!-- Right Column - Room Information and Expiry -->
                     <div class="w-full">
+                        <?php
+                        // When loading the reservation page
+                        $reservationQuery = "SELECT ExpiryDate FROM reservationtb WHERE ReservationID = ?";
+                        $stmt = $connect->prepare($reservationQuery);
+                        $stmt->bind_param("s", $reservationID);
+                        $stmt->execute();
+                        $result = $stmt->get_result();
+                        $reservation = $result->fetch_assoc();
+
+                        // Check if reservation exists and get expiry time
+                        if ($reservation) {
+                            $expiryTimestamp = strtotime($reservation['ExpiryDate']) * 1000;
+                            $expiryDisplay = date('h:i A', strtotime($reservation['ExpiryDate']));
+                        } else {
+                            // Reservation expired or doesn't exist
+                            $expiryTimestamp = 0;
+                            $expiryDisplay = "EXPIRED";
+                        }
+                        ?>
+                        <div class="expiry-notice mb-3 <?= $reservation ? '' : 'hidden' ?>">
+                            <div class="flex items-center" id="countdown-container">
+                                <svg id="countdown-icon" class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                                </svg>
+                                <span class="font-medium">Reservation expires in:</span>
+                                <span id="countdown-timer" class="font-bold ml-1" data-expiry="<?= $expiryTimestamp ?>">
+                                    <?= $expiryDisplay ?>
+                                </span>
+                            </div>
+                        </div>
+
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const timerElement = document.getElementById('countdown-timer');
+                                const containerElement = document.getElementById('countdown-container');
+                                const iconElement = document.getElementById('countdown-icon');
+                                const expiryTimestamp = parseInt(timerElement.dataset.expiry);
+
+                                function updateTimerColors(minutes) {
+                                    // Reset all classes first
+                                    containerElement.className = 'flex items-center p-4 border-l-4';
+                                    iconElement.className = 'h-5 w-5 mr-2';
+
+                                    if (minutes <= 0) {
+                                        // Expired
+                                        containerElement.classList.add('bg-gray-100', 'border-gray-400', 'text-gray-800');
+                                        iconElement.classList.add('text-gray-500');
+                                    } else if (minutes < 5) {
+                                        // Critical
+                                        containerElement.classList.add('bg-red-50', 'border-red-400', 'text-red-800');
+                                        iconElement.classList.add('text-red-500');
+                                    } else if (minutes < 10) {
+                                        // Warning
+                                        containerElement.classList.add('bg-amber-50', 'border-amber-400', 'text-amber-800');
+                                        iconElement.classList.add('text-amber-500');
+                                    } else {
+                                        // Normal
+                                        containerElement.classList.add('bg-green-50', 'border-green-400', 'text-green-800');
+                                        iconElement.classList.add('text-green-500');
+                                    }
+                                }
+
+                                function updateCountdown() {
+                                    // If already expired (timestamp is 0)
+                                    if (expiryTimestamp <= 0) {
+                                        timerElement.textContent = "EXPIRED";
+                                        updateTimerColors(0);
+                                        return;
+                                    }
+
+                                    const now = new Date().getTime();
+                                    const remaining = expiryTimestamp - now;
+
+                                    // If expired during countdown
+                                    if (remaining <= 0) {
+                                        timerElement.textContent = "EXPIRED";
+                                        updateTimerColors(0);
+                                        return;
+                                    }
+
+                                    // Calculate remaining time
+                                    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+                                    const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+
+                                    // Display
+                                    timerElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+                                    // Update colors based on remaining time
+                                    updateTimerColors(minutes);
+                                }
+
+                                // Only start countdown if not already expired
+                                if (expiryTimestamp > 0) {
+                                    // Initial update
+                                    updateCountdown();
+
+                                    // Update every second
+                                    const countdownInterval = setInterval(updateCountdown, 1000);
+
+                                    // Cleanup
+                                    window.addEventListener('beforeunload', () => {
+                                        clearInterval(countdownInterval);
+                                    });
+                                } else {
+                                    // Show expired state immediately
+                                    updateTimerColors(0);
+                                }
+                            });
+                        </script>
+
                         <!-- Display reserved rooms -->
                         <?php if (!empty($reservedRooms)): ?>
                             <div id="reserved-rooms-container" class="space-y-2">
