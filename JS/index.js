@@ -737,7 +737,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     buttonSpinner.classList.add("hidden");
                     
                     // Show error message
-                    alert(data.message || "Failed to create reservation. Please try again.");
+                    showAlert(data.message, true);
                 }
             })
             .catch(error => {
