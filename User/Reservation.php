@@ -107,6 +107,29 @@ if ($userID) {
     }
 }
 
+// Edit room
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['edit_room'])) {
+        // Update the room status to "Edit"
+        $roomId = $_POST['room_id'];
+        $reservationId = $_POST['reservation_id'];
+        $checkin_date = $_POST['checkin_date'];
+        $checkout_date = $_POST['checkout_date'];
+        $adults = $_POST['adults'];
+        $children = $_POST['children'];
+
+        // Execute your database update here
+        $updateQuery = "UPDATE roomtb SET RoomStatus = 'Edit' WHERE RoomID = ?";
+        $stmt = $connect->prepare($updateQuery);
+        $stmt->bind_param("s", $roomId);
+        $stmt->execute();
+
+        // Then redirect to the RoomBooking.php page with parameters
+        header("Location: RoomBooking.php?reservation_id=$reservationId&room_id=$roomId&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children&edit=1");
+        exit();
+    }
+}
+
 // Remove room from reservation
 if (isset($_POST['remove_room'])) {
     $response = ['success' => false];
@@ -155,7 +178,7 @@ if (isset($_POST['room_favourite'])) {
         $room_id = $_GET["roomID"];
         $roomTypeID = $_POST['roomTypeID'];
 
-        // Get search parameters from POST data (they should be included in the form submission)
+        // Get search parameters 
         $checkin_date = isset($_POST['checkin_date']) ? $_POST['checkin_date'] : '';
         $checkout_date = isset($_POST['checkout_date']) ? $_POST['checkout_date'] : '';
         $adults = isset($_POST['adults']) ? intval($_POST['adults']) : 1;
@@ -188,44 +211,38 @@ if (isset($_POST['room_favourite'])) {
     }
 }
 
-// Edit room
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['edit_room'])) {
-        // Update the room status to "Edit"
-        $roomId = $_POST['room_id'];
-        $reservationId = $_POST['reservation_id'];
-        $checkin_date = $_POST['checkin_date'];
-        $checkout_date = $_POST['checkout_date'];
-        $adults = $_POST['adults'];
-        $children = $_POST['children'];
-
-        // Execute your database update here
-        $updateQuery = "UPDATE roomtb SET RoomStatus = 'Edit' WHERE RoomID = ?";
-        $stmt = $connect->prepare($updateQuery);
-        $stmt->bind_param("s", $roomId);
-        $stmt->execute();
-
-        // Then redirect to the RoomBooking.php page with parameters
-        header("Location: RoomBooking.php?reservation_id=$reservationId&room_id=$roomId&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children&edit=1");
-        exit();
-    }
-}
-
 // Submit reservation
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_reservation'])) {
     // Get form data
     $reservationID = $_POST['reservation_id'] ?? '';
-    $travelling = isset($_POST['work_travel']) && $_POST['work_travel'] === 'on' ? 1 : 0; // Ensure this is 0 or 1
+    $travelling = isset($_POST['work_travel']) ? (int)$_POST['work_travel'] : 0; // Default to 0 
     $title = $_POST['title'] ?? 'Mr.';
     $firstName = $_POST['first_name'] ?? '';
     $lastName = $_POST['last_name'] ?? '';
     $phone = $_POST['phone'] ?? '';
 
     try {
-        // Update reservation with personal details
-        $updateQuery = "UPDATE reservationtb SET Travelling = '$travelling', Title = '$title', FirstName = '$firstName', LastName = '$lastName', UserPhone = '$phone', WHERE ReservationID = ?";
-        $stmt = $connect->prepare($update);
+        // Check if reservation exists
+        $reservationQuery = "SELECT * FROM reservationtb WHERE ReservationID = ? AND Status = 'Pending'";
+        $stmt = $connect->prepare($reservationQuery);
         $stmt->bind_param("s", $reservationID);
+        $stmt->execute();
+        $reservation = $stmt->get_result()->fetch_assoc();
+
+        if (!$reservation) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'reservation_id' => $reservationID,
+                'message' => 'Your reservation cannot be found. It may have expired or already been confirmed.'
+            ]);
+            exit();
+        }
+
+        // Update reservation with personal details
+        $updateQuery = "UPDATE reservationtb SET Travelling = ?, Title = ?, FirstName = ?, LastName = ?, UserPhone = ? WHERE ReservationID = ? AND Status = 'Pending'";
+        $stmt = $connect->prepare($updateQuery);
+        $stmt->bind_param("isssss", $travelling, $title, $firstName, $lastName, $phone, $reservationID);
 
         if ($stmt->execute()) {
             // Return success response
@@ -483,10 +500,11 @@ if (isset($_GET['payment'])) {
                                             // Handle remove discount request 
                                             if (isset($_POST['remove_points'])) {
                                                 // Get the current points balance first
-                                                $currentPointsQuery = "SELECT PointsBalance FROM usertb WHERE UserID = '$userID'";
+                                                $currentPointsQuery = "SELECT PointsBalance, Membership FROM usertb WHERE UserID = '$userID'";
                                                 $currentResult = $connect->query($currentPointsQuery);
                                                 $currentRow = $currentResult->fetch_assoc();
                                                 $currentPoints = $currentRow['PointsBalance'];
+                                                $membership = $currentRow['Membership'];
 
                                                 // Get the redeemed points from the reservation
                                                 $getPointsQuery = "SELECT PointsRedeemed FROM reservationtb WHERE ReservationID = '$reservationID'";
@@ -690,12 +708,12 @@ if (isset($_GET['payment'])) {
                                                 <!-- Points Earned Notification -->
                                                 <?php
                                                 $pointsEarned = floor($subtotal);
-                                                if ($membership == 1) $pointsEarned = floor($subtotal * 1.5); // Gold
-                                                if ($membership == 2) $pointsEarned = floor($subtotal * 2); // Platinum
+                                                if ($membership == 1) $pointsEarned = floor($subtotal + ($subtotal * 0.1)); // Member
+                                                if ($membership == 0) $pointsEarned = floor($subtotal * 0.5); // Non-member
                                                 ?>
                                                 <p class="text-xs text-green-600 mt-1">
                                                     ✓ Earn <?= $pointsEarned ?> points after payment
-                                                    <?= $membership > 0 ? '(Membership bonus applied)' : '' ?>
+                                                    <?= $membership == 1 ? '(Membership bonus applied)' : '' ?>
                                                 </p>
                                             </div>
                                     <?php
@@ -816,15 +834,17 @@ if (isset($_GET['payment'])) {
                                 <p class="text-gray-600 mb-4">Are you travelling for work?</p>
                                 <div class="flex space-x-4">
                                     <label class="inline-flex items-center">
-                                        <input type="radio" name="work_travel" value="on" class="h-4 w-4 text-blue-600">
+                                        <input type="radio" name="work_travel" value="1" class="h-4 w-4 text-blue-600" <?= isset($_POST['work_travel']) && $_POST['work_travel'] == 1 ? 'checked' : '' ?>>
                                         <span class="ml-2">Yes</span>
                                     </label>
                                     <label class="inline-flex items-center">
-                                        <input type="radio" name="work_travel" value="on" class="h-4 w-4 text-blue-600">
+                                        <input type="radio" name="work_travel" value="0" class="h-4 w-4 text-blue-600" <?= !isset($_POST['work_travel']) || (isset($_POST['work_travel']) && $_POST['work_travel'] == 0) ? 'checked' : '' ?>>
                                         <span class="ml-2">No</span>
                                     </label>
                                 </div>
                             </div>
+
+                            <input type="hidden" name="reservation_id" value="<?= $reservationID ?>">
 
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                 <div>
@@ -860,7 +880,6 @@ if (isset($_GET['payment'])) {
 
                             <div class="flex justify-between items-center">
                                 <a href="../User/RoomBooking.php?checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="text-blue-600 hover:text-blue-800 font-medium">Back</a>
-                                <!-- <a href="../User/Stripe.php?reservation_id=<?= $reservationID ?>" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md">Continue to payment</a> -->
                                 <button type="submit" id="submitButton" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md flex items-center justify-center select-none">
                                     <span id="buttonText">Continue to payment</span>
                                     <svg id="buttonSpinner" class="hidden w-5 h-5 ml-2 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

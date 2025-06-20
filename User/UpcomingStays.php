@@ -84,6 +84,18 @@ if ($userID) {
                 $room['subtotal'] = $room['Price'] * $nights;
                 $reserved_rooms[] = $room;
 
+                $totalPrice = 0;
+
+                foreach ($reserved_rooms as $room) {
+                    // Calculate nights for THIS SPECIFIC ROOM
+                    $roomCheckin = new DateTime($room['CheckInDate']);
+                    $roomCheckout = new DateTime($room['CheckOutDate']);
+                    $roomNights = $roomCheckout->diff($roomCheckin)->days;
+
+                    // Add this room's total price (price * its specific nights)
+                    $totalPrice += $room['Price'] * $roomNights;
+                }
+
                 // Set total nights (same for all rooms in reservation)
                 $totalNights = $nights;
             } catch (Exception $e) {
@@ -172,7 +184,7 @@ if ($userID) {
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-500">Total Spend</p>
-                        <p class="text-2xl font-bold text-gray-900 mt-1">$<?php echo number_format(array_sum(array_column($reserved_rooms, 'Price')), 2); ?></p>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">$<?= number_format($totalPrice * 1.1, 2) ?></p>
                         <p class="text-xs text-gray-400 mt-1">Estimated total</p>
                     </div>
                     <div class="p-3 bg-green-50/80 rounded-xl text-green-500">
@@ -316,7 +328,7 @@ if ($userID) {
                                         <?php echo $totalNights; ?> night<?php echo $totalNights > 1 ? 's' : ''; ?>
                                     </div>
                                     <div class="text-xl font-bold text-orange-600 mt-1">
-                                        $<?php echo number_format($totalPrice, 2); ?>
+                                        $<?= number_format($totalPrice * 1.1, 2) ?>
                                     </div>
                                     <div class="text-xs text-gray-500 mt-1">
                                         <?php echo $data['PointsRedeemed'] > 0 ?
