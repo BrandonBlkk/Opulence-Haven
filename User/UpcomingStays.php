@@ -8,6 +8,32 @@ if (!$connect) {
 
 $userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
 
+// Get reservation details
+if (isset($_GET['action']) && isset($_GET['id'])) {
+    $id = mysqli_real_escape_string($connect, $_GET['id']);
+    $action = $_GET['action'];
+
+    // Build query based on action
+    $query = match ($action) {
+        'getReservationDetails' => "SELECT * FROM reservationdetailtb WHERE ReservationID = '$id'",
+        default => null
+    };
+    if ($query) {
+        $reservation = $connect->query($query)->fetch_assoc();
+
+        if ($reservation) {
+            $response['success'] = true;
+            $response['reservation'] = $reservation;
+        } else {
+            $response['success'] = true;
+        }
+    }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit;
+}
+
 // Fetch reservations for the user
 if ($userID) {
     $stmt = $connect->prepare("SELECT r.*
@@ -57,6 +83,18 @@ if ($userID) {
                 $room['total'] = $room['Price'] * $nights * 1.1;
                 $room['subtotal'] = $room['Price'] * $nights;
                 $reserved_rooms[] = $room;
+
+                $totalPrice = 0;
+
+                foreach ($reserved_rooms as $room) {
+                    // Calculate nights for THIS SPECIFIC ROOM
+                    $roomCheckin = new DateTime($room['CheckInDate']);
+                    $roomCheckout = new DateTime($room['CheckOutDate']);
+                    $roomNights = $roomCheckout->diff($roomCheckin)->days;
+
+                    // Add this room's total price (price * its specific nights)
+                    $totalPrice += $room['Price'] * $roomNights;
+                }
 
                 // Set total nights (same for all rooms in reservation)
                 $totalNights = $nights;
@@ -108,70 +146,89 @@ if ($userID) {
     }
     ?>
 
-    <div class="max-w-6xl mx-auto p-4 md:p-6">
-        <div class="flex justify-between items-center mb-8">
-            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Upcoming Stays</h1>
-            <div class="relative">
-                <button class="flex items-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-md transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Header Section -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Upcoming Stays</h1>
+                <p class="text-gray-500 mt-1">Manage your upcoming reservations and bookings</p>
+            </div>
+            <div class="relative flex gap-3">
+                <button class="flex items-center gap-2 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg transition-all shadow-xs hover:shadow-sm">
                     <i class="ri-filter-line"></i>
                     Filter
+                </button>
+                <button class="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-lg transition-all shadow-xs hover:shadow-sm">
+                    <i class="ri-add-line"></i>
+                    New Booking
                 </button>
             </div>
         </div>
 
         <!-- Stats Summary -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+            <div class="bg-white p-5 rounded-xl shadow-xs border border-gray-100 hover:border-gray-200 transition-all">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-500">Upcoming Stays</p>
-                        <p class="text-2xl font-bold text-gray-800"><?php echo count($reserved_rooms); ?></p>
+                        <p class="text-2xl font-bold text-gray-900 mt-1"><?php echo count($reservations); ?></p>
+                        <p class="text-xs text-gray-400 mt-1">Active reservations</p>
                     </div>
-                    <div class="p-3 bg-blue-100 rounded-full">
-                        <i class="ri-calendar-check-line text-blue-600 text-xl"></i>
+                    <div class="p-3 bg-blue-50/80 rounded-xl text-blue-500">
+                        <i class="ri-calendar-check-line text-2xl"></i>
                     </div>
                 </div>
             </div>
-            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+
+            <div class="bg-white p-5 rounded-xl shadow-xs border border-gray-100 hover:border-gray-200 transition-all">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-500">Total Spend</p>
-                        <p class="text-2xl font-bold text-gray-800">$<?php echo number_format(array_sum(array_column($reserved_rooms, 'Price')), 2); ?></p>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">$<?= number_format($totalPrice * 1.1, 2) ?></p>
+                        <p class="text-xs text-gray-400 mt-1">Estimated total</p>
                     </div>
-                    <div class="p-3 bg-green-100 rounded-full">
-                        <i class="ri-wallet-line text-green-600 text-xl"></i>
+                    <div class="p-3 bg-green-50/80 rounded-xl text-green-500">
+                        <i class="ri-wallet-line text-2xl"></i>
                     </div>
                 </div>
             </div>
-            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+
+            <div class="bg-white p-5 rounded-xl shadow-xs border border-gray-100 hover:border-gray-200 transition-all">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-500">Reward Points</p>
-                        <p class="text-2xl font-bold text-gray-800"><?php echo array_sum(array_column($reserved_rooms, 'PointsEarned')); ?></p>
+                        <p class="text-2xl font-bold text-gray-900 mt-1"><?php echo array_sum(array_column($reserved_rooms, 'PointsEarned')); ?></p>
+                        <p class="text-xs text-gray-400 mt-1">Available to redeem</p>
                     </div>
-                    <div class="p-3 bg-purple-100 rounded-full">
-                        <i class="ri-star-line text-purple-600 text-xl"></i>
+                    <div class="p-3 bg-purple-50/80 rounded-xl text-purple-500">
+                        <i class="ri-star-line text-2xl"></i>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Sort Options -->
-        <div class="flex items-center justify-between mb-6">
-            <p class="text-sm text-gray-600">Showing <?php echo count($reserved_rooms); ?> upcoming reservations</p>
+        <!-- Sort and Filter Bar -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
             <div class="flex items-center gap-2">
-                <span class="text-sm text-gray-600">Sort by:</span>
-                <select class="bg-white border border-gray-300 text-gray-700 text-sm rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-orange-500">
-                    <option>Check-in date (earliest first)</option>
-                    <option>Check-in date (latest first)</option>
-                    <option>Price (low to high)</option>
-                    <option>Price (high to low)</option>
-                </select>
+                <p class="text-sm text-gray-600">
+                    <span class="font-medium text-gray-700"><?php echo count($reservations); ?></span> upcoming reservations
+                </p>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-gray-600">Sort by:</span>
+                    <select class="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 w-64">
+                        <option>Check-in date (earliest first)</option>
+                        <option>Check-in date (latest first)</option>
+                        <option>Price (low to high)</option>
+                        <option>Price (high to low)</option>
+                    </select>
+                </div>
             </div>
         </div>
 
         <!-- Upcoming Stay Cards -->
-        <div class="space-y-6">
+        <div class="space-y-5">
             <?php foreach ($reservations as $data): ?>
                 <?php
                 // Fetch data
@@ -179,12 +236,12 @@ if ($userID) {
 
                 // Query to get all rooms for this reservation
                 $reservation = "SELECT rd.*, r.*, rb.*, rtb.*, u.UserName, u.UserPhone 
-                   FROM reservationdetailtb rd
-                   JOIN reservationtb r ON rd.ReservationID = r.ReservationID
-                   JOIN roomtb rb ON rd.RoomID = rb.RoomID
-                   JOIN roomtypetb rtb ON rb.RoomTypeID = rtb.RoomTypeID
-                   JOIN usertb u ON r.UserID = u.UserID 
-                   WHERE rd.ReservationID = '$reservationID'";
+               FROM reservationdetailtb rd
+               JOIN reservationtb r ON rd.ReservationID = r.ReservationID
+               JOIN roomtb rb ON rd.RoomID = rb.RoomID
+               JOIN roomtypetb rtb ON rb.RoomTypeID = rtb.RoomTypeID
+               JOIN usertb u ON r.UserID = u.UserID 
+               WHERE rd.ReservationID = '$reservationID'";
 
                 $result = $connect->query($reservation);
                 $rooms = []; // Array to store all rooms for this reservation
@@ -197,28 +254,49 @@ if ($userID) {
                 // Use first room for check-in/check-out and other main details
                 $data = $rooms[0];
 
-                // Calculate nights
-                $checkin = new DateTime($data['CheckInDate']);
-                $checkout = new DateTime($data['CheckOutDate']);
-                $nights = $checkout->diff($checkin)->days;
-
-                // Calculate total price for all rooms
-                $totalPrice = 0;
+                // Find the earliest check-in date from all rooms
+                $earliestCheckin = null;
                 foreach ($rooms as $room) {
-                    $totalPrice += $room['Price'] * $nights;
+                    $currentCheckin = new DateTime($room['CheckInDate']);
+                    if ($earliestCheckin === null || $currentCheckin < $earliestCheckin) {
+                        $earliestCheckin = $currentCheckin;
+                    }
                 }
+
+                // Calculate nights
+                $checkout = new DateTime($data['CheckOutDate']);
+                $nights = $checkout->diff($earliestCheckin)->days;
+
+                // Initialize total price
+                $totalNights = 0;
+                $totalPrice = 0;
+
+                foreach ($rooms as $room) {
+                    // Calculate nights for THIS SPECIFIC ROOM
+                    $roomCheckin = new DateTime($room['CheckInDate']);
+                    $roomCheckout = new DateTime($room['CheckOutDate']);
+                    $roomNights = $roomCheckout->diff($roomCheckin)->days;
+
+                    // Add to total nights
+                    $totalNights += $roomNights;
+
+                    // Add this room's total price (price * its specific nights)
+                    $totalPrice += $room['Price'] * $roomNights;
+                }
+
                 ?>
 
                 <!-- Stay Card -->
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200 hover:shadow-md transition-shadow">
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-all duration-300">
                     <div class="md:flex">
                         <!-- Hotel Image -->
-                        <div class="md:w-1/3 relative">
+                        <div class="md:w-1/3 relative select-none">
                             <img src="../Admin/<?php echo $data['RoomCoverImage']; ?>"
                                 alt="Hotel Room"
-                                class="w-full h-48 md:h-full object-cover">
+                                class="w-full h-52 md:h-full object-cover">
                             <div class="absolute top-4 right-4 flex gap-2">
-                                <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                                <span class="bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
+                                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
                                     <?php echo $data['Status']; ?>
                                 </span>
                             </div>
@@ -226,26 +304,31 @@ if ($userID) {
 
                         <!-- Stay Details -->
                         <div class="md:w-2/3 p-6">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h2 class="text-xl font-bold text-gray-800">
-                                        Reservation #<?php echo $data['ReservationID']; ?>
-                                    </h2>
-                                    <div class="flex items-center mt-1 text-gray-600">
-                                        <i class="ri-user-line mr-1"></i>
-                                        <span><?php echo $data['Title'] . ' ' . $data['FirstName'] . ' ' . $data['LastName']; ?></span>
-                                        <span class="mx-2 text-gray-400">•</span>
-                                        <i class="ri-phone-line mr-1"></i>
-                                        <span><?php echo $data['UserPhone']; ?></span>
+                            <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2">
+                                        <h2 class="text-xl font-bold text-gray-900">
+                                            Reservation #<?php echo $data['ReservationID']; ?>
+                                        </h2>
+                                    </div>
+                                    <div class="flex flex-wrap items-center mt-2 text-gray-600 gap-x-3 gap-y-1">
+                                        <span class="flex items-center text-sm">
+                                            <i class="ri-user-line mr-1.5 text-gray-400"></i>
+                                            <?php echo $data['Title'] . ' ' . $data['FirstName'] . ' ' . $data['LastName']; ?>
+                                        </span>
+                                        <span class="flex items-center text-sm">
+                                            <i class="ri-phone-line mr-1.5 text-gray-400"></i>
+                                            <?php echo $data['UserPhone']; ?>
+                                        </span>
                                     </div>
                                 </div>
                                 <div class="text-right">
                                     <div class="text-sm text-gray-500">Total stay</div>
-                                    <div class="text-sm text-gray-500">
-                                        <?php echo $nights; ?> night<?php echo $nights > 1 ? 's' : ''; ?>
+                                    <div class="text-sm font-medium text-gray-700">
+                                        <?php echo $totalNights; ?> night<?php echo $totalNights > 1 ? 's' : ''; ?>
                                     </div>
-                                    <div class="text-lg font-bold text-orange-500">
-                                        $<?php echo number_format($totalPrice, 2); ?>
+                                    <div class="text-xl font-bold text-orange-600 mt-1">
+                                        $<?= number_format($totalPrice * 1.1, 2) ?>
                                     </div>
                                     <div class="text-xs text-gray-500 mt-1">
                                         <?php echo $data['PointsRedeemed'] > 0 ?
@@ -256,59 +339,66 @@ if ($userID) {
                             </div>
 
                             <!-- Stay Dates and Room Info -->
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                                <div>
-                                    <h3 class="text-sm font-medium text-gray-500">Check-in</h3>
-                                    <p class="font-medium"><?php echo $checkin->format('D j M Y'); ?></p>
-                                    <p class="text-sm text-gray-600">3:00 PM</p>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6">
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Check-in</h3>
+                                    <p class="font-medium text-gray-900 mt-1"><?php echo $earliestCheckin->format('D, j M Y'); ?></p>
+                                    <p class="text-sm text-gray-500 mt-0.5">After 2:00 PM</p>
                                 </div>
-                                <div>
-                                    <h3 class="text-sm font-medium text-gray-500">Check-out</h3>
-                                    <p class="font-medium"><?php echo $checkout->format('D j M Y'); ?></p>
-                                    <p class="text-sm text-gray-600">11:00 AM</p>
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Check-out</h3>
+                                    <p class="font-medium text-gray-900 mt-1"><?php echo $checkout->format('D, j M Y'); ?></p>
+                                    <p class="text-sm text-gray-500 mt-0.5">Before 12:00 AM</p>
                                 </div>
-                                <div>
-                                    <h3 class="text-sm font-medium text-gray-500">Room Details</h3>
-                                    <div class="flex items-center gap-2">
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Room Details</h3>
+                                    <div class="flex flex-wrap items-center gap-2 mt-1">
                                         <?php foreach ($rooms as $room): ?>
-                                            <p class="font-medium"><?php echo $room['RoomName']; ?></p>
+                                            <div class="relative group">
+                                                <div class="bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-lg border border-blue-100 transition-colors duration-200 cursor-default">
+                                                    <p class="font-medium text-blue-700 text-sm"><?php echo htmlspecialchars($room['RoomName']); ?></p>
+                                                </div>
+                                                <!-- Enhanced Tooltip -->
+                                                <div class="absolute z-10 bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block animate-fadeIn">
+                                                    <div class="bg-gray-800 text-white text-xs px-3 py-1.5 rounded-md shadow-lg whitespace-nowrap">
+                                                        <?php echo htmlspecialchars($room['RoomType']); ?>
+                                                        <div class="absolute left-1/2 -bottom-1 transform -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         <?php endforeach; ?>
                                     </div>
-                                    <p class="text-sm text-gray-600">
-                                        <?php echo $room['Adult']; ?> adult<?php echo $room['Adult'] > 1 ? 's' : ''; ?>
-                                        <?php echo $room['Children'] > 0 ? ' • ' . $room['Children'] . ' child' . ($room['Children'] > 1 ? 'ren' : '') : ''; ?>
-                                    </p>
                                 </div>
                             </div>
 
                             <!-- Points and Reservation Info -->
-                            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="p-3 bg-gray-50 rounded-lg">
-                                    <h3 class="text-sm font-medium text-gray-500">Reservation Date</h3>
-                                    <p class="text-sm"><?php echo date('M j, Y H:i', strtotime($data['ReservationDate'])); ?></p>
+                            <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Reservation Date</h3>
+                                    <p class="text-sm text-gray-700 mt-1"><?php echo date('M j, Y \a\t H:i', strtotime($data['ReservationDate'])); ?></p>
                                 </div>
-                                <div class="p-3 bg-gray-50 rounded-lg">
-                                    <h3 class="text-sm font-medium text-gray-500">Reward Points</h3>
-                                    <p class="text-sm">
-                                        Earned: <span class="font-medium text-green-600"><?php echo $data['PointsEarned']; ?></span>
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Reward Points</h3>
+                                    <p class="text-sm text-gray-700 mt-1">
+                                        <span class="font-medium text-green-600">+<?php echo $data['PointsEarned']; ?> earned</span>
                                         <?php if ($data['PointsRedeemed'] > 0): ?>
-                                            • Redeemed: <span class="font-medium text-orange-600"><?php echo $data['PointsRedeemed']; ?></span>
+                                            <span class="mx-2 text-gray-300">|</span>
+                                            <span class="font-medium text-orange-600">-<?php echo $data['PointsRedeemed']; ?> redeemed</span>
                                         <?php endif; ?>
                                     </p>
                                 </div>
                             </div>
 
                             <!-- Action Buttons -->
-                            <div class="mt-6 flex flex-col sm:flex-row gap-3">
-                                <button
-                                    class="flex-1 flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-medium py-2.5 px-4 rounded-md transition-colors">
-                                    <i class="ri-file-list-line"></i> View details
+                            <div class="mt-6 flex flex-col sm:flex-row gap-3 select-none">
+                                <button data-reservation-id="<?= htmlspecialchars($data['ReservationID']) ?>" class="details-btn flex-1 flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-medium py-2.5 px-4 rounded-lg transition-all shadow-xs hover:shadow-sm">
+                                    <i class="ri-file-list-line"></i> View Details
                                 </button>
-                                <button class="flex-1 flex items-center justify-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2.5 px-4 rounded-md transition-colors">
+                                <button class="flex-1 flex items-center justify-center gap-2 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-lg transition-all shadow-xs hover:shadow-sm">
                                     <i class="ri-pencil-line"></i> Modify
                                 </button>
-                                <button onclick="showCancelModal('<?php echo $data['ReservationID']; ?>', '<?php echo $checkin->format('M j, Y'); ?> - <?php echo $checkout->format('M j, Y'); ?>', <?php echo $totalPrice; ?>)"
-                                    class="flex-1 flex items-center justify-center gap-2 bg-white border border-red-300 hover:bg-red-50 text-red-600 font-medium py-2.5 px-4 rounded-md transition-colors">
+                                <button onclick="showCancelModal('<?php echo $data['ReservationID']; ?>', '<?php echo $earliestCheckin->format('M j, Y'); ?> - <?php echo $checkout->format('M j, Y'); ?>', <?php echo $totalPrice; ?>)"
+                                    class="flex-1 flex items-center justify-center gap-2 bg-white border border-red-200 hover:border-red-300 text-red-600 font-medium py-2.5 px-4 rounded-lg transition-all shadow-xs hover:shadow-sm">
                                     <i class="ri-close-line"></i> Cancel
                                 </button>
                             </div>
@@ -319,157 +409,251 @@ if ($userID) {
         </div>
 
         <!-- Pagination -->
-        <div class="mt-8 flex items-center justify-between">
+        <div class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 pt-5 border-t border-gray-200">
             <div class="text-sm text-gray-600">
-                Showing <span class="font-medium">1</span> to <span class="font-medium"><?php echo count($reserved_rooms); ?></span> of <span class="font-medium"><?php echo count($reserved_rooms); ?></span> results
+                Showing <span class="font-medium text-gray-900">1</span> to <span class="font-medium text-gray-900"><?php echo count($reserved_rooms); ?></span> of <span class="font-medium text-gray-900"><?php echo count($reserved_rooms); ?></span> results
             </div>
-            <div class="flex gap-1">
-                <button class="px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                    Previous
+            <div class="flex items-center gap-2">
+                <button class="flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all" disabled>
+                    <i class="ri-arrow-left-s-line"></i>
                 </button>
-                <button class="px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 font-medium">
+                <button class="flex items-center justify-center w-9 h-9 rounded-lg border border-orange-500 bg-orange-50 text-orange-600 font-medium transition-all">
                     1
                 </button>
-                <button class="px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                    Next
+                <button class="flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all" disabled>
+                    <i class="ri-arrow-right-s-line"></i>
                 </button>
             </div>
         </div>
     </div>
 
-    <div id="reservationDetailModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-100 p-2 transition-all duration-300">
-        <div class="bg-white rounded-xl max-w-4xl w-full p-6 animate-fade-in overflow-y-auto max-h-[700px]">
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, 5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+
+        .animate-fadeIn {
+            animation: fadeIn 0.15s ease-out forwards;
+        }
+
+        .shadow-xs {
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+    </style>
+
+    <div id="reservationDetailModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible -translate-y-5 p-2 transition-all duration-300">
+        <div class="bg-white rounded-xl max-w-4xl w-full p-6 animate-fade-in">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-bold text-gray-800">Reservation Details</h3>
-                <button onclick="document.getElementById('reservationDetailModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-500">
+                <button id="closeReservationDetailModal" class="text-gray-400 hover:text-gray-500">
                     <i class="ri-close-line text-xl"></i>
                 </button>
             </div>
 
-            <div id="reservationDetailContent">
-                <div class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <h4 class="font-medium text-gray-800 mb-3">Your Information</h4>
-                            <div class="space-y-2">
-                                <div class="flex justify-between">
-                                    <span class="text-sm text-gray-600">Name:</span>
-                                    <span class="text-sm font-medium"><?= $data['Title'] ?> <?= $data['FirstName'] ?> <?= $data['LastName'] ?></span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-sm text-gray-600">Phone:</span>
-                                    <span class="text-sm font-medium"><?= $data['UserPhone'] ?></span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-sm text-gray-600">Reservation Date:</span>
-                                    <span class="text-sm font-medium"><?= date('M j, Y H:i', strtotime($data['ReservationDate'])) ?></span>
-                                </div>
-                            </div>
+            <div class="space-y-3">
+                <!-- <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-medium text-gray-800 mb-3">Your Information</h4>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Name:</span>
+                            <span class="text-sm font-medium"><?= $data['Title'] ?> <?= $data['FirstName'] ?> <?= $data['LastName'] ?></span>
                         </div>
-
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <h4 class="font-medium text-gray-800 mb-3">Stay Details</h4>
-                            <div class="space-y-2">
-                                <div class="flex justify-between">
-                                    <span class="text-sm text-gray-600">Check-in:</span>
-                                    <span class="text-sm font-medium"><?= $checkin->format('D, M j, Y') ?> at 3:00 PM</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-sm text-gray-600">Check-out:</span>
-                                    <span class="text-sm font-medium"><?= $checkout->format('D, M j, Y') ?> at 11:00 AM</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-sm text-gray-600">Duration:</span>
-                                    <span class="text-sm font-medium"><?= $nights . ' night' . ($nights > 1 ? 's' : '') ?></span>
-                                </div>
-                            </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Phone:</span>
+                            <span class="text-sm font-medium"><?= $data['UserPhone'] ?></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Reservation Date:</span>
+                            <span class="text-sm font-medium"><?= date('M j, Y H:i', strtotime($data['ReservationDate'])) ?></span>
                         </div>
                     </div>
+                </div> -->
 
+                <!-- Room Information -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-medium text-gray-800 mb-3">Room Information</h4>
 
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <h4 class="font-medium text-gray-800 mb-3">Room Information</h4>
+                    <!-- Swiper Container -->
+                    <div class="swiper roomTypeSwiper">
+                        <div class="swiper-wrapper">
+                            <?php
+                            // Group rooms by RoomType
+                            $grouped_rooms = [];
+                            foreach ($reserved_rooms as $room) {
+                                $grouped_rooms[$room['RoomTypeID']][] = $room;
+                            }
 
-                        <?php
-                        foreach ($reserved_rooms as $room) {
-                        ?>
-                            <div class="flex flex-col md:flex-row gap-4 py-1">
-                                <div class="md:w-1/3">
-                                    <img src="../Admin/<?= $room['RoomCoverImage'] ?>"
-                                        alt="Room Image"
-                                        class="w-full h-auto rounded-lg">
-                                </div>
-                                <div class="md:w-2/3">
-                                    <h5 class="font-bold text-lg"><?= $room['RoomName'] ?></h5>
-                                    <p class="text-sm text-gray-600 mt-1"><?= $room['RoomDescription'] ?></p>
-
-                                    <div class="mt-4 grid grid-cols-2 gap-4">
-                                        <div>
-                                            <span class="text-sm text-gray-600">Adults:</span>
-                                            <span class="text-sm font-medium ml-2"><?= $room['Adult'] ?></span>
+                            foreach ($grouped_rooms as $room_type_id => $rooms):
+                                $first_room = $rooms[0];
+                            ?>
+                                <!-- Swiper Slide -->
+                                <div class="swiper-slide">
+                                    <div class="flex flex-col md:flex-row gap-4 py-2">
+                                        <div class="md:w-1/3 select-none">
+                                            <div class="relative" style="height: 200px;">
+                                                <img src="../Admin/<?= $first_room['RoomCoverImage'] ?>"
+                                                    alt="Room Image"
+                                                    class="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-105">
+                                            </div>
                                         </div>
-                                        <div>
-                                            <span class="text-sm text-gray-600">Children:</span>
-                                            <span class="text-sm font-medium ml-2"><?= $room['Children'] ?></span>
+
+                                        <div class="md:w-2/3">
+                                            <div class="flex justify-between items-start">
+                                                <div>
+                                                    <h5 class="font-bold text-lg text-gray-800">
+                                                        <?= $first_room['RoomType'] ?>
+                                                    </h5>
+                                                    <p class="text-sm text-gray-600 mt-1 line-clamp-2"><?= $first_room['RoomDescription'] ?></p>
+                                                    <div class="mt-2 text-xs text-gray-500">
+                                                        <?= count($rooms) ?> room<?= count($rooms) > 1 ? 's' : '' ?> of this type
+                                                        <div class="flex flex-wrap gap-2 mt-1">
+                                                            <?php foreach ($rooms as $index => $room): ?>
+                                                                <div class="group relative">
+                                                                    <span class="bg-gray-100 px-2 py-1 rounded text-gray-600 font-semibold text-xs cursor-default">
+                                                                        Room #<?= $room['RoomName'] ?>
+                                                                    </span>
+                                                                    <!-- Hidden details that appear on hover -->
+                                                                    <div class="absolute z-20 left-0 mt-1 w-64 bg-white p-3 rounded-lg shadow-sm border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                                                                        <div class="flex items-center gap-2 text-sm mb-1">
+                                                                            <i class="ri-calendar-check-line text-orange-500"></i>
+                                                                            <?= date('M j', strtotime($room['CheckInDate'])) ?>
+                                                                            <span class="text-gray-400">→</span>
+                                                                            <?= date('M j, Y', strtotime($room['CheckOutDate'])) ?>
+                                                                        </div>
+                                                                        <div class="flex items-center gap-2 text-sm mb-2">
+                                                                            <i class="ri-user-line text-orange-500"></i>
+                                                                            <?= $room['Adult'] ?> Adult<?= $room['Adult'] > 1 ? 's' : '' ?>
+                                                                            <?php if ($room['Children'] > 0): ?>
+                                                                                <span class="text-gray-400">+</span>
+                                                                                <?= $room['Children'] ?> Child<?= $room['Children'] > 1 ? 'ren' : '' ?>
+                                                                            <?php endif; ?>
+                                                                        </div>
+                                                                        <div class="text-sm text-gray-600">
+                                                                            <span class="font-medium">$<?= number_format($room['RoomPrice'], 2) ?></span>
+                                                                            <span class="text-gray-500">/night</span>
+                                                                        </div>
+
+                                                                        <!-- Cancellation Alert - Inside Tooltip -->
+                                                                        <div class="bg-red-50 border-l-4 border-red-400 p-2 my-2 rounded-r">
+                                                                            <div class="flex items-start">
+                                                                                <i class="ri-alert-line text-red-500 mt-0.5 mr-1 text-sm"></i>
+                                                                                <span class="text-xs text-red-700">$50 fee if cancelled within 48 hours</span>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <!-- Cancellation Button -->
+                                                                        <button class="cancel-btn mt-1 w-full bg-red-50 hover:bg-red-100 text-red-600 text-xs font-medium py-2 px-3 rounded-md transition-colors duration-200 flex items-center justify-center select-none"
+                                                                            data-reservation-id="<?= $room['ReservationID'] ?>">
+                                                                            <i class="ri-close-circle-line mr-1"></i> Cancel Reservation
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            <?php endforeach; ?>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <a href="../User/RoomDetails.php?roomTypeID=<?= $room['RoomTypeID'] ?>&checkin_date=<?= $room['CheckInDate'] ?>&checkout_date=<?= $room['CheckOutDate'] ?>&adults=<?= $room['Adult'] ?>&children=<?= $room['Children'] ?>"
+                                                class="mt-2 text-orange-600 hover:text-orange-700 font-medium inline-flex items-center text-xs bg-orange-50 px-3 py-1 rounded-full">
+                                                <i class="ri-information-line mr-1"></i> Room Details
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <!-- Add Pagination -->
+                        <div class="swiper-pagination"></div>
+                    </div>
+                </div>
+
+                <!-- Initialize Swiper -->
+                <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css" />
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const swiper = new Swiper('.roomTypeSwiper', {
+                            // Optional parameters
+                            slidesPerView: 1,
+                            spaceBetween: 20,
+                            centeredSlides: true,
+
+                            // If we need pagination
+                            pagination: {
+                                el: '.swiper-pagination',
+                                clickable: true,
+                            },
+
+                            // Responsive breakpoints
+                            breakpoints: {
+                                // when window width is >= 768px
+                                768: {
+                                    slidesPerView: 1,
+                                    spaceBetween: 30
+                                }
+                            }
+                        });
+                    });
+                </script>
+
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-medium text-gray-800 mb-3">Pricing Breakdown</h4>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Room Rate (<?= $totalNights . ' night' . ($totalNights > 1 ? 's' : '') ?>):</span>
+                            <span class="text-sm font-medium">$ <?php echo number_format($totalPrice, 2); ?></span>
+                        </div>
+
+                        <?php if ($data['PointsRedeemed'] > 0) { ?>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-600">Points Discount (<?= $data['PointsRedeemed'] ?>points):</span>
+                                <span class="text-sm font-medium text-green-600">-$ <?= number_format($data['PointsDiscount'], 2) ?></span>
                             </div>
+                        <?php }
+                        ?>
+
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Taxes & Fees:</span>
+                            <span class="text-sm font-medium">$ <?= number_format($totalPrice * 0.1, 2) ?></span>
+                        </div>
+                        <div class="border-t border-gray-200 pt-2 flex justify-between">
+                            <span class="font-medium text-gray-800">Total:</span>
+                            <span class="font-bold">$ <?= number_format($totalPrice * 1.1, 2) ?></span>
+                        </div>
+
                         <?php
-                        }
+                        if ($data['PointsEarned'] > 0) {
+                        ?>
+                            <div class="pt-2 flex justify-between">
+                                <span class="text-sm text-gray-600">Points Earned:</span>
+                                <span class="text-sm font-medium text-blue-600">+ <?= $data['PointsEarned'] ?> points</span>
+                            </div>
+                        <?php }
                         ?>
                     </div>
+                </div>
 
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <h4 class="font-medium text-gray-800 mb-3">Pricing Breakdown</h4>
-                        <div class="space-y-3">
-                            <div class="flex justify-between">
-                                <span class="text-sm text-gray-600">Room Rate (<?= $nights . ' night' . ($nights > 1 ? 's' : '') ?>):</span>
-                                <span class="text-sm font-medium">$ <?= number_format($data['TotalPrice'] * $nights, 2) ?></span>
-                            </div>
-
-                            <?php if ($data['PointsRedeemed'] > 0) { ?>
-                                <div class="flex justify-between">
-                                    <span class="text-sm text-gray-600">Points Discount (<?= $data['PointsRedeemed'] ?>points):</span>
-                                    <span class="text-sm font-medium text-green-600">-$ <?= number_format($data['PointsDiscount'], 2) ?></span>
-                                </div>
-                            <?php }
-                            ?>
-
-                            <div class="flex justify-between">
-                                <span class="text-sm text-gray-600">Taxes & Fees:</span>
-                                <span class="text-sm font-medium">$ <?= number_format($totalPrice * 0.1, 2) ?></span>
-                            </div>
-                            <div class="border-t border-gray-200 pt-2 flex justify-between">
-                                <span class="font-medium text-gray-800">Total:</span>
-                                <span class="font-bold">$ <?= number_format($totalPrice * 1.1, 2) ?></span>
-                            </div>
-
-                            <?php
-
-                            if ($data['PointsEarned'] > 0) {
-                            ?>
-                                <div class="pt-2 flex justify-between">
-                                    <span class="text-sm text-gray-600">Points Earned:</span>
-                                    <span class="text-sm font-medium text-blue-600">+ <?= $data['PointsEarned'] ?> points</span>
-                                </div>
-                            <?php }
-                            ?>
+                <!-- Cancellation Alert - Main Section -->
+                <div class="bg-red-50 border-l-4 border-red-400 p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="ri-alert-line text-red-500 mt-1"></i>
                         </div>
-                    </div>
-
-                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <i class="ri-information-line text-blue-500 mt-1"></i>
-                            </div>
-                            <div class="ml-3">
-                                <h4 class="text-sm font-medium text-blue-800">Cancellation Policy</h4>
-                                <p class="text-sm text-blue-700 mt-1">
-                                    Free cancellation until <?= date('F j, Y', strtotime($data['CheckInDate'] . ' -1 day')) ?>.
-                                    After this date, a cancellation fee of $50 will apply.
-                                </p>
-                            </div>
+                        <div class="ml-3">
+                            <h4 class="text-sm font-medium text-red-800">Cancellation Policy</h4>
+                            <p class="text-sm text-red-700 mt-1">
+                                Cancellations made within 24 hours of check-in will incur a fee of $50.
+                                Free cancellation is available until <?= date('F j, Y', strtotime($earliestCheckin->format('Y-m-d') . ' -1 days')) ?>.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -496,7 +680,7 @@ if ($userID) {
                     </div>
                     <div class="ml-3">
                         <p class="text-sm text-yellow-700">
-                            Cancelling before <span id="cancelDeadline"></span> will result in a full refund. After this date, a cancellation fee may apply.
+                            Cancelling before <?= date('F j, Y', strtotime($earliestCheckin->format('Y-m-d') . ' -1 days')) ?> will result in a full refund. After this date, a cancellation fee may apply.
                         </p>
                     </div>
                 </div>
@@ -539,11 +723,6 @@ if ($userID) {
             // Set modal content
             document.getElementById('cancelReservationId').textContent = reservationId;
             document.getElementById('cancelReservationDates').textContent = dates;
-            document.getElementById('cancelDeadline').textContent = deadline.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-            });
             document.getElementById('refundAmount').textContent = '$' + totalPrice.toFixed(2);
             document.getElementById('totalRefund').textContent = '$' + totalPrice.toFixed(2);
 
@@ -553,29 +732,6 @@ if ($userID) {
             };
 
             document.getElementById('cancelModal').classList.remove('hidden');
-        }
-
-        // Function to cancel reservation
-        function cancelReservation(reservationId) {
-            fetch(`cancel_reservation.php?reservation_id=${reservationId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Reservation cancelled successfully');
-                        location.reload();
-                    } else {
-                        alert('Failed to cancel reservation: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Failed to cancel reservation');
-                });
         }
     </script>
 
