@@ -322,42 +322,42 @@ if (!$connect) {
 //     echo "Data has been saved";
 // }
 
-$roomtype = "CREATE TABLE roomtypetb
-(
-    RoomTypeID varchar(20) not null primary key,
-    RoomCoverImage text,
-    RoomType varchar(30),
-    RoomDescription text,
-    RoomCapacity int,
-    RoomPrice decimal(10, 2),
-    AddedDate datetime default current_timestamp,
-    LastUpdate datetime default current_timestamp on update current_timestamp
-)";
+// $roomtype = "CREATE TABLE roomtypetb
+// (
+//     RoomTypeID varchar(20) not null primary key,
+//     RoomCoverImage text,
+//     RoomType varchar(30),
+//     RoomDescription text,
+//     RoomCapacity int,
+//     RoomPrice decimal(10, 2),
+//     AddedDate datetime default current_timestamp,
+//     LastUpdate datetime default current_timestamp on update current_timestamp
+// )";
 
-try {
-    $query = mysqli_query($connect, $roomtype);
-    echo "Data Successfully saved";
-} catch (mysqli_sql_exception) {
-    echo "Data has been saved";
-}
+// try {
+//     $query = mysqli_query($connect, $roomtype);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
 
-$room = "CREATE TABLE roomtb
-(
-    RoomID varchar(20) not null primary key,
-    RoomName varchar(50),
-    RoomStatus varchar(15) default 'available',
-    RoomTypeID varchar(20),
-    FOREIGN KEY (RoomTypeID) REFERENCES roomtypetb (RoomTypeID)
-    ON DELETE CASCADE 
-    ON UPDATE CASCADE
-)";
+// $room = "CREATE TABLE roomtb
+// (
+//     RoomID varchar(20) not null primary key,
+//     RoomName varchar(50),
+//     RoomStatus varchar(15) default 'available',
+//     RoomTypeID varchar(20),
+//     FOREIGN KEY (RoomTypeID) REFERENCES roomtypetb (RoomTypeID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE
+// )";
 
-try {
-    $query = mysqli_query($connect, $room);
-    echo "Data Successfully saved";
-} catch (mysqli_sql_exception) {
-    echo "Data has been saved";
-}
+// try {
+//     $query = mysqli_query($connect, $room);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
 
 // $roomtypeimage = "CREATE TABLE roomtypeimagetb
 // (
@@ -463,49 +463,49 @@ try {
 //     echo "Data has been saved";
 // }
 
-$reservation = "CREATE TABLE reservationtb
-(
-    ReservationID varchar(20) not null primary key,
-    UserID varchar(30),
-    TotalPrice decimal(10,2),
-    ReservationDate datetime default current_timestamp,
-    Status varchar(20) default 'Pending',
-    FOREIGN KEY (UserID) REFERENCES usertb (UserID)
-    ON DELETE CASCADE 
-    ON UPDATE CASCADE
-)";
+// $reservation = "CREATE TABLE reservationtb
+// (
+//     ReservationID varchar(20) not null primary key,
+//     UserID varchar(30),
+//     TotalPrice decimal(10,2),
+//     ReservationDate datetime default current_timestamp,
+//     Status varchar(20) default 'Pending',
+//     FOREIGN KEY (UserID) REFERENCES usertb (UserID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE
+// )";
 
-try {
-    $query = mysqli_query($connect, $reservation);
-    echo "Data Successfully saved";
-} catch (mysqli_sql_exception) {
-    echo "Data has been saved";
-}
+// try {
+//     $query = mysqli_query($connect, $reservation);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
 
-$reservationdetail = "CREATE TABLE reservationdetailtb
-(
-    ReservationID varchar(20),
-    RoomID varchar(20),
-    CheckInDate date,
-    CheckOutDate date,
-    Adult int default 1,
-    Children int default 0,
-    Price decimal(10,2),
-    PRIMARY KEY (ReservationID, RoomID),
-    FOREIGN KEY (ReservationID) REFERENCES reservationtb (ReservationID)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE,
-    FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
-    ON DELETE CASCADE 
-    ON UPDATE CASCADE
-)";
+// $reservationdetail = "CREATE TABLE reservationdetailtb
+// (
+//     ReservationID varchar(20),
+//     RoomID varchar(20),
+//     CheckInDate date,
+//     CheckOutDate date,
+//     Adult int default 1,
+//     Children int default 0,
+//     Price decimal(10,2),
+//     PRIMARY KEY (ReservationID, RoomID),
+//     FOREIGN KEY (ReservationID) REFERENCES reservationtb (ReservationID)
+//     ON DELETE CASCADE
+//     ON UPDATE CASCADE,
+//     FOREIGN KEY (RoomID) REFERENCES roomtb (RoomID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE
+// )";
 
-try {
-    $query = mysqli_query($connect, $reservationdetail);
-    echo "Data Successfully saved";
-} catch (mysqli_sql_exception) {
-    echo "Data has been saved";
-}
+// try {
+//     $query = mysqli_query($connect, $reservationdetail);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
 
 // $dining = "CREATE TABLE diningreservationtb
 // (
@@ -567,6 +567,31 @@ try {
 
 // try {
 //     $query = mysqli_query($connect, $purchasedetail);
+//     echo "Data Successfully saved";
+// } catch (mysqli_sql_exception) {
+//     echo "Data has been saved";
+// }
+
+// $cart = "CREATE TABLE carttb (
+//     CartID INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
+//     UserID VARCHAR(30),
+//     ProductID VARCHAR(20),
+//     SizeID int,
+//     Quantity INT NOT NULL DEFAULT 1,
+//     AddedDate datetime default current_timestamp,
+//     FOREIGN KEY (UserID) REFERENCES usertb(UserID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE,
+//     FOREIGN KEY (ProductID) REFERENCES producttb(ProductID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE,
+//     FOREIGN KEY (SizeID) REFERENCES sizetb(SizeID)
+//     ON DELETE CASCADE 
+//     ON UPDATE CASCADE
+// )";
+
+// try {
+//     $query = mysqli_query($connect, $cart);
 //     echo "Data Successfully saved";
 // } catch (mysqli_sql_exception) {
 //     echo "Data has been saved";

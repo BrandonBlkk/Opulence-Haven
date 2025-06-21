@@ -989,7 +989,14 @@ if (isset($_GET['payment'])) {
                             </div>
 
                             <div class="flex justify-between items-center">
-                                <a href="../User/RoomBooking.php?checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="text-blue-600 hover:text-blue-800 font-medium">Back</a>
+                                <a href="../User/RoomBooking.php?<?php
+                                                                    $params = [];
+                                                                    if (!empty($checkin_date)) $params[] = 'checkin_date=' . urlencode($checkin_date);
+                                                                    if (!empty($checkout_date)) $params[] = 'checkout_date=' . urlencode($checkout_date);
+                                                                    if (!empty($adults)) $params[] = 'adults=' . urlencode($adults);
+                                                                    if (!empty($children)) $params[] = 'children=' . urlencode($children);
+                                                                    echo implode('&', $params);
+                                                                    ?>" class="text-blue-600 hover:text-blue-800 font-medium">Back</a>
                                 <button type="submit" id="submitButton" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md flex items-center justify-center select-none">
                                     <span id="buttonText">Continue to payment</span>
                                     <svg id="buttonSpinner" class="hidden w-5 h-5 ml-2 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

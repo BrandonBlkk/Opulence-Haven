@@ -121,29 +121,32 @@ if (isset($_POST['addtobag'])) {
         $update_stock->bind_param("is", $new_stock, $product_id);
         $update_stock->execute();
 
-        // Initialize cart in session if it doesn't exist
-        if (!isset($_SESSION['cart'])) {
-            $_SESSION['cart'] = array();
-        }
+        // Check if user is logged in (required for database cart)
+        if ($session_userID) {
+            // Check if item already exists in cart
+            $check_cart = $connect->prepare("SELECT Quantity FROM carttb WHERE UserID = ? AND ProductID = ? AND SizeID = ?");
+            $check_cart->bind_param("sss", $session_userID, $product_id, $product_size);
+            $check_cart->execute();
+            $cart_result = $check_cart->get_result();
 
-        // Create a unique key for this product+size combination
-        $cart_item_key = $product_id . '_' . $product_size;
+            if ($cart_result->num_rows > 0) {
+                // Update existing cart item
+                $update_cart = $connect->prepare("UPDATE carttb SET Quantity = Quantity + 1 WHERE UserID = ? AND ProductID = ? AND SizeID = ?");
+                $update_cart->bind_param("sss", $session_userID, $product_id, $product_size);
+                $update_cart->execute();
+            } else {
+                // Add new item to cart
+                $insert_cart = $connect->prepare("INSERT INTO carttb (UserID, ProductID, SizeID, Quantity, AddedDate) VALUES (?, ?, ?, 1, NOW())");
+                $insert_cart->bind_param("sss", $session_userID, $product_id, $product_size);
+                $insert_cart->execute();
+            }
 
-        // Check if item already exists in cart
-        if (isset($_SESSION['cart'][$cart_item_key])) {
-            // Increment quantity if item exists
-            $_SESSION['cart'][$cart_item_key]['quantity'] += 1;
+            $response['success'] = true;
+            $response['stock'] = $new_stock;
         } else {
-            // Add new item to cart
-            $_SESSION['cart'][$cart_item_key] = array(
-                'product_id' => $product_id,
-                'size_id' => $product_size,
-                'quantity' => 1
-            );
+            $response['error'] = 'login_required';
+            $response['message'] = 'Please login to add items to your cart';
         }
-
-        $response['success'] = true;
-        $response['stock'] = $new_stock;
     } else {
         $response['outofstock'] = true;
     }
