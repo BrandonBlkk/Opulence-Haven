@@ -596,3 +596,56 @@ if (!$connect) {
 // } catch (mysqli_sql_exception) {
 //     echo "Data has been saved";
 // }
+
+$order = "CREATE TABLE ordertb
+(
+    OrderID varchar(20) not null primary key,
+    UserID varchar(30),
+    FullName varchar(50),
+    ShippingAddress varchar(100),
+    PhoneNumber varchar(20),
+    City varchar(30),
+    State varchar(30),
+    ZipCode varchar(10),
+    TotalPrice decimal(10,2),
+    OrderTax decimal(10,2),
+    Remarks text,
+    OrderDate datetime default current_timestamp,
+    Status varchar(20) default 'Pending',
+    FOREIGN KEY (UserID) REFERENCES usertb (UserID)
+    ON DELETE CASCADE 
+    ON UPDATE CASCADE
+)";
+
+try {
+    $query = mysqli_query($connect, $order);
+    echo "Data Successfully saved";
+} catch (mysqli_sql_exception) {
+    echo "Data has been saved";
+}
+
+$orderdetail = "CREATE TABLE orderdetailtb
+(
+    OrderID varchar(20) not null,
+    ProductID varchar(20) not null,
+    SizeID int not null,
+    OrderUnitQuantity int,
+    OrderUnitPrice decimal(10,2),
+    PRIMARY KEY (OrderID, ProductID, SizeID),
+    FOREIGN KEY (OrderID) REFERENCES ordertb (OrderID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    FOREIGN KEY (ProductID) REFERENCES producttb (ProductID)
+    ON DELETE CASCADE 
+    ON UPDATE CASCADE,
+    FOREIGN KEY (SizeID) REFERENCES sizetb (SizeID)
+    ON DELETE CASCADE 
+    ON UPDATE CASCADE
+)";
+
+try {
+    $query = mysqli_query($connect, $orderdetail);
+    echo "Data Successfully saved";
+} catch (mysqli_sql_exception) {
+    echo "Data has been saved";
+}
