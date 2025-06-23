@@ -239,6 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 buttonText.textContent = "Continue to Payment";
                 buttonSpinner.classList.add("hidden");
                 
+                console.log("Error:", error);
                 showAlert("An error occurred. Please try again.", true);
             });
         });
