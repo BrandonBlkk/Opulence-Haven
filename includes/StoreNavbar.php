@@ -20,71 +20,158 @@ include('../User/CleanupReservations.php');
         </div>
 
         <?php
-        if (isset($_POST['remove_from_cart']) && isset($_POST['remove_key'])) {
-            $key = $_POST['remove_key'];
+        // Remove from cart
+        if (isset($_POST['remove_from_cart']) && isset($_POST['product_id']) && isset($_POST['size_id'])) {
+            $product_id = $_POST['product_id'];
+            $size_id = $_POST['size_id'];
+            $user_id = $_SESSION['UserID'] ?? null;
 
-            if (isset($_SESSION['cart'][$key])) {
-                $product_id = $_SESSION['cart'][$key]['product_id'];
-                $size_id = $_SESSION['cart'][$key]['size_id'];
-                $quantity = $_SESSION['cart'][$key]['quantity'];
+            if ($user_id) {
+                // Get pending order ID for this user
+                $order_query = $connect->prepare("SELECT OrderID FROM ordertb WHERE UserID = ? AND Status = 'pending' LIMIT 1");
+                $order_query->bind_param("s", $user_id);
+                $order_query->execute();
+                $order_result = $order_query->get_result();
 
-                // Restore stock in database
-                $stock_query = "SELECT Stock FROM producttb WHERE ProductID = '$product_id'";
-                $stock_result = $connect->query($stock_query);
-                $stock_row = $stock_result->fetch_assoc();
-                $current_stock = isset($stock_row['Stock']) ? (int)$stock_row['Stock'] : 0;
+                if ($order_result->num_rows > 0) {
+                    $order_id = $order_result->fetch_assoc()['OrderID'];
 
-                $new_stock = $current_stock + $quantity;
-                $update_stock = "UPDATE producttb SET Stock = '$new_stock' WHERE ProductID = '$product_id'";
-                $connect->query($update_stock);
+                    // Get quantity being removed to restore stock
+                    $detail_query = $connect->prepare("
+                SELECT OrderUnitQuantity 
+                FROM orderdetailtb 
+                WHERE OrderID = ? AND ProductID = ? AND SizeID = ?
+            ");
+                    $detail_query->bind_param("ssi", $order_id, $product_id, $size_id);
+                    $detail_query->execute();
+                    $detail_result = $detail_query->get_result();
 
-                // Remove item from cart
-                unset($_SESSION['cart'][$key]);
-                $_SESSION['cart'] = array_values($_SESSION['cart']);
+                    if ($detail_result->num_rows > 0) {
+                        $quantity = $detail_result->fetch_assoc()['OrderUnitQuantity'];
+
+                        // Restore stock
+                        $update_stock = $connect->prepare("UPDATE producttb SET Stock = Stock + ? WHERE ProductID = ?");
+                        $update_stock->bind_param("is", $quantity, $product_id);
+                        $update_stock->execute();
+
+                        // Remove item from order details
+                        $delete_item = $connect->prepare("
+                    DELETE FROM orderdetailtb 
+                    WHERE OrderID = ? AND ProductID = ? AND SizeID = ?
+                ");
+                        $delete_item->bind_param("ssi", $order_id, $product_id, $size_id);
+                        $delete_item->execute();
+
+                        // If no more items, delete the pending order
+                        $check_empty = $connect->prepare("SELECT COUNT(*) AS count FROM orderdetailtb WHERE OrderID = ?");
+                        $check_empty->bind_param("s", $order_id);
+                        $check_empty->execute();
+                        $empty_result = $check_empty->get_result()->fetch_assoc();
+
+                        if ($empty_result['count'] == 0) {
+                            $delete_order = $connect->prepare("DELETE FROM ordertb WHERE OrderID = ?");
+                            $delete_order->bind_param("s", $order_id);
+                            $delete_order->execute();
+                        }
+                    }
+                }
             }
 
             header("Location: " . $_SERVER['REQUEST_URI']);
             exit();
         }
 
-        if (isset($_POST['update_quantity']) && isset($_POST['update_key'])) {
-            $key = $_POST['update_key'];
+        // Update quantity in cart
+        if (isset($_POST['update_quantity'])) {
+            $product_id = $_POST['product_id'] ?? null;
+            $size_id = $_POST['size_id'] ?? null;
             $action = $_POST['update_quantity'];
+            $user_id = $_SESSION['UserID'] ?? null;
 
-            if (isset($_SESSION['cart'][$key])) {
-                $product_id = $_SESSION['cart'][$key]['product_id'];
-                $size_id = $_SESSION['cart'][$key]['size_id'];
+            if ($user_id && $product_id && $size_id) {
+                // Get pending order ID
+                $order_query = $connect->prepare("SELECT OrderID FROM ordertb WHERE UserID = ? AND Status = 'pending' LIMIT 1");
+                $order_query->bind_param("s", $user_id);
+                $order_query->execute();
+                $order_result = $order_query->get_result();
 
-                // Fetch current stock from database
-                $stock_query = "SELECT Stock FROM producttb WHERE ProductID = '$product_id'";
-                $stock_result = $connect->query($stock_query);
-                $stock_row = $stock_result->fetch_assoc();
-                $current_stock = isset($stock_row['Stock']) ? (int)$stock_row['Stock'] : 0;
+                if ($order_result->num_rows > 0) {
+                    $order_id = $order_result->fetch_assoc()['OrderID'];
 
-                if ($action === 'increase') {
-                    if ($current_stock > 0) {
-                        // Increase quantity in cart and reduce stock in database
-                        $_SESSION['cart'][$key]['quantity']++;
-                        $new_stock = $current_stock - 1;
-                        $update_stock = "UPDATE producttb SET Stock = '$new_stock' WHERE ProductID = '$product_id'";
-                        $connect->query($update_stock);
-                    }
-                } elseif ($action === 'decrease') {
-                    // Decrease quantity in cart
-                    $_SESSION['cart'][$key]['quantity']--;
-                    // Restore stock in database
-                    $new_stock = $current_stock + 1;
-                    $update_stock = "UPDATE producttb SET Stock = '$new_stock' WHERE ProductID = '$product_id'";
-                    $connect->query($update_stock);
+                    // Get current quantity and product stock
+                    $detail_query = $connect->prepare("
+                SELECT od.OrderUnitQuantity, p.Stock 
+                FROM orderdetailtb od
+                JOIN producttb p ON od.ProductID = p.ProductID
+                WHERE od.OrderID = ? AND od.ProductID = ? AND od.SizeID = ?
+            ");
+                    $detail_query->bind_param("ssi", $order_id, $product_id, $size_id);
+                    $detail_query->execute();
+                    $detail_result = $detail_query->get_result();
 
-                    // Remove item if quantity is zero or less
-                    if ($_SESSION['cart'][$key]['quantity'] <= 0) {
-                        unset($_SESSION['cart'][$key]);
+                    if ($detail_result->num_rows > 0) {
+                        $row = $detail_result->fetch_assoc();
+                        $current_quantity = $row['OrderUnitQuantity'];
+                        $current_stock = $row['Stock'];
+
+                        if ($action === 'increase' && $current_stock > 0) {
+                            // Increase quantity in order details
+                            $update_detail = $connect->prepare("
+                        UPDATE orderdetailtb 
+                        SET OrderUnitQuantity = OrderUnitQuantity + 1 
+                        WHERE OrderID = ? AND ProductID = ? AND SizeID = ?
+                    ");
+                            $update_detail->bind_param("ssi", $order_id, $product_id, $size_id);
+                            $update_detail->execute();
+
+                            // Reduce stock
+                            $update_stock = $connect->prepare("UPDATE producttb SET Stock = Stock - 1 WHERE ProductID = ?");
+                            $update_stock->bind_param("s", $product_id);
+                            $update_stock->execute();
+                        } elseif ($action === 'decrease') {
+                            if ($current_quantity > 1) {
+                                // Decrease quantity
+                                $update_detail = $connect->prepare("
+                            UPDATE orderdetailtb 
+                            SET OrderUnitQuantity = OrderUnitQuantity - 1 
+                            WHERE OrderID = ? AND ProductID = ? AND SizeID = ?
+                        ");
+                                $update_detail->bind_param("ssi", $order_id, $product_id, $size_id);
+                                $update_detail->execute();
+
+                                // Restore stock
+                                $update_stock = $connect->prepare("UPDATE producttb SET Stock = Stock + 1 WHERE ProductID = ?");
+                                $update_stock->bind_param("s", $product_id);
+                                $update_stock->execute();
+                            } else {
+                                // Remove item if quantity would be 0
+                                $delete_item = $connect->prepare("
+                            DELETE FROM orderdetailtb 
+                            WHERE OrderID = ? AND ProductID = ? AND SizeID = ?
+                        ");
+                                $delete_item->bind_param("ssi", $order_id, $product_id, $size_id);
+                                $delete_item->execute();
+
+                                // Restore stock
+                                $update_stock = $connect->prepare("UPDATE producttb SET Stock = Stock + 1 WHERE ProductID = ?");
+                                $update_stock->bind_param("s", $product_id);
+                                $update_stock->execute();
+
+                                // Check if order is now empty
+                                $check_empty = $connect->prepare("SELECT COUNT(*) AS count FROM orderdetailtb WHERE OrderID = ?");
+                                $check_empty->bind_param("s", $order_id);
+                                $check_empty->execute();
+                                $empty_result = $check_empty->get_result()->fetch_assoc();
+
+                                if ($empty_result['count'] == 0) {
+                                    $delete_order = $connect->prepare("DELETE FROM ordertb WHERE OrderID = ?");
+                                    $delete_order->bind_param("s", $order_id);
+                                    $delete_order->execute();
+                                }
+                            }
+                        }
                     }
                 }
-
-                // Reindex cart array
-                $_SESSION['cart'] = array_values($_SESSION['cart']);
             }
 
             header("Location: " . $_SERVER['REQUEST_URI']);
@@ -99,11 +186,18 @@ include('../User/CleanupReservations.php');
                 <span>
                     <?php
                     $cartCount = 0;
-                    if (!empty($_SESSION['cart'])) {
-                        foreach ($_SESSION['cart'] as $item) {
-                            $cartCount += $item['quantity'];
-                            $productID = $item['product_id'];
-                        }
+                    if (isset($_SESSION['UserID'])) {
+                        $count_query = $connect->prepare("
+                    SELECT SUM(OrderUnitQuantity) as total 
+                    FROM orderdetailtb od
+                    JOIN ordertb o ON od.OrderID = o.OrderID
+                    WHERE o.UserID = ? AND o.Status = 'pending'
+                ");
+                        $count_query->bind_param("s", $_SESSION['UserID']);
+                        $count_query->execute();
+                        $count_result = $count_query->get_result();
+                        $count_row = $count_result->fetch_assoc();
+                        $cartCount = $count_row['total'] ?? 0;
                     }
                     echo $cartCount . ' item' . ($cartCount != 1 ? 's' : '');
                     ?>
@@ -112,48 +206,59 @@ include('../User/CleanupReservations.php');
 
             <!-- Dropdown Cart -->
             <div class="absolute top-full right-0 bg-gray-100 p-3 z-40 w-96 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-300">
-                <?php if (!empty($_SESSION['cart'])): ?>
-                    <div class="space-y-3">
-                        <h3 class="font-semibold text-lg text-center mb-2">Your Cart Items</h3>
+                <?php if (isset($_SESSION['UserID'])):
+                    // Get pending order items
+                    $cart_query = $connect->prepare("
+                SELECT 
+                    o.OrderID,
+                    od.ProductID,
+                    od.SizeID,
+                    od.OrderUnitQuantity AS Quantity,
+                    p.Title,
+                    p.Price,
+                    p.DiscountPrice,
+                    p.Stock,
+                    pi.ImageUserPath,
+                    s.Size,
+                    s.PriceModifier,
+                    od.OrderUnitPrice
+                FROM ordertb o
+                JOIN orderdetailtb od ON o.OrderID = od.OrderID
+                JOIN producttb p ON od.ProductID = p.ProductID
+                LEFT JOIN productimagetb pi ON p.ProductID = pi.ProductID AND pi.PrimaryImage = 1
+                LEFT JOIN sizetb s ON od.SizeID = s.SizeID AND od.ProductID = s.ProductID
+                WHERE o.UserID = ? AND o.Status = 'pending'
+            ");
+                    $cart_query->bind_param("s", $_SESSION['UserID']);
+                    $cart_query->execute();
+                    $cart_result = $cart_query->get_result();
 
-                        <?php
+                    if ($cart_result->num_rows > 0):
                         $total = 0;
-                        foreach ($_SESSION['cart'] as $key => $item):
-                            $product_query = "
-                                SELECT p.*, pi.ImageUserPath, s.Size, s.PriceModifier 
-                                FROM producttb p
-                                LEFT JOIN productimagetb pi ON p.ProductID = pi.ProductID AND pi.PrimaryImage = 1
-                                LEFT JOIN sizetb s ON s.SizeID = '" . $item['size_id'] . "' AND s.ProductID = p.ProductID
-                                WHERE p.ProductID = '" . $item['product_id'] . "'
-                                LIMIT 1
-                            ";
-                            $product_result = $connect->query($product_query);
-                            $product = $product_result->fetch_assoc();
-
-                            $base_price = (!empty($product['DiscountPrice']) && $product['DiscountPrice'] > 0) ? $product['DiscountPrice'] : $product['Price'];
-                            $modifier = isset($product['PriceModifier']) ? (float)$product['PriceModifier'] : 0;
-                            $price = $base_price + $modifier;
-
-                            $subtotal = $price * $item['quantity'];
+                        while ($item = $cart_result->fetch_assoc()):
+                            $price = $item['OrderUnitPrice'];
+                            $subtotal = $price * $item['Quantity'];
                             $total += $subtotal;
-                        ?>
+                ?>
                             <div class="flex items-start gap-3 p-2 bg-white rounded">
-                                <img src="<?= !empty($product['ImageUserPath']) ? '../UserImages/' . $product['ImageUserPath'] : '../UserImages/default.jpg' ?>"
-                                    alt="<?= !empty($product['ImageAlt']) ? $product['ImageAlt'] : $product['Title'] ?>"
+                                <img src="<?= !empty($item['ImageUserPath']) ? '../UserImages/' . $item['ImageUserPath'] : '../UserImages/default.jpg' ?>"
+                                    alt="<?= $item['Title'] ?>"
                                     class="w-16 h-16 object-cover rounded border">
                                 <div class="flex-1">
-                                    <h4 class="font-medium text-sm"><?= $product['Title'] ?></h4>
-                                    <p class="text-xs text-gray-500">Size: <?= $product['Size'] ?? 'N/A' ?></p>
+                                    <h4 class="font-medium text-sm"><?= $item['Title'] ?></h4>
+                                    <p class="text-xs text-gray-500">Size: <?= $item['Size'] ?? 'N/A' ?></p>
                                     <div class="flex items-center justify-between mt-1">
                                         <div class="flex items-center gap-1">
                                             <form method="post" action="">
-                                                <input type="hidden" name="update_key" value="<?= $key ?>">
+                                                <input type="hidden" name="product_id" value="<?= $item['ProductID'] ?>">
+                                                <input type="hidden" name="size_id" value="<?= $item['SizeID'] ?>">
                                                 <button type="submit" name="update_quantity" value="decrease"
                                                     class="px-2 text-sm font-bold text-gray-600 hover:text-red-600">−</button>
                                             </form>
-                                            <span class="text-sm"><?= $item['quantity'] ?></span>
+                                            <span class="text-sm"><?= $item['Quantity'] ?></span>
                                             <form method="post" action="">
-                                                <input type="hidden" name="update_key" value="<?= $key ?>">
+                                                <input type="hidden" name="product_id" value="<?= $item['ProductID'] ?>">
+                                                <input type="hidden" name="size_id" value="<?= $item['SizeID'] ?>">
                                                 <button type="submit" name="update_quantity" value="increase"
                                                     class="px-2 text-sm font-bold text-gray-600 hover:text-green-600">+</button>
                                             </form>
@@ -162,13 +267,14 @@ include('../User/CleanupReservations.php');
                                     </div>
                                 </div>
                                 <form action="" method="post" class="ml-2">
-                                    <input type="hidden" name="remove_key" value="<?= $key ?>">
+                                    <input type="hidden" name="product_id" value="<?= $item['ProductID'] ?>">
+                                    <input type="hidden" name="size_id" value="<?= $item['SizeID'] ?>">
                                     <button type="submit" name="remove_from_cart" class="text-red-500 hover:text-red-700 text-sm">
                                         <i class="ri-close-line"></i>
                                     </button>
                                 </form>
                             </div>
-                        <?php endforeach; ?>
+                        <?php endwhile; ?>
 
                         <div class="bg-white p-3 rounded border-t">
                             <div class="flex justify-between font-semibold">
@@ -180,9 +286,11 @@ include('../User/CleanupReservations.php');
                                 Checkout
                             </a>
                         </div>
-                    </div>
+                    <?php else: ?>
+                        <p class="font-semibold text-gray-600 text-center py-4">You have no items in your cart.</p>
+                    <?php endif; ?>
                 <?php else: ?>
-                    <p class="font-semibold text-gray-600 text-center py-4">You have no items in your cart.</p>
+                    <p class="font-semibold text-gray-600 text-center py-4">Please login to view your cart.</p>
                 <?php endif; ?>
             </div>
         </div>

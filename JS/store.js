@@ -1,4 +1,4 @@
-import { showAlert } from './alertFunc.js';
+import { showError, hideError, showAlert, validateField } from './alertFunc.js';
 
 // Move Right Loader
 let moveRight = document.getElementById("move-right");
@@ -174,4 +174,143 @@ if (line && step) {
     step.classList.toggle('text-white');
     line.classList.toggle('bg-amber-500');
     step.classList.toggle('bg-amber-500');
+}
+
+// Order form validation
+document.addEventListener("DOMContentLoaded", () => {
+    const paymentForm = document.getElementById("paymentForm");
+    const submitButton = document.getElementById("submitButton");
+    const buttonText = document.getElementById("buttonText");
+    const buttonSpinner = document.getElementById("buttonSpinner");
+
+    // Error message elements
+    document.getElementById("firstnameInput").addEventListener("keyup", validateFirstname);
+    document.getElementById("lastnameInput").addEventListener("keyup", validateLastname);
+    document.getElementById("addressInput").addEventListener("keyup", validateAddress);
+    document.getElementById("phoneInput").addEventListener("keyup", validatePhone);
+    document.getElementById("cityInput").addEventListener("keyup", validateCity);
+    document.getElementById("stateInput").addEventListener("keyup", validateState);
+    document.getElementById("zipInput").addEventListener("keyup", validateZip);
+
+    // AJAX form submission
+    if (paymentForm) {
+        paymentForm.addEventListener("submit", function(e) {
+            e.preventDefault();
+
+            if (!validateOrderForm()) {
+                return;
+            }
+
+            // Disable button and show spinner
+            submitButton.disabled = true;
+            buttonText.textContent = "Processing...";
+            buttonSpinner.classList.remove("hidden");
+
+            const formData = new FormData(paymentForm);
+            formData.append("submit_reservation", true);
+
+            fetch("../Store/StoreCheckout.php", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Redirect to payment page on success
+                    window.location.href = `../Store/Stripe.php?reservation_id=${data.order_id}`;
+                } else {
+                    // Re-enable button and hide spinner
+                    submitButton.disabled = false;
+                    buttonText.textContent = "Continue to Payment";
+                    buttonSpinner.classList.add("hidden");
+                    
+                    // Show error message
+                    showAlert(data.message, true);
+                }
+            })
+            .catch(error => {
+                // Re-enable button and hide spinner
+                submitButton.disabled = false;
+                buttonText.textContent = "Continue to Payment";
+                buttonSpinner.classList.add("hidden");
+                
+                console.log("Error:", error);
+                showAlert("An error occurred. Please try again.", true);
+            });
+        });
+    }
+});
+
+const validateOrderForm = () => {
+    const isFirstnameValid = validateFirstname();
+    const isLastnameValid = validateLastname();
+    const isAddressValid = validateAddress();
+    const isPhoneValid = validatePhone();
+    const isCityValid = validateCity();
+    const isStateValid = validateState();
+    const isZipValid = validateZip();
+
+    return isFirstnameValid && isLastnameValid && isAddressValid && isPhoneValid && isCityValid && isStateValid && isZipValid;
+}
+
+// Individual validation functions
+const validateFirstname = () => {
+    return validateField(
+        "firstnameInput",
+        "firstnameError",
+        (input) => (!input ? "Firstname is required." : null)
+    );
+}
+
+const validateLastname = () => {
+    return validateField(
+        "lastnameInput",
+        "lastnameError",
+        (input) => (!input ? "Lastname is required." : null)
+    );
+}
+
+const validateAddress = () => {
+    return validateField(
+        "addressInput",
+        "addressError",
+        (input) => (!input ? "Address is required." : null)
+    );
+}
+
+const validatePhone = () => {
+    return validateField(
+        "phoneInput",
+        "phoneError",
+        (input) => (!input ? "Phone number is required." : null)
+    );
+}
+
+const validateCity = () => {
+    return validateField(
+        "cityInput",
+        "cityError",
+        (input) => (!input ? "City is required." : null)
+    );
+}
+
+const validateState = () => {
+    return validateField(
+        "stateInput",
+        "stateError",
+        (input) => (!input ? "State is required." : null)
+    );
+}
+
+const validateZip = () => {
+    return validateField(
+        "zipInput",
+        "zipError",
+        (input) => (!input ? "Zip code is required." : null)
+    );
 }

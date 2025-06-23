@@ -69,44 +69,52 @@ if (!$connect) {
         <div class="flex flex-col md:flex-row justify-between">
             <div class="md:w-2/3 overflow-y-scroll h-[500px]">
                 <?php
-                if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0) {
-                    foreach ($_SESSION['cart'] as $key => $item) {
-                        $product_id = $item['product_id'];
-                        $size_id = $item['size_id'];
-                        $quantity = $item['quantity'];
+                if (isset($_SESSION['UserID'])) {
+                    // Get pending order (cart) items from database
+                    $cart_query = $connect->prepare("
+            SELECT 
+                o.OrderID,
+                od.OrderUnitQuantity AS Quantity,
+                od.ProductID,
+                p.Title AS ProductName,
+                od.OrderUnitPrice AS FinalPrice,
+                p.Price AS BasePrice,
+                p.DiscountPrice,
+                s.Size,
+                s.SizeID,
+                s.PriceModifier,
+                pi.ImageUserPath AS ProductImage
+            FROM ordertb o
+            JOIN orderdetailtb od ON o.OrderID = od.OrderID
+            JOIN producttb p ON od.ProductID = p.ProductID
+            JOIN sizetb s ON od.SizeID = s.SizeID AND od.ProductID = s.ProductID
+            LEFT JOIN productimagetb pi ON pi.ProductID = p.ProductID AND pi.PrimaryImage = 1
+            WHERE o.UserID = ? AND o.Status = 'pending'
+        ");
+                    $cart_query->bind_param("s", $_SESSION['UserID']);
+                    $cart_query->execute();
+                    $cart_result = $cart_query->get_result();
 
-                        // Get product details with PriceModifier
-                        $query = "
-                SELECT 
-                    p.Title AS ProductName, 
-                    s.Size, 
-                    s.PriceModifier,
-                    p.Price, 
-                    p.DiscountPrice, 
-                    pi.ImageUserPath AS ProductImage 
-                FROM producttb p
-                JOIN sizetb s ON p.ProductID = s.ProductID AND s.SizeID = '$size_id'
-                LEFT JOIN productimagetb pi ON pi.ProductID = p.ProductID AND pi.PrimaryImage = 1
-                WHERE p.ProductID = '$product_id'
-                LIMIT 1
-            ";
-                        $result = $connect->query($query);
-
-                        if ($result && $result->num_rows > 0) {
-                            $row = $result->fetch_assoc();
-                            $title = $row['ProductName'];
-                            $image = $row['ProductImage'];
-                            $size = $row['Size'];
-                            $modifier = isset($row['PriceModifier']) ? (float)$row['PriceModifier'] : 0;
-                            $basePrice = isset($row['Price']) ? (float)$row['Price'] : 0;
-                            $discount = isset($row['DiscountPrice']) ? (float)$row['DiscountPrice'] : 0;
+                    if ($cart_result->num_rows > 0) {
+                        $order_id = null;
+                        while ($item = $cart_result->fetch_assoc()) {
+                            $order_id = $item['OrderID'];
+                            $title = $item['ProductName'];
+                            $image = $item['ProductImage'];
+                            $size = $item['Size'];
+                            $modifier = isset($item['PriceModifier']) ? (float)$item['PriceModifier'] : 0;
+                            $basePrice = isset($item['BasePrice']) ? (float)$item['BasePrice'] : 0;
+                            $discount = isset($item['DiscountPrice']) ? (float)$item['DiscountPrice'] : 0;
+                            $quantity = $item['Quantity'];
+                            $finalPrice = $item['FinalPrice'];
 
                             $originalPrice = $basePrice + $modifier;
-                            $finalPrice = ($discount > 0) ? ($discount + $modifier) : $originalPrice;
                 ?>
                             <div class="flex flex-col md:flex-row justify-between mb-4">
                                 <form action="#" method="post" class="px-4 py-2 rounded-md flex flex-col md:flex-row justify-between cursor-pointer">
-                                    <input type="hidden" name="cart_id" value="<?= $key ?>">
+                                    <input type="hidden" name="order_id" value="<?= $order_id ?>">
+                                    <input type="hidden" name="product_id" value="<?= $item['ProductID'] ?>">
+                                    <input type="hidden" name="size_id" value="<?= $item['SizeID'] ?>">
                                     <div class="flex items-center flex-1">
                                         <div class="w-36">
                                             <img class="w-full h-full object-cover select-none" src="../UserImages/<?= htmlspecialchars($image) ?>" alt="Product Image">
@@ -115,12 +123,14 @@ if (!$connect) {
                                             <h1 class="text-md sm:text-xl mb-1"><?= htmlspecialchars($title) ?></h1>
                                             <div class="mt-2 flex items-center space-x-2">
                                                 <form method="post" action="">
-                                                    <input type="hidden" name="update_key" value="<?= $key ?>">
+                                                    <input type="hidden" name="product_id" value="<?= $item['ProductID'] ?>">
+                                                    <input type="hidden" name="size_id" value="<?= $item['SizeID'] ?>">
                                                     <button type="submit" name="update_quantity" value="decrease" class="px-2 text-sm font-bold text-gray-600 hover:text-red-600">−</button>
                                                 </form>
-                                                <span class="text-sm"><?= $item['quantity'] ?></span>
+                                                <span class="text-sm"><?= $quantity ?></span>
                                                 <form method="post" action="">
-                                                    <input type="hidden" name="update_key" value="<?= $key ?>">
+                                                    <input type="hidden" name="product_id" value="<?= $item['ProductID'] ?>">
+                                                    <input type="hidden" name="size_id" value="<?= $item['SizeID'] ?>">
                                                     <button type="submit" name="update_quantity" value="increase" class="px-2 text-sm font-bold text-gray-600 hover:text-green-600">+</button>
                                                 </form>
                                             </div>
@@ -137,7 +147,8 @@ if (!$connect) {
                                         </div>
                                         <div class="py-2 w-[90px] select-none">
                                             <form action="" method="post" class="ml-2">
-                                                <input type="hidden" name="remove_key" value="<?= $key ?>">
+                                                <input type="hidden" name="product_id" value="<?= $item['ProductID'] ?>">
+                                                <input type="hidden" name="size_id" value="<?= $item['SizeID'] ?>">
                                                 <button type="submit" name="remove_from_cart" class="text-red-500 hover:text-red-700 text-sm">
                                                     <i class="ri-delete-bin-6-line text-lg"></i>
                                                 </button>
@@ -148,9 +159,11 @@ if (!$connect) {
                             </div>
                 <?php
                         }
+                    } else {
+                        echo '<p class="text-center text-gray-500 py-32">Your cart is empty.</p>';
                     }
                 } else {
-                    echo '<p class="text-center text-gray-500 py-32">Your cart is empty.</p>';
+                    echo '<p class="text-center text-gray-500 py-32">Please login to view your cart.</p>';
                 }
                 ?>
             </div>

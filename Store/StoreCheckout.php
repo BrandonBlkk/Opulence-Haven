@@ -9,11 +9,22 @@ if (!$connect) {
 $userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
 
 $alertMessage = '';
-$signinSuccess = false;
+$response  = ['success' => false, 'message' => ''];
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order'])) {
-    $signinSuccess = true;
-    $alertMessage = "No account found with the provided email. Please try again.";
+    // Check cart
+    $cart = "SELECT * FROM ordertb WHERE UserID = '$userID'";
+    $cartData = $connect->query($cart);
+
+    if ($cartData->num_rows > 0) {
+        $response = ['success' => true];
+    } else {
+        $response = ['success' => false, 'message' => 'Your cart is empty. Please add products to your cart before payment.'];
+    }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 $user = "SELECT * FROM usertb WHERE UserID = '$userID'";
@@ -86,44 +97,52 @@ $userData = $connect->query($user)->fetch_assoc();
         <div class="flex flex-col md:flex-row justify-between">
             <div class="md:w-2/3 overflow-y-scroll h-[500px]">
                 <?php
-                if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0) {
-                    foreach ($_SESSION['cart'] as $key => $item) {
-                        $product_id = $item['product_id'];
-                        $size_id = $item['size_id'];
-                        $quantity = $item['quantity'];
+                if (isset($_SESSION['UserID'])) {
+                    // Get pending order (cart) items from database
+                    $cart_query = $connect->prepare("
+            SELECT 
+                o.OrderID,
+                od.OrderUnitQuantity AS Quantity,
+                od.ProductID,
+                p.Title AS ProductName,
+                od.OrderUnitPrice AS FinalPrice,
+                p.Price AS BasePrice,
+                p.DiscountPrice,
+                s.Size,
+                s.SizeID,
+                s.PriceModifier,
+                pi.ImageUserPath AS ProductImage
+            FROM ordertb o
+            JOIN orderdetailtb od ON o.OrderID = od.OrderID
+            JOIN producttb p ON od.ProductID = p.ProductID
+            JOIN sizetb s ON od.SizeID = s.SizeID AND od.ProductID = s.ProductID
+            LEFT JOIN productimagetb pi ON pi.ProductID = p.ProductID AND pi.PrimaryImage = 1
+            WHERE o.UserID = ? AND o.Status = 'pending'
+        ");
+                    $cart_query->bind_param("s", $_SESSION['UserID']);
+                    $cart_query->execute();
+                    $cart_result = $cart_query->get_result();
 
-                        // Get product details with PriceModifier
-                        $query = "
-                SELECT 
-                    p.Title AS ProductName, 
-                    s.Size, 
-                    s.PriceModifier,
-                    p.Price, 
-                    p.DiscountPrice, 
-                    pi.ImageUserPath AS ProductImage 
-                FROM producttb p
-                JOIN sizetb s ON p.ProductID = s.ProductID AND s.SizeID = '$size_id'
-                LEFT JOIN productimagetb pi ON pi.ProductID = p.ProductID AND pi.PrimaryImage = 1
-                WHERE p.ProductID = '$product_id'
-                LIMIT 1
-            ";
-                        $result = $connect->query($query);
-
-                        if ($result && $result->num_rows > 0) {
-                            $row = $result->fetch_assoc();
-                            $title = $row['ProductName'];
-                            $image = $row['ProductImage'];
-                            $size = $row['Size'];
-                            $modifier = isset($row['PriceModifier']) ? (float)$row['PriceModifier'] : 0;
-                            $basePrice = isset($row['Price']) ? (float)$row['Price'] : 0;
-                            $discount = isset($row['DiscountPrice']) ? (float)$row['DiscountPrice'] : 0;
+                    if ($cart_result->num_rows > 0) {
+                        $order_id = null;
+                        while ($item = $cart_result->fetch_assoc()) {
+                            $order_id = $item['OrderID'];
+                            $title = $item['ProductName'];
+                            $image = $item['ProductImage'];
+                            $size = $item['Size'];
+                            $modifier = isset($item['PriceModifier']) ? (float)$item['PriceModifier'] : 0;
+                            $basePrice = isset($item['BasePrice']) ? (float)$item['BasePrice'] : 0;
+                            $discount = isset($item['DiscountPrice']) ? (float)$item['DiscountPrice'] : 0;
+                            $quantity = $item['Quantity'];
+                            $finalPrice = $item['FinalPrice'];
 
                             $originalPrice = $basePrice + $modifier;
-                            $finalPrice = ($discount > 0) ? ($discount + $modifier) : $originalPrice;
                 ?>
                             <div class="flex flex-col md:flex-row justify-between mb-4">
                                 <form action="#" method="post" class="px-4 py-2 rounded-md flex flex-col md:flex-row justify-between cursor-pointer">
-                                    <input type="hidden" name="cart_id" value="<?= $key ?>">
+                                    <input type="hidden" name="order_id" value="<?= $order_id ?>">
+                                    <input type="hidden" name="product_id" value="<?= $item['ProductID'] ?>">
+                                    <input type="hidden" name="size_id" value="<?= $item['SizeID'] ?>">
                                     <div class="flex items-center flex-1">
                                         <div class="w-36">
                                             <img class="w-full h-full object-cover select-none" src="../UserImages/<?= htmlspecialchars($image) ?>" alt="Product Image">
@@ -132,12 +151,14 @@ $userData = $connect->query($user)->fetch_assoc();
                                             <h1 class="text-md sm:text-xl mb-1"><?= htmlspecialchars($title) ?></h1>
                                             <div class="mt-2 flex items-center space-x-2">
                                                 <form method="post" action="">
-                                                    <input type="hidden" name="update_key" value="<?= $key ?>">
+                                                    <input type="hidden" name="product_id" value="<?= $item['ProductID'] ?>">
+                                                    <input type="hidden" name="size_id" value="<?= $item['SizeID'] ?>">
                                                     <button type="submit" name="update_quantity" value="decrease" class="px-2 text-sm font-bold text-gray-600 hover:text-red-600">−</button>
                                                 </form>
-                                                <span class="text-sm"><?= $item['quantity'] ?></span>
+                                                <span class="text-sm"><?= $quantity ?></span>
                                                 <form method="post" action="">
-                                                    <input type="hidden" name="update_key" value="<?= $key ?>">
+                                                    <input type="hidden" name="product_id" value="<?= $item['ProductID'] ?>">
+                                                    <input type="hidden" name="size_id" value="<?= $item['SizeID'] ?>">
                                                     <button type="submit" name="update_quantity" value="increase" class="px-2 text-sm font-bold text-gray-600 hover:text-green-600">+</button>
                                                 </form>
                                             </div>
@@ -154,7 +175,8 @@ $userData = $connect->query($user)->fetch_assoc();
                                         </div>
                                         <div class="py-2 w-[90px] select-none">
                                             <form action="" method="post" class="ml-2">
-                                                <input type="hidden" name="remove_key" value="<?= $key ?>">
+                                                <input type="hidden" name="product_id" value="<?= $item['ProductID'] ?>">
+                                                <input type="hidden" name="size_id" value="<?= $item['SizeID'] ?>">
                                                 <button type="submit" name="remove_from_cart" class="text-red-500 hover:text-red-700 text-sm">
                                                     <i class="ri-delete-bin-6-line text-lg"></i>
                                                 </button>
@@ -165,159 +187,143 @@ $userData = $connect->query($user)->fetch_assoc();
                             </div>
                 <?php
                         }
+                    } else {
+                        echo '<p class="text-center text-gray-500 py-32">Your cart is empty.</p>';
                     }
                 } else {
-                    echo '<p class="text-center text-gray-500 py-32">Your cart is empty.</p>';
+                    echo '<p class="text-center text-gray-500 py-32">Please login to view your cart.</p>';
                 }
                 ?>
             </div>
 
             <!-- Payment Summary -->
-            <form id="paymentForm" action="<?php $_SERVER["PHP_SELF"] ?>" method="POST" class="space-y-2 md:w-[45%] lg:w-1/3 mt-10 md:mt-0 md:ml-4">
-                <input type="hidden" name="product_id" value="12345">
-                <input type="hidden" name="total_cost" value="100.00">
-
+            <form id="paymentForm" action="<?php $_SERVER["PHP_SELF"] ?>" method="POST" class="md:w-[45%] lg:w-1/3 mt-10 md:mt-0 md:ml-4">
                 <div>
-                    <h1 class="text-xl font-semibold mb-1">Secure Checkout</h1>
-                    <p class="border border-amber-200 bg-amber-50 bg-opacity-90 text-amber-500 p-2 rounded-sm">Checkout securely - it takes only a few minutes</p>
-                </div>
-
-                <div>
-                    <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">User Detail</label>
-                    <!-- Full Name -->
-                    <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 space-x-0 sm:space-x-4 mb-4">
-                        <div class="relative w-full">
-                            <input
-                                id="firstname"
-                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                type="firstname"
-                                name="firstname"
-                                placeholder="Enter your firstname">
-                            <small id="firstnameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none">Firstname is required.</small>
-                        </div>
-                        <div class="relative w-full">
-                            <input
-                                id="lastname"
-                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                type="lastname"
-                                name="lastname"
-                                placeholder="Enter your lastname">
-                            <small id="lastnameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none">Lastname is required.</small>
-                        </div>
+                    <div class="space-y-2">
+                        <h1 class="text-xl font-semibold mb-1">Secure Checkout</h1>
+                        <p class="border border-amber-200 bg-amber-50 bg-opacity-90 text-amber-500 p-2 rounded-sm">Checkout securely - it takes only a few minutes</p>
                     </div>
-                    <!-- Shipping Address -->
-                    <div class="relative">
-                        <textarea
-                            id="address"
-                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                            name="address"
-                            placeholder="Enter your address">
-</textarea>
-                        <small id="addressError" class="absolute left-2 -bottom-0 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none">Address is required.</small>
-                    </div>
-                </div>
 
-                <div>
-                    <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">Contact Detail</label>
-                    <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 space-x-0 sm:space-x-4 mb-4">
-                        <!-- Email Address -->
-                        <div class="relative w-full">
-                            <input
-                                id="email"
-                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                type="email"
-                                name="email"
-                                value="<?php echo $userData['UserEmail']; ?>"
-                                placeholder="Enter your email" disabled>
-                            <small id="emailError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">Email is required.</small>
+                    <div>
+                        <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">User Details</label>
+                        <!-- Full Name -->
+                        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 space-x-0 sm:space-x-4 mb-4">
+                            <div class="relative w-full">
+                                <input
+                                    id="firstnameInput"
+                                    class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                    type="firstname"
+                                    name="firstname"
+                                    placeholder="Enter your firstname">
+                                <small id="firstnameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                            </div>
+                            <div class="relative w-full">
+                                <input
+                                    id="lastnameInput"
+                                    class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                    type="lastname"
+                                    name="lastname"
+                                    placeholder="Enter your lastname">
+                                <small id="lastnameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                            </div>
                         </div>
-
-                        <!-- Mobile Phone -->
-                        <div class="relative w-full">
-                            <input
-                                id="phone"
+                        <!-- Shipping Address -->
+                        <div class="relative">
+                            <textarea
+                                id="addressInput"
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                type="phone"
-                                name="phone"
-                                value="<?php echo $userData['UserPhone']; ?>"
-                                placeholder="Enter your phone">
-                            <small id="phoneError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">Phone is required.</small>
+                                name="address"
+                                placeholder="Enter your full shipping address"
+                                rows="3"></textarea>
+                            <small id="addressError" class="absolute left-2 -bottom-0 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
                     </div>
 
-                    <!-- City and State -->
-                    <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 space-x-0 sm:space-x-4 mb-4">
-                        <div class="relative w-full">
-                            <input
-                                id="city"
-                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                type="city"
-                                name="city"
-                                placeholder="Enter your city">
-                            <small id="cityError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">City is required.</small>
+                    <div>
+                        <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">Contact Details</label>
+                        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 space-x-0 sm:space-x-4 mb-4">
+                            <!-- Email Address -->
+                            <div class="relative w-full">
+                                <input
+                                    id="email"
+                                    class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                    type="email"
+                                    name="email"
+                                    value="<?php echo $userData['UserEmail']; ?>"
+                                    placeholder="Enter your email" disabled>
+                                <small id="emailError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">Email is required.</small>
+                            </div>
+
+                            <!-- Mobile Phone -->
+                            <div class="relative w-full">
+                                <input
+                                    id="phoneInput"
+                                    class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                    type="phone"
+                                    name="phone"
+                                    value="<?php echo $userData['UserPhone']; ?>"
+                                    placeholder="Enter your phone">
+                                <small id="phoneError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">Phone is required.</small>
+                            </div>
                         </div>
 
-                        <div class="relative w-full">
-                            <input
-                                id="state"
-                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                type="state"
-                                name="state"
-                                placeholder="Enter your state">
-                            <small id="stateError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">State is required.</small>
+                        <!-- City and State -->
+                        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 space-x-0 sm:space-x-4 mb-4">
+                            <div class="relative w-full">
+                                <input
+                                    id="cityInput"
+                                    class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                    type="city"
+                                    name="city"
+                                    placeholder="Enter your city">
+                                <small id="cityError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">City is required.</small>
+                            </div>
+
+                            <div class="relative w-full">
+                                <input
+                                    id="stateInput"
+                                    class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                    type="state"
+                                    name="state"
+                                    placeholder="Enter your state">
+                                <small id="stateError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">State is required.</small>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- ZIP Code -->
-                    <div class="relative">
-                        <input
-                            id="zip"
-                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                            type="zip"
-                            name="zip"
-                            placeholder="Enter your zip">
-                        <small id="zipError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">Zip is required.</small>
-                    </div>
-                </div>
+                        <!-- ZIP Code -->
+                        <div class="relative">
+                            <input
+                                id="zipInput"
+                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                type="zip"
+                                name="zip"
+                                placeholder="Enter your zip">
+                            <small id="zipError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">Zip is required.</small>
+                        </div>
 
-                <!-- Payment Method -->
-                <div>
-                    <label for="payment_method" class="block text-sm font-medium text-gray-700">Payment Method</label>
-                    <select
-                        name="payment_method"
-                        id="payment_method"
-                        class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out sm:text-sm"
-                        onchange="togglePaymentInfo(this.value)">
-                        <option value="" disabled selected>Select a payment method</option>
-                        <option value="cash">Cash</option>
-                        <option value="visa">Visa</option>
-                        <option value="mastercard">MasterCard</option>
-                        <option value="discover">Discover</option>
-                        <option value="applepay">Apple Pay</option>
-                    </select>
-                </div>
-
-                <!-- Payment Information Fields -->
-                <div id="payment-info" class="mt-4 hidden">
-                    <div id="credit-card-info" class="hidden">
-                        <label for="card_number" class="block text-sm font-medium text-gray-700">Card Number</label>
-                        <input type="text" id="card_number" name="card_number" class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out sm:text-sm" placeholder="1234 5678 9012 3456">
+                        <!-- Remarks -->
+                        <div class="relative">
+                            <label for="payment_method" class="block text-sm font-medium text-gray-700 my-1">Remarks (Optional)</label>
+                            <textarea
+                                id="remarksInput"
+                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                name="remarks"
+                                placeholder="Enter your remarks"
+                                rows="2"></textarea>
+                            <small id="remarksError" class="absolute left-2 -bottom-0 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                        </div>
                     </div>
                 </div>
 
-                <script>
-                    function togglePaymentInfo(paymentMethod) {
-                        document.getElementById('payment-info').classList.add('hidden');
-                        document.getElementById('credit-card-info').classList.add('hidden');
+                <input type="hidden" name="order" value="1">
 
-                        if (paymentMethod === 'visa' || paymentMethod === 'mastercard' || paymentMethod === 'discover') {
-                            document.getElementById('payment-info').classList.remove('hidden');
-                            document.getElementById('credit-card-info').classList.remove('hidden');
-                        }
-                    }
-                </script>
-
-                <button type="submit" name="order" class="block w-full text-center font-semibold bg-blue-900 text-white py-2 hover:bg-blue-950 transition duration-300 select-none">Place Order</button>
+                <button type="submit" id="submitButton" name="order" class="flex items-center justify-center mt-4 w-full text-center font-semibold bg-blue-900 text-white py-2 hover:bg-blue-950 transition duration-300 select-none">
+                    <span id="buttonText">Continue to Payment</span>
+                    <svg id="buttonSpinner" class="hidden w-5 h-5 ml-2 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
             </form>
         </div>
     </section>
