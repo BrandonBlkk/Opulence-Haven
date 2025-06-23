@@ -572,31 +572,6 @@ if (!$connect) {
 //     echo "Data has been saved";
 // }
 
-// $cart = "CREATE TABLE carttb (
-//     CartID INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
-//     UserID VARCHAR(30),
-//     ProductID VARCHAR(20),
-//     SizeID int,
-//     Quantity INT NOT NULL DEFAULT 1,
-//     AddedDate datetime default current_timestamp,
-//     FOREIGN KEY (UserID) REFERENCES usertb(UserID)
-//     ON DELETE CASCADE 
-//     ON UPDATE CASCADE,
-//     FOREIGN KEY (ProductID) REFERENCES producttb(ProductID)
-//     ON DELETE CASCADE 
-//     ON UPDATE CASCADE,
-//     FOREIGN KEY (SizeID) REFERENCES sizetb(SizeID)
-//     ON DELETE CASCADE 
-//     ON UPDATE CASCADE
-// )";
-
-// try {
-//     $query = mysqli_query($connect, $cart);
-//     echo "Data Successfully saved";
-// } catch (mysqli_sql_exception) {
-//     echo "Data has been saved";
-// }
-
 $order = "CREATE TABLE ordertb
 (
     OrderID varchar(20) not null primary key,

@@ -105,9 +105,10 @@ if (isset($_POST['removefromfavorites'])) {
 if (isset($_POST['addtobag'])) {
     $product_id = isset($_POST['product_Id']) ? $_POST['product_Id'] : '';
     $product_size = isset($_POST['size']) ? $_POST['size'] : '';
+    $response = [];
 
     // Get stock from database for this product
-    $stock_query = $connect->prepare("SELECT Stock FROM producttb WHERE ProductID = ?");
+    $stock_query = $connect->prepare("SELECT Stock, Price, DiscountPrice FROM producttb WHERE ProductID = ?");
     $stock_query->bind_param("s", $product_id);
     $stock_query->execute();
     $stock_result = $stock_query->get_result();
@@ -115,30 +116,81 @@ if (isset($_POST['addtobag'])) {
     $stock = isset($stock_data['Stock']) ? (int)$stock_data['Stock'] : 0;
 
     if ($stock > 0) {
+        // Calculate final price
+        $base_price = (!empty($stock_data['DiscountPrice']) && $stock_data['DiscountPrice'] > 0)
+            ? $stock_data['DiscountPrice']
+            : $stock_data['Price'];
+
+        // Get price modifier from size if needed
+        $size_modifier = 0;
+        if (!empty($product_size)) {
+            $size_query = $connect->prepare("SELECT PriceModifier FROM sizetb WHERE SizeID = ? AND ProductID = ?");
+            $size_query->bind_param("is", $product_size, $product_id);
+            $size_query->execute();
+            $size_result = $size_query->get_result();
+            if ($size_result->num_rows > 0) {
+                $size_modifier = $size_result->fetch_assoc()['PriceModifier'] ?? 0;
+            }
+        }
+
+        $final_price = $base_price + $size_modifier;
+
         // Reduce stock in the database
         $new_stock = $stock - 1;
         $update_stock = $connect->prepare("UPDATE producttb SET Stock = ? WHERE ProductID = ?");
         $update_stock->bind_param("is", $new_stock, $product_id);
         $update_stock->execute();
 
-        // Check if user is logged in (required for database cart)
+        // Check if user is logged in 
         if ($session_userID) {
-            // Check if item already exists in cart
-            $check_cart = $connect->prepare("SELECT Quantity FROM carttb WHERE UserID = ? AND ProductID = ? AND SizeID = ?");
-            $check_cart->bind_param("sss", $session_userID, $product_id, $product_size);
-            $check_cart->execute();
-            $cart_result = $check_cart->get_result();
+            // Get or create pending order for this user
+            $order_query = $connect->prepare("SELECT OrderID FROM ordertb WHERE UserID = ? AND Status = 'pending' LIMIT 1");
+            $order_query->bind_param("s", $session_userID);
+            $order_query->execute();
+            $order_result = $order_query->get_result();
 
-            if ($cart_result->num_rows > 0) {
-                // Update existing cart item
-                $update_cart = $connect->prepare("UPDATE carttb SET Quantity = Quantity + 1 WHERE UserID = ? AND ProductID = ? AND SizeID = ?");
-                $update_cart->bind_param("sss", $session_userID, $product_id, $product_size);
-                $update_cart->execute();
+            if ($order_result->num_rows > 0) {
+                $order_id = $order_result->fetch_assoc()['OrderID'];
             } else {
-                // Add new item to cart
-                $insert_cart = $connect->prepare("INSERT INTO carttb (UserID, ProductID, SizeID, Quantity, AddedDate) VALUES (?, ?, ?, 1, NOW())");
-                $insert_cart->bind_param("sss", $session_userID, $product_id, $product_size);
-                $insert_cart->execute();
+                // Create new pending order
+                $order_id = uniqid('ORD_');
+                $insert_order = $connect->prepare("
+                    INSERT INTO ordertb 
+                    (OrderID, UserID, Status, OrderDate) 
+                    VALUES (?, ?, 'pending', NOW())
+                ");
+                $insert_order->bind_param("ss", $order_id, $session_userID);
+                $insert_order->execute();
+            }
+
+            // Check if item already exists in order details
+            $check_item = $connect->prepare("
+                SELECT OrderUnitQuantity 
+                FROM orderdetailtb 
+                WHERE OrderID = ? AND ProductID = ? AND SizeID = ?
+            ");
+            $check_item->bind_param("sss", $order_id, $product_id, $product_size);
+            $check_item->execute();
+            $item_result = $check_item->get_result();
+
+            if ($item_result->num_rows > 0) {
+                // Update existing item quantity
+                $update_item = $connect->prepare("
+                    UPDATE orderdetailtb 
+                    SET OrderUnitQuantity = OrderUnitQuantity + 1 
+                    WHERE OrderID = ? AND ProductID = ? AND SizeID = ?
+                ");
+                $update_item->bind_param("sss", $order_id, $product_id, $product_size);
+                $update_item->execute();
+            } else {
+                // Add new item to order details
+                $insert_item = $connect->prepare("
+                    INSERT INTO orderdetailtb 
+                    (OrderID, ProductID, SizeID, OrderUnitQuantity, OrderUnitPrice) 
+                    VALUES (?, ?, ?, 1, ?)
+                ");
+                $insert_item->bind_param("ssid", $order_id, $product_id, $product_size, $final_price);
+                $insert_item->execute();
             }
 
             $response['success'] = true;

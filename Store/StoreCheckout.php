@@ -13,7 +13,7 @@ $response  = ['success' => false, 'message' => ''];
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order'])) {
     // Check cart
-    $cart = "SELECT * FROM carttb WHERE UserID = '$userID'";
+    $cart = "SELECT * FROM ordertb WHERE UserID = '$userID'";
     $cartData = $connect->query($cart);
 
     if ($cartData->num_rows > 0) {
@@ -98,45 +98,51 @@ $userData = $connect->query($user)->fetch_assoc();
             <div class="md:w-2/3 overflow-y-scroll h-[500px]">
                 <?php
                 if (isset($_SESSION['UserID'])) {
-                    // Get cart items from database
+                    // Get pending order (cart) items from database
                     $cart_query = $connect->prepare("
             SELECT 
-                c.CartID,
-                c.Quantity,
+                o.OrderID,
+                od.OrderUnitQuantity AS Quantity,
+                od.ProductID,
                 p.Title AS ProductName,
-                p.Price,
+                od.OrderUnitPrice AS FinalPrice,
+                p.Price AS BasePrice,
                 p.DiscountPrice,
                 s.Size,
                 s.SizeID,
                 s.PriceModifier,
                 pi.ImageUserPath AS ProductImage
-            FROM carttb c
-            JOIN producttb p ON c.ProductID = p.ProductID
-            JOIN sizetb s ON c.SizeID = s.SizeID AND c.ProductID = s.ProductID
+            FROM ordertb o
+            JOIN orderdetailtb od ON o.OrderID = od.OrderID
+            JOIN producttb p ON od.ProductID = p.ProductID
+            JOIN sizetb s ON od.SizeID = s.SizeID AND od.ProductID = s.ProductID
             LEFT JOIN productimagetb pi ON pi.ProductID = p.ProductID AND pi.PrimaryImage = 1
-            WHERE c.UserID = ?
+            WHERE o.UserID = ? AND o.Status = 'pending'
         ");
                     $cart_query->bind_param("s", $_SESSION['UserID']);
                     $cart_query->execute();
                     $cart_result = $cart_query->get_result();
 
                     if ($cart_result->num_rows > 0) {
+                        $order_id = null;
                         while ($item = $cart_result->fetch_assoc()) {
-                            $cart_id = $item['CartID'];
+                            $order_id = $item['OrderID'];
                             $title = $item['ProductName'];
                             $image = $item['ProductImage'];
                             $size = $item['Size'];
                             $modifier = isset($item['PriceModifier']) ? (float)$item['PriceModifier'] : 0;
-                            $basePrice = isset($item['Price']) ? (float)$item['Price'] : 0;
+                            $basePrice = isset($item['BasePrice']) ? (float)$item['BasePrice'] : 0;
                             $discount = isset($item['DiscountPrice']) ? (float)$item['DiscountPrice'] : 0;
                             $quantity = $item['Quantity'];
+                            $finalPrice = $item['FinalPrice'];
 
                             $originalPrice = $basePrice + $modifier;
-                            $finalPrice = ($discount > 0) ? ($discount + $modifier) : $originalPrice;
                 ?>
                             <div class="flex flex-col md:flex-row justify-between mb-4">
                                 <form action="#" method="post" class="px-4 py-2 rounded-md flex flex-col md:flex-row justify-between cursor-pointer">
-                                    <input type="hidden" name="cart_id" value="<?= $cart_id ?>">
+                                    <input type="hidden" name="order_id" value="<?= $order_id ?>">
+                                    <input type="hidden" name="product_id" value="<?= $item['ProductID'] ?>">
+                                    <input type="hidden" name="size_id" value="<?= $item['SizeID'] ?>">
                                     <div class="flex items-center flex-1">
                                         <div class="w-36">
                                             <img class="w-full h-full object-cover select-none" src="../UserImages/<?= htmlspecialchars($image) ?>" alt="Product Image">
@@ -145,12 +151,14 @@ $userData = $connect->query($user)->fetch_assoc();
                                             <h1 class="text-md sm:text-xl mb-1"><?= htmlspecialchars($title) ?></h1>
                                             <div class="mt-2 flex items-center space-x-2">
                                                 <form method="post" action="">
-                                                    <input type="hidden" name="update_key" value="<?= $cart_id ?>">
+                                                    <input type="hidden" name="product_id" value="<?= $item['ProductID'] ?>">
+                                                    <input type="hidden" name="size_id" value="<?= $item['SizeID'] ?>">
                                                     <button type="submit" name="update_quantity" value="decrease" class="px-2 text-sm font-bold text-gray-600 hover:text-red-600">−</button>
                                                 </form>
                                                 <span class="text-sm"><?= $quantity ?></span>
                                                 <form method="post" action="">
-                                                    <input type="hidden" name="update_key" value="<?= $cart_id ?>">
+                                                    <input type="hidden" name="product_id" value="<?= $item['ProductID'] ?>">
+                                                    <input type="hidden" name="size_id" value="<?= $item['SizeID'] ?>">
                                                     <button type="submit" name="update_quantity" value="increase" class="px-2 text-sm font-bold text-gray-600 hover:text-green-600">+</button>
                                                 </form>
                                             </div>
@@ -167,7 +175,8 @@ $userData = $connect->query($user)->fetch_assoc();
                                         </div>
                                         <div class="py-2 w-[90px] select-none">
                                             <form action="" method="post" class="ml-2">
-                                                <input type="hidden" name="remove_key" value="<?= $cart_id ?>">
+                                                <input type="hidden" name="product_id" value="<?= $item['ProductID'] ?>">
+                                                <input type="hidden" name="size_id" value="<?= $item['SizeID'] ?>">
                                                 <button type="submit" name="remove_from_cart" class="text-red-500 hover:text-red-700 text-sm">
                                                     <i class="ri-delete-bin-6-line text-lg"></i>
                                                 </button>
@@ -196,7 +205,7 @@ $userData = $connect->query($user)->fetch_assoc();
                     </div>
 
                     <div>
-                        <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">User Detail</label>
+                        <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">User Details</label>
                         <!-- Full Name -->
                         <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 space-x-0 sm:space-x-4 mb-4">
                             <div class="relative w-full">
@@ -224,14 +233,14 @@ $userData = $connect->query($user)->fetch_assoc();
                                 id="addressInput"
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 name="address"
-                                placeholder="Enter your address">
-                        </textarea>
+                                placeholder="Enter your full shipping address"
+                                rows="3"></textarea>
                             <small id="addressError" class="absolute left-2 -bottom-0 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
                     </div>
 
                     <div>
-                        <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">Contact Detail</label>
+                        <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">Contact Details</label>
                         <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 space-x-0 sm:space-x-4 mb-4">
                             <!-- Email Address -->
                             <div class="relative w-full">
@@ -290,6 +299,18 @@ $userData = $connect->query($user)->fetch_assoc();
                                 name="zip"
                                 placeholder="Enter your zip">
                             <small id="zipError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">Zip is required.</small>
+                        </div>
+
+                        <!-- Remarks -->
+                        <div class="relative">
+                            <label for="payment_method" class="block text-sm font-medium text-gray-700 my-1">Remarks (Optional)</label>
+                            <textarea
+                                id="remarksInput"
+                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                name="remarks"
+                                placeholder="Enter your remarks"
+                                rows="2"></textarea>
+                            <small id="remarksError" class="absolute left-2 -bottom-0 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
                         </div>
                     </div>
                 </div>
