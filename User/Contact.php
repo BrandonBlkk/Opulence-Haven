@@ -99,11 +99,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                     <label class="block text-sm text-start font-medium text-gray-700 mb-1">User Information</label>
                     <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
                         <!-- Username Input -->
-                        <div class="flex-1">
+                        <div class="relative flex-1">
                             <input
                                 id="contactFullNameInput"
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                type="text"
                                 name="fullname"
                                 placeholder="Enter your fullname">
                             <small id="contactFullNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
@@ -151,7 +150,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                     </div>
 
                     <!-- Message Input -->
-                    <div class="relative w-full">
+                    <div class="relative flex-1">
                         <label class="block text-sm text-start font-medium text-gray-700 mb-1">Message <sup class="text-red-500">*</sup></label>
                         <textarea
                             id="contactMessageInput"
@@ -187,21 +186,71 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                     const countryFlag = document.getElementById('countryFlag');
                     const phoneInput = document.getElementById('contactPhoneInput');
 
+                    // Local fallback country data with '+' prefix
+                    const fallbackCountries = [{
+                            cca2: "MM",
+                            name: {
+                                common: "Myanmar"
+                            },
+                            flags: {
+                                png: "https://flagcdn.com/w20/mm.png"
+                            }
+                        },
+                        {
+                            cca2: "US",
+                            name: {
+                                common: "United States"
+                            },
+                            flags: {
+                                png: "https://flagcdn.com/w20/us.png"
+                            }
+                        },
+                        {
+                            cca2: "GB",
+                            name: {
+                                common: "United Kingdom"
+                            },
+                            flags: {
+                                png: "https://flagcdn.com/w20/gb.png"
+                            }
+                        }
+                    ];
+
                     const fetchCountries = async () => {
                         try {
-                            const response = await fetch('https://restcountries.com/v3.1/all');
+                            // Try the new API endpoint
+                            const response = await fetch('https://countriesnow.space/api/v0.1/countries/info?returns=flag,unicodeFlag,dialCode,name,iso2');
+
                             if (!response.ok) {
                                 throw new Error('Failed to fetch countries');
                             }
-                            const countries = await response.json();
+
+                            const data = await response.json();
+                            if (data.error) {
+                                throw new Error(data.msg);
+                            }
+
+                            // Format the data to match our expected structure with '+' prefix
+                            const countries = data.data.map(country => ({
+                                cca2: country.iso2,
+                                name: {
+                                    common: country.name
+                                },
+                                flags: {
+                                    png: country.flag || `https://flagcdn.com/w20/${country.iso2.toLowerCase()}.png`
+                                }
+                            }));
+
                             populateDropdown(countries);
-                            populateCountryCodeDropdown(countries);
+                            setDefaultCountry();
                         } catch (error) {
-                            console.error(error);
-                            dropdown.innerHTML = '<option value="">Error loading countries</option>';
+                            console.error('Using fallback countries:', error);
+                            populateDropdown(fallbackCountries);
+                            setDefaultCountry();
                         }
                     }
 
+                    // REST OF THE CODE REMAINS EXACTLY THE SAME
                     const populateDropdown = (countries) => {
                         dropdown.innerHTML = '<option value="">Select a country</option>';
                         countries.sort((a, b) => a.name.common.localeCompare(b.name.common));
@@ -209,17 +258,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                         countries.forEach(country => {
                             const option = document.createElement('option');
                             option.value = country.cca2;
-                            option.dataset.flag = `https://flagcdn.com/w20/${country.cca2.toLowerCase()}.png`;
-                            option.textContent = `${country.name.common}`;
-                            if (country.cca2 === "MM") {
-                                option.selected = true;
-                            }
+                            option.dataset.flag = country.flags.png;
+                            option.dataset.dialCode = country.idd?.root || "";
+                            option.textContent = country.name.common;
                             dropdown.appendChild(option);
                         });
                     }
 
                     const populateCountryCodeDropdown = (countries) => {
-
                         // Filter countries that have calling codes
                         const countriesWithCallingCodes = countries.filter(c => c.idd && c.idd.root);
                     }
@@ -230,11 +276,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                         if (selectedOption.value) {
                             const flagUrl = selectedOption.dataset.flag;
                             countryFlag.innerHTML = `<img src="${flagUrl}" class="w-5 h-3.5" alt="Flag">`;
+
+                            // Update phone input with country code if available
+                            if (phoneInput && selectedOption.dataset.dialCode) {
+                                phoneInput.value = selectedOption.dataset.dialCode;
+                            }
                         }
                     });
 
+                    const setDefaultCountry = () => {
+                        // Set Myanmar as default if available
+                        const myanmarOption = Array.from(dropdown.options).find(opt => opt.value === "MM");
+                        if (myanmarOption) {
+                            myanmarOption.selected = true;
+                            const flagUrl = myanmarOption.dataset.flag;
+                            countryFlag.innerHTML = `<img src="${flagUrl}" class="w-5 h-3.5" alt="Flag">`;
+
+                            if (phoneInput && myanmarOption.dataset.dialCode) {
+                                phoneInput.value = myanmarOption.dataset.dialCode;
+                            }
+                        }
+                    };
+
                     // Initialize with Myanmar as default
-                    fetchCountries();
+                    document.addEventListener('DOMContentLoaded', fetchCountries);
                 </script>
             </div>
         </section>

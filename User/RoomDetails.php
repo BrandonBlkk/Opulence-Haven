@@ -932,16 +932,32 @@ if (isset($_POST['submitreview'])) {
                                                             </div>
 
                                                             <script>
-                                                                // Fetch country names from RestCountries API
+                                                                // Fetch country names from CountriesNow API
                                                                 document.querySelectorAll('.country-name').forEach(el => {
                                                                     const countryCode = el.getAttribute('data-country-code');
-                                                                    fetch(`https://restcountries.com/v3.1/alpha/${countryCode}`)
-                                                                        .then(response => response.json())
+
+                                                                    // First try the CountriesNow API
+                                                                    fetch('https://countriesnow.space/api/v0.1/countries/info?returns=name,iso2')
+                                                                        .then(response => {
+                                                                            if (!response.ok) throw new Error('API request failed');
+                                                                            return response.json();
+                                                                        })
                                                                         .then(data => {
-                                                                            el.textContent = data[0]?.name?.common || countryCode;
+                                                                            if (data.error) throw new Error(data.msg);
+
+                                                                            // Find the country in the response
+                                                                            const country = data.data.find(c => c.iso2 === countryCode);
+                                                                            el.textContent = country?.name || countryCode;
                                                                         })
                                                                         .catch(() => {
-                                                                            el.textContent = countryCode; // Fallback if API fails
+                                                                            // Fallback to local country names if API fails
+                                                                            const localCountryNames = {
+                                                                                'MM': 'Myanmar',
+                                                                                'US': 'United States',
+                                                                                'GB': 'United Kingdom',
+                                                                                // Add more country codes and names as needed
+                                                                            };
+                                                                            el.textContent = localCountryNames[countryCode] || countryCode;
                                                                         });
                                                                 });
                                                             </script>
@@ -1293,16 +1309,46 @@ if (isset($_POST['submitreview'])) {
                             },
                         });
 
-                        // Keep your existing country fetch code
+                        // Local country name mapping as fallback
+                        const countryNameMap = {
+                            'MM': 'Myanmar',
+                            'US': 'United States',
+                            'GB': 'United Kingdom',
+                            'CA': 'Canada',
+                            'AU': 'Australia',
+                            'JP': 'Japan',
+                            'KR': 'South Korea',
+                            'CN': 'China',
+                            'IN': 'India',
+                            'DE': 'Germany',
+                            'FR': 'France',
+                            'IT': 'Italy',
+                            'ES': 'Spain',
+                            'BR': 'Brazil',
+                            'MX': 'Mexico',
+                            'RU': 'Russia'
+                        };
+
                         document.querySelectorAll('.country-name').forEach(el => {
                             const countryCode = el.getAttribute('data-country-code');
-                            fetch(`https://restcountries.com/v3.1/alpha/${countryCode}`)
-                                .then(response => response.json())
+
+                            // First try to get from local map
+                            if (countryNameMap[countryCode]) {
+                                el.textContent = countryNameMap[countryCode];
+                                return;
+                            }
+
+                            // Fallback to API if not in local map
+                            fetch(`https://country.io/names.json`)
+                                .then(response => {
+                                    if (!response.ok) throw new Error('API request failed');
+                                    return response.json();
+                                })
                                 .then(data => {
-                                    el.textContent = data[0]?.name?.common || countryCode;
+                                    el.textContent = data[countryCode] || countryCode;
                                 })
                                 .catch(() => {
-                                    el.textContent = countryCode; // Fallback if API fails
+                                    el.textContent = countryCode; // Final fallback
                                 });
                         });
                     });
