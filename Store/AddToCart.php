@@ -110,7 +110,7 @@ if (!$connect) {
 
                             $originalPrice = $basePrice + $modifier;
                 ?>
-                            <div class="flex flex-col md:flex-row justify-between mb-4">
+                            <div class="flex flex-col md:flex-row justify-between">
                                 <form action="#" method="post" class="px-4 py-2 rounded-md flex flex-col md:flex-row justify-between cursor-pointer">
                                     <input type="hidden" name="order_id" value="<?= $order_id ?>">
                                     <input type="hidden" name="product_id" value="<?= $item['ProductID'] ?>">
@@ -209,23 +209,6 @@ if (!$connect) {
                             <a href="Delivery.php" class="text-xs underline text-gray-500 hover:text-gray-400 transition-colors duration-200">View our Delivery & Returns Policy</a>
                         </div>
                     </div>
-                </div>
-                <div class="flex flex-col py-5">
-                    <h1 class="text-xl font-semibold mb-1">Payment Methods:</h1>
-                    <ul class="flex gap-2 select-none">
-                        <li>
-                            <img class="w-9" src="../UserImages/fashion-designer-cc-visa-icon.svg" alt="Icon">
-                        </li>
-                        <li>
-                            <img class="w-9" src="../UserImages/fashion-designer-cc-mastercard-icon.svg" alt="Icon">
-                        </li>
-                        <li>
-                            <img class="w-9" src="../UserImages/fashion-designer-cc-discover-icon.svg" alt="Icon">
-                        </li>
-                        <li>
-                            <img class="w-9" src="../UserImages/fashion-designer-cc-apple-pay-icon.svg" alt="Icon">
-                        </li>
-                    </ul>
                 </div>
             </div>
         </div>
