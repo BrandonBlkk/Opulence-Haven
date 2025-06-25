@@ -138,11 +138,26 @@
 
     const fetchCountries = async () => {
         try {
-            const response = await fetch('https://restcountries.com/v3.1/all');
+            const response = await fetch('https://countriesnow.space/api/v0.1/countries/info?returns=flag,unicodeFlag,dialCode,name,iso2');
             if (!response.ok) {
                 throw new Error('Failed to fetch countries');
             }
-            const countries = await response.json();
+            const data = await response.json();
+
+            // Convert API response to match the expected format
+            const countries = data.data.map(country => ({
+                cca2: country.iso2,
+                name: {
+                    common: country.name
+                },
+                idd: {
+                    root: country.dialCode || ""
+                },
+                flags: {
+                    png: country.flag || `https://flagcdn.com/w20/${country.iso2.toLowerCase()}.png`
+                }
+            }));
+
             populateDropdown(countries);
             populateCountryCodeDropdown(countries);
         } catch (error) {
@@ -158,7 +173,7 @@
         countries.forEach(country => {
             const option = document.createElement('option');
             option.value = country.cca2;
-            option.dataset.flag = `https://flagcdn.com/w20/${country.cca2.toLowerCase()}.png`;
+            option.dataset.flag = country.flags.png;
             option.textContent = `${country.name.common}`;
             if (country.cca2 === "MM") {
                 option.selected = true;
@@ -168,7 +183,6 @@
     }
 
     const populateCountryCodeDropdown = (countries) => {
-
         // Filter countries that have calling codes
         const countriesWithCallingCodes = countries.filter(c => c.idd && c.idd.root);
     }

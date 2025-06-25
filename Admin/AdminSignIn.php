@@ -19,7 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
     $emailExist = $connect->query($checkEmailQuery)->num_rows;
 
     if (!$emailExist) {
-        $alertMessage = "No account found with the provided email. Please try again.";
+        $response['message'] = "No account found with the provided email. Please try again.";
     } else {
         // Check if the email exists and fetch data
         $checkAccQuery = "SELECT * FROM admintb 

@@ -157,44 +157,59 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Reset Password
+// Reset Password Form Handling
 document.addEventListener("DOMContentLoaded", () => {
+    const resetPasswordForm = document.getElementById('resetPasswordForm');
     const loader = document.getElementById('loader');
-    const resetPasswordSuccess = document.getElementById('resetPasswordSuccess').value === 'true';
 
-    if (resetPasswordSuccess) {
-        loader.style.display = 'flex'; 
+    if (resetPasswordForm) {
+        resetPasswordForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const emailInput = this.querySelector('input[name="email"]');
+            const email = emailInput.value.trim();
+            
+            if (!email) {
+                showAlert('Please enter your email address', true);
+                return;
+            }
 
-        // fetch('../User/ForgetPassword.php', {
-        //     method: 'POST',
-        //     headers: {
-        //         'Content-Type': 'application/json',
-        //     }
-        // })
-        // .then(response => response.json())
-        // .then(data => {
-        //     if (data.success) {
-        //         // Handle email sending error
-        //         loader.style.display = 'none';
-        //         showAlert('Password reset link has been sent to your email. The link will expire in 1 hour.');
-        //     } 
-        // })
-        // .catch(error => {
-        //     loader.style.display = 'none';
-        //     showAlert('Error sending password reset link. Please contact support.');
-        //     setTimeout(() => {
-        //         window.location.href = '../User/ForgetPassword.php';
-        //     }, 3000);
-        // });
+            if (loader) loader.style.display = 'flex';
+            
+            const formData = new FormData();
+            formData.append('email', email);
+            formData.append('reset', 'true');
 
-        setTimeout(() => {
-            loader.style.display = 'none';
-                showAlert('Password reset link has been sent to your email. The link will expire in 1 hour.');
-            setTimeout(() => {
-                window.location.href = '../User/ForgetPassword.php';
-            }, 5000);
-        }, 1000);
-    } 
+            fetch('../User/ForgetPassword.php', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (loader) loader.style.display = 'none';
+                
+                if (data.success) {
+                    emailInput.value = '';
+                    showAlert('Password reset link has been sent to your email. The link will expire in 1 hour.');
+                } else {
+                    showAlert(data.message || 'Invalid email address. Please try again.', true);
+                }
+            })
+            .catch(error => {
+                if (loader) loader.style.display = 'none';
+                showAlert('An error occurred. Please try again.', true);
+                console.error('Error:', error);
+            });
+        });
+    }
 });
 
 // Full form validation function

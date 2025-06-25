@@ -123,6 +123,61 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// Reset Password Form Handling
+document.addEventListener("DOMContentLoaded", () => {
+    const resetPasswordForm = document.getElementById('resetPasswordForm');
+    const loader = document.getElementById('loader');
+
+    if (resetPasswordForm) {
+        resetPasswordForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const emailInput = this.querySelector('input[name="email"]');
+            const email = emailInput.value.trim();
+            
+            if (!email) {
+                showAlert('Please enter your email address', true);
+                return;
+            }
+
+            if (loader) loader.style.display = 'flex';
+            
+            const formData = new FormData();
+            formData.append('email', email);
+            formData.append('reset', 'true');
+
+            fetch('../Admin/ForgetPassword.php', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (loader) loader.style.display = 'none';
+                
+                if (data.success) {
+                    emailInput.value = '';
+                    showAlert('Password reset link has been sent to your email. The link will expire in 1 hour.');
+                } else {
+                    showAlert(data.message || 'Invalid email address. Please try again.', true);
+                }
+            })
+            .catch(error => {
+                if (loader) loader.style.display = 'none';
+                showAlert('An error occurred. Please try again.', true);
+                console.error('Error:', error);
+            });
+        });
+    }
+});
+
 // Full form validation function
 const validateSignUpForm = () => {
     const isFirstnameValid = validateFirstname();
