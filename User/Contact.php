@@ -104,7 +104,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                                 id="contactFullNameInput"
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                                 name="fullname"
-                                placeholder="Enter your fullname">
+                                placeholder="Enter your full name">
                             <small id="contactFullNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                         </div>
                         <!-- Email Input -->

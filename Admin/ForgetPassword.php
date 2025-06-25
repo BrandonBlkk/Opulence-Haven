@@ -14,13 +14,15 @@ use PHPMailer\PHPMailer\Exception;
 // Timezone 
 date_default_timezone_set('Asia/Yangon');
 
+$alertMessage = '';
+// $resetPasswordSuccess = false;
 $response = ['success' => false, 'message' => ''];
 
 if (isset($_POST['reset'])) {
     $email = $_POST['email'];
 
     // Check if email exists
-    $checkQuery = "SELECT * FROM usertb WHERE UserEmail = '$email'";
+    $checkQuery = "SELECT * FROM admintb WHERE AdminEmail = '$email'";
     $result = $connect->query($checkQuery);
 
     if (empty($_POST["email"])) {
@@ -31,7 +33,7 @@ if (isset($_POST['reset'])) {
         $expiry = date("Y-m-d H:i:s", strtotime("+1 hour"));
 
         // Store the token and expiry in the database
-        $updateQuery = "UPDATE usertb SET OTP = '$otp', Token = '$token', TokenExpiry = '$expiry' WHERE UserEmail = '$email'";
+        $updateQuery = "UPDATE admintb SET OTP = '$otp', Token = '$token', TokenExpiry = '$expiry' WHERE AdminEmail = '$email'";
         $connect->query($updateQuery);
 
         $mail = new PHPMailer(true);
@@ -210,7 +212,7 @@ if (isset($_POST['reset'])) {
             </div>
             <div class="mt-6 text-center">
                 <p class="text-sm text-gray-600">Remembered your password?
-                    <a href="UserSignIn.php" class="text-amber-500 hover:underline">Back to Sign In</a>
+                    <a href="AdminSignIn.php" class="text-amber-500 hover:underline">Back to Sign In</a>
                 </p>
             </div>
         </div>
@@ -223,7 +225,7 @@ if (isset($_POST['reset'])) {
     ?>
 
     <script src="//unpkg.com/alpinejs" defer></script>
-    <script type="module" src="../JS/auth.js"></script>
+    <script type="module" src="../JS/adminAuth.js"></script>
 </body>
 
 </html>
