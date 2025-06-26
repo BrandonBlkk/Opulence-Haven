@@ -347,29 +347,265 @@ if ($roomCount > 0) {
         </section>
 
         <section class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <!-- Sales Revenue -->
+            <?php
+            // Function to get revenue data for the last 30 days
+            function getRevenueData($connect, $type)
+            {
+                $endDate = date('Y-m-d');
+                $startDate = date('Y-m-d', strtotime('-30 days'));
+
+                if ($type === 'rooms') {
+                    $query = "
+            SELECT 
+                DATE(ReservationDate) AS date,
+                SUM(TotalPrice) AS revenue
+            FROM 
+                reservationtb
+            WHERE 
+                ReservationDate BETWEEN ? AND ?
+                AND Status = 'Confirmed'
+            GROUP BY 
+                DATE(ReservationDate)
+            ORDER BY 
+                date ASC
+        ";
+                } else { // orders
+                    $query = "
+            SELECT 
+                DATE(OrderDate) AS date,
+                SUM(TotalPrice) AS revenue
+            FROM 
+                ordertb
+            WHERE 
+                OrderDate BETWEEN ? AND ?
+                AND Status = 'Confirmed'
+            GROUP BY 
+                DATE(OrderDate)
+            ORDER BY 
+                date ASC
+        ";
+                }
+
+                $stmt = $connect->prepare($query);
+                $stmt->bind_param('ss', $startDate, $endDate);
+                $stmt->execute();
+                $result = $stmt->get_result();
+
+                $data = [];
+                $totalRevenue = 0;
+
+                while ($row = $result->fetch_assoc()) {
+                    $data[$row['date']] = $row['revenue'];
+                    $totalRevenue += $row['revenue'];
+                }
+
+                // Fill in missing dates with 0 revenue
+                $period = new DatePeriod(
+                    new DateTime($startDate),
+                    new DateInterval('P1D'),
+                    new DateTime($endDate)
+                );
+
+                $completeData = [];
+                foreach ($period as $date) {
+                    $dateStr = $date->format('Y-m-d');
+                    $completeData[] = [
+                        'date' => $dateStr,
+                        'revenue' => isset($data[$dateStr]) ? $data[$dateStr] : 0
+                    ];
+                }
+
+                return [
+                    'dailyData' => $completeData,
+                    'totalRevenue' => $totalRevenue
+                ];
+            }
+
+            // Get initial data (room reservations)
+            $roomData = getRevenueData($connect, 'rooms');
+            $orderData = getRevenueData($connect, 'orders');
+
+            // Calculate summary statistics
+            $monthlyRevenue = $roomData['totalRevenue'];
+            $weeklyRevenue = array_sum(array_slice(array_column($roomData['dailyData'], 'revenue'), -7));
+            $dailyAvg = $monthlyRevenue / 30;
+
+            // Calculate percentage changes (example values - you might want to calculate these dynamically)
+            $monthlyChange = 4.63;
+            $weeklyChange = -1.92;
+            $dailyChange = 3.45;
+
+            // Prepare labels like the first chart (1, 5, 10, 15, 20, 25, 30 plus any days with data)
+            $allRevenueData = array_merge($roomData['dailyData'], $orderData['dailyData']);
+            $daysWithData = [];
+
+            foreach ($allRevenueData as $item) {
+                if ($item['revenue'] > 0) {
+                    $date = new DateTime($item['date']);
+                    $daysWithData[] = (int)$date->format('d');
+                }
+            }
+
+            $selectedDays = [1, 5, 10, 15, 20, 25, 30];
+            $allDaysToShow = array_unique(array_merge($selectedDays, $daysWithData));
+            sort($allDaysToShow);
+
+            // Create date labels in 'd M' format
+            $dateLabels = [];
+            foreach ($allDaysToShow as $day) {
+                $date = DateTime::createFromFormat('j', $day);
+                $dateLabels[] = $date->format('d M');
+            }
+
+            // Prepare room and order datasets with all data points
+            $roomDataset = [];
+            $orderDataset = [];
+            foreach ($dateLabels as $label) {
+                $dayNum = (int)substr($label, 0, 2);
+                $foundRoom = false;
+                $foundOrder = false;
+
+                foreach ($roomData['dailyData'] as $item) {
+                    $date = new DateTime($item['date']);
+                    if ((int)$date->format('d') === $dayNum) {
+                        $roomDataset[] = $item['revenue'];
+                        $foundRoom = true;
+                        break;
+                    }
+                }
+                if (!$foundRoom) {
+                    $roomDataset[] = 0;
+                }
+
+                foreach ($orderData['dailyData'] as $item) {
+                    $date = new DateTime($item['date']);
+                    if ((int)$date->format('d') === $dayNum) {
+                        $orderDataset[] = $item['revenue'];
+                        $foundOrder = true;
+                        break;
+                    }
+                }
+                if (!$foundOrder) {
+                    $orderDataset[] = 0;
+                }
+            }
+            ?>
+
             <div class="bg-white rounded-sm p-3 mt-3">
-                <h2 class="text-lg font-bold text-gray-700">Sales Revenue</h2>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end">
+                    <h2 class="text-lg font-bold text-gray-700">Sales Revenue</h2>
+                    <select
+                        id="revenueFilter"
+                        class="text-xs border rounded px-2 py-1 bg-white text-gray-700"
+                        onchange="updateRevenueChart()">
+                        <option value="rooms">Room Reservations</option>
+                        <option value="orders">Orders</option>
+                    </select>
+                </div>
                 <p class="text-sm text-gray-500 mb-4">In last 30 days revenue from rent.</p>
                 <div class="grid grid-cols-3 gap-4 mb-4">
                     <div class="text-center">
-                        <h3 class="text-xl font-semibold text-blue-600">9.28K</h3>
+                        <h3 class="text-xl font-semibold text-blue-600">$<?= number_format($monthlyRevenue, 2) ?></h3>
                         <p class="text-gray-500 text-xs">Monthly</p>
-                        <p class="text-green-500 text-sm">↑ 4.63%</p>
+                        <p class="<?= $monthlyChange >= 0 ? 'text-green-500' : 'text-red-500' ?> text-sm">
+                            <?= $monthlyChange >= 0 ? '↑' : '↓' ?> <?= abs($monthlyChange) ?>%
+                        </p>
                     </div>
                     <div class="text-center">
-                        <h3 class="text-xl font-semibold text-red-600">2.69K</h3>
+                        <h3 class="text-xl font-semibold text-red-600">$<?= number_format($weeklyRevenue, 2) ?></h3>
                         <p class="text-gray-500 text-xs">Weekly</p>
-                        <p class="text-red-500 text-sm">↓ 1.92%</p>
+                        <p class="<?= $weeklyChange >= 0 ? 'text-green-500' : 'text-red-500' ?> text-sm">
+                            <?= $weeklyChange >= 0 ? '↑' : '↓' ?> <?= abs($weeklyChange) ?>%
+                        </p>
                     </div>
                     <div class="text-center">
-                        <h3 class="text-xl font-semibold text-green-600">0.94K</h3>
+                        <h3 class="text-xl font-semibold text-green-600">$<?= number_format($dailyAvg, 2) ?></h3>
                         <p class="text-gray-500 text-xs">Daily (Avg)</p>
-                        <p class="text-green-500 text-sm">↑ 3.45%</p>
+                        <p class="<?= $dailyChange >= 0 ? 'text-green-500' : 'text-red-500' ?> text-sm">
+                            <?= $dailyChange >= 0 ? '↑' : '↓' ?> <?= abs($dailyChange) ?>%
+                        </p>
                     </div>
                 </div>
-                <canvas id="salesRevenueChart" class="h-[150px]"></canvas>
+                <div class="bg-white rounded-sm p-3 mt-3">
+                    <div class="chart-container" style="position: relative; height: auto; width: 100%">
+                        <canvas id="salesRevenueChart"></canvas>
+                    </div>
+                </div>
             </div>
+
+            <script>
+                // Store the chart instance
+                let revenueChart;
+
+                // Initialize the chart with the same label style as the first chart
+                document.addEventListener('DOMContentLoaded', function() {
+                    const ctx = document.getElementById('salesRevenueChart').getContext('2d');
+
+                    revenueChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: <?= json_encode($dateLabels) ?>,
+                            datasets: [{
+                                label: 'Revenue ($)',
+                                data: <?= json_encode($roomDataset) ?>,
+                                backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                                borderColor: '#3B82F6',
+                                borderWidth: 1,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return `$${context.raw.toLocaleString()}`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Date',
+                                        font: {
+                                            weight: 'bold'
+                                        }
+                                    },
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Revenue ($)',
+                                        font: {
+                                            weight: 'bold'
+                                        }
+                                    },
+                                }
+                            }
+                        }
+                    });
+                });
+
+                // Function to update the chart based on filter
+                function updateRevenueChart() {
+                    const filter = document.getElementById('revenueFilter').value;
+                    const roomDataset = <?= json_encode($roomDataset) ?>;
+                    const orderDataset = <?= json_encode($orderDataset) ?>;
+
+                    revenueChart.data.datasets[0].data = filter === 'rooms' ? roomDataset : orderDataset;
+                    revenueChart.update();
+                }
+            </script>
 
             <!-- Room Booking Chart -->
             <div class="bg-white rounded-sm p-3 mt-3">
@@ -530,64 +766,6 @@ if ($roomCount > 0) {
                 </script>
             </div>
         </section>
-
-        <script>
-            // Sales Revenue Chart
-            const salesRevenueCtx = document.getElementById('salesRevenueChart').getContext('2d');
-            new Chart(salesRevenueCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['01 Jan', '05 Jan', '10 Jan', '15 Jan', '20 Jan', '25 Jan', '30 Jan'],
-                    datasets: [{
-                        label: 'Revenue ($)',
-                        data: [800, 900, 850, 950, 1000, 870, 920],
-                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                        borderColor: '#3B82F6',
-                        borderWidth: 1,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `$${context.raw.toLocaleString()}`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            title: {
-                                display: true,
-                                text: 'Date',
-                                font: {
-                                    weight: 'bold'
-                                }
-                            },
-                        },
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Revenue ($)',
-                                font: {
-                                    weight: 'bold'
-                                }
-                            },
-                        }
-                    }
-                }
-            });
-        </script>
 
         <section class="bg-white rounded-sm mt-3">
             <div class="container mx-auto p-3">
