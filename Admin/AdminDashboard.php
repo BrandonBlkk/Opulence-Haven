@@ -373,55 +373,161 @@ if ($roomCount > 0) {
 
             <!-- Room Booking Chart -->
             <div class="bg-white rounded-sm p-3 mt-3">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-lg font-bold text-gray-700">Room Booking Chart</h2>
-                    <button class="text-xs bg-gray-200 px-2 py-1 rounded text-gray-700">30 Days</button>
+                <div>
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-lg font-bold text-gray-700">Room Booking Analytics</h2>
+                        <button class="text-xs bg-gray-200 px-2 py-1 rounded text-gray-700">30 Days</button>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-4">Trends in room type reservations over time.</p>
                 </div>
+                <?php
+                $currentMonth = date('m');
+                $currentYear = date('Y');
+
+                // Query to get reserved room counts by type
+                $query = "SELECT 
+                        rt.RoomType,
+                        COUNT(rd.ReservationID) AS reservation_count
+                    FROM 
+                        reservationdetailtb rd
+                    JOIN 
+                        roomtb r ON rd.RoomID = r.RoomID
+                    JOIN 
+                        roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
+                    WHERE 
+                        MONTH(rd.CheckInDate) = $currentMonth AND YEAR(rd.CheckInDate) = $currentYear
+                    GROUP BY 
+                        rt.RoomType
+                    ORDER BY 
+                        reservation_count DESC
+                ";
+
+                $stmt = $connect->prepare($query);
+                $stmt->execute();
+                $roomTypes = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+                // Prepare data for the chart
+                $labels = [];
+                $data = [];
+                $backgroundColors = [
+                    'Single Bed' => 'bg-blue-300',
+                    'Double Bed' => 'bg-green-300',
+                    'Twin' => 'bg-yellow-300',
+                    'Triple' => 'bg-orange-300',
+                    'Family' => 'bg-red-300',
+                    'Deluxe' => 'bg-purple-300',
+                    'Single Deluxe' => 'bg-indigo-300',
+                    'Double Deluxe' => 'bg-teal-300',
+                    'Triple Deluxe' => 'bg-pink-300',
+                    'Family Deluxe' => 'bg-gray-300'
+                ];
+
+                $totalReservations = 0;
+                foreach ($roomTypes as $roomType) {
+                    $labels[] = $roomType['RoomType'];
+                    $data[] = $roomType['reservation_count'];
+                    $totalReservations += $roomType['reservation_count'];
+                }
+
+                // Calculate percentages
+                $percentages = [];
+                foreach ($roomTypes as $roomType) {
+                    $percentage = ($totalReservations > 0) ? round(($roomType['reservation_count'] / $totalReservations) * 100, 2) : 0;
+                    $percentages[$roomType['RoomType']] = $percentage;
+                }
+                ?>
+
                 <div class="flex justify-center max-w-[400px]">
                     <canvas id="roomBookingChart"></canvas>
                 </div>
                 <div class="flex flex-wrap gap-1 justify-around text-xs">
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-blue-300 mr-0.5"></div>
-                        <p>Single: 1913 (58.63%)</p>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-green-300 mr-0.5"></div>
-                        <p>Double: 859 (23.94%)</p>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-yellow-300 mr-0.5"></div>
-                        <p>Twin: 600 (18.34%)</p>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-orange-300 mr-0.5"></div>
-                        <p>Triple: 400 (12.21%)</p>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-red-300 mr-0.5"></div>
-                        <p>Family: 350 (10.69%)</p>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-purple-300 mr-0.5"></div>
-                        <p>Deluxe: 482 (12.94%)</p>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-indigo-300 mr-0.5"></div>
-                        <p>Single Deluxe: 240 (8.76%)</p>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-teal-300 mr-0.5"></div>
-                        <p>Double Deluxe: 180 (6.59%)</p>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-pink-300 mr-0.5"></div>
-                        <p>Triple Deluxe: 120 (4.39%)</p>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-gray-300 mr-0.5"></div>
-                        <p>Family Deluxe: 90 (3.45%)</p>
-                    </div>
+                    <?php foreach ($roomTypes as $roomType):
+                        $roomTypeName = $roomType['RoomType'];
+                        $count = $roomType['reservation_count'];
+                        $percentage = $percentages[$roomTypeName] ?? 0;
+                        $bgColor = $backgroundColors[$roomTypeName] ?? 'bg-gray-300';
+                    ?>
+                        <div class="flex items-center">
+                            <div class="w-2.5 h-2.5 rounded-full <?= $bgColor ?> mr-0.5"></div>
+                            <p><?= $roomTypeName ?>: <?= $count ?> (<?= $percentage ?>%)</p>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const ctx = document.getElementById('roomBookingChart').getContext('2d');
+
+                        // Get the dynamic data from PHP
+                        const roomTypes = <?= json_encode($roomTypes) ?>;
+                        const backgroundColors = <?= json_encode(array_values($backgroundColors)) ?>;
+
+                        // Create the chart
+                        new Chart(ctx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: roomTypes.map(item => item.RoomType),
+                                datasets: [{
+                                    data: roomTypes.map(item => item.reservation_count),
+                                    backgroundColor: ['#93C5FD', '#34D399', '#FDE047', '#FDBA74', '#F87171', '#D8B4FE', '#818CF8', '#2DD4BF', '#F472B6', '#D1D5DB'],
+                                    hoverBackgroundColor: ['#2563EB', '#059669', '#EAB308', '#EA580C', '#DC2626', '#9333EA', '#4F46E5', '#0D9488', '#DB2777', '#6B7280'],
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                plugins: {
+                                    legend: {
+                                        position: 'right',
+                                        labels: {
+                                            usePointStyle: true,
+                                            padding: 20,
+                                        }
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                const label = context.label || '';
+                                                const value = context.raw || 0;
+                                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                                const percentage = Math.round((value / total) * 100);
+                                                return `${label}: ${value} (${percentage}%)`;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+
+                        // Room Booking Chart
+                        const roomBookingCtx = document.getElementById('roomBookingChart').getContext('2d');
+                        new Chart(roomBookingCtx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['Single', 'Double', 'Twin', 'Triple', 'Family', 'Deluxe', 'Single Deluxe', 'Double Deluxe', 'Triple Deluxe', 'Family Deluxe'],
+                                datasets: [{
+                                    data: [1913, 859, 600, 400, 350, 482, 240, 180, 120, 90],
+                                    backgroundColor: ['#93C5FD', '#34D399', '#FDE047', '#FDBA74', '#F87171', '#D8B4FE', '#818CF8', '#2DD4BF', '#F472B6', '#D1D5DB'],
+                                    hoverBackgroundColor: ['#2563EB', '#059669', '#EAB308', '#EA580C', '#DC2626', '#9333EA', '#4F46E5', '#0D9488', '#DB2777', '#6B7280'],
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                plugins: {
+                                    legend: {
+                                        position: 'right',
+                                        labels: {
+                                            usePointStyle: true,
+                                            padding: 20,
+                                        }
+                                    },
+                                }
+                            }
+                        });
+                    });
+                </script>
             </div>
         </section>
 
@@ -478,33 +584,6 @@ if ($roomCount > 0) {
                                 }
                             },
                         }
-                    }
-                }
-            });
-
-            // Room Booking Chart
-            const roomBookingCtx = document.getElementById('roomBookingChart').getContext('2d');
-            new Chart(roomBookingCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Single', 'Double', 'Twin', 'Triple', 'Family', 'Deluxe', 'Single Deluxe', 'Double Deluxe', 'Triple Deluxe', 'Family Deluxe'],
-                    datasets: [{
-                        data: [1913, 859, 600, 400, 350, 482, 240, 180, 120, 90],
-                        backgroundColor: ['#93C5FD', '#34D399', '#FDE047', '#FDBA74', '#F87171', '#D8B4FE', '#818CF8', '#2DD4BF', '#F472B6', '#D1D5DB'],
-                        hoverBackgroundColor: ['#2563EB', '#059669', '#EAB308', '#EA580C', '#DC2626', '#9333EA', '#4F46E5', '#0D9488', '#DB2777', '#6B7280'],
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 20,
-                            }
-                        },
                     }
                 }
             });
