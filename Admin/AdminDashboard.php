@@ -515,15 +515,75 @@ if ($roomCount > 0) {
                 <div>
                     <div class="mb-4">
                         <h2 class="text-lg font-bold text-gray-700">Income vs Expenses</h2>
-                        <p class="text-sm text-gray-500">How was your income and expenses this month?</p>
+                        <p class="text-sm text-gray-500">How was your income and expenses this month? <span class="text-xs italic">All amounts in USD</span></p>
                     </div>
 
                     <!-- Summary Section -->
                     <div class="flex justify-around sm:justify-start mb-6">
+                        <?php
+                        // Function to get monthly income from orders
+                        function getMonthlyOrderIncome($year, $month)
+                        {
+                            global $connect;
+                            $query = "SELECT SUM(TotalPrice) as total FROM ordertb 
+              WHERE Status = 'Confirmed' 
+              AND YEAR(OrderDate) = $year 
+              AND MONTH(OrderDate) = $month";
+                            $result = $connect->query($query);
+                            $row = $result->fetch_assoc();
+                            return $row['total'] ? floatval($row['total']) : 0;
+                        }
+
+                        // Function to get monthly income from reservations
+                        function getMonthlyReservationIncome($year, $month)
+                        {
+                            global $connect;
+                            $query = "SELECT SUM(TotalPrice) as total FROM reservationtb 
+              WHERE Status = 'Confirmed' 
+              AND YEAR(ReservationDate) = $year 
+              AND MONTH(ReservationDate) = $month";
+                            $result = $connect->query($query);
+                            $row = $result->fetch_assoc();
+                            return $row['total'] ? floatval($row['total']) : 0;
+                        }
+
+                        // Get current and previous month dates
+                        $currentYear = date('Y');
+                        $currentMonth = date('m');
+                        $prevMonth = ($currentMonth == 1) ? 12 : $currentMonth - 1;
+                        $prevYear = ($currentMonth == 1) ? $currentYear - 1 : $currentYear;
+
+                        // Calculate totals for current month
+                        $currentOrderIncome = getMonthlyOrderIncome($currentYear, $currentMonth);
+                        $currentReservationIncome = getMonthlyReservationIncome($currentYear, $currentMonth);
+                        $currentTotalIncome = $currentOrderIncome + $currentReservationIncome;
+
+                        // Calculate totals for previous month
+                        $prevOrderIncome = getMonthlyOrderIncome($prevYear, $prevMonth);
+                        $prevReservationIncome = getMonthlyReservationIncome($prevYear, $prevMonth);
+                        $prevTotalIncome = $prevOrderIncome + $prevReservationIncome;
+
+                        // Calculate percentage change
+                        $percentageChange = 0;
+                        if ($prevTotalIncome > 0) {
+                            $percentageChange = (($currentTotalIncome - $prevTotalIncome) / $prevTotalIncome) * 100;
+                        }
+
+                        // Format the numbers
+                        $formattedIncome = number_format($currentTotalIncome, 2);
+                        $shortIncome = ($currentTotalIncome >= 1000) ? number_format($currentTotalIncome / 1000, 2) . 'K' : $formattedIncome;
+                        $percentageFormatted = number_format(abs($percentageChange), 2);
+                        $percentageClass = ($percentageChange >= 0) ? 'text-green-500' : 'text-red-500';
+                        $percentageSymbol = ($percentageChange >= 0) ? '↑' : '↓';
+                        ?>
+
+                        <!-- Display in your HTML -->
                         <div class="w-1/5">
-                            <h3 class="text-2xl font-semibold text-blue-600">2.57K</h3>
+                            <h3 class="text-2xl font-semibold text-blue-600">$<?php echo $shortIncome; ?></h3>
                             <p class="text-gray-500 text-xs">Income</p>
-                            <p class="text-red-500 text-sm">↓ 12.37%</p>
+                            <p class="<?php echo $percentageClass; ?> text-sm">
+                                <?php echo $percentageSymbol . ' ' . $percentageFormatted . '%'; ?>
+                            </p>
                         </div>
                         <?php
                         // Fetch total expenses for the current month
@@ -557,7 +617,7 @@ if ($roomCount > 0) {
                         <!-- Dynamic Expense Display -->
                         <div>
                             <h3 class="text-2xl font-semibold text-red-600">
-                                <?= number_format($totalExpenses / 1000, 1) ?>K
+                                $<?= number_format($totalExpenses, 2) ?>
                             </h3>
                             <p class="text-gray-500 text-xs">Expenses</p>
                             <p class="<?= $isIncrease ? 'text-green-500' : 'text-red-500' ?> text-sm">
@@ -576,34 +636,143 @@ if ($roomCount > 0) {
                 </div>
             </div>
 
+            <?php
+            // Get current month and year
+            $currentMonth = date('m');
+            $currentYear = date('Y');
+
+            // Function to get daily income data from both ordertb and reservationtb
+            function getDailyIncomeData($year, $month)
+            {
+                global $connect;
+
+                // Query for order income
+                $orderQuery = "SELECT 
+                    DATE_FORMAT(OrderDate, '%d %b') AS day,
+                    SUM(TotalPrice) AS amount
+                  FROM ordertb
+                  WHERE Status = 'Confirmed'
+                  AND YEAR(OrderDate) = $year
+                  AND MONTH(OrderDate) = $month
+                  GROUP BY day";
+
+                // Query for reservation income
+                $reservationQuery = "SELECT 
+                          DATE_FORMAT(ReservationDate, '%d %b') AS day,
+                          SUM(TotalPrice) AS amount
+                        FROM reservationtb
+                        WHERE Status = 'Confirmed'
+                        AND YEAR(ReservationDate) = $year
+                        AND MONTH(ReservationDate) = $month
+                        GROUP BY day";
+
+                // Execute both queries
+                $orderResult = $connect->query($orderQuery);
+                $reservationResult = $connect->query($reservationQuery);
+
+                // Combine results
+                $combinedData = [];
+
+                // Process order data
+                while ($row = $orderResult->fetch_assoc()) {
+                    $day = $row['day'];
+                    $combinedData[$day] = ($combinedData[$day] ?? 0) + $row['amount'];
+                }
+
+                // Process reservation data
+                while ($row = $reservationResult->fetch_assoc()) {
+                    $day = $row['day'];
+                    $combinedData[$day] = ($combinedData[$day] ?? 0) + $row['amount'];
+                }
+
+                return $combinedData;
+            }
+
+            // Function to get daily expense data from purchasetb
+            function getDailyExpenseData($year, $month)
+            {
+                global $connect;
+                $query = "SELECT 
+                DATE_FORMAT(PurchaseDate, '%d %b') AS day,
+                SUM(TotalAmount) AS amount
+              FROM purchasetb
+              WHERE YEAR(PurchaseDate) = $year
+              AND MONTH(PurchaseDate) = $month
+              GROUP BY day";
+                $result = $connect->query($query);
+
+                $data = [];
+                while ($row = $result->fetch_assoc()) {
+                    $data[$row['day']] = $row['amount'];
+                }
+                return $data;
+            }
+
+            // Get data for current month
+            $incomeData = getDailyIncomeData($currentYear, $currentMonth);
+            $expenseData = getDailyExpenseData($currentYear, $currentMonth);
+
+            // Get all days in month with data
+            $allDaysWithData = array_unique(array_merge(array_keys($incomeData), array_keys($expenseData)));
+
+            // Create array of selected days (1, 5, 10, 15, 20, 25, 30) plus any days with data
+            $selectedDays = [1, 5, 10, 15, 20, 25, 30];
+            $allDates = [];
+
+            // Convert all days with data to day numbers
+            $daysWithDataNumbers = [];
+            foreach ($allDaysWithData as $dateStr) {
+                $dayNum = (int)substr($dateStr, 0, 2);
+                $daysWithDataNumbers[] = $dayNum;
+            }
+
+            // Combine selected days and days with data
+            $allDaysToShow = array_unique(array_merge($selectedDays, $daysWithDataNumbers));
+            sort($allDaysToShow);
+
+            // Create date labels
+            foreach ($allDaysToShow as $day) {
+                $date = DateTime::createFromFormat('j', $day);
+                $allDates[] = $date->format('d M');
+            }
+
+            // Prepare datasets with all data points
+            $incomeDataset = [];
+            $expenseDataset = [];
+            foreach ($allDates as $date) {
+                $incomeDataset[] = $incomeData[$date] ?? 0;
+                $expenseDataset[] = $expenseData[$date] ?? 0;
+            }
+            ?>
+
             <script>
                 const ctx = document.getElementById('incomeExpenseChart').getContext('2d');
                 const incomeExpenseChart = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: ['01 Jan', '05 Jan', '10 Jan', '15 Jan', '20 Jan', '25 Jan', '30 Jan'], // X-axis labels
+                        labels: <?php echo json_encode($allDates); ?>,
                         datasets: [{
                                 label: 'Income',
-                                data: [2500, 2700, 2900, 3100, 2800, 3000, 2570], // Income data points
-                                borderColor: '#3B82F6', // Tailwind blue
+                                data: <?php echo json_encode($incomeDataset); ?>,
+                                borderColor: '#3B82F6',
                                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                                 fill: true,
                                 tension: 0.4,
                             },
                             {
                                 label: 'Expenses',
-                                data: [2200, 2600, 3100, 3500, 3200, 3400, 3500], // Expense data points
-                                borderColor: '#EF4444', // Tailwind red
+                                data: <?php echo json_encode($expenseDataset); ?>,
+                                borderColor: '#EF4444',
                                 backgroundColor: 'rgba(239, 68, 68, 0.1)',
                                 fill: true,
                                 tension: 0.4,
                                 borderDash: [5, 5],
-                            },
+                            }
                         ],
                     },
                     options: {
                         responsive: true,
-                        maintainAspectRatio: false, // Ensures the chart respects the fixed dimensions
+                        maintainAspectRatio: false,
                         plugins: {
                             legend: {
                                 position: 'top',
