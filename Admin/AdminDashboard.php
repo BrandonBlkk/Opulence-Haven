@@ -347,183 +347,500 @@ if ($roomCount > 0) {
         </section>
 
         <section class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <!-- Sales Revenue -->
+            <?php
+            // Function to get revenue data for the last 30 days
+            function getRevenueData($connect, $type)
+            {
+                $endDate = date('Y-m-d');
+                $startDate = date('Y-m-d', strtotime('-30 days'));
+
+                if ($type === 'rooms') {
+                    $query = "
+            SELECT 
+                DATE(ReservationDate) AS date,
+                SUM(TotalPrice) AS revenue
+            FROM 
+                reservationtb
+            WHERE 
+                ReservationDate BETWEEN ? AND ?
+                AND Status = 'Confirmed'
+            GROUP BY 
+                DATE(ReservationDate)
+            ORDER BY 
+                date ASC
+        ";
+                } else { // orders
+                    $query = "
+            SELECT 
+                DATE(OrderDate) AS date,
+                SUM(TotalPrice) AS revenue
+            FROM 
+                ordertb
+            WHERE 
+                OrderDate BETWEEN ? AND ?
+                AND Status = 'Confirmed'
+            GROUP BY 
+                DATE(OrderDate)
+            ORDER BY 
+                date ASC
+        ";
+                }
+
+                $stmt = $connect->prepare($query);
+                $stmt->bind_param('ss', $startDate, $endDate);
+                $stmt->execute();
+                $result = $stmt->get_result();
+
+                $data = [];
+                $totalRevenue = 0;
+
+                while ($row = $result->fetch_assoc()) {
+                    $data[$row['date']] = $row['revenue'];
+                    $totalRevenue += $row['revenue'];
+                }
+
+                // Fill in missing dates with 0 revenue
+                $period = new DatePeriod(
+                    new DateTime($startDate),
+                    new DateInterval('P1D'),
+                    new DateTime($endDate)
+                );
+
+                $completeData = [];
+                foreach ($period as $date) {
+                    $dateStr = $date->format('Y-m-d');
+                    $completeData[] = [
+                        'date' => $dateStr,
+                        'revenue' => isset($data[$dateStr]) ? $data[$dateStr] : 0
+                    ];
+                }
+
+                return [
+                    'dailyData' => $completeData,
+                    'totalRevenue' => $totalRevenue
+                ];
+            }
+
+            // Get initial data (room reservations)
+            $roomData = getRevenueData($connect, 'rooms');
+            $orderData = getRevenueData($connect, 'orders');
+
+            // Calculate summary statistics
+            $monthlyRevenue = $roomData['totalRevenue'];
+            $weeklyRevenue = array_sum(array_slice(array_column($roomData['dailyData'], 'revenue'), -7));
+            $dailyAvg = $monthlyRevenue / 30;
+
+            // Calculate percentage changes (example values - you might want to calculate these dynamically)
+            $monthlyChange = 4.63;
+            $weeklyChange = -1.92;
+            $dailyChange = 3.45;
+
+            // Prepare labels like the first chart (1, 5, 10, 15, 20, 25, 30 plus any days with data)
+            $allRevenueData = array_merge($roomData['dailyData'], $orderData['dailyData']);
+            $daysWithData = [];
+
+            foreach ($allRevenueData as $item) {
+                if ($item['revenue'] > 0) {
+                    $date = new DateTime($item['date']);
+                    $daysWithData[] = (int)$date->format('d');
+                }
+            }
+
+            $selectedDays = [1, 5, 10, 15, 20, 25, 30];
+            $allDaysToShow = array_unique(array_merge($selectedDays, $daysWithData));
+            sort($allDaysToShow);
+
+            // Create date labels in 'd M' format
+            $dateLabels = [];
+            foreach ($allDaysToShow as $day) {
+                $date = DateTime::createFromFormat('j', $day);
+                $dateLabels[] = $date->format('d M');
+            }
+
+            // Prepare room and order datasets with all data points
+            $roomDataset = [];
+            $orderDataset = [];
+            foreach ($dateLabels as $label) {
+                $dayNum = (int)substr($label, 0, 2);
+                $foundRoom = false;
+                $foundOrder = false;
+
+                foreach ($roomData['dailyData'] as $item) {
+                    $date = new DateTime($item['date']);
+                    if ((int)$date->format('d') === $dayNum) {
+                        $roomDataset[] = $item['revenue'];
+                        $foundRoom = true;
+                        break;
+                    }
+                }
+                if (!$foundRoom) {
+                    $roomDataset[] = 0;
+                }
+
+                foreach ($orderData['dailyData'] as $item) {
+                    $date = new DateTime($item['date']);
+                    if ((int)$date->format('d') === $dayNum) {
+                        $orderDataset[] = $item['revenue'];
+                        $foundOrder = true;
+                        break;
+                    }
+                }
+                if (!$foundOrder) {
+                    $orderDataset[] = 0;
+                }
+            }
+            ?>
+
             <div class="bg-white rounded-sm p-3 mt-3">
-                <h2 class="text-lg font-bold text-gray-700">Sales Revenue</h2>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end">
+                    <h2 class="text-lg font-bold text-gray-700">Sales Revenue</h2>
+                    <select
+                        id="revenueFilter"
+                        class="text-xs border rounded px-2 py-1 bg-white text-gray-700"
+                        onchange="updateRevenueChart()">
+                        <option value="rooms">Room Reservations</option>
+                        <option value="orders">Orders</option>
+                    </select>
+                </div>
                 <p class="text-sm text-gray-500 mb-4">In last 30 days revenue from rent.</p>
                 <div class="grid grid-cols-3 gap-4 mb-4">
                     <div class="text-center">
-                        <h3 class="text-xl font-semibold text-blue-600">9.28K</h3>
+                        <h3 class="text-xl font-semibold text-blue-600">$<?= number_format($monthlyRevenue, 2) ?></h3>
                         <p class="text-gray-500 text-xs">Monthly</p>
-                        <p class="text-green-500 text-sm">↑ 4.63%</p>
+                        <p class="<?= $monthlyChange >= 0 ? 'text-green-500' : 'text-red-500' ?> text-sm">
+                            <?= $monthlyChange >= 0 ? '↑' : '↓' ?> <?= abs($monthlyChange) ?>%
+                        </p>
                     </div>
                     <div class="text-center">
-                        <h3 class="text-xl font-semibold text-red-600">2.69K</h3>
+                        <h3 class="text-xl font-semibold text-red-600">$<?= number_format($weeklyRevenue, 2) ?></h3>
                         <p class="text-gray-500 text-xs">Weekly</p>
-                        <p class="text-red-500 text-sm">↓ 1.92%</p>
+                        <p class="<?= $weeklyChange >= 0 ? 'text-green-500' : 'text-red-500' ?> text-sm">
+                            <?= $weeklyChange >= 0 ? '↑' : '↓' ?> <?= abs($weeklyChange) ?>%
+                        </p>
                     </div>
                     <div class="text-center">
-                        <h3 class="text-xl font-semibold text-green-600">0.94K</h3>
+                        <h3 class="text-xl font-semibold text-green-600">$<?= number_format($dailyAvg, 2) ?></h3>
                         <p class="text-gray-500 text-xs">Daily (Avg)</p>
-                        <p class="text-green-500 text-sm">↑ 3.45%</p>
+                        <p class="<?= $dailyChange >= 0 ? 'text-green-500' : 'text-red-500' ?> text-sm">
+                            <?= $dailyChange >= 0 ? '↑' : '↓' ?> <?= abs($dailyChange) ?>%
+                        </p>
                     </div>
                 </div>
-                <canvas id="salesRevenueChart" class="h-[150px]"></canvas>
+                <div class="bg-white rounded-sm p-3 mt-3">
+                    <div class="chart-container" style="position: relative; height: auto; width: 100%">
+                        <canvas id="salesRevenueChart"></canvas>
+                    </div>
+                </div>
             </div>
+
+            <script>
+                // Store the chart instance
+                let revenueChart;
+
+                // Initialize the chart with the same label style as the first chart
+                document.addEventListener('DOMContentLoaded', function() {
+                    const ctx = document.getElementById('salesRevenueChart').getContext('2d');
+
+                    revenueChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: <?= json_encode($dateLabels) ?>,
+                            datasets: [{
+                                label: 'Revenue ($)',
+                                data: <?= json_encode($roomDataset) ?>,
+                                backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                                borderColor: '#3B82F6',
+                                borderWidth: 1,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return `$${context.raw.toLocaleString()}`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Date',
+                                        font: {
+                                            weight: 'bold'
+                                        }
+                                    },
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Revenue ($)',
+                                        font: {
+                                            weight: 'bold'
+                                        }
+                                    },
+                                }
+                            }
+                        }
+                    });
+                });
+
+                // Function to update the chart based on filter
+                function updateRevenueChart() {
+                    const filter = document.getElementById('revenueFilter').value;
+                    const roomDataset = <?= json_encode($roomDataset) ?>;
+                    const orderDataset = <?= json_encode($orderDataset) ?>;
+
+                    revenueChart.data.datasets[0].data = filter === 'rooms' ? roomDataset : orderDataset;
+                    revenueChart.update();
+                }
+            </script>
 
             <!-- Room Booking Chart -->
             <div class="bg-white rounded-sm p-3 mt-3">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-lg font-bold text-gray-700">Room Booking Chart</h2>
-                    <button class="text-xs bg-gray-200 px-2 py-1 rounded text-gray-700">30 Days</button>
+                <div>
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-lg font-bold text-gray-700">Room Booking Analytics</h2>
+                        <button class="text-xs bg-gray-200 px-2 py-1 rounded text-gray-700">30 Days</button>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-4">Trends in room type reservations over time.</p>
                 </div>
+                <?php
+                $currentMonth = date('m');
+                $currentYear = date('Y');
+
+                // Query to get reserved room counts by type
+                $query = "SELECT 
+                        rt.RoomType,
+                        COUNT(rd.ReservationID) AS reservation_count
+                    FROM 
+                        reservationdetailtb rd
+                    JOIN 
+                        roomtb r ON rd.RoomID = r.RoomID
+                    JOIN 
+                        roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
+                    WHERE 
+                        MONTH(rd.CheckInDate) = $currentMonth AND YEAR(rd.CheckInDate) = $currentYear
+                    GROUP BY 
+                        rt.RoomType
+                    ORDER BY 
+                        reservation_count DESC
+                ";
+
+                $stmt = $connect->prepare($query);
+                $stmt->execute();
+                $roomTypes = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+                // Prepare data for the chart
+                $labels = [];
+                $data = [];
+                $backgroundColors = [
+                    'Single Bed' => 'bg-blue-300',
+                    'Double Bed' => 'bg-green-300',
+                    'Twin' => 'bg-yellow-300',
+                    'Triple' => 'bg-orange-300',
+                    'Family' => 'bg-red-300',
+                    'Deluxe' => 'bg-purple-300',
+                    'Single Deluxe' => 'bg-indigo-300',
+                    'Double Deluxe' => 'bg-teal-300',
+                    'Triple Deluxe' => 'bg-pink-300',
+                    'Family Deluxe' => 'bg-gray-300'
+                ];
+
+                $totalReservations = 0;
+                foreach ($roomTypes as $roomType) {
+                    $labels[] = $roomType['RoomType'];
+                    $data[] = $roomType['reservation_count'];
+                    $totalReservations += $roomType['reservation_count'];
+                }
+
+                // Calculate percentages
+                $percentages = [];
+                foreach ($roomTypes as $roomType) {
+                    $percentage = ($totalReservations > 0) ? round(($roomType['reservation_count'] / $totalReservations) * 100, 2) : 0;
+                    $percentages[$roomType['RoomType']] = $percentage;
+                }
+                ?>
+
                 <div class="flex justify-center max-w-[400px]">
                     <canvas id="roomBookingChart"></canvas>
                 </div>
                 <div class="flex flex-wrap gap-1 justify-around text-xs">
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-blue-300 mr-0.5"></div>
-                        <p>Single: 1913 (58.63%)</p>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-green-300 mr-0.5"></div>
-                        <p>Double: 859 (23.94%)</p>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-yellow-300 mr-0.5"></div>
-                        <p>Twin: 600 (18.34%)</p>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-orange-300 mr-0.5"></div>
-                        <p>Triple: 400 (12.21%)</p>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-red-300 mr-0.5"></div>
-                        <p>Family: 350 (10.69%)</p>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-purple-300 mr-0.5"></div>
-                        <p>Deluxe: 482 (12.94%)</p>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-indigo-300 mr-0.5"></div>
-                        <p>Single Deluxe: 240 (8.76%)</p>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-teal-300 mr-0.5"></div>
-                        <p>Double Deluxe: 180 (6.59%)</p>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-pink-300 mr-0.5"></div>
-                        <p>Triple Deluxe: 120 (4.39%)</p>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-2.5 h-2.5 rounded-full bg-gray-300 mr-0.5"></div>
-                        <p>Family Deluxe: 90 (3.45%)</p>
-                    </div>
+                    <?php foreach ($roomTypes as $roomType):
+                        $roomTypeName = $roomType['RoomType'];
+                        $count = $roomType['reservation_count'];
+                        $percentage = $percentages[$roomTypeName] ?? 0;
+                        $bgColor = $backgroundColors[$roomTypeName] ?? 'bg-gray-300';
+                    ?>
+                        <div class="flex items-center">
+                            <div class="w-2.5 h-2.5 rounded-full <?= $bgColor ?> mr-0.5"></div>
+                            <p><?= $roomTypeName ?>: <?= $count ?> (<?= $percentage ?>%)</p>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const ctx = document.getElementById('roomBookingChart').getContext('2d');
+
+                        // Get the dynamic data from PHP
+                        const roomTypes = <?= json_encode($roomTypes) ?>;
+                        const backgroundColors = <?= json_encode(array_values($backgroundColors)) ?>;
+
+                        // Create the chart
+                        new Chart(ctx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: roomTypes.map(item => item.RoomType),
+                                datasets: [{
+                                    data: roomTypes.map(item => item.reservation_count),
+                                    backgroundColor: ['#93C5FD', '#34D399', '#FDE047', '#FDBA74', '#F87171', '#D8B4FE', '#818CF8', '#2DD4BF', '#F472B6', '#D1D5DB'],
+                                    hoverBackgroundColor: ['#2563EB', '#059669', '#EAB308', '#EA580C', '#DC2626', '#9333EA', '#4F46E5', '#0D9488', '#DB2777', '#6B7280'],
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                plugins: {
+                                    legend: {
+                                        position: 'right',
+                                        labels: {
+                                            usePointStyle: true,
+                                            padding: 20,
+                                        }
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                const label = context.label || '';
+                                                const value = context.raw || 0;
+                                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                                const percentage = Math.round((value / total) * 100);
+                                                return `${label}: ${value} (${percentage}%)`;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+
+                        // Room Booking Chart
+                        const roomBookingCtx = document.getElementById('roomBookingChart').getContext('2d');
+                        new Chart(roomBookingCtx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['Single', 'Double', 'Twin', 'Triple', 'Family', 'Deluxe', 'Single Deluxe', 'Double Deluxe', 'Triple Deluxe', 'Family Deluxe'],
+                                datasets: [{
+                                    data: [1913, 859, 600, 400, 350, 482, 240, 180, 120, 90],
+                                    backgroundColor: ['#93C5FD', '#34D399', '#FDE047', '#FDBA74', '#F87171', '#D8B4FE', '#818CF8', '#2DD4BF', '#F472B6', '#D1D5DB'],
+                                    hoverBackgroundColor: ['#2563EB', '#059669', '#EAB308', '#EA580C', '#DC2626', '#9333EA', '#4F46E5', '#0D9488', '#DB2777', '#6B7280'],
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                plugins: {
+                                    legend: {
+                                        position: 'right',
+                                        labels: {
+                                            usePointStyle: true,
+                                            padding: 20,
+                                        }
+                                    },
+                                }
+                            }
+                        });
+                    });
+                </script>
             </div>
         </section>
-
-        <script>
-            // Sales Revenue Chart
-            const salesRevenueCtx = document.getElementById('salesRevenueChart').getContext('2d');
-            new Chart(salesRevenueCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['01 Jan', '05 Jan', '10 Jan', '15 Jan', '20 Jan', '25 Jan', '30 Jan'],
-                    datasets: [{
-                        label: 'Revenue ($)',
-                        data: [800, 900, 850, 950, 1000, 870, 920],
-                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                        borderColor: '#3B82F6',
-                        borderWidth: 1,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `$${context.raw.toLocaleString()}`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            title: {
-                                display: true,
-                                text: 'Date',
-                                font: {
-                                    weight: 'bold'
-                                }
-                            },
-                        },
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Revenue ($)',
-                                font: {
-                                    weight: 'bold'
-                                }
-                            },
-                        }
-                    }
-                }
-            });
-
-            // Room Booking Chart
-            const roomBookingCtx = document.getElementById('roomBookingChart').getContext('2d');
-            new Chart(roomBookingCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Single', 'Double', 'Twin', 'Triple', 'Family', 'Deluxe', 'Single Deluxe', 'Double Deluxe', 'Triple Deluxe', 'Family Deluxe'],
-                    datasets: [{
-                        data: [1913, 859, 600, 400, 350, 482, 240, 180, 120, 90],
-                        backgroundColor: ['#93C5FD', '#34D399', '#FDE047', '#FDBA74', '#F87171', '#D8B4FE', '#818CF8', '#2DD4BF', '#F472B6', '#D1D5DB'],
-                        hoverBackgroundColor: ['#2563EB', '#059669', '#EAB308', '#EA580C', '#DC2626', '#9333EA', '#4F46E5', '#0D9488', '#DB2777', '#6B7280'],
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 20,
-                            }
-                        },
-                    }
-                }
-            });
-        </script>
 
         <section class="bg-white rounded-sm mt-3">
             <div class="container mx-auto p-3">
                 <div>
                     <div class="mb-4">
                         <h2 class="text-lg font-bold text-gray-700">Income vs Expenses</h2>
-                        <p class="text-sm text-gray-500">How was your income and expenses this month?</p>
+                        <p class="text-sm text-gray-500">How was your income and expenses this month? <span class="text-xs italic">All amounts in USD</span></p>
                     </div>
 
                     <!-- Summary Section -->
                     <div class="flex justify-around sm:justify-start mb-6">
+                        <?php
+                        // Function to get monthly income from orders
+                        function getMonthlyOrderIncome($year, $month)
+                        {
+                            global $connect;
+                            $query = "SELECT SUM(TotalPrice) as total FROM ordertb 
+              WHERE Status = 'Confirmed' 
+              AND YEAR(OrderDate) = $year 
+              AND MONTH(OrderDate) = $month";
+                            $result = $connect->query($query);
+                            $row = $result->fetch_assoc();
+                            return $row['total'] ? floatval($row['total']) : 0;
+                        }
+
+                        // Function to get monthly income from reservations
+                        function getMonthlyReservationIncome($year, $month)
+                        {
+                            global $connect;
+                            $query = "SELECT SUM(TotalPrice) as total FROM reservationtb 
+              WHERE Status = 'Confirmed' 
+              AND YEAR(ReservationDate) = $year 
+              AND MONTH(ReservationDate) = $month";
+                            $result = $connect->query($query);
+                            $row = $result->fetch_assoc();
+                            return $row['total'] ? floatval($row['total']) : 0;
+                        }
+
+                        // Get current and previous month dates
+                        $currentYear = date('Y');
+                        $currentMonth = date('m');
+                        $prevMonth = ($currentMonth == 1) ? 12 : $currentMonth - 1;
+                        $prevYear = ($currentMonth == 1) ? $currentYear - 1 : $currentYear;
+
+                        // Calculate totals for current month
+                        $currentOrderIncome = getMonthlyOrderIncome($currentYear, $currentMonth);
+                        $currentReservationIncome = getMonthlyReservationIncome($currentYear, $currentMonth);
+                        $currentTotalIncome = $currentOrderIncome + $currentReservationIncome;
+
+                        // Calculate totals for previous month
+                        $prevOrderIncome = getMonthlyOrderIncome($prevYear, $prevMonth);
+                        $prevReservationIncome = getMonthlyReservationIncome($prevYear, $prevMonth);
+                        $prevTotalIncome = $prevOrderIncome + $prevReservationIncome;
+
+                        // Calculate percentage change
+                        $percentageChange = 0;
+                        if ($prevTotalIncome > 0) {
+                            $percentageChange = (($currentTotalIncome - $prevTotalIncome) / $prevTotalIncome) * 100;
+                        }
+
+                        // Format the numbers
+                        $formattedIncome = number_format($currentTotalIncome, 2);
+                        $shortIncome = ($currentTotalIncome >= 1000) ? number_format($currentTotalIncome / 1000, 2) . 'K' : $formattedIncome;
+                        $percentageFormatted = number_format(abs($percentageChange), 2);
+                        $percentageClass = ($percentageChange >= 0) ? 'text-green-500' : 'text-red-500';
+                        $percentageSymbol = ($percentageChange >= 0) ? '↑' : '↓';
+                        ?>
+
+                        <!-- Display in your HTML -->
                         <div class="w-1/5">
-                            <h3 class="text-2xl font-semibold text-blue-600">2.57K</h3>
+                            <h3 class="text-2xl font-semibold text-blue-600">$<?php echo $shortIncome; ?></h3>
                             <p class="text-gray-500 text-xs">Income</p>
-                            <p class="text-red-500 text-sm">↓ 12.37%</p>
+                            <p class="<?php echo $percentageClass; ?> text-sm">
+                                <?php echo $percentageSymbol . ' ' . $percentageFormatted . '%'; ?>
+                            </p>
                         </div>
                         <?php
                         // Fetch total expenses for the current month
@@ -557,7 +874,7 @@ if ($roomCount > 0) {
                         <!-- Dynamic Expense Display -->
                         <div>
                             <h3 class="text-2xl font-semibold text-red-600">
-                                <?= number_format($totalExpenses / 1000, 1) ?>K
+                                $<?= number_format($totalExpenses, 2) ?>
                             </h3>
                             <p class="text-gray-500 text-xs">Expenses</p>
                             <p class="<?= $isIncrease ? 'text-green-500' : 'text-red-500' ?> text-sm">
@@ -576,34 +893,143 @@ if ($roomCount > 0) {
                 </div>
             </div>
 
+            <?php
+            // Get current month and year
+            $currentMonth = date('m');
+            $currentYear = date('Y');
+
+            // Function to get daily income data from both ordertb and reservationtb
+            function getDailyIncomeData($year, $month)
+            {
+                global $connect;
+
+                // Query for order income
+                $orderQuery = "SELECT 
+                    DATE_FORMAT(OrderDate, '%d %b') AS day,
+                    SUM(TotalPrice) AS amount
+                  FROM ordertb
+                  WHERE Status = 'Confirmed'
+                  AND YEAR(OrderDate) = $year
+                  AND MONTH(OrderDate) = $month
+                  GROUP BY day";
+
+                // Query for reservation income
+                $reservationQuery = "SELECT 
+                          DATE_FORMAT(ReservationDate, '%d %b') AS day,
+                          SUM(TotalPrice) AS amount
+                        FROM reservationtb
+                        WHERE Status = 'Confirmed'
+                        AND YEAR(ReservationDate) = $year
+                        AND MONTH(ReservationDate) = $month
+                        GROUP BY day";
+
+                // Execute both queries
+                $orderResult = $connect->query($orderQuery);
+                $reservationResult = $connect->query($reservationQuery);
+
+                // Combine results
+                $combinedData = [];
+
+                // Process order data
+                while ($row = $orderResult->fetch_assoc()) {
+                    $day = $row['day'];
+                    $combinedData[$day] = ($combinedData[$day] ?? 0) + $row['amount'];
+                }
+
+                // Process reservation data
+                while ($row = $reservationResult->fetch_assoc()) {
+                    $day = $row['day'];
+                    $combinedData[$day] = ($combinedData[$day] ?? 0) + $row['amount'];
+                }
+
+                return $combinedData;
+            }
+
+            // Function to get daily expense data from purchasetb
+            function getDailyExpenseData($year, $month)
+            {
+                global $connect;
+                $query = "SELECT 
+                DATE_FORMAT(PurchaseDate, '%d %b') AS day,
+                SUM(TotalAmount) AS amount
+              FROM purchasetb
+              WHERE YEAR(PurchaseDate) = $year
+              AND MONTH(PurchaseDate) = $month
+              GROUP BY day";
+                $result = $connect->query($query);
+
+                $data = [];
+                while ($row = $result->fetch_assoc()) {
+                    $data[$row['day']] = $row['amount'];
+                }
+                return $data;
+            }
+
+            // Get data for current month
+            $incomeData = getDailyIncomeData($currentYear, $currentMonth);
+            $expenseData = getDailyExpenseData($currentYear, $currentMonth);
+
+            // Get all days in month with data
+            $allDaysWithData = array_unique(array_merge(array_keys($incomeData), array_keys($expenseData)));
+
+            // Create array of selected days (1, 5, 10, 15, 20, 25, 30) plus any days with data
+            $selectedDays = [1, 5, 10, 15, 20, 25, 30];
+            $allDates = [];
+
+            // Convert all days with data to day numbers
+            $daysWithDataNumbers = [];
+            foreach ($allDaysWithData as $dateStr) {
+                $dayNum = (int)substr($dateStr, 0, 2);
+                $daysWithDataNumbers[] = $dayNum;
+            }
+
+            // Combine selected days and days with data
+            $allDaysToShow = array_unique(array_merge($selectedDays, $daysWithDataNumbers));
+            sort($allDaysToShow);
+
+            // Create date labels
+            foreach ($allDaysToShow as $day) {
+                $date = DateTime::createFromFormat('j', $day);
+                $allDates[] = $date->format('d M');
+            }
+
+            // Prepare datasets with all data points
+            $incomeDataset = [];
+            $expenseDataset = [];
+            foreach ($allDates as $date) {
+                $incomeDataset[] = $incomeData[$date] ?? 0;
+                $expenseDataset[] = $expenseData[$date] ?? 0;
+            }
+            ?>
+
             <script>
                 const ctx = document.getElementById('incomeExpenseChart').getContext('2d');
                 const incomeExpenseChart = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: ['01 Jan', '05 Jan', '10 Jan', '15 Jan', '20 Jan', '25 Jan', '30 Jan'], // X-axis labels
+                        labels: <?php echo json_encode($allDates); ?>,
                         datasets: [{
                                 label: 'Income',
-                                data: [2500, 2700, 2900, 3100, 2800, 3000, 2570], // Income data points
-                                borderColor: '#3B82F6', // Tailwind blue
+                                data: <?php echo json_encode($incomeDataset); ?>,
+                                borderColor: '#3B82F6',
                                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                                 fill: true,
                                 tension: 0.4,
                             },
                             {
                                 label: 'Expenses',
-                                data: [2200, 2600, 3100, 3500, 3200, 3400, 3500], // Expense data points
-                                borderColor: '#EF4444', // Tailwind red
+                                data: <?php echo json_encode($expenseDataset); ?>,
+                                borderColor: '#EF4444',
                                 backgroundColor: 'rgba(239, 68, 68, 0.1)',
                                 fill: true,
                                 tension: 0.4,
                                 borderDash: [5, 5],
-                            },
+                            }
                         ],
                     },
                     options: {
                         responsive: true,
-                        maintainAspectRatio: false, // Ensures the chart respects the fixed dimensions
+                        maintainAspectRatio: false,
                         plugins: {
                             legend: {
                                 position: 'top',

@@ -384,7 +384,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['change_password'])) {
             <?php if (!$showCompleteMessage): ?>
                 <div class="mt-6 text-center">
                     <p class="text-sm text-gray-600">Remembered your password?
-                        <a href="UserSignIn.php" class="text-amber-500 hover:underline">Back to Login</a>
+                        <a href="AdminSignIn.php" class="text-amber-500 hover:underline">Back to Login</a>
                     </p>
                 </div>
             <?php endif; ?>
