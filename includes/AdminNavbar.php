@@ -477,7 +477,7 @@ if (mysqli_num_rows($query) > 0) {
                     <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '2') ? 'flex' : 'hidden'; ?>">
                         <div class="flex items-center gap-4">
                             <i class="ri-archive-drawer-line text-xl"></i>
-                            <span class="font-semibold text-sm">Bookings & Orders</span>
+                            <span class="font-semibold text-sm">Res & Orders</span>
                         </div>
                         <i :class="expanded ? 'rotate-180' : 'rotate-0'" class="ri-arrow-up-s-line text-xl transition-transform duration-300"></i>
                     </button>
@@ -489,7 +489,7 @@ if (mysqli_num_rows($query) > 0) {
                             <a href="../Admin/Booking.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '2') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">
                                     <i class="ri-booklet-line text-xl"></i>
-                                    <span class="font-semibold text-sm">Booking</span>
+                                    <span class="font-semibold text-sm">Reservation</span>
                                 </div>
                                 <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= htmlspecialchars($allReservationCount) ?></p>
                             </a>
