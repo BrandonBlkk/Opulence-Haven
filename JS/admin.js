@@ -2004,30 +2004,30 @@ document.addEventListener("DOMContentLoaded", () => {
     initializeExistingRows();
 });
 
-// Facility Form and Modals
 document.addEventListener("DOMContentLoaded", () => {
-    // Add Facility Modal Elements
+    // Modal Elements
     const addFacilityModal = document.getElementById('addFacilityModal');
     const addFacilityBtn = document.getElementById('addFacilityBtn');
     const addFacilityCancelBtn = document.getElementById('addFacilityCancelBtn');
-    const loader = document.getElementById('loader');
-    const darkOverlay2 = document.getElementById('darkOverlay2'); 
-
-    // Update Facility Modal Elements
     const updateFacilityModal = document.getElementById('updateFacilityModal');
     const updateFacilityModalCancelBtn = document.getElementById('updateFacilityModalCancelBtn');
-
-    // Delete Facility Modal Elements
     const facilityConfirmDeleteModal = document.getElementById('facilityConfirmDeleteModal');
     const facilityCancelDeleteBtn = document.getElementById('facilityCancelDeleteBtn');
+    const loader = document.getElementById('loader');
+    const darkOverlay2 = document.getElementById('darkOverlay2');
 
-    // Get current pagination and search parameters from URL
+    // Search Elements
+    const facilityTypeFilter = document.getElementById('facilityTypeFilter');
+    const facilitySearch = document.getElementById('facilitySearch');
+    const facilityResults = document.getElementById('facilityResults');
+
+    // Get current parameters from URL
     const urlParams = new URLSearchParams(window.location.search);
     const currentPage = urlParams.get('facilitypage') || 1;
     const currentSearch = urlParams.get('facility_search') || '';
     const currentSort = urlParams.get('sort') || 'random';
 
-    // Function to close the add modal
+    // Function to close modals
     const closeModal = () => {
         addFacilityModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
         darkOverlay2.classList.add('opacity-0', 'invisible');
@@ -2039,53 +2039,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
-    // Function to fetch and render facilities with current pagination
-    const fetchAndRenderFacilities = () => {
-        let fetchUrl = `../Admin/AddFacility.php?facilitypage=${currentPage}`;
-        
-        if (currentSearch) {
-            fetchUrl += `&facility_search=${encodeURIComponent(currentSearch)}`;
-        }
-        if (currentSort !== 'random') {
-            fetchUrl += `&sort=${currentSort}`;
-        }
-
-        fetch(fetchUrl)
-            .then(response => response.text())
-            .then(html => {
-                // Parse the HTML to extract the table body content
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const newTableBody = doc.querySelector('tbody');
-                const newPagination = doc.querySelector('.flex.justify-center.items-center.mt-1');
-                
-                if (newTableBody) {
-                    const currentTableBody = document.querySelector('tbody');
-                    currentTableBody.innerHTML = newTableBody.innerHTML;
-                    
-                    // Reattach event listeners to the new rows
-                    initializeExistingRows();
-                }
-
-                if (newPagination) {
-                    const currentPagination = document.querySelector('.flex.justify-center.items-center.mt-1');
-                    if (currentPagination) {
-                        currentPagination.innerHTML = newPagination.innerHTML;
-                    } else {
-                        const tableContainer = document.querySelector('table').parentNode;
-                        tableContainer.appendChild(newPagination);
-                    }
-                }
-            })
-            .catch(error => console.error('Error fetching facilities:', error));
-    };
-
-    // Function to attach event listeners to a row
-    const attachEventListenersToRow = (row) => {
-        // Details button
-        const detailsBtn = row.querySelector('.details-btn');
-        if (detailsBtn) {
-            detailsBtn.addEventListener('click', function() {
+    // Function to initialize action buttons
+    function initializeActionButtons() {
+        // Details buttons
+        document.querySelectorAll('.details-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
                 const facilityId = this.getAttribute('data-facility-id');
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
@@ -2108,12 +2066,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     })
                     .catch(error => console.error('Fetch error:', error));
             });
-        }
+        });
 
-        // Delete button
-        const deleteBtn = row.querySelector('.delete-btn');
-        if (deleteBtn) {
-            deleteBtn.addEventListener('click', function() {
+        // Delete buttons
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
                 const facilityId = this.getAttribute('data-facility-id');
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
@@ -2131,16 +2088,97 @@ document.addEventListener("DOMContentLoaded", () => {
                     })
                     .catch(error => console.error('Fetch error:', error));
             });
+        });
+    }
+
+    // Function to load facility results via Ajax
+    function loadFacilityResults() {
+        const facilityType = facilityTypeFilter.value;
+        const searchQuery = facilitySearch.value;
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `facility_results.php?sort=${facilityType}&facility_search=${encodeURIComponent(searchQuery)}`, true);
+
+        xhr.onload = function() {
+            if (this.status === 200) {
+                facilityResults.innerHTML = this.responseText;
+                
+                // Reinitialize action buttons after content loads
+                initializeActionButtons();
+                
+                // Update URL without reloading
+                const newUrl = new URL(window.location.href);
+                newUrl.searchParams.set('sort', facilityType);
+                newUrl.searchParams.set('facility_search', searchQuery);
+                window.history.pushState({}, '', newUrl);
+            }
+        };
+
+        xhr.send();
+    }
+
+    // Function to fetch and render facilities with current pagination
+    const fetchAndRenderFacilities = () => {
+        let fetchUrl = `../Admin/AddFacility.php?facilitypage=${currentPage}`;
+        
+        if (currentSearch) {
+            fetchUrl += `&facility_search=${encodeURIComponent(currentSearch)}`;
         }
+        if (currentSort !== 'random') {
+            fetchUrl += `&sort=${currentSort}`;
+        }
+
+        fetch(fetchUrl)
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTableBody = doc.querySelector('tbody');
+                const newPagination = doc.querySelector('.flex.justify-center.items-center.mt-1');
+                
+                if (newTableBody) {
+                    const currentTableBody = document.querySelector('tbody');
+                    currentTableBody.innerHTML = newTableBody.innerHTML;
+                    initializeActionButtons();
+                }
+
+                if (newPagination) {
+                    const currentPagination = document.querySelector('.flex.justify-center.items-center.mt-1');
+                    if (currentPagination) {
+                        currentPagination.innerHTML = newPagination.innerHTML;
+                    } else {
+                        const tableContainer = document.querySelector('table').parentNode;
+                        tableContainer.appendChild(newPagination);
+                    }
+                }
+            })
+            .catch(error => console.error('Error fetching facilities:', error));
     };
 
-    // Initialize event listeners for existing rows
-    const initializeExistingRows = () => {
-        const rows = document.querySelectorAll('tbody tr');
-        rows.forEach(row => {
-            attachEventListenersToRow(row);
-        });
-    };
+    // Initialize action buttons on first load
+    initializeActionButtons();
+
+    // Search event listeners
+    facilityTypeFilter.addEventListener('change', loadFacilityResults);
+    
+    facilitySearch.addEventListener('keyup', function(e) {
+        loadFacilityResults();
+    });
+
+    facilitySearch.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            loadFacilityResults();
+        }
+    });
+
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        facilityTypeFilter.value = urlParams.get('sort') || 'random';
+        facilitySearch.value = urlParams.get('facility_search') || '';
+        loadFacilityResults();
+    });
 
     // Add Facility Modal
     if (addFacilityModal && addFacilityBtn && addFacilityCancelBtn) {
@@ -2189,8 +2227,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     document.getElementById('facilityInput').value = '';
                     facilityForm.reset();
                     closeModal();
-                    
-                    // Fetch and render the updated facilities with current pagination
                     fetchAndRenderFacilities();
                 }
             })
@@ -2245,7 +2281,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     showAlert(data.message, !data.success);
 
                     if (data.success) {
-                        // Clear form and close modal
                         document.getElementById('updateFacilityInput').value = '';
                         updateFacilityForm.reset();
                         
@@ -2253,7 +2288,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         darkOverlay2.classList.add('opacity-0', 'invisible');
                         darkOverlay2.classList.remove('opacity-100');
 
-                        // Fetch and render the updated facilities with current pagination
                         fetchAndRenderFacilities();
                     }
                 })
@@ -2298,9 +2332,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         darkOverlay2.classList.add('opacity-0', 'invisible');
                         darkOverlay2.classList.remove('opacity-100');
                         
-                        // Fetch and render the updated facilities with current pagination
                         fetchAndRenderFacilities();
-                        
                         showAlert('The facility has been successfully deleted.');
                     } else {
                         showAlert(data.message || 'Failed to delete facility.', true);
@@ -2313,9 +2345,6 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
     }
-
-    // Initialize existing rows on page load
-    initializeExistingRows();
 });
 
 // Rule Form and Modals

@@ -50,6 +50,15 @@ $roomCount = $roomResult->fetch_assoc()['count'];
 if ($roomCount > 0) {
     $roomReserved = $roomCount;
 }
+
+// Assuming you have these values from your database:
+$totalRooms = $roomAvailable;
+$roomReserved = $roomReserved;
+$allAvailableRooms = $totalRooms - $roomReserved; // Available rooms
+
+// Calculate percentages
+$bookedPercentage = ($roomReserved / $totalRooms) * 100;
+$availablePercentage = ($allAvailableRooms / $totalRooms) * 100;
 ?>
 
 <!DOCTYPE html>
@@ -274,8 +283,8 @@ if ($roomCount > 0) {
             ?>
 
             <div class="bg-white rounded-sm p-3">
-                <h2 class="text-lg font-bold text-gray-700">Total Booking</h2>
-                <p class="text-sm text-gray-500 mb-4">Total number of bookings recorded.</p>
+                <h2 class="text-lg font-bold text-gray-700">Total Reservation</h2>
+                <p class="text-sm text-gray-500 mb-4">Total number of reservations recorded.</p>
                 <div class="grid grid-cols-3 gap-4 mb-4">
                     <div class="text-center">
                         <h3 class="text-xl font-semibold text-blue-600"><?= number_format($currentMonthCount) ?></h3>
@@ -309,12 +318,16 @@ if ($roomCount > 0) {
                     <div class="text-center">
                         <h3 class="text-xl font-semibold text-red-600"><?= $roomReserved ?></h3>
                         <p class="text-gray-500 text-xs">Booked</p>
-                        <p class="text-red-500 text-sm">↓ 2.45%</p>
+                        <p class="<?= $bookedPercentage >= 0 ? 'text-green-500' : 'text-red-500' ?> text-sm">
+                            <?= $bookedPercentage >= 0 ? '↑' : '↓' ?> <?= number_format(abs($bookedPercentage), 2) ?>%
+                        </p>
                     </div>
                     <div class="text-center">
                         <h3 class="text-xl font-semibold text-green-600"><?= $roomAvailable ?></h3>
                         <p class="text-gray-500 text-xs">Available</p>
-                        <p class="text-green-500 text-sm">↑ 3.18%</p>
+                        <p class="<?= $availablePercentage >= 0 ? 'text-green-500' : 'text-red-500' ?> text-sm">
+                            <?= $availablePercentage >= 0 ? '↑' : '↓' ?> <?= number_format(abs($availablePercentage), 2) ?>%
+                        </p>
                     </div>
                 </div>
             </div>
@@ -349,10 +362,10 @@ if ($roomCount > 0) {
         <section class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <?php
             // Function to get revenue data for the last 30 days
-            function getRevenueData($connect, $type)
+            function getRevenueData($connect, $type, $previous = false)
             {
-                $endDate = date('Y-m-d');
-                $startDate = date('Y-m-d', strtotime('-30 days'));
+                $endDate = $previous ? date('Y-m-d', strtotime('-31 days')) : date('Y-m-d');
+                $startDate = $previous ? date('Y-m-d', strtotime('-61 days')) : date('Y-m-d', strtotime('-30 days'));
 
                 if ($type === 'rooms') {
                     $query = "
@@ -421,22 +434,50 @@ if ($roomCount > 0) {
                 ];
             }
 
-            // Get initial data (room reservations)
-            $roomData = getRevenueData($connect, 'rooms');
-            $orderData = getRevenueData($connect, 'orders');
+            // Get current and previous data (room reservations and orders)
+            $currentRoomData = getRevenueData($connect, 'rooms');
+            $previousRoomData = getRevenueData($connect, 'rooms', true);
+            $currentOrderData = getRevenueData($connect, 'orders');
+            $previousOrderData = getRevenueData($connect, 'orders', true);
 
-            // Calculate summary statistics
-            $monthlyRevenue = $roomData['totalRevenue'];
-            $weeklyRevenue = array_sum(array_slice(array_column($roomData['dailyData'], 'revenue'), -7));
-            $dailyAvg = $monthlyRevenue / 30;
+            // Calculate amounts based on initial filter (rooms)
+            $monthlyRevenue = $currentRoomData['totalRevenue'];
+            $weeklyRevenue = array_sum(array_slice(array_column($currentRoomData['dailyData'], 'revenue'), -7));
 
-            // Calculate percentage changes (example values - you might want to calculate these dynamically)
-            $monthlyChange = 4.63;
-            $weeklyChange = -1.92;
-            $dailyChange = 3.45;
+            // Get the number of days in the current month
+            $daysInMonth = date('t');
+            $dailyAvg = $monthlyRevenue / $daysInMonth;
+
+            // Calculate percentage changes for rooms
+            $roomPrevMonthly = $previousRoomData['totalRevenue'];
+            $roomPrevWeekly = array_sum(array_slice(array_column($previousRoomData['dailyData'], 'revenue'), -7));
+            $roomPrevDailyAvg = $roomPrevMonthly / $daysInMonth;
+
+            $monthlyChange = $roomPrevMonthly != 0 ?
+                (($monthlyRevenue - $roomPrevMonthly) / $roomPrevMonthly) * 100 : 0;
+            $weeklyChange = $roomPrevWeekly != 0 ?
+                (($weeklyRevenue - $roomPrevWeekly) / $roomPrevWeekly) * 100 : 0;
+            $dailyChange = $roomPrevDailyAvg != 0 ?
+                (($dailyAvg - $roomPrevDailyAvg) / $roomPrevDailyAvg) * 100 : 0;
+
+            // Calculate percentage changes for orders (will be used when filter changes)
+            $orderMonthlyRevenue = $currentOrderData['totalRevenue'];
+            $orderWeeklyRevenue = array_sum(array_slice(array_column($currentOrderData['dailyData'], 'revenue'), -7));
+            $orderDailyAvg = $orderMonthlyRevenue / $daysInMonth;
+
+            $orderPrevMonthly = $previousOrderData['totalRevenue'];
+            $orderPrevWeekly = array_sum(array_slice(array_column($previousOrderData['dailyData'], 'revenue'), -7));
+            $orderPrevDailyAvg = $orderPrevMonthly / $daysInMonth;
+
+            $orderMonthlyChange = $orderPrevMonthly != 0 ?
+                (($orderMonthlyRevenue - $orderPrevMonthly) / $orderPrevMonthly) * 100 : 0;
+            $orderWeeklyChange = $orderPrevWeekly != 0 ?
+                (($orderWeeklyRevenue - $orderPrevWeekly) / $orderPrevWeekly) * 100 : 0;
+            $orderDailyChange = $orderPrevDailyAvg != 0 ?
+                (($orderDailyAvg - $orderPrevDailyAvg) / $orderPrevDailyAvg) * 100 : 0;
 
             // Prepare labels like the first chart (1, 5, 10, 15, 20, 25, 30 plus any days with data)
-            $allRevenueData = array_merge($roomData['dailyData'], $orderData['dailyData']);
+            $allRevenueData = array_merge($currentRoomData['dailyData'], $currentOrderData['dailyData']);
             $daysWithData = [];
 
             foreach ($allRevenueData as $item) {
@@ -465,7 +506,7 @@ if ($roomCount > 0) {
                 $foundRoom = false;
                 $foundOrder = false;
 
-                foreach ($roomData['dailyData'] as $item) {
+                foreach ($currentRoomData['dailyData'] as $item) {
                     $date = new DateTime($item['date']);
                     if ((int)$date->format('d') === $dayNum) {
                         $roomDataset[] = $item['revenue'];
@@ -477,7 +518,7 @@ if ($roomCount > 0) {
                     $roomDataset[] = 0;
                 }
 
-                foreach ($orderData['dailyData'] as $item) {
+                foreach ($currentOrderData['dailyData'] as $item) {
                     $date = new DateTime($item['date']);
                     if ((int)$date->format('d') === $dayNum) {
                         $orderDataset[] = $item['revenue'];
@@ -496,7 +537,7 @@ if ($roomCount > 0) {
                     <h2 class="text-lg font-bold text-gray-700">Sales Revenue</h2>
                     <select
                         id="revenueFilter"
-                        class="text-xs border rounded px-2 py-1 bg-white text-gray-700"
+                        class="text-xs border rounded px-2 py-1 bg-white text-gray-700 outline-none focus:outline-none"
                         onchange="updateRevenueChart()">
                         <option value="rooms">Room Reservations</option>
                         <option value="orders">Orders</option>
@@ -505,24 +546,24 @@ if ($roomCount > 0) {
                 <p class="text-sm text-gray-500 mb-4">In last 30 days revenue from rent.</p>
                 <div class="grid grid-cols-3 gap-4 mb-4">
                     <div class="text-center">
-                        <h3 class="text-xl font-semibold text-blue-600">$<?= number_format($monthlyRevenue, 2) ?></h3>
+                        <h3 id="monthlyRevenue" class="text-xl font-semibold text-blue-600">$<?= number_format($monthlyRevenue, 2) ?></h3>
                         <p class="text-gray-500 text-xs">Monthly</p>
-                        <p class="<?= $monthlyChange >= 0 ? 'text-green-500' : 'text-red-500' ?> text-sm">
-                            <?= $monthlyChange >= 0 ? '↑' : '↓' ?> <?= abs($monthlyChange) ?>%
+                        <p id="monthlyChange" class="<?= $monthlyChange >= 0 ? 'text-green-500' : 'text-red-500' ?> text-sm">
+                            <?= $monthlyChange >= 0 ? '↑' : '↓' ?> <?= number_format(abs($monthlyChange), 2) ?>%
                         </p>
                     </div>
                     <div class="text-center">
-                        <h3 class="text-xl font-semibold text-red-600">$<?= number_format($weeklyRevenue, 2) ?></h3>
+                        <h3 id="weeklyRevenue" class="text-xl font-semibold text-red-600">$<?= number_format($weeklyRevenue, 2) ?></h3>
                         <p class="text-gray-500 text-xs">Weekly</p>
-                        <p class="<?= $weeklyChange >= 0 ? 'text-green-500' : 'text-red-500' ?> text-sm">
-                            <?= $weeklyChange >= 0 ? '↑' : '↓' ?> <?= abs($weeklyChange) ?>%
+                        <p id="weeklyChange" class="<?= $weeklyChange >= 0 ? 'text-green-500' : 'text-red-500' ?> text-sm">
+                            <?= $weeklyChange >= 0 ? '↑' : '↓' ?> <?= number_format(abs($weeklyChange), 2) ?>%
                         </p>
                     </div>
                     <div class="text-center">
-                        <h3 class="text-xl font-semibold text-green-600">$<?= number_format($dailyAvg, 2) ?></h3>
+                        <h3 id="dailyRevenue" class="text-xl font-semibold text-green-600">$<?= number_format($dailyAvg, 2) ?></h3>
                         <p class="text-gray-500 text-xs">Daily (Avg)</p>
-                        <p class="<?= $dailyChange >= 0 ? 'text-green-500' : 'text-red-500' ?> text-sm">
-                            <?= $dailyChange >= 0 ? '↑' : '↓' ?> <?= abs($dailyChange) ?>%
+                        <p id="dailyChange" class="<?= $dailyChange >= 0 ? 'text-green-500' : 'text-red-500' ?> text-sm">
+                            <?= $dailyChange >= 0 ? '↑' : '↓' ?> <?= number_format(abs($dailyChange), 2) ?>%
                         </p>
                     </div>
                 </div>
@@ -534,10 +575,23 @@ if ($roomCount > 0) {
             </div>
 
             <script>
-                // Store the chart instance
+                // Store the chart instance and revenue data
                 let revenueChart;
+                const roomMonthlyRevenue = <?= $currentRoomData['totalRevenue'] ?>;
+                const orderMonthlyRevenue = <?= $currentOrderData['totalRevenue'] ?>;
+                const roomWeeklyRevenue = <?= array_sum(array_slice(array_column($currentRoomData['dailyData'], 'revenue'), -7)) ?>;
+                const orderWeeklyRevenue = <?= array_sum(array_slice(array_column($currentOrderData['dailyData'], 'revenue'), -7)) ?>;
+                const roomDailyAvg = <?= $currentRoomData['totalRevenue'] / 30 ?>;
+                const orderDailyAvg = <?= $currentOrderData['totalRevenue'] / 30 ?>;
 
-                // Initialize the chart with the same label style as the first chart
+                const roomMonthlyChange = <?= $monthlyChange ?>;
+                const orderMonthlyChange = <?= $orderMonthlyChange ?>;
+                const roomWeeklyChange = <?= $weeklyChange ?>;
+                const orderWeeklyChange = <?= $orderWeeklyChange ?>;
+                const roomDailyChange = <?= $dailyChange ?>;
+                const orderDailyChange = <?= $orderDailyChange ?>;
+
+                // Initialize the chart
                 document.addEventListener('DOMContentLoaded', function() {
                     const ctx = document.getElementById('salesRevenueChart').getContext('2d');
 
@@ -596,22 +650,58 @@ if ($roomCount > 0) {
                     });
                 });
 
-                // Function to update the chart based on filter
+                // Function to update the chart and summary stats based on filter
                 function updateRevenueChart() {
                     const filter = document.getElementById('revenueFilter').value;
                     const roomDataset = <?= json_encode($roomDataset) ?>;
                     const orderDataset = <?= json_encode($orderDataset) ?>;
 
+                    // Update chart data
                     revenueChart.data.datasets[0].data = filter === 'rooms' ? roomDataset : orderDataset;
                     revenueChart.update();
+
+                    // Update summary statistics
+                    const monthlyElement = document.getElementById('monthlyRevenue');
+                    const weeklyElement = document.getElementById('weeklyRevenue');
+                    const dailyElement = document.getElementById('dailyRevenue');
+
+                    const monthlyChangeElement = document.getElementById('monthlyChange');
+                    const weeklyChangeElement = document.getElementById('weeklyChange');
+                    const dailyChangeElement = document.getElementById('dailyChange');
+
+                    if (filter === 'rooms') {
+                        monthlyElement.textContent = '$' + roomMonthlyRevenue.toFixed(2);
+                        weeklyElement.textContent = '$' + roomWeeklyRevenue.toFixed(2);
+                        dailyElement.textContent = '$' + roomDailyAvg.toFixed(2);
+
+                        monthlyChangeElement.textContent = (roomMonthlyChange >= 0 ? '↑' : '↓') + ' ' + Math.abs(roomMonthlyChange).toFixed(2) + '%';
+                        weeklyChangeElement.textContent = (roomWeeklyChange >= 0 ? '↑' : '↓') + ' ' + Math.abs(roomWeeklyChange).toFixed(2) + '%';
+                        dailyChangeElement.textContent = (roomDailyChange >= 0 ? '↑' : '↓') + ' ' + Math.abs(roomDailyChange).toFixed(2) + '%';
+
+                        monthlyChangeElement.className = roomMonthlyChange >= 0 ? 'text-green-500 text-sm' : 'text-red-500 text-sm';
+                        weeklyChangeElement.className = roomWeeklyChange >= 0 ? 'text-green-500 text-sm' : 'text-red-500 text-sm';
+                        dailyChangeElement.className = roomDailyChange >= 0 ? 'text-green-500 text-sm' : 'text-red-500 text-sm';
+                    } else {
+                        monthlyElement.textContent = '$' + orderMonthlyRevenue.toFixed(2);
+                        weeklyElement.textContent = '$' + orderWeeklyRevenue.toFixed(2);
+                        dailyElement.textContent = '$' + orderDailyAvg.toFixed(2);
+
+                        monthlyChangeElement.textContent = (orderMonthlyChange >= 0 ? '↑' : '↓') + ' ' + Math.abs(orderMonthlyChange).toFixed(2) + '%';
+                        weeklyChangeElement.textContent = (orderWeeklyChange >= 0 ? '↑' : '↓') + ' ' + Math.abs(orderWeeklyChange).toFixed(2) + '%';
+                        dailyChangeElement.textContent = (orderDailyChange >= 0 ? '↑' : '↓') + ' ' + Math.abs(orderDailyChange).toFixed(2) + '%';
+
+                        monthlyChangeElement.className = orderMonthlyChange >= 0 ? 'text-green-500 text-sm' : 'text-red-500 text-sm';
+                        weeklyChangeElement.className = orderWeeklyChange >= 0 ? 'text-green-500 text-sm' : 'text-red-500 text-sm';
+                        dailyChangeElement.className = orderDailyChange >= 0 ? 'text-green-500 text-sm' : 'text-red-500 text-sm';
+                    }
                 }
             </script>
 
-            <!-- Room Booking Chart -->
+            <!-- Room Reservation Chart -->
             <div class="bg-white rounded-sm p-3 mt-3">
                 <div>
                     <div class="flex justify-between items-center">
-                        <h2 class="text-lg font-bold text-gray-700">Room Booking Analytics</h2>
+                        <h2 class="text-lg font-bold text-gray-700">Room Reservation Analytics</h2>
                         <button class="text-xs bg-gray-200 px-2 py-1 rounded text-gray-700">30 Days</button>
                     </div>
                     <p class="text-sm text-gray-500 mb-4">Trends in room type reservations over time.</p>
