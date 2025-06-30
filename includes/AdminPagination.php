@@ -13,11 +13,10 @@ $productImageCurrentPage = isset($_GET['productimagepage']) && is_numeric($_GET[
 $roomCurrentPage = isset($_GET['roompage']) && is_numeric($_GET['roompage']) ? (int)$_GET['roompage'] : 1;
 $roomTypeCurrentPage = isset($_GET['roomtypepage']) && is_numeric($_GET['roomtypepage']) ? (int)$_GET['roomtypepage'] : 1;
 $facilityTypeCurrentPage = isset($_GET['facilitytypepage']) && is_numeric($_GET['facilitytypepage']) ? (int)$_GET['facilitytypepage'] : 1;
-$facilityCurrentPage = isset($_GET['facilitypage']) && is_numeric($_GET['facilitypage']) ? (int)$_GET['facilitypage'] : 1;
+// $facilityCurrentPage = isset($_GET['facilitypage']) && is_numeric($_GET['facilitypage']) ? (int)$_GET['facilitypage'] : 1;
 $ruleCurrentPage = isset($_GET['rulepage']) && is_numeric($_GET['rulepage']) ? (int)$_GET['rulepage'] : 1;
 $userCurrentPage = isset($_GET['userpage']) && is_numeric($_GET['userpage']) ? (int)$_GET['userpage'] : 1;
 $bookingCurrentPage = isset($_GET['bookingpage']) && is_numeric($_GET['bookingpage']) ? (int)$_GET['bookingpage'] : 1;
-
 
 // Calculate the offset for the query
 $offset = ($currentPage - 1) * $rowsPerPage;
@@ -30,10 +29,15 @@ $supplierOffset = ($supplierCurrentPage - 1) * $rowsPerPage;
 $roomOffset = ($roomCurrentPage - 1) * $rowsPerPage;
 $roomTypeOffset = ($roomTypeCurrentPage - 1) * $rowsPerPage;
 $facilityTypeOffset = ($facilityTypeCurrentPage - 1) * $rowsPerPage;
-$facilityOffset = ($facilityCurrentPage - 1) * $rowsPerPage;
+// $facilityOffset = ($facilityCurrentPage - 1) * $rowsPerPage;
+$facilityOffset = ($currentPage - 1) * $rowsPerPage;
 $ruleOffset = ($ruleCurrentPage - 1) * $rowsPerPage;
 $userOffset = ($userCurrentPage - 1) * $rowsPerPage;
 $bookingOffset = ($bookingCurrentPage - 1) * $rowsPerPage;
+
+// Initialize search and filter variables
+$searchFacilityTypeQuery = isset($_GET['facilitytype_search']) ? mysqli_real_escape_string($connect, $_GET['facilitytype_search']) : '';
+$searchFacilityQuery = isset($_GET['facility_search']) ? mysqli_real_escape_string($connect, $_GET['facility_search']) : '';
 
 $filterRoleID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterStatus = isset($_GET['sort']) ? $_GET['sort'] : 'random';
@@ -164,13 +168,23 @@ $totalRoomTypePages = ceil($totalRoomTypeRows / $rowsPerPage);
 // Fetch total number of rows for pagination calculation
 $totalRoomRowsQuery = "SELECT COUNT(*) as total FROM roomtb";
 if (!empty($roomTypeSelectQuery)) {
-    $totalRoomRowsQuery = "SELECT COUNT(*) as total FROM roomtb WHERE RoomTypeID LIKE '%$searchRoomTypeQuery%' OR RoomDescription LIKE '%$searchRoomTypeQuery%'";
+    $totalRoomRowsQuery = "SELECT COUNT(*) as total FROM roomtb 
+                          JOIN roomtypetb ON roomtb.RoomTypeID = roomtypetb.RoomTypeID
+                          WHERE roomtypetb.RoomTypeID LIKE '%$searchRoomTypeQuery%' 
+                          OR roomtypetb.RoomDescription LIKE '%$searchRoomTypeQuery%'";
 } elseif ($filterRoomType !== 'random' && !empty($searchRoomQuery)) {
-    $totalRoomRowsQuery = "SELECT COUNT(*) as total FROM roomtb WHERE RoomTypeID = '$filterRoomType' AND (RoomName LIKE '%$searchRoomQuery%')";
+    $totalRoomRowsQuery = "SELECT COUNT(*) as total FROM roomtb 
+                          JOIN roomtypetb ON roomtb.RoomTypeID = roomtypetb.RoomTypeID
+                          WHERE roomtypetb.RoomTypeID = '$filterRoomType' 
+                          AND (roomtb.RoomName LIKE '%$searchRoomQuery%')";
 } elseif ($filterRoomType !== 'random') {
-    $totalRoomRowsQuery = "SELECT COUNT(*) as total FROM roomtb WHERE RoomTypeID = '$filterRoomType'";
+    $totalRoomRowsQuery = "SELECT COUNT(*) as total FROM roomtb 
+                          JOIN roomtypetb ON roomtb.RoomTypeID = roomtypetb.RoomTypeID
+                          WHERE roomtypetb.RoomTypeID = '$filterRoomType'";
 } elseif (!empty($searchRoomQuery)) {
-    $totalRoomRowsQuery = "SELECT COUNT(*) as total FROM roomtb WHERE RoomName LIKE '%$searchRoomQuery%'";
+    $totalRoomRowsQuery = "SELECT COUNT(*) as total FROM roomtb 
+                          JOIN roomtypetb ON roomtb.RoomTypeID = roomtypetb.RoomTypeID
+                          WHERE roomtb.RoomName LIKE '%$searchRoomQuery%'";
 }
 $totalRoomRowsResult = $connect->query($totalRoomRowsQuery);
 $totalRoomRows = $totalRoomRowsResult->fetch_assoc()['total'];
@@ -189,21 +203,23 @@ $totalFacilityTypeRows = $totalFacilityTypeRowsResult->fetch_assoc()['total'];
 // Calculate the total number of pages
 $totalFacilityTypePages = ceil($totalFacilityTypeRows / $rowsPerPage);
 
-// Fetch total number of rows for pagination calculation
-$totalFacilityRowsQuery = "SELECT COUNT(*) as total FROM facilitytb";
+// Construct the facility count query based on search
 if ($filterFacilityTypeID !== 'random' && !empty($searchFacilityQuery)) {
-    $totalFacilityRowsQuery = "SELECT COUNT(*) as total FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID' AND (Facility LIKE '%$searchFacilityQuery%')";
+    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID' AND (Facility LIKE '%$searchFacilityQuery%')";
 } elseif ($filterFacilityTypeID !== 'random') {
-    $totalFacilityRowsQuery = "SELECT COUNT(*) as total FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID'";
+    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID'";
 } elseif (!empty($searchFacilityQuery)) {
-    $totalFacilityRowsQuery = "SELECT COUNT(*) as total FROM facilitytb WHERE Facility LIKE '%$searchFacilityQuery%'";
+    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb WHERE Facility LIKE '%$searchFacilityQuery%'";
+} else {
+    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb";
 }
 
-$totalFacilityRowsResult = $connect->query($totalFacilityRowsQuery);
-$totalFacilityRows = $totalFacilityRowsResult->fetch_assoc()['total'];
+// Execute the count query
+$facilityResult = $connect->query($facilityQuery);
+$facilityCount = $facilityResult->fetch_assoc()['count'];
 
-// Calculate the total number of pages
-$totalFacilityPages = ceil($totalFacilityRows / $rowsPerPage);
+// Calculate total pages
+$totalPages = ceil($facilityCount / $rowsPerPage);
 
 // Fetch total number of rows for pagination calculation
 $totalRuleRowsQuery = "SELECT COUNT(*) as total FROM ruletb";

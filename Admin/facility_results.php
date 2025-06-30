@@ -1,14 +1,6 @@
 <?php
 include('../config/dbConnection.php');
-
-// Initialize search and filter variables for facility
-$searchFacilityQuery = isset($_GET['facility_search']) ? mysqli_real_escape_string($connect, $_GET['facility_search']) : '';
-$filterFacilityTypeID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
-
-// Pagination variables
-$rowsPerPage = 10;
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$facilityOffset = ($page - 1) * $rowsPerPage;
+include('../includes/AdminPagination.php');
 
 // Construct the facility query based on search
 if ($filterFacilityTypeID !== 'random' && !empty($searchFacilityQuery)) {
@@ -29,26 +21,6 @@ if (mysqli_num_rows($facilitySelectQuery) > 0) {
         $facilities[] = $row;
     }
 }
-
-// Construct the facility count query based on search
-if ($filterFacilityTypeID !== 'random' && !empty($searchFacilityQuery)) {
-    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID' AND (Facility LIKE '%$searchFacilityQuery%')";
-} elseif ($filterFacilityTypeID !== 'random') {
-    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID'";
-} elseif (!empty($searchFacilityQuery)) {
-    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb WHERE Facility LIKE '%$searchFacilityQuery%'";
-} else {
-    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb";
-}
-
-// Execute the count query
-$facilityResult = $connect->query($facilityQuery);
-$facilityCount = $facilityResult->fetch_assoc()['count'];
-
-// Fetch facility count
-$facilityCountQuery = "SELECT COUNT(*) as count FROM facilitytb";
-$facilityCountResult = $connect->query($facilityCountQuery);
-$allFacilityCount = $facilityCountResult->fetch_assoc()['count'];
 ?>
 
 <table class="min-w-full bg-white rounded-lg">
@@ -118,3 +90,137 @@ $allFacilityCount = $facilityCountResult->fetch_assoc()['count'];
         <?php endif; ?>
     </tbody>
 </table>
+
+<script>
+    // Function to load a specific page
+    function loadPage(page) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchQuery = urlParams.get('facility_search') || '';
+        const sortType = urlParams.get('sort') || 'random';
+
+        // Update URL parameters
+        urlParams.set('page', page);
+        if (searchQuery) urlParams.set('facility_search', searchQuery);
+        if (sortType !== 'random') urlParams.set('sort', sortType);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `facility_results.php?${urlParams.toString()}`, true);
+
+        xhr.onload = function() {
+            if (this.status === 200) {
+                document.getElementById('facilityResults').innerHTML = this.responseText;
+
+                // Also update the pagination controls
+                const xhrPagination = new XMLHttpRequest();
+                xhrPagination.open('GET', `facility_pagination.php?${urlParams.toString()}`, true);
+                xhrPagination.onload = function() {
+                    if (this.status === 200) {
+                        document.getElementById('paginationContainer').innerHTML = this.responseText;
+                    }
+                };
+                xhrPagination.send();
+
+                window.history.pushState({}, '', `?${urlParams.toString()}`);
+                window.scrollTo(0, 0);
+                initializeActionButtons();
+            }
+        };
+
+        xhr.send();
+    }
+
+    // Function to handle search and filter
+    function handleSearchFilter() {
+        const searchInput = document.querySelector('input[name="facility_search"]');
+        const filterSelect = document.querySelector('select[name="sort"]');
+
+        // Reset to page 1 when searching or filtering
+        loadPage(1);
+    }
+
+    // Initialize event listeners for search and filter
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.querySelector('input[name="facility_search"]');
+        const filterSelect = document.querySelector('select[name="sort"]');
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                urlParams.set('facility_search', this.value);
+                window.history.pushState({}, '', `?${urlParams.toString()}`);
+                handleSearchFilter();
+            });
+        }
+
+        if (filterSelect) {
+            filterSelect.addEventListener('change', function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                urlParams.set('sort', this.value);
+                window.history.pushState({}, '', `?${urlParams.toString()}`);
+                handleSearchFilter();
+            });
+        }
+
+        initializeActionButtons();
+    });
+
+    // Function to initialize action buttons
+    function initializeActionButtons() {
+        // Details buttons
+        document.querySelectorAll('.details-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const facilityId = this.getAttribute('data-facility-id');
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+
+                fetch(`../Admin/AddFacility.php?action=getFacilityDetails&id=${facilityId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('updateFacilityID').value = facilityId;
+                            document.querySelector('[name="updatefacility"]').value = data.facility.Facility;
+                            document.querySelector('[name="updatefacilityicon"]').value = data.facility.FacilityIcon;
+                            document.querySelector('[name="updatefacilityiconsize"]').value = data.facility.IconSize;
+                            document.querySelector('[name="updateadditionalcharge"]').value = data.facility.AdditionalCharge;
+                            document.querySelector('[name="updatepopular"]').value = data.facility.Popular;
+                            document.querySelector('[name="updatefacilitytype"]').value = data.facility.FacilityTypeID;
+                            updateFacilityModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        } else {
+                            console.error('Failed to load facility details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+            });
+        });
+
+        // Delete buttons
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const facilityId = this.getAttribute('data-facility-id');
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+
+                fetch(`../Admin/AddFacility.php?action=getFacilityDetails&id=${facilityId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('deleteFacilityID').value = facilityId;
+                            document.getElementById('facilityDeleteName').textContent = data.facility.Facility;
+                            facilityConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        } else {
+                            console.error('Failed to load facility details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+            });
+        });
+    }
+
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        facilityTypeFilter.value = urlParams.get('sort') || 'random';
+        facilitySearch.value = urlParams.get('facility_search') || '';
+        loadPage();
+    });
+</script>

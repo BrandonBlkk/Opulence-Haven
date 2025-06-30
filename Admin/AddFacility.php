@@ -123,45 +123,6 @@ if (isset($_POST['deletefacility'])) {
     echo json_encode($response);
     exit();
 }
-
-// Initialize search and filter variables for facility
-$searchFacilityQuery = isset($_GET['facility_search']) ? mysqli_real_escape_string($connect, $_GET['facility_search']) : '';
-$filterFacilityTypeID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
-
-// Construct the facility query based on search
-if ($filterFacilityTypeID !== 'random' && !empty($searchFacilityQuery)) {
-    $facilitySelect = "SELECT * FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID' AND (Facility LIKE '%$searchFacilityQuery%') LIMIT $rowsPerPage OFFSET $facilityOffset";
-} elseif ($filterFacilityTypeID !== 'random') {
-    $facilitySelect = "SELECT * FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID' LIMIT $rowsPerPage OFFSET $facilityOffset";
-} elseif (!empty($searchFacilityQuery)) {
-    $facilitySelect = "SELECT * FROM facilitytb WHERE Facility LIKE '%$searchFacilityQuery%' LIMIT $rowsPerPage OFFSET $facilityOffset";
-} else {
-    $facilitySelect = "SELECT * FROM facilitytb LIMIT $rowsPerPage OFFSET $facilityOffset";
-}
-
-$facilitySelectQuery = $connect->query($facilitySelect);
-$facilities = [];
-
-if (mysqli_num_rows($facilitySelectQuery) > 0) {
-    while ($row = $facilitySelectQuery->fetch_assoc()) {
-        $facilities[] = $row;
-    }
-}
-
-// Construct the facility count query based on search
-if ($filterFacilityTypeID !== 'random' && !empty($searchFacilityQuery)) {
-    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID' AND (Facility LIKE '%$searchFacilityQuery%')";
-} elseif ($filterFacilityTypeID !== 'random') {
-    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb WHERE FacilityTypeID = '$filterFacilityTypeID'";
-} elseif (!empty($searchFacilityQuery)) {
-    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb WHERE Facility LIKE '%$searchFacilityQuery%'";
-} else {
-    $facilityQuery = "SELECT COUNT(*) as count FROM facilitytb";
-}
-
-// Execute the count query
-$facilityResult = $connect->query($facilityQuery);
-$facilityCount = $facilityResult->fetch_assoc()['count'];
 ?>
 
 <!DOCTYPE html>
@@ -232,203 +193,18 @@ $facilityCount = $facilityResult->fetch_assoc()['count'];
                         </div>
                     </div>
                 </form>
+
+                <!-- Facility Table -->
                 <div class="tableScrollBar overflow-y-auto max-h-[510px]">
                     <div id="facilityResults">
-                        <!-- Facility results will be loaded here via Ajax -->
                         <?php include 'facility_results.php'; ?>
                     </div>
                 </div>
 
                 <!-- Pagination Controls -->
-                <div class="flex justify-between items-center mt-3">
-                    <div class="text-gray-500 text-sm" id="paginationInfo">
-                        <?php
-                        echo 'Showing ' . min($facilityOffset + 1, $facilityCount) . ' to ' .
-                            min($facilityOffset + $rowsPerPage, $facilityCount) . ' of ' .
-                            $facilityCount . ' facilities';
-                        ?>
-                    </div>
-                    <div class="flex justify-center items-center mt-1 gap-1 <?= (!empty($facilities)) ? 'flex' : 'hidden' ?>" id="paginationControls">
-                        <!-- Previous Btn -->
-                        <?php if ($page > 1): ?>
-                            <a href="#" onclick="loadPage(<?= $page - 1 ?>); return false;"
-                                class="px-3 py-1 border rounded text-gray-600 <?= ($page - 1) == $page ? 'bg-gray-100 border-gray-300' : 'bg-white' ?> hover:bg-gray-100">
-                                <i class="ri-arrow-left-s-line"></i>
-                            </a>
-                        <?php else: ?>
-                            <span class="px-3 py-1 border rounded cursor-not-allowed bg-gray-100 border-gray-300 text-gray-600">
-                                <i class="ri-arrow-left-s-line"></i>
-                            </span>
-                        <?php endif; ?>
-
-                        <?php
-                        $totalPages = ceil($facilityCount / $rowsPerPage);
-                        for ($p = 1; $p <= $totalPages; $p++): ?>
-                            <a href="#" onclick="loadPage(<?= $p ?>); return false;"
-                                class="px-3 py-1 border rounded text-gray-600 select-none <?= $p == $page ? 'bg-gray-100 border-gray-300' : 'bg-white hover:bg-gray-100' ?>">
-                                <?= $p ?>
-                            </a>
-                        <?php endfor; ?>
-
-                        <!-- Next Btn -->
-                        <?php if ($page < $totalPages): ?>
-                            <a href="#" onclick="loadPage(<?= $page + 1 ?>); return false;"
-                                class="px-3 py-1 border rounded text-gray-600 <?= ($page + 1) == $page ? 'bg-gray-100 border-gray-300' : 'bg-white' ?> hover:bg-gray-100">
-                                <i class="ri-arrow-right-s-line"></i>
-                            </a>
-                        <?php else: ?>
-                            <span class="px-3 py-1 border rounded cursor-not-allowed bg-gray-100 border-gray-300 text-gray-600">
-                                <i class="ri-arrow-right-s-line"></i>
-                            </span>
-                        <?php endif; ?>
-                    </div>
+                <div id="paginationContainer" class="flex justify-between items-center mt-3">
+                    <?php include 'facility_pagination.php'; ?>
                 </div>
-
-                <script>
-                    function updatePaginationControls(currentPage, rowsPerPage, totalCount) {
-                        const totalPages = Math.ceil(totalCount / rowsPerPage);
-                        const startItem = Math.min((currentPage - 1) * rowsPerPage + 1, totalCount);
-                        const endItem = Math.min(currentPage * rowsPerPage, totalCount);
-
-                        // Update pagination info
-                        document.getElementById('paginationInfo').textContent =
-                            `Showing ${startItem} to ${endItem} of ${totalCount} facilities`;
-
-                        // Update pagination controls
-                        let paginationHTML = '';
-
-                        // Previous button
-                        if (currentPage > 1) {
-                            paginationHTML += `
-                <a href="#" onclick="loadPage(${currentPage - 1}); return false;"
-                    class="px-3 py-1 border rounded text-gray-600 bg-white hover:bg-gray-100">
-                    <i class="ri-arrow-left-s-line"></i>
-                </a>`;
-                        } else {
-                            paginationHTML += `
-                <span class="px-3 py-1 border rounded text-gray-600 cursor-not-allowed bg-gray-100 border-gray-300">
-                    <i class="ri-arrow-left-s-line"></i>
-                </span>`;
-                        }
-
-                        // Page numbers
-                        for (let p = 1; p <= totalPages; p++) {
-                            paginationHTML += `
-                <a href="#" onclick="loadPage(${p}); return false;"
-                    class="px-3 py-1 border rounded text-gray-600 select-none ${p == currentPage ? 'bg-gray-100 border-gray-300' : 'bg-white hover:bg-gray-100'}">
-                    ${p}
-                </a>`;
-                        }
-
-                        // Next button
-                        if (currentPage < totalPages) {
-                            paginationHTML += `
-                <a href="#" onclick="loadPage(${currentPage + 1}); return false;"
-                    class="px-3 py-1 border rounded text-gray-600 bg-white hover:bg-gray-100">
-                    <i class="ri-arrow-right-s-line"></i>
-                </a>`;
-                        } else {
-                            paginationHTML += `
-                <span class="px-3 py-1 border rounded text-gray-600 cursor-not-allowed bg-gray-100 border-gray-300">
-                    <i class="ri-arrow-right-s-line"></i>
-                </span>`;
-                        }
-
-                        document.getElementById('paginationControls').innerHTML = paginationHTML;
-                    }
-
-                    // Your existing initializeActionButtons function remains exactly the same
-                    function initializeActionButtons() {
-                        // Details buttons
-                        document.querySelectorAll('.details-btn').forEach(btn => {
-                            btn.addEventListener('click', function() {
-                                const facilityId = this.getAttribute('data-facility-id');
-                                darkOverlay2.classList.remove('opacity-0', 'invisible');
-                                darkOverlay2.classList.add('opacity-100');
-
-                                fetch(`../Admin/AddFacility.php?action=getFacilityDetails&id=${facilityId}`)
-                                    .then(response => response.json())
-                                    .then(data => {
-                                        if (data.success) {
-                                            document.getElementById('updateFacilityID').value = facilityId;
-                                            document.querySelector('[name="updatefacility"]').value = data.facility.Facility;
-                                            document.querySelector('[name="updatefacilityicon"]').value = data.facility.FacilityIcon;
-                                            document.querySelector('[name="updatefacilityiconsize"]').value = data.facility.IconSize;
-                                            document.querySelector('[name="updateadditionalcharge"]').value = data.facility.AdditionalCharge;
-                                            document.querySelector('[name="updatepopular"]').value = data.facility.Popular;
-                                            document.querySelector('[name="updatefacilitytype"]').value = data.facility.FacilityTypeID;
-                                            updateFacilityModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-                                        } else {
-                                            console.error('Failed to load facility details');
-                                        }
-                                    })
-                                    .catch(error => console.error('Fetch error:', error));
-                            });
-                        });
-
-                        // Delete buttons
-                        document.querySelectorAll('.delete-btn').forEach(btn => {
-                            btn.addEventListener('click', function() {
-                                const facilityId = this.getAttribute('data-facility-id');
-                                darkOverlay2.classList.remove('opacity-0', 'invisible');
-                                darkOverlay2.classList.add('opacity-100');
-
-                                fetch(`../Admin/AddFacility.php?action=getFacilityDetails&id=${facilityId}`)
-                                    .then(response => response.json())
-                                    .then(data => {
-                                        if (data.success) {
-                                            document.getElementById('deleteFacilityID').value = facilityId;
-                                            document.getElementById('facilityDeleteName').textContent = data.facility.Facility;
-                                            facilityConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-                                        } else {
-                                            console.error('Failed to load facility details');
-                                        }
-                                    })
-                                    .catch(error => console.error('Fetch error:', error));
-                            });
-                        });
-                    }
-
-                    function loadPage(page) {
-                        const urlParams = new URLSearchParams(window.location.search);
-                        const searchQuery = urlParams.get('facility_search') || '';
-                        const sortType = urlParams.get('sort') || 'random';
-
-                        // Update URL parameters
-                        urlParams.set('page', page);
-                        if (searchQuery) urlParams.set('facility_search', searchQuery);
-                        if (sortType !== 'random') urlParams.set('sort', sortType);
-
-                        const xhr = new XMLHttpRequest();
-                        xhr.open('GET', `facility_results.php?${urlParams.toString()}`, true);
-
-                        xhr.onload = function() {
-                            if (this.status === 200) {
-                                // Update the table content
-                                document.getElementById('facilityResults').innerHTML = this.responseText;
-
-                                // Update browser URL without reloading
-                                window.history.pushState({}, '', `?${urlParams.toString()}`);
-                                window.scrollTo(0, 0);
-
-                                // Reinitialize action buttons
-                                initializeActionButtons();
-
-                                // Update pagination info and controls
-                                updatePaginationControls(page, <?= $rowsPerPage ?>, <?= $facilityCount ?>);
-                            }
-                        };
-
-                        xhr.send();
-                    }
-
-                    // Handle browser back/forward buttons
-                    window.addEventListener('popstate', function() {
-                        const urlParams = new URLSearchParams(window.location.search);
-                        const page = urlParams.get('page') || 1;
-                        loadPage(page);
-                    });
-                </script>
             </div>
         </div>
 
