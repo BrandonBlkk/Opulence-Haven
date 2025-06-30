@@ -1,6 +1,6 @@
 <?php
-include('../config/dbConnection.php');
-include('../includes/AdminPagination.php');
+include(__DIR__ . '/../../config/dbConnection.php');
+include(__DIR__ . '/../AdminPagination.php');
 ?>
 
 <div class="text-gray-500 text-sm" id="paginationInfo">

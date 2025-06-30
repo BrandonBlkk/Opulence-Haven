@@ -1,6 +1,6 @@
 <?php
-include('../config/dbConnection.php');
-include('../includes/AdminPagination.php');
+include(__DIR__ . '/../../config/dbConnection.php');
+include(__DIR__ . '/../AdminPagination.php');
 
 // Construct the facility query based on search
 if ($filterFacilityTypeID !== 'random' && !empty($searchFacilityQuery)) {
@@ -104,7 +104,7 @@ if (mysqli_num_rows($facilitySelectQuery) > 0) {
         if (sortType !== 'random') urlParams.set('sort', sortType);
 
         const xhr = new XMLHttpRequest();
-        xhr.open('GET', `facility_results.php?${urlParams.toString()}`, true);
+        xhr.open('GET', `../includes/admin_table_components/facility_results.php?${urlParams.toString()}`, true);
 
         xhr.onload = function() {
             if (this.status === 200) {
@@ -112,7 +112,7 @@ if (mysqli_num_rows($facilitySelectQuery) > 0) {
 
                 // Also update the pagination controls
                 const xhrPagination = new XMLHttpRequest();
-                xhrPagination.open('GET', `facility_pagination.php?${urlParams.toString()}`, true);
+                xhrPagination.open('GET', `../includes/admin_table_components/facility_pagination.php?${urlParams.toString()}`, true);
                 xhrPagination.onload = function() {
                     if (this.status === 200) {
                         document.getElementById('paginationContainer').innerHTML = this.responseText;

@@ -161,13 +161,13 @@ if (isset($_POST['deletefacilitytype'])) {
                 <!-- Facility Type Table -->
                 <div class="tableScrollBar overflow-y-auto max-h-[510px]">
                     <div id="facilityTypeResults">
-                        <?php include 'facilitytype_results.php'; ?>
+                        <?php include '../includes/admin_table_components/facilitytype_results.php'; ?>
                     </div>
                 </div>
 
                 <!-- Pagination Controls -->
                 <div id="paginationContainer" class="flex justify-between items-center mt-3">
-                    <?php include 'facilitytype_pagination.php'; ?>
+                    <?php include '../includes/admin_table_components/facilitytype_pagination.php'; ?>
                 </div>
             </div>
         </div>
