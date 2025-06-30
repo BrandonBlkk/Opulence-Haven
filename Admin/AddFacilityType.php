@@ -117,41 +117,6 @@ if (isset($_POST['deletefacilitytype'])) {
     echo json_encode($response);
     exit();
 }
-
-// Initialize search variables for facility type
-$searchFacilityTypeQuery = isset($_GET['facilitytype_search']) ? mysqli_real_escape_string($connect, $_GET['facilitytype_search']) : '';
-
-// Construct the facility type query based on search
-if (!empty($searchFacilityTypeQuery)) {
-    $facilityTypeSelect = "SELECT * FROM facilitytypetb WHERE FacilityType LIKE '%$searchFacilityTypeQuery%' LIMIT $rowsPerPage OFFSET $facilityTypeOffset";
-} else {
-    $facilityTypeSelect = "SELECT * FROM facilitytypetb LIMIT $rowsPerPage OFFSET $facilityTypeOffset";
-}
-
-$facilityTypeSelectQuery = $connect->query($facilityTypeSelect);
-$facilityTypes = [];
-
-if (mysqli_num_rows($facilityTypeSelectQuery) > 0) {
-    while ($row = $facilityTypeSelectQuery->fetch_assoc()) {
-        $facilityTypes[] = $row;
-    }
-}
-
-// Construct the facilitytype count query based on search
-if (!empty($searchFacilityTypeQuery)) {
-    $facilityTypeQuery = "SELECT COUNT(*) as count FROM facilitytypetb WHERE FacilityType LIKE '%$searchFacilityTypeQuery%'";
-} else {
-    $facilityTypeQuery = "SELECT COUNT(*) as count FROM facilitytypetb";
-}
-
-// Execute the count query
-$facilityTypeResult = $connect->query($facilityTypeQuery);
-$facilityTypeCount = $facilityTypeResult->fetch_assoc()['count'];
-
-// Fetch facility type count
-$facilityTypeCountQuery = "SELECT COUNT(*) as count FROM facilitytypetb";
-$facilityTypeCountResult = $connect->query($facilityTypeCountQuery);
-$allFacilityTypeCount = $facilityTypeCountResult->fetch_assoc()['count'];
 ?>
 
 <!DOCTYPE html>
@@ -187,98 +152,22 @@ $allFacilityTypeCount = $facilityTypeCountResult->fetch_assoc()['count'];
             <div class="overflow-x-auto">
                 <!-- Facility Type Search and Filter -->
                 <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
-                    <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Facility Types <span class="text-gray-400 text-sm ml-2"><?php echo $facilityTypeCount ?></span></h1>
+                    <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Facility Types <span class="text-gray-400 text-sm ml-2"><?php echo $allFacilityTypeCount ?></span></h1>
                     <div class="flex items-center w-full">
                         <input type="text" name="facilitytype_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full outline-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" placeholder="Search for facility type..." value="<?php echo isset($_GET['facilitytype_search']) ? htmlspecialchars($_GET['facilitytype_search']) : ''; ?>">
                     </div>
                 </form>
-                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
-                    <table class="min-w-full bg-white rounded-lg">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-600 text-sm">
-                                <th class="p-3 text-start">ID</th>
-                                <th class="p-3 text-start">Type</th>
-                                <th class="p-3 text-start hidden sm:table-cell">Icon</th>
-                                <th class="p-3 text-start">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-600 text-sm">
-                            <?php if (!empty($facilityTypes)): ?>
-                                <?php foreach ($facilityTypes as $facilityType): ?>
-                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                        <td class="p-3 text-start whitespace-nowrap">
-                                            <div class="flex items-center gap-2 font-medium text-gray-500">
-                                                <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                                <span><?= htmlspecialchars($facilityType['FacilityTypeID']) ?></span>
-                                            </div>
-                                        </td>
-                                        <td class="p-3 text-start">
-                                            <?= htmlspecialchars($facilityType['FacilityType']) ?>
-                                        </td>
-                                        <td class="p-3 text-start hidden sm:table-cell">
-                                            <i class="<?= htmlspecialchars($facilityType['FacilityTypeIcon'], ENT_QUOTES, 'UTF-8') ?> <?= htmlspecialchars($facilityType['IconSize'], ENT_QUOTES, 'UTF-8') ?>"></i>
-                                        </td>
 
-                                        <td class="p-3 text-start space-x-1 select-none">
-                                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                                data-facilitytype-id="<?= htmlspecialchars($facilityType['FacilityTypeID']) ?>"></i>
-                                            <button class="text-red-500">
-                                                <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                                    data-facilitytype-id="<?= htmlspecialchars($facilityType['FacilityTypeID']) ?>"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="7" class="p-3 text-center text-gray-500 py-52">
-                                        No facility types available.
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                <!-- Facility Type Table -->
+                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
+                    <div id="facilityTypeResults">
+                        <?php include 'facilitytype_results.php'; ?>
+                    </div>
                 </div>
 
                 <!-- Pagination Controls -->
-                <div class="flex justify-center items-center mt-1 <?= (!empty($facilityTypes) ? 'flex' : 'hidden') ?>">
-                    <?php if ($facilityTypeCurrentPage > 1) {
-                    ?>
-                        <a href="?facilitytypepage=<?= $facilityTypeCurrentPage - 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $facilitytypepage == $facilityTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <i class="ri-arrow-left-s-line"></i>
-                        </a>
-                    <?php
-                    } else {
-                    ?>
-                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                            <i class="ri-arrow-left-s-line"></i>
-                        </p>
-                    <?php
-                    }
-                    ?>
-                    <?php for ($facilitytypepage = 1; $facilitytypepage <= $totalFacilityTypePages; $facilitytypepage++): ?>
-                        <a href="?facilitytypepage=<?= $facilitytypepage ?>&facilitytype_search=<?= htmlspecialchars($searchFacilityTypeQuery) ?>"
-                            class="px-3 py-1 mx-1 border rounded select-none <?= $facilitytypepage == $facilityTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <?= $facilitytypepage ?>
-                        </a>
-                    <?php endfor; ?>
-                    <!-- Next Btn -->
-                    <?php if ($facilityTypeCurrentPage < $totalFacilityTypePages) {
-                    ?>
-                        <a href="?facilitytypepage=<?= $facilityTypeCurrentPage + 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $facilitytypepage == $facilityTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <i class="ri-arrow-right-s-line"></i>
-                        </a>
-                    <?php
-                    } else {
-                    ?>
-                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                            <i class="ri-arrow-right-s-line"></i>
-                        </p>
-                    <?php
-                    }
-                    ?>
+                <div id="paginationContainer" class="flex justify-between items-center mt-3">
+                    <?php include 'facilitytype_pagination.php'; ?>
                 </div>
             </div>
         </div>
