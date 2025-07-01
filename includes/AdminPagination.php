@@ -1,6 +1,6 @@
 <?php
 // Set the number of rows per page
-$rowsPerPage = 10;
+$rowsPerPage = 2;
 
 // Get the current page number from the URL or default to 1
 $currentPage = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -36,6 +36,7 @@ $userOffset = ($userCurrentPage - 1) * $rowsPerPage;
 $bookingOffset = ($bookingCurrentPage - 1) * $rowsPerPage;
 
 // Initialize search and filter variables
+$searchRuleQuery = isset($_GET['rule_search']) ? mysqli_real_escape_string($connect, $_GET['rule_search']) : '';
 $searchFacilityTypeQuery = isset($_GET['facilitytype_search']) ? mysqli_real_escape_string($connect, $_GET['facilitytype_search']) : '';
 $searchFacilityQuery = isset($_GET['facility_search']) ? mysqli_real_escape_string($connect, $_GET['facility_search']) : '';
 
@@ -221,16 +222,19 @@ $facilityCount = $facilityResult->fetch_assoc()['count'];
 // Calculate total pages
 $totalPages = ceil($facilityCount / $rowsPerPage);
 
-// Fetch total number of rows for pagination calculation
-$totalRuleRowsQuery = "SELECT COUNT(*) as total FROM ruletb";
+// Construct the rule count query based on search
 if (!empty($searchRuleQuery)) {
-    $totalRuleRowsQuery = "SELECT COUNT(*) as total FROM ruletb WHERE RuleTitle LIKE '%$searchRuleQuery%' OR Rule LIKE '%$searchRuleQuery%'";
+    $ruleQuery = "SELECT COUNT(*) as count FROM ruletb WHERE RuleTitle LIKE '%$searchRuleQuery%' OR Rule LIKE '%$searchRuleQuery%'";
+} else {
+    $ruleQuery = "SELECT COUNT(*) as count FROM ruletb";
 }
-$totalRuleRowsResult = $connect->query($totalRuleRowsQuery);
-$totalRuleRows = $totalRuleRowsResult->fetch_assoc()['total'];
+
+// Execute the count query
+$ruleResult = $connect->query($ruleQuery);
+$ruleCount = $ruleResult->fetch_assoc()['count'];
 
 // Calculate the total number of pages
-$totalRulePages = ceil($totalRuleRows / $rowsPerPage);
+$totalRulePages = ceil($ruleCount / $rowsPerPage);
 
 // Fetch total number of rows for pagination calculation
 $totalUserRowsQuery = "SELECT COUNT(*) as total FROM usertb";
