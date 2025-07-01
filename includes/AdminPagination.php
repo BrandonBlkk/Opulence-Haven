@@ -36,6 +36,7 @@ $userOffset = ($userCurrentPage - 1) * $rowsPerPage;
 $bookingOffset = ($bookingCurrentPage - 1) * $rowsPerPage;
 
 // Initialize search and filter variables
+$searchProductTypeQuery = isset($_GET['producttype_search']) ? mysqli_real_escape_string($connect, $_GET['producttype_search']) : '';
 $searchRuleQuery = isset($_GET['rule_search']) ? mysqli_real_escape_string($connect, $_GET['rule_search']) : '';
 $searchFacilityTypeQuery = isset($_GET['facilitytype_search']) ? mysqli_real_escape_string($connect, $_GET['facilitytype_search']) : '';
 $searchFacilityQuery = isset($_GET['facility_search']) ? mysqli_real_escape_string($connect, $_GET['facility_search']) : '';
@@ -43,6 +44,7 @@ $searchFacilityQuery = isset($_GET['facility_search']) ? mysqli_real_escape_stri
 $filterRoleID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterStatus = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterSupplierID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
+$filterProductTypeID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterProductID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterSizes = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterImages = isset($_GET['sort']) ? $_GET['sort'] : 'random';
@@ -74,16 +76,19 @@ $totalRows = $totalRowsResult->fetch_assoc()['total'];
 // Calculate the total number of pages
 $totalPages = ceil($totalRows / $rowsPerPage);
 
-// Fetch total number of rows for pagination calculation
-$totalProductTypeRowsQuery = "SELECT COUNT(*) as total FROM producttypetb";
-if (!empty($productTypeSelectQuery)) {
-    $totalProductTypeRowsQuery = "SELECT COUNT(*) as total FROM producttypetb WHERE ProductType LIKE '%$searchProductTypeQuery%' OR Description LIKE '%$searchProductTypeQuery%'";
+// Construct the prooducttype count query based on search
+if (!empty($searchProductTypeQuery)) {
+    $productTypeQuery = "SELECT COUNT(*) as count FROM producttypetb WHERE ProductType LIKE '%$searchProductTypeQuery%' OR Description LIKE '%$searchProductTypeQuery%'";
+} else {
+    $productTypeQuery = "SELECT COUNT(*) as count FROM producttypetb";
 }
-$totalProductTypeRowsResult = $connect->query($totalProductTypeRowsQuery);
-$totalProductTypeRows = $totalProductTypeRowsResult->fetch_assoc()['total'];
+
+// Execute the count query
+$productTypeResult = $connect->query($productTypeQuery);
+$productTypeCount = $productTypeResult->fetch_assoc()['count'];
 
 // Calculate the total number of pages
-$totalProductTypePages = ceil($totalProductTypeRows / $rowsPerPage);
+$totalProductTypePages = ceil($productTypeCount / $rowsPerPage);
 
 // Fetch total number of rows for pagination calculation
 $totalProductRowsQuery = "SELECT COUNT(*) as total FROM producttb";
