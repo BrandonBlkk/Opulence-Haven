@@ -37,6 +37,7 @@ $bookingOffset = ($bookingCurrentPage - 1) * $rowsPerPage;
 
 // Initialize search and filter variables
 $searchProductTypeQuery = isset($_GET['producttype_search']) ? mysqli_real_escape_string($connect, $_GET['producttype_search']) : '';
+$searchSizeQuery = isset($_GET['size_search']) ? mysqli_real_escape_string($connect, $_GET['size_search']) : '';
 $searchRuleQuery = isset($_GET['rule_search']) ? mysqli_real_escape_string($connect, $_GET['rule_search']) : '';
 $searchFacilityTypeQuery = isset($_GET['facilitytype_search']) ? mysqli_real_escape_string($connect, $_GET['facilitytype_search']) : '';
 $searchFacilityQuery = isset($_GET['facility_search']) ? mysqli_real_escape_string($connect, $_GET['facility_search']) : '';
@@ -105,18 +106,24 @@ $totalProductRows = $totalProductRowsResult->fetch_assoc()['total'];
 // Calculate the total number of pages
 $totalProductPages = ceil($totalProductRows / $rowsPerPage);
 
-// Fetch total number of rows for pagination calculation
-$totalProductSizeRowsQuery = "SELECT COUNT(*) as total FROM sizetb";
-if ($filterSizes !== 'random') {
-    $totalProductSizeRowsQuery = "SELECT COUNT(*) as total FROM sizetb WHERE ProductID = '$filterSizes'";
+// Construct the facilitytype count query based on search
+if ($filterSizes !== 'random' && !empty($searchSizeQuery)) {
+    $productSizeQuery = "SELECT COUNT(*) as count FROM sizetb WHERE ProductID = '$filterSizes' AND Size LIKE '%$searchSizeQuery%'";
+} elseif ($filterSizes !== 'random') {
+    $productSizeQuery = "SELECT COUNT(*) as count FROM sizetb WHERE ProductID = '$filterSizes'";
 } elseif (!empty($searchSizeQuery)) {
-    $totalProductSizeRowsQuery = "SELECT COUNT(*) as total FROM sizetb WHERE Size LIKE '%$searchSizeQuery%'";
+    $productSizeQuery = "SELECT COUNT(*) as count FROM sizetb WHERE Size LIKE '%$searchSizeQuery%'";
+} else {
+    $productSizeQuery = "SELECT COUNT(*) as count FROM sizetb";
 }
-$totalProductSizeRowsResult = $connect->query($totalProductSizeRowsQuery);
-$totalProductSizeRows = $totalProductSizeRowsResult->fetch_assoc()['total'];
+
+// Execute the count query
+$productSizeResult = $connect->query($productSizeQuery);
+$productSizeCount = $productSizeResult->fetch_assoc()['count'];
 
 // Calculate the total number of pages
-$totalProductSizePages = ceil($totalProductSizeRows / $rowsPerPage);
+$totalProductSizePages = ceil($productSizeCount / $rowsPerPage);
+
 
 // Fetch total number of rows for pagination calculation
 $totalProductImageRowsQuery = "SELECT COUNT(*) as total FROM productimagetb";

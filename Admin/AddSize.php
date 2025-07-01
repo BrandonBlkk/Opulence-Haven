@@ -137,45 +137,6 @@ if (isset($_POST['deleteproductsize'])) {
     echo json_encode($response);
     exit();
 }
-
-// Initialize search variables for product size
-$searchSizeQuery = isset($_GET['size_search']) ? mysqli_real_escape_string($connect, $_GET['size_search']) : '';
-$filterSizes = isset($_GET['sort']) ? $_GET['sort'] : 'random';
-
-// Construct the facility type query based on search
-if ($filterSizes !== 'random' && !empty($searchSizeQuery)) {
-    $productSizeSelect = "SELECT * FROM sizetb WHERE ProductID = '$filterSizes' AND Size LIKE '%$searchSizeQuery%' LIMIT $rowsPerPage OFFSET $productSizeOffset";
-} elseif ($filterSizes !== 'random') {
-    $productSizeSelect = "SELECT * FROM sizetb WHERE ProductID = '$filterSizes' LIMIT $rowsPerPage OFFSET $productSizeOffset";
-} elseif (!empty($searchSizeQuery)) {
-    $productSizeSelect = "SELECT * FROM sizetb WHERE Size LIKE '%$searchSizeQuery%' LIMIT $rowsPerPage OFFSET $productSizeOffset";
-} else {
-    $productSizeSelect = "SELECT * FROM sizetb LIMIT $rowsPerPage OFFSET $productSizeOffset";
-}
-
-$productSizeSelectQuery = mysqli_query($connect, $productSizeSelect);
-$productSizes = [];
-
-if (mysqli_num_rows($productSizeSelectQuery) > 0) {
-    while ($row = $productSizeSelectQuery->fetch_assoc()) {
-        $productSizes[] = $row;
-    }
-}
-
-// Construct the facilitytype count query based on search
-if ($filterSizes !== 'random' && !empty($searchSizeQuery)) {
-    $productSizeQuery = "SELECT COUNT(*) as count FROM sizetb WHERE ProductID = '$filterSizes' AND Size LIKE '%$searchSizeQuery%'";
-} elseif ($filterSizes !== 'random') {
-    $productSizeQuery = "SELECT COUNT(*) as count FROM sizetb WHERE ProductID = '$filterSizes'";
-} elseif (!empty($searchSizeQuery)) {
-    $productSizeQuery = "SELECT COUNT(*) as count FROM sizetb WHERE Size LIKE '%$searchSizeQuery%'";
-} else {
-    $productSizeQuery = "SELECT COUNT(*) as count FROM sizetb";
-}
-
-// Execute the count query
-$productSizeResult = $connect->query($productSizeQuery);
-$productSizeCount = $productSizeResult->fetch_assoc()['count'];
 ?>
 
 <!DOCTYPE html>
@@ -222,7 +183,7 @@ $productSizeCount = $productSizeResult->fetch_assoc()['count'];
                         </label>
                         <!-- Filter form -->
                         <form method="GET" class="flex flex-col md:flex-row items-center gap-4 mb-4">
-                            <select name="sort" id="sort" class="border p-2 rounded text-sm" onchange="this.form.submit()">
+                            <select name="sort" id="sort" class="border p-2 rounded text-sm">
                                 <option value="random">All Products</option>
                                 <?php
                                 $select = "SELECT * FROM producttb";
@@ -245,113 +206,17 @@ $productSizeCount = $productSizeResult->fetch_assoc()['count'];
                         </form>
                     </div>
                 </form>
-                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
-                    <table class="min-w-full bg-white rounded-lg">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-600 text-sm">
-                                <th class="p-3 text-start">ID</th>
-                                <th class="p-3 text-start">Size</th>
-                                <th class="p-3 text-start">Price</th>
-                                <th class="p-3 text-start hidden sm:table-cell">Product</th>
-                                <th class="p-3 text-start">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-600 text-sm">
-                            <?php
-                            $count = 1;
-                            ?>
-                            <?php if (!empty($productSizes)): ?>
-                                <?php foreach ($productSizes as $productSize): ?>
-                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                        <td class="p-3 text-start whitespace-nowrap">
-                                            <div class="flex items-center gap-2 font-medium text-gray-500">
-                                                <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                                <span><?= $count ?></span>
-                                            </div>
-                                        </td>
-                                        <td class="p-3 text-start">
-                                            <?= htmlspecialchars($productSize['Size']) ?>
-                                        </td>
-                                        <td class="p-3 text-start">
-                                            <?= htmlspecialchars($productSize['PriceModifier']) ?>
-                                        </td>
-                                        <td class="p-3 text-start hidden sm:table-cell">
-                                            <?php
-                                            // Fetch the specific product type for the supplier
-                                            $productID = $productSize['ProductID'];
-                                            $productQuery = "SELECT ProductID, Title FROM producttb WHERE ProductID = '$productID'";
-                                            $productResult = mysqli_query($connect, $productQuery);
 
-                                            if ($productResult && $productResult->num_rows > 0) {
-                                                $productRow = $productResult->fetch_assoc();
-                                                echo htmlspecialchars($productRow['ProductID'] . " (" . $productRow['Title'] . ")");
-                                            } else {
-                                                echo "Product not found"; // Fallback message
-                                            }
-                                            ?>
-                                        </td>
-                                        <td class="p-3 text-start space-x-1 select-none">
-                                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                                data-productsize-id="<?= htmlspecialchars($productSize['SizeID']) ?>"></i>
-                                            <button class="text-red-500">
-                                                <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                                    data-productsize-id="<?= htmlspecialchars($productSize['SizeID']) ?>"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <?php $count++; ?>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="7" class="p-3 text-center text-gray-500 py-52">
-                                        No product sizes available.
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                <!-- Size Table -->
+                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
+                    <div id="productSizeResults">
+                        <?php include '../includes/admin_table_components/productsize_results.php'; ?>
+                    </div>
                 </div>
 
                 <!-- Pagination Controls -->
-                <div class="flex justify-center items-center mt-1 <?= (!empty($productSizes) ? 'flex' : 'hidden') ?>">
-                    <!-- Previous Btn -->
-                    <?php if ($productSizeCurrentPage > 1) {
-                    ?>
-                        <a href="?productsizepage=<?= $productSizeCurrentPage - 1 ?>&size_search=<?= htmlspecialchars($searchSizeQuery) ?>&sort=<?= htmlspecialchars($filterSizes) ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $productsizepage == $productSizeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <i class="ri-arrow-left-s-line"></i>
-                        </a>
-                    <?php
-                    } else {
-                    ?>
-                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                            <i class="ri-arrow-left-s-line"></i>
-                        </p>
-                    <?php
-                    }
-                    ?>
-                    <?php for ($productsizepage = 1; $productsizepage <= $totalProductSizePages; $productsizepage++): ?>
-                        <a href="?productsizepage=<?= $productsizepage ?>&size_search=<?= htmlspecialchars($searchSizeQuery) ?>&sort=<?= htmlspecialchars($filterSizes) ?>"
-                            class="px-3 py-1 mx-1 border rounded select-none <?= $productsizepage == $productSizeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <?= $productsizepage ?>
-                        </a>
-                    <?php endfor; ?>
-                    <!-- Next Btn -->
-                    <?php if ($productSizeCurrentPage < $totalProductSizePages) {
-                    ?>
-                        <a href="?productsizepage=<?= $productSizeCurrentPage + 1 ?>&size_search=<?= htmlspecialchars($searchSizeQuery) ?>&sort=<?= htmlspecialchars($filterSizes) ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $productsizepage == $productSizeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <i class="ri-arrow-right-s-line"></i>
-                        </a>
-                    <?php
-                    } else {
-                    ?>
-                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                            <i class="ri-arrow-right-s-line"></i>
-                        </p>
-                    <?php
-                    }
-                    ?>
+                <div id="paginationContainer" class="flex justify-between items-center mt-3">
+                    <?php include '../includes/admin_table_components/productsize_pagination.php'; ?>
                 </div>
             </div>
         </div>
