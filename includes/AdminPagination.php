@@ -38,6 +38,7 @@ $bookingOffset = ($bookingCurrentPage - 1) * $rowsPerPage;
 // Initialize search and filter variables
 $searchProductTypeQuery = isset($_GET['producttype_search']) ? mysqli_real_escape_string($connect, $_GET['producttype_search']) : '';
 $searchSizeQuery = isset($_GET['size_search']) ? mysqli_real_escape_string($connect, $_GET['size_search']) : '';
+$searchRoomQuery = isset($_GET['room_search']) ? mysqli_real_escape_string($connect, $_GET['room_search']) : '';
 $searchRuleQuery = isset($_GET['rule_search']) ? mysqli_real_escape_string($connect, $_GET['rule_search']) : '';
 $searchFacilityTypeQuery = isset($_GET['facilitytype_search']) ? mysqli_real_escape_string($connect, $_GET['facilitytype_search']) : '';
 $searchFacilityQuery = isset($_GET['facility_search']) ? mysqli_real_escape_string($connect, $_GET['facility_search']) : '';
@@ -177,33 +178,23 @@ $totalRoomTypeRows = $totalRoomTypeRowsResult->fetch_assoc()['total'];
 // Calculate the total number of pages
 $totalRoomTypePages = ceil($totalRoomTypeRows / $rowsPerPage);
 
-
-// Fetch total number of rows for pagination calculation
-$totalRoomRowsQuery = "SELECT COUNT(*) as total FROM roomtb";
-if (!empty($roomTypeSelectQuery)) {
-    $totalRoomRowsQuery = "SELECT COUNT(*) as total FROM roomtb 
-                          JOIN roomtypetb ON roomtb.RoomTypeID = roomtypetb.RoomTypeID
-                          WHERE roomtypetb.RoomTypeID LIKE '%$searchRoomTypeQuery%' 
-                          OR roomtypetb.RoomDescription LIKE '%$searchRoomTypeQuery%'";
-} elseif ($filterRoomType !== 'random' && !empty($searchRoomQuery)) {
-    $totalRoomRowsQuery = "SELECT COUNT(*) as total FROM roomtb 
-                          JOIN roomtypetb ON roomtb.RoomTypeID = roomtypetb.RoomTypeID
-                          WHERE roomtypetb.RoomTypeID = '$filterRoomType' 
-                          AND (roomtb.RoomName LIKE '%$searchRoomQuery%')";
+// Construct the roomtype count query based on search
+if ($filterRoomType !== 'random' && !empty($searchRoomQuery)) {
+    $roomQuery = "SELECT COUNT(*) as count FROM roomtb WHERE RoomTypeID = '$filterRoomType' AND (RoomName LIKE '%$searchRoomQuery%')";
 } elseif ($filterRoomType !== 'random') {
-    $totalRoomRowsQuery = "SELECT COUNT(*) as total FROM roomtb 
-                          JOIN roomtypetb ON roomtb.RoomTypeID = roomtypetb.RoomTypeID
-                          WHERE roomtypetb.RoomTypeID = '$filterRoomType'";
+    $roomQuery = "SELECT COUNT(*) as count FROM roomtb WHERE RoomTypeID = '$filterRoomType'";
 } elseif (!empty($searchRoomQuery)) {
-    $totalRoomRowsQuery = "SELECT COUNT(*) as total FROM roomtb 
-                          JOIN roomtypetb ON roomtb.RoomTypeID = roomtypetb.RoomTypeID
-                          WHERE roomtb.RoomName LIKE '%$searchRoomQuery%'";
+    $roomQuery = "SELECT COUNT(*) as count FROM roomtb WHERE RoomName LIKE '%$searchRoomQuery%'";
+} else {
+    $roomQuery = "SELECT COUNT(*) as count FROM roomtb";
 }
-$totalRoomRowsResult = $connect->query($totalRoomRowsQuery);
-$totalRoomRows = $totalRoomRowsResult->fetch_assoc()['total'];
+
+// Execute the count query
+$roomResult = $connect->query($roomQuery);
+$roomCount = $roomResult->fetch_assoc()['count'];
 
 // Calculate the total number of pages
-$totalRoomPages = ceil($totalRoomRows / $rowsPerPage);
+$totalRoomPages = ceil($roomCount / $rowsPerPage);
 
 // Fetch total number of rows for pagination calculation
 $totalFacilityTypeRowsQuery = "SELECT COUNT(*) as total FROM facilitytypetb";

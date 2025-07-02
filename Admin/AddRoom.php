@@ -115,45 +115,6 @@ if (isset($_POST['deleteroom'])) {
     echo json_encode($response);
     exit();
 }
-
-// Initialize search variables for room type
-$searchRoomQuery = isset($_GET['room_search']) ? mysqli_real_escape_string($connect, $_GET['room_search']) : '';
-$filterRoomType = isset($_GET['sort']) ? $_GET['sort'] : 'random';
-
-// Construct the room type query based on search
-if ($filterRoomType !== 'random' && !empty($searchRoomQuery)) {
-    $roomSelect = "SELECT * FROM roomtb WHERE RoomTypeID = '$filterRoomType' AND (RoomName LIKE '%$searchRoomQuery%') LIMIT $rowsPerPage OFFSET $roomOffset";
-} elseif ($filterRoomType !== 'random') {
-    $roomSelect = "SELECT * FROM roomtb WHERE RoomTypeID = '$filterRoomType' LIMIT $rowsPerPage OFFSET $roomOffset";
-} elseif (!empty($searchRoomQuery)) {
-    $roomSelect = "SELECT * FROM roomtb WHERE RoomName LIKE '%$searchRoomQuery%' LIMIT $rowsPerPage roomOffset";
-} else {
-    $roomSelect = "SELECT * FROM roomtb LIMIT $rowsPerPage OFFSET $roomOffset";
-}
-
-$roomSelectQuery = $connect->query($roomSelect);
-$rooms = [];
-
-if (mysqli_num_rows($roomSelectQuery) > 0) {
-    while ($row = $roomSelectQuery->fetch_assoc()) {
-        $rooms[] = $row;
-    }
-}
-
-// Construct the roomtype count query based on search
-if ($filterRoomType !== 'random' && !empty($searchRoomQuery)) {
-    $roomQuery = "SELECT COUNT(*) as count FROM roomtb WHERE RoomTypeID = '$filterRoomType' AND (RoomName LIKE '%$searchRoomQuery%')";
-} elseif ($filterRoomType !== 'random') {
-    $roomQuery = "SELECT COUNT(*) as count FROM roomtb WHERE RoomTypeID = '$filterRoomType'";
-} elseif (!empty($searchRoomQuery)) {
-    $roomQuery = "SELECT COUNT(*) as count FROM roomtb WHERE RoomName LIKE '%$searchRoomQuery%'";
-} else {
-    $roomQuery = "SELECT COUNT(*) as count FROM roomtb";
-}
-
-// Execute the count query
-$roomResult = $connect->query($roomQuery);
-$roomCount = $roomResult->fetch_assoc()['count'];
 ?>
 
 <!DOCTYPE html>
@@ -230,107 +191,17 @@ $roomCount = $roomResult->fetch_assoc()['count'];
                         </div>
                     </div>
                 </form>
-                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
-                    <table class="min-w-full bg-white rounded-lg">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-600 text-sm">
-                                <th class="p-3 text-start">ID</th>
-                                <th class="p-3 text-start hidden sm:table-cell">Room</th>
-                                <th class="p-3 text-start hidden sm:table-cell">Status</th>
-                                <th class="p-3 text-start hidden sm:table-cell">Room Type</th>
-                                <th class="p-3 text-start">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-600 text-sm">
-                            <?php if (!empty($rooms)): ?>
-                                <?php foreach ($rooms as $room): ?>
-                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                        <td class="p-3 text-start whitespace-nowrap">
-                                            <div class="flex items-center gap-2 font-medium text-gray-500">
-                                                <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                                <span><?= htmlspecialchars($room['RoomID']) ?></span>
-                                            </div>
-                                        </td>
-                                        <td class="p-3 text-start">
-                                            <?= htmlspecialchars($room['RoomName']) ?>
-                                        </td>
-                                        <td class="p-3 text-start hidden sm:table-cell">
-                                            <?= htmlspecialchars($room['RoomStatus']) ?>
-                                        </td>
-                                        <td class="p-3 text-start hidden md:table-cell">
-                                            <?php
-                                            // Fetch the specific product type for the supplier
-                                            $roomTypeID = $room['RoomTypeID'];
-                                            $roomTypeQuery = "SELECT RoomType FROM roomtypetb WHERE RoomTypeID = '$roomTypeID'";
-                                            $roomTypeResult = mysqli_query($connect, $roomTypeQuery);
 
-                                            if ($roomTypeResult && $roomTypeResult->num_rows > 0) {
-                                                $roomTypeRow = $roomTypeResult->fetch_assoc();
-                                                echo htmlspecialchars($roomTypeRow['RoomType']);
-                                            }
-                                            ?>
-                                        </td>
-                                        <td class="p-3 text-start space-x-1 select-none">
-                                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                                data-room-id="<?= htmlspecialchars($room['RoomID']) ?>"></i>
-                                            <button class="text-red-500">
-                                                <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                                    data-room-id="<?= htmlspecialchars($room['RoomID']) ?>"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="7" class="p-3 text-center text-gray-500 py-52">
-                                        No rooms available.
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                <!-- Room Table -->
+                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
+                    <div id="roomResults">
+                        <?php include '../includes/admin_table_components/room_results.php'; ?>
+                    </div>
                 </div>
 
                 <!-- Pagination Controls -->
-                <div class="flex justify-center items-center mt-1 <?= (!empty($rooms) ? 'flex' : 'hidden') ?>">
-                    <!-- Previous Btn -->
-                    <?php if ($roomCurrentPage > 1) {
-                    ?>
-                        <a href="?roompage=<?= $roomCurrentPage - 1 ?>&roomtype_search=<?= htmlspecialchars($searchRoomTypeQuery) ?>&sort=<?= $filterRoomType ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $roompage == $roomCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <i class="ri-arrow-left-s-line"></i>
-                        </a>
-                    <?php
-                    } else {
-                    ?>
-                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                            <i class="ri-arrow-left-s-line"></i>
-                        </p>
-                    <?php
-                    }
-                    ?>
-                    <?php for ($roompage = 1; $roompage <= $totalRoomPages; $roompage++): ?>
-                        <a href="?roompage=<?= $roompage ?>&roomtype_search=<?= htmlspecialchars($searchRoomTypeQuery) ?>&sort=<?= $filterRoomType ?>"
-                            class="px-3 py-1 mx-1 border rounded select-none <?= $roompage == $roomCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <?= $roompage ?>
-                        </a>
-                    <?php endfor; ?>
-                    <!-- Next Btn -->
-                    <?php if ($roomCurrentPage < $totalRoomPages) {
-                    ?>
-                        <a href="?roompage=<?= $roomCurrentPage + 1 ?>&roomtype_search=<?= htmlspecialchars($searchRoomTypeQuery) ?>&sort=<?= $filterRoomType ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $roompage == $roomCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <i class="ri-arrow-right-s-line"></i>
-                        </a>
-                    <?php
-                    } else {
-                    ?>
-                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                            <i class="ri-arrow-right-s-line"></i>
-                        </p>
-                    <?php
-                    }
-                    ?>
+                <div id="paginationContainer" class="flex justify-between items-center mt-3">
+                    <?php include '../includes/admin_table_components/room_pagination.php'; ?>
                 </div>
             </div>
         </div>
@@ -360,9 +231,9 @@ $roomCount = $roomResult->fetch_assoc()['count'];
                             <label class="block text-start text-sm font-medium text-gray-700 mb-1">Status</label>
                             <select name="updateroomstatus" id="updateroomstatus" class="p-2 w-full border rounded outline-none" required>
                                 <option value="" disabled selected>Select status</option>
-                                <option value="available">Available</option>
-                                <option value="unavailable">Unavailable</option>
-                                <option value="maintenance">Maintenance</option>
+                                <option value="Available">Available</option>
+                                <option value="Reserved">Reserved</option>
+                                <option value="Maintenance">Maintenance</option>
                             </select>
                         </div>
 
@@ -454,7 +325,6 @@ $roomCount = $roomResult->fetch_assoc()['count'];
                             <select name="roomstatus" id="roomstatus" class="p-2 w-full border rounded outline-none" required>
                                 <option value="" disabled selected>Select status</option>
                                 <option value="Available">Available</option>
-                                <option value="Unavailable">Unavailable</option>
                                 <option value="Maintenance">Maintenance</option>
                             </select>
                         </div>
