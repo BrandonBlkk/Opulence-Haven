@@ -36,6 +36,7 @@ $userOffset = ($userCurrentPage - 1) * $rowsPerPage;
 $bookingOffset = ($bookingCurrentPage - 1) * $rowsPerPage;
 
 // Initialize search and filter variables
+$searchSupplierQuery = isset($_GET['supplier_search']) ? mysqli_real_escape_string($connect, $_GET['supplier_search']) : '';
 $searchProductTypeQuery = isset($_GET['producttype_search']) ? mysqli_real_escape_string($connect, $_GET['producttype_search']) : '';
 $searchSizeQuery = isset($_GET['size_search']) ? mysqli_real_escape_string($connect, $_GET['size_search']) : '';
 $searchRoomQuery = isset($_GET['room_search']) ? mysqli_real_escape_string($connect, $_GET['room_search']) : '';
@@ -152,20 +153,34 @@ $totalContactRows = $totalContactRowsResult->fetch_assoc()['total'];
 // Calculate the total number of pages
 $totalContactPages = ceil($totalContactRows / $rowsPerPage);
 
-// Fetch total number of rows for pagination calculation
-$totalSupplierRowsQuery = "SELECT COUNT(*) as total FROM suppliertb";
-if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {
-    $totalSupplierRowsQuery = "SELECT COUNT(*) as total FROM suppliertb WHERE ProductTypeID = '$filterSupplierID' AND (SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%')";
-} elseif ($filterRoleID !== 'random') {
-    $totalSupplierRowsQuery = "SELECT COUNT(*) as total FROM suppliertb WHERE ProductTypeID = '$filterSupplierID'";
-} elseif (!empty($searchAdminQuery)) {
-    $totalSupplierRowsQuery = "SELECT COUNT(*) as total FROM suppliertb WHERE SupplierName LIKE '%$searchSupplierQuery%' OR SupplierEmail LIKE '%$searchSupplierQuery%' OR SupplierContact LIKE '%$searchSupplierQuery%' OR SupplierCompany LIKE '%$searchSupplierQuery%' OR Country LIKE '%$searchSupplierQuery%'";
+// Construct the supplier count query based on search
+if ($filterSupplierID !== 'random' && !empty($searchSupplierQuery)) {
+    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb 
+                     WHERE ProductTypeID = '$filterSupplierID' 
+                     AND (SupplierName LIKE '%$searchSupplierQuery%' 
+                          OR SupplierEmail LIKE '%$searchSupplierQuery%' 
+                          OR SupplierContact LIKE '%$searchSupplierQuery%' 
+                          OR SupplierCompany LIKE '%$searchSupplierQuery%' 
+                          OR Country LIKE '%$searchSupplierQuery%')";
+} elseif ($filterSupplierID !== 'random') {
+    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb 
+                     WHERE ProductTypeID = '$filterSupplierID'";
+} elseif (!empty($searchSupplierQuery)) {
+    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb 
+                     WHERE SupplierName LIKE '%$searchSupplierQuery%' 
+                     OR SupplierEmail LIKE '%$searchSupplierQuery%' 
+                     OR SupplierContact LIKE '%$searchSupplierQuery%' 
+                     OR SupplierCompany LIKE '%$searchSupplierQuery%' 
+                     OR Country LIKE '%$searchSupplierQuery%'";
+} else {
+    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb";
 }
-$totalSupplierRowsResult = $connect->query($totalSupplierRowsQuery);
-$totalSupplierRows = $totalSupplierRowsResult->fetch_assoc()['total'];
+
+$supplierResult = $connect->query($supplierQuery);
+$supplierCount = $supplierResult->fetch_assoc()['count'];
 
 // Calculate the total number of pages
-$totalSupplierPages = ceil($totalSupplierRows / $rowsPerPage);
+$totalSupplierPages = ceil($supplierCount / $rowsPerPage);
 
 // Fetch total number of rows for pagination calculation
 $totalRoomTypeRowsQuery = "SELECT COUNT(*) as total FROM roomtypetb";

@@ -137,76 +137,6 @@ if (isset($_POST['deletesupplier'])) {
     echo json_encode($response);
     exit();
 }
-
-// Initialize search and filter variables for supplier
-$searchSupplierQuery = isset($_GET['supplier_search']) ? mysqli_real_escape_string($connect, $_GET['supplier_search']) : '';
-$filterSupplierID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
-$supplierCurrentPage = isset($_GET['supplierpage']) ? (int)$_GET['supplierpage'] : 1;
-$rowsPerPage = 1; // Number of rows per page
-$supplierOffset = ($supplierCurrentPage - 1) * $rowsPerPage;
-
-// Construct the supplier query based on search and role filter
-if ($filterSupplierID !== 'random' && !empty($searchSupplierQuery)) {
-    $supplierSelect = "SELECT * FROM suppliertb 
-                      WHERE ProductTypeID = '$filterSupplierID' 
-                      AND (SupplierName LIKE '%$searchSupplierQuery%' 
-                           OR SupplierEmail LIKE '%$searchSupplierQuery%' 
-                           OR SupplierContact LIKE '%$searchSupplierQuery%' 
-                           OR SupplierCompany LIKE '%$searchSupplierQuery%' 
-                           OR Country LIKE '%$searchSupplierQuery%') 
-                      LIMIT $rowsPerPage OFFSET $supplierOffset";
-} elseif ($filterSupplierID !== 'random') {
-    $supplierSelect = "SELECT * FROM suppliertb 
-                      WHERE ProductTypeID = '$filterSupplierID' 
-                      LIMIT $rowsPerPage OFFSET $supplierOffset";
-} elseif (!empty($searchSupplierQuery)) {
-    $supplierSelect = "SELECT * FROM suppliertb 
-                      WHERE SupplierName LIKE '%$searchSupplierQuery%' 
-                      OR SupplierEmail LIKE '%$searchSupplierQuery%' 
-                      OR SupplierContact LIKE '%$searchSupplierQuery%' 
-                      OR SupplierCompany LIKE '%$searchSupplierQuery%' 
-                      OR Country LIKE '%$searchSupplierQuery%' 
-                      LIMIT $rowsPerPage OFFSET $supplierOffset";
-} else {
-    $supplierSelect = "SELECT * FROM suppliertb 
-                      LIMIT $rowsPerPage OFFSET $supplierOffset";
-}
-
-$supplierSelectQuery = $connect->query($supplierSelect);
-$suppliers = [];
-
-if (mysqli_num_rows($supplierSelectQuery) > 0) {
-    while ($row = $supplierSelectQuery->fetch_assoc()) {
-        $suppliers[] = $row;
-    }
-}
-
-// Count query
-if ($filterSupplierID !== 'random' && !empty($searchSupplierQuery)) {
-    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb 
-                     WHERE ProductTypeID = '$filterSupplierID' 
-                     AND (SupplierName LIKE '%$searchSupplierQuery%' 
-                          OR SupplierEmail LIKE '%$searchSupplierQuery%' 
-                          OR SupplierContact LIKE '%$searchSupplierQuery%' 
-                          OR SupplierCompany LIKE '%$searchSupplierQuery%' 
-                          OR Country LIKE '%$searchSupplierQuery%')";
-} elseif ($filterSupplierID !== 'random') {
-    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb 
-                     WHERE ProductTypeID = '$filterSupplierID'";
-} elseif (!empty($searchSupplierQuery)) {
-    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb 
-                     WHERE SupplierName LIKE '%$searchSupplierQuery%' 
-                     OR SupplierEmail LIKE '%$searchSupplierQuery%' 
-                     OR SupplierContact LIKE '%$searchSupplierQuery%' 
-                     OR SupplierCompany LIKE '%$searchSupplierQuery%' 
-                     OR Country LIKE '%$searchSupplierQuery%'";
-} else {
-    $supplierQuery = "SELECT COUNT(*) as count FROM suppliertb";
-}
-
-$supplierResult = $connect->query($supplierQuery);
-$supplierCount = $supplierResult->fetch_assoc()['count'];
-$totalSupplierPages = ceil($supplierCount / $rowsPerPage);
 ?>
 
 <!DOCTYPE html>
@@ -260,7 +190,7 @@ $totalSupplierPages = ceil($supplierCount / $rowsPerPage);
                                     <input type="hidden" name="supplierpage" value="<?= (int)$_GET['supplierpage'] ?>">
                                 <?php endif; ?>
 
-                                <select name="sort" id="sort" class="border p-2 rounded text-sm" onchange="this.form.submit()">
+                                <select name="sort" id="sort" class="border p-2 rounded text-sm outline-none">
                                     <option value="random" <?= $filterSupplierID === 'random' ? 'selected' : '' ?>>All Supplied Products</option>
                                     <?php
                                     $select = "SELECT * FROM producttypetb";
@@ -283,120 +213,17 @@ $totalSupplierPages = ceil($supplierCount / $rowsPerPage);
                         </div>
                     </div>
                 </form>
-                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
-                    <table class="min-w-full bg-white rounded-lg">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-600 text-sm">
-                                <th class="p-3 text-start">ID</th>
-                                <th class="p-3 text-start">Name</th>
-                                <th class="p-3 text-start hidden md:table-cell">Product Supplied</th>
-                                <th class="p-3 text-start hidden sm:table-cell">Contact</th>
-                                <th class="p-3 text-start hidden lg:table-cell">Company</th>
-                                <th class="p-3 text-start hidden lg:table-cell">Address</th>
-                                <th class="p-3 text-start">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-600 text-sm">
-                            <?php if (!empty($suppliers)): ?>
-                                <?php foreach ($suppliers as $supplier): ?>
-                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                        <td class="p-3 text-start whitespace-nowrap">
-                                            <div class="flex items-center gap-2 font-medium text-gray-500">
-                                                <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                                <span><?= htmlspecialchars($supplier['SupplierID']) ?></span>
-                                            </div>
-                                        </td>
-                                        <td class="p-3">
-                                            <p class="font-bold"><?= htmlspecialchars($supplier['SupplierName']) ?></p>
-                                            <p><?= htmlspecialchars($supplier['SupplierEmail']) ?></p>
-                                        </td>
-                                        <td class="p-3 text-start hidden md:table-cell">
-                                            <?php
-                                            // Fetch the specific product type for the supplier
-                                            $productTypeID = $supplier['ProductTypeID'];
-                                            $productTypeQuery = "SELECT ProductType FROM producttypetb WHERE ProductTypeID = '$productTypeID'";
-                                            $productTypeResult = mysqli_query($connect, $productTypeQuery);
 
-                                            if ($productTypeResult && $productTypeResult->num_rows > 0) {
-                                                $productTypeRow = $productTypeResult->fetch_assoc();
-                                                echo htmlspecialchars($productTypeRow['ProductType']);
-                                            }
-                                            ?>
-                                        </td>
-                                        <td class="p-3 text-start hidden sm:table-cell">
-                                            <?= htmlspecialchars($supplier['SupplierContact']) ?>
-                                        </td>
-                                        <td class="p-3 text-start hidden lg:table-cell">
-                                            <?= htmlspecialchars($supplier['SupplierCompany']) ?>
-                                        </td>
-                                        <td class="p-3 text-start hidden lg:table-cell">
-                                            <p>
-                                                <?= htmlspecialchars($supplier['Address']) ?>,
-                                                <?= htmlspecialchars($supplier['City']) ?>,
-                                                <?= htmlspecialchars($supplier['Country']) ?>
-                                            </p>
-                                        </td>
-                                        <td class="p-3 text-start space-x-1 select-none">
-                                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                                data-supplier-id="<?= htmlspecialchars($supplier['SupplierID']) ?>"></i>
-                                            <button class="text-red-500">
-                                                <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                                    data-supplier-id="<?= htmlspecialchars($supplier['SupplierID']) ?>"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="7" class="p-3 text-center text-gray-500 py-52">
-                                        No suppliers available.
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                <!-- Supplier Table -->
+                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
+                    <div id="supplierResults">
+                        <?php include '../includes/admin_table_components/supplier_results.php'; ?>
+                    </div>
                 </div>
 
                 <!-- Pagination Controls -->
-                <div class="flex justify-center items-center mt-1 <?php echo (!empty($suppliers) ? '' : 'hidden') ?>">
-                    <!-- Previous Btn -->
-                    <?php if ($supplierCurrentPage > 1) {
-                    ?>
-                        <a href="?supplierpage=<?= $supplierCurrentPage - 1 ?>&supplier_search=<?= htmlspecialchars($searchSupplierQuery) ?>&sort=<?= $filterSupplierID ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $supplierpage == $supplierCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <i class="ri-arrow-left-s-line"></i>
-                        </a>
-                    <?php
-                    } else {
-                    ?>
-                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                            <i class="ri-arrow-left-s-line"></i>
-                        </p>
-                    <?php
-                    }
-                    ?>
-                    <?php for ($supplierpage = 1; $supplierpage <= $totalSupplierPages; $supplierpage++): ?>
-                        <a href="?supplierpage=<?= $supplierpage ?>&supplier_search=<?= htmlspecialchars($searchSupplierQuery) ?>&sort=<?= $filterSupplierID ?>"
-                            class="px-3 py-1 mx-1 border rounded select-none <?= $supplierpage == $supplierCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <?= $supplierpage ?>
-                        </a>
-                    <?php endfor; ?>
-                    <!-- Next Btn -->
-                    <?php if ($supplierCurrentPage < $totalSupplierPages) {
-                    ?>
-                        <a href="?supplierpage=<?= $supplierCurrentPage + 1 ?>&supplier_search=<?= htmlspecialchars($searchSupplierQuery) ?>&sort=<?= $filterSupplierID ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $supplierpage == $supplierCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <i class="ri-arrow-right-s-line"></i>
-                        </a>
-                    <?php
-                    } else {
-                    ?>
-                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                            <i class="ri-arrow-right-s-line"></i>
-                        </p>
-                    <?php
-                    }
-                    ?>
+                <div id="paginationContainer" class="flex justify-between items-center mt-3">
+                    <?php include '../includes/admin_table_components/supplier_pagination.php'; ?>
                 </div>
             </div>
         </div>
