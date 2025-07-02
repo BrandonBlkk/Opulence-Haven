@@ -183,7 +183,7 @@ if (isset($_POST['deleteproductsize'])) {
                         </label>
                         <!-- Filter form -->
                         <form method="GET" class="flex flex-col md:flex-row items-center gap-4 mb-4">
-                            <select name="sort" id="sort" class="border p-2 rounded text-sm">
+                            <select name="sort" id="sort" class="border p-2 rounded text-sm outline-none">
                                 <option value="random">All Products</option>
                                 <?php
                                 $select = "SELECT * FROM producttb";

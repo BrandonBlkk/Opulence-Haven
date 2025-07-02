@@ -137,45 +137,6 @@ if (isset($_POST['deleteproduct'])) {
     echo json_encode($response);
     exit();
 }
-
-// Initialize search and filter variables for product
-$searchProductQuery = isset($_GET['product_search']) ? mysqli_real_escape_string($connect, $_GET['product_search']) : '';
-$filterProductID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
-
-// Construct the product query based on search and product type filter
-if ($filterProductID !== 'random' && !empty($searchProductQuery)) {
-    $productSelect = "SELECT * FROM producttb WHERE ProductTypeID = '$filterProductID' AND (Title LIKE '%$searchProductQuery%' OR Description LIKE '%$searchProductQuery%' OR Specification LIKE '%$searchProductQuery%' OR Information LIKE '%$searchProductQuery%' OR Brand LIKE '%$searchProductQuery%') LIMIT $rowsPerPage OFFSET $productOffset";
-} elseif ($filterProductID !== 'random') {
-    $productSelect = "SELECT * FROM producttb WHERE ProductTypeID = '$filterProductID' LIMIT $rowsPerPage OFFSET $productOffset";
-} elseif (!empty($searchProductQuery)) {
-    $productSelect = "SELECT * FROM producttb WHERE Title LIKE '%$searchProductQuery%' OR Description LIKE '%$searchProductQuery%' OR Specification LIKE '%$searchProductQuery%' OR Information LIKE '%$searchProductQuery%' OR Brand LIKE '%$searchProductQuery%' LIMIT $rowsPerPage OFFSET $productOffset";
-} else {
-    $productSelect = "SELECT * FROM producttb LIMIT $rowsPerPage OFFSET $productOffset";
-}
-
-$productSelectQuery = $connect->query($productSelect);
-$products = [];
-
-if (mysqli_num_rows($productSelectQuery) > 0) {
-    while ($row = $productSelectQuery->fetch_assoc()) {
-        $products[] = $row;
-    }
-}
-
-// Construct the product count query based on search and product type filter
-if ($filterProductID !== 'random' && !empty($searchProductQuery)) {
-    $productQuery = "SELECT COUNT(*) as count FROM producttb WHERE ProductTypeID = '$filterProductID' AND (Title LIKE '%$searchProductQuery%' OR Description LIKE '%$searchProductQuery%' OR Specification LIKE '%$searchProductQuery%' OR Information LIKE '%$searchProductQuery%' OR Brand LIKE '%$searchProductQuery%')";
-} elseif ($filterProductID !== 'random') {
-    $productQuery = "SELECT COUNT(*) as count FROM producttb WHERE ProductTypeID = '$filterProductID'";
-} elseif (!empty($searchProductQuery)) {
-    $productQuery = "SELECT COUNT(*) as count FROM producttb WHERE Title LIKE '%$searchProductQuery%' OR Description LIKE '%$searchProductQuery%' OR Specification LIKE '%$searchProductQuery%' OR Information LIKE '%$searchProductQuery%' OR Brand LIKE '%$searchProductQuery%'";
-} else {
-    $productQuery = "SELECT COUNT(*) as count FROM producttb";
-}
-
-// Execute the count query
-$productResult = $connect->query($productQuery);
-$productCount = $productResult->fetch_assoc()['count'];
 ?>
 
 <!DOCTYPE html>
@@ -229,12 +190,7 @@ $productCount = $productResult->fetch_assoc()['count'];
                             </label>
                             <!-- Search and filter form -->
                             <form method="GET" class="flex flex-col md:flex-row items-center gap-4 mb-4">
-                                <!-- Preserve the search query if it exists -->
-                                <?php if (!empty($searchProductQuery)): ?>
-                                    <input type="hidden" name="product_search" value="<?php echo htmlspecialchars($searchProductQuery); ?>">
-                                <?php endif; ?>
-
-                                <select name="sort" id="sort" class="border p-2 rounded text-sm" onchange="this.form.submit()">
+                                <select name="sort" id="sort" class="border p-2 rounded text-sm outline-none">
                                     <option value="random">All Product Types</option>
                                     <?php
                                     $select = "SELECT * FROM producttypetb";
@@ -260,134 +216,17 @@ $productCount = $productResult->fetch_assoc()['count'];
                         </div>
                     </div>
                 </form>
+
+                <!-- Product Table -->
                 <div class="tableScrollBar overflow-y-auto max-h-[510px]">
-                    <table class="min-w-full bg-white rounded-lg">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-600 text-sm">
-                                <th class="p-3 text-start">ID</th>
-                                <th class="p-3 text-start">Title</th>
-                                <th class="p-3 text-start hidden sm:table-cell">Price</th>
-                                <th class="p-3 text-start">Stock</th>
-                                <th class="p-3 text-start hidden lg:table-cell">Added Date</th>
-                                <th class="p-3 text-start">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-600 text-sm">
-                            <?php if (!empty($products)): ?>
-                                <?php foreach ($products as $product): ?>
-                                    <?php
-                                    $isLowStock = $product['Stock'] < 10;
-                                    $isCriticalStock = $product['Stock'] < 3;
-                                    $isOutOfStock = $product['Stock'] == 0;
-                                    ?>
-                                    <tr class="hover:bg-gray-50 transition-colors 
-                                   <?= $isCriticalStock ? 'bg-red-50' : ($isLowStock ? 'bg-yellow-50' : '') ?>">
-                                        <td class="p-3 text-start whitespace-nowrap">
-                                            <div class="flex items-center gap-2 font-medium text-gray-500">
-                                                <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                                <span><?= htmlspecialchars($product['ProductID']) ?></span>
-                                            </div>
-                                        </td>
-                                        <td class="p-3 text-start">
-                                            <?= htmlspecialchars($product['Title']) ?>
-                                        </td>
-                                        <td class="p-3 text-start hidden sm:table-cell">
-                                            $<?= htmlspecialchars(number_format($product['Price'], 2)) ?>
-                                        </td>
-                                        <td class="p-4 text-start">
-                                            <div class="flex items-center gap-2">
-                                                <?php if ($isOutOfStock): ?>
-                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                                                        Out of Stock
-                                                    </span>
-                                                <?php elseif ($isCriticalStock): ?>
-                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                                                        Critical (<?= $product['Stock'] ?> left)
-                                                    </span>
-                                                <?php elseif ($isLowStock): ?>
-                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                                        Low (<?= $product['Stock'] ?> left)
-                                                    </span>
-                                                <?php else: ?>
-                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                                        In Stock (<?= $product['Stock'] ?>)
-                                                    </span>
-                                                <?php endif; ?>
-
-                                                <?php if ($isLowStock): ?>
-                                                    <a href="ProductPurchase.php?ProductID=<?= $product['ProductID'] ?>" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">
-                                                        Reorder
-                                                    </a>
-                                                <?php endif; ?>
-                                            </div>
-                                        </td>
-                                        <td class="p-3 text-start hidden lg:table-cell">
-                                            <?= htmlspecialchars(date('d M Y', strtotime($product['AddedDate']))) ?>
-                                        </td>
-                                        <td class="p-3 text-start space-x-1 select-none">
-                                            <a href="ProductPurchase.php?ProductID=<?= $product['ProductID'] ?>" class="text-xs text-amber-600">
-                                                <i class="ri-store-line text-lg cursor-pointer"></i>
-                                            </a>
-                                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                                data-product-id="<?= htmlspecialchars($product['ProductID']) ?>"></i>
-                                            <button class="text-red-500">
-                                                <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                                    data-product-id="<?= htmlspecialchars($product['ProductID']) ?>"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="7" class="p-3 text-center text-gray-500 py-52">
-                                        No products available.
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-
-                    <!-- Pagination Controls -->
-                    <div class="flex justify-center items-center mt-1 <?= (!empty($products) ? 'flex' : 'hidden') ?>">
-                        <!-- Previous Btn -->
-                        <?php if ($productCurrentPage > 1) {
-                        ?>
-                            <a href="?productpage=<?= $productCurrentPage - 1 ?>&product_search=<?= htmlspecialchars($searchProductQuery) ?>&sort=<?= $filterProductID ?>"
-                                class="px-3 py-1 mx-1 border rounded <?= $productpage == $productCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                                <i class="ri-arrow-left-s-line"></i>
-                            </a>
-                        <?php
-                        } else {
-                        ?>
-                            <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                                <i class="ri-arrow-left-s-line"></i>
-                            </p>
-                        <?php
-                        }
-                        ?>
-                        <?php for ($productpage = 1; $productpage <= $totalProductPages; $productpage++): ?>
-                            <a href="?productpage=<?= $productpage ?>&product_search=<?= htmlspecialchars($searchProductQuery) ?>&sort=<?= $filterProductID ?>"
-                                class="px-3 py-1 mx-1 border rounded select-none <?= $productpage == $productCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                                <?= $productpage ?>
-                            </a>
-                        <?php endfor; ?>
-                        <!-- Next Btn -->
-                        <?php if ($productCurrentPage < $totalProductPages) {
-                        ?>
-                            <a href="?productpage=<?= $productCurrentPage + 1 ?>&product_search=<?= htmlspecialchars($searchProductQuery) ?>&sort=<?= $filterProductID ?>"
-                                class="px-3 py-1 mx-1 border rounded <?= $productpage == $productCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                                <i class="ri-arrow-right-s-line"></i>
-                            </a>
-                        <?php
-                        } else {
-                        ?>
-                            <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                                <i class="ri-arrow-right-s-line"></i>
-                            </p>
-                        <?php
-                        }
-                        ?>
+                    <div id="productResults">
+                        <?php include '../includes/admin_table_components/product_results.php'; ?>
                     </div>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div id="paginationContainer" class="flex justify-between items-center mt-3">
+                    <?php include '../includes/admin_table_components/product_pagination.php'; ?>
                 </div>
             </div>
         </div>
