@@ -120,41 +120,6 @@ if (isset($_POST['deleterule'])) {
     echo json_encode($response);
     exit;
 }
-
-// Initialize search variables for rule
-$searchRuleQuery = isset($_GET['rule_search']) ? mysqli_real_escape_string($connect, $_GET['rule_search']) : '';
-
-// Construct the rule query based on search
-if (!empty($searchRuleQuery)) {
-    $ruleSelect = "SELECT * FROM ruletb WHERE RuleTitle LIKE '%$searchRuleQuery%' OR Rule LIKE '%$searchRuleQuery%' LIMIT $rowsPerPage OFFSET $ruleOffset";
-} else {
-    $ruleSelect = "SELECT * FROM ruletb LIMIT $rowsPerPage OFFSET $ruleOffset";
-}
-
-$ruleSelectQuery = $connect->query($ruleSelect);
-$rules = [];
-
-if (mysqli_num_rows($ruleSelectQuery) > 0) {
-    while ($row = $ruleSelectQuery->fetch_assoc()) {
-        $rules[] = $row;
-    }
-}
-
-// Construct the rule count query based on search
-if (!empty($searchRuleQuery)) {
-    $ruleQuery = "SELECT COUNT(*) as count FROM ruletb WHERE RuleTitle LIKE '%$searchRuleQuery%' OR Rule LIKE '%$searchRuleQuery%'";
-} else {
-    $ruleQuery = "SELECT COUNT(*) as count FROM ruletb";
-}
-
-// Execute the count query
-$ruleResult = $connect->query($ruleQuery);
-$ruleCount = $ruleResult->fetch_assoc()['count'];
-
-// Fetch rule count
-$ruleCountQuery = "SELECT COUNT(*) as count FROM ruletb";
-$facilityTypeCountResult = $connect->query($ruleCountQuery);
-$allRuleCount = $facilityTypeCountResult->fetch_assoc()['count'];
 ?>
 
 <!DOCTYPE html>
@@ -195,99 +160,17 @@ $allRuleCount = $facilityTypeCountResult->fetch_assoc()['count'];
                         <input type="text" name="rule_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full outline-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" placeholder="Search for rule..." value="<?php echo isset($_GET['rule_search']) ? htmlspecialchars($_GET['rule_search']) : ''; ?>">
                     </div>
                 </form>
+
+                <!-- Rule Table -->
                 <div class="tableScrollBar overflow-y-auto max-h-[510px]">
-                    <table class="min-w-full bg-white rounded-lg">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-600 text-sm">
-                                <th class="p-3 text-start">ID</th>
-                                <th class="p-3 text-start">Title</th>
-                                <th class="p-3 text-start hidden sm:table-cell">Rule</th>
-                                <th class="p-3 text-start hidden sm:table-cell">Icon</th>
-                                <th class="p-3 text-start">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-600 text-sm">
-                            <?php if (!empty($rules)): ?>
-                                <?php foreach ($rules as $rule): ?>
-                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                        <td class="p-3 text-start whitespace-nowrap">
-                                            <div class="flex items-center gap-2 font-medium text-gray-500">
-                                                <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                                <span><?= htmlspecialchars($rule['RuleID']) ?></span>
-                                            </div>
-                                        </td>
-                                        <td class="p-3 text-start">
-                                            <?= htmlspecialchars($rule['RuleTitle']) ?>
-                                        </td>
-                                        <td class="p-3 text-start hidden sm:table-cell">
-                                            <?= htmlspecialchars(mb_strimwidth($rule['Rule'], 0, 50, '...')) ?>
-                                        </td>
-                                        <td class="p-3 text-start hidden sm:table-cell">
-                                            <?= !empty($rule['RuleIcon']) && !empty($rule['IconSize'])
-                                                ? '<i class="' . htmlspecialchars($rule['RuleIcon'], ENT_QUOTES, 'UTF-8') . ' ' . htmlspecialchars($rule['IconSize'], ENT_QUOTES, 'UTF-8') . '"></i>'
-                                                : 'None' ?>
-                                        </td>
-                                        <td class="p-3 text-start space-x-1 select-none">
-                                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                                data-rule-id="<?= htmlspecialchars($rule['RuleID']) ?>"></i>
-                                            <button class="text-red-500">
-                                                <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                                    data-rule-id="<?= htmlspecialchars($rule['RuleID']) ?>"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="7" class="p-3 text-center text-gray-500 py-52">
-                                        No rules available.
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                    <div id="ruleResults">
+                        <?php include '../includes/admin_table_components/rule_results.php'; ?>
+                    </div>
                 </div>
 
                 <!-- Pagination Controls -->
-                <div class="flex justify-center items-center mt-1 <?= (!empty($rules) ? 'flex' : 'hidden') ?>">
-                    <!-- Previous Btn -->
-                    <?php if ($ruleCurrentPage > 1) {
-                    ?>
-                        <a href="?rulepage=<?= $ruleCurrentPage - 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $rulepage == $ruleCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <i class="ri-arrow-left-s-line"></i>
-                        </a>
-                    <?php
-                    } else {
-                    ?>
-                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                            <i class="ri-arrow-left-s-line"></i>
-                        </p>
-                    <?php
-                    }
-                    ?>
-                    <?php for ($rulepage = 1; $rulepage <= $totalRulePages; $rulepage++): ?>
-                        <a href="?rulepage=<?= $rulepage ?>&rule_search=<?= htmlspecialchars($searchRuleQuery) ?>"
-                            class="px-3 py-1 mx-1 border rounded select-none <?= $rulepage == $ruleCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <?= $rulepage ?>
-                        </a>
-                    <?php endfor; ?>
-                    <!-- Next Btn -->
-                    <?php if ($ruleCurrentPage < $totalRulePages) {
-                    ?>
-                        <a href="?rulepage=<?= $ruleCurrentPage + 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $rulepage == $ruleCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <i class="ri-arrow-right-s-line"></i>
-                        </a>
-                    <?php
-                    } else {
-                    ?>
-                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                            <i class="ri-arrow-right-s-line"></i>
-                        </p>
-                    <?php
-                    }
-                    ?>
+                <div id="paginationContainer" class="flex justify-between items-center mt-3">
+                    <?php include '../includes/admin_table_components/rule_pagination.php'; ?>
                 </div>
             </div>
         </div>

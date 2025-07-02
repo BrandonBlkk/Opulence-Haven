@@ -113,42 +113,6 @@ if (isset($_POST['deleteproducttype'])) {
     echo json_encode($response);
     exit();
 }
-
-// Initialize search and filter variables for product type
-$searchProductTypeQuery = isset($_GET['producttype_search']) ? mysqli_real_escape_string($connect, $_GET['producttype_search']) : '';
-$filterProductTypeID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
-
-// Construct the product type query based on search
-if (!empty($searchProductTypeQuery)) {
-    $productTypeSelect = "SELECT * FROM producttypetb WHERE ProductType LIKE '%$searchProductTypeQuery%' OR Description LIKE '%$searchProductTypeQuery%' LIMIT $rowsPerPage OFFSET $productTypeOffset";
-} else {
-    $productTypeSelect = "SELECT * FROM producttypetb LIMIT $rowsPerPage OFFSET $productTypeOffset";
-}
-
-$productTypeSelectQuery = $connect->query($productTypeSelect);
-$productTypes = [];
-
-if (mysqli_num_rows($productTypeSelectQuery) > 0) {
-    while ($row = $productTypeSelectQuery->fetch_assoc()) {
-        $productTypes[] = $row;
-    }
-}
-
-// Construct the prooducttype count query based on search
-if (!empty($searchProductTypeQuery)) {
-    $productTypeQuery = "SELECT COUNT(*) as count FROM producttypetb WHERE ProductType LIKE '%$searchProductTypeQuery%' OR Description LIKE '%$searchProductTypeQuery%'";
-} else {
-    $productTypeQuery = "SELECT COUNT(*) as count FROM producttypetb";
-}
-
-// Execute the count query
-$productTypeResult = $connect->query($productTypeQuery);
-$productTypeCount = $productTypeResult->fetch_assoc()['count'];
-
-// Fetch product type count
-$productTypeCountQuery = "SELECT COUNT(*) as count FROM producttypetb";
-$productTypeCountResult = $connect->query($productTypeCountQuery);
-$allProductTypeCount = $productTypeCountResult->fetch_assoc()['count'];
 ?>
 
 <!DOCTYPE html>
@@ -189,92 +153,17 @@ $allProductTypeCount = $productTypeCountResult->fetch_assoc()['count'];
                         <input type="text" name="producttype_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full outline-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" placeholder="Search for product type..." value="<?php echo isset($_GET['producttype_search']) ? htmlspecialchars($_GET['producttype_search']) : ''; ?>">
                     </div>
                 </form>
+
+                <!-- Product Type Table -->
                 <div class="tableScrollBar overflow-y-auto max-h-[510px]">
-                    <table class="min-w-full bg-white rounded-lg">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-600 text-sm">
-                                <th class="p-3 text-start">ID</th>
-                                <th class="p-3 text-start">Type</th>
-                                <th class="p-3 text-start hidden sm:table-cell">Description</th>
-                                <th class="p-3 text-start">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-600 text-sm">
-                            <?php if (!empty($productTypes)): ?>
-                                <?php foreach ($productTypes as $productType): ?>
-                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                        <td class="p-3 text-start whitespace-nowrap">
-                                            <div class="flex items-center gap-2 font-medium text-gray-500">
-                                                <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                                <span><?= htmlspecialchars($productType['ProductTypeID']) ?></span>
-                                            </div>
-                                        </td>
-                                        <td class="p-3 text-start">
-                                            <?= htmlspecialchars($productType['ProductType']) ?>
-                                        </td>
-                                        <td class="p-3 text-start hidden sm:table-cell">
-                                            <?= htmlspecialchars($productType['Description']) ?>
-                                        </td>
-                                        <td class="p-3 text-start space-x-1 select-none">
-                                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                                data-producttype-id="<?= htmlspecialchars($productType['ProductTypeID']) ?>"></i>
-                                            <button class="text-red-500">
-                                                <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                                    data-producttype-id="<?= htmlspecialchars($productType['ProductTypeID']) ?>"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="7" class="p-3 text-center text-gray-500 py-52">
-                                        No product types available.
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                    <div id="productTypeResults">
+                        <?php include '../includes/admin_table_components/producttype_results.php'; ?>
+                    </div>
                 </div>
 
                 <!-- Pagination Controls -->
-                <div class="flex justify-center items-center mt-1 <?= (!empty($productTypes) ? 'flex' : 'hidden') ?>">
-                    <?php if ($productTypeCurrentPage > 1) {
-                    ?>
-                        <a href="?producttypepage=<?= $productTypeCurrentPage - 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $producttypepage == $productTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <i class="ri-arrow-left-s-line"></i>
-                        </a>
-                    <?php
-                    } else {
-                    ?>
-                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                            <i class="ri-arrow-left-s-line"></i>
-                        </p>
-                    <?php
-                    }
-                    ?>
-                    <?php for ($producttypepage = 1; $producttypepage <= $totalProductTypePages; $producttypepage++): ?>
-                        <a href="?producttypepage=<?= $producttypepage ?>&producttype_search=<?= htmlspecialchars($searchProductTypeQuery) ?>"
-                            class="px-3 py-1 mx-1 border rounded select-none <?= $producttypepage == $productTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <?= $producttypepage ?>
-                        </a>
-                    <?php endfor; ?>
-                    <!-- Next Btn -->
-                    <?php if ($productTypeCurrentPage < $totalProductTypePages) {
-                    ?>
-                        <a href="?producttypepage=<?= $productTypeCurrentPage + 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $producttypepage == $productTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <i class="ri-arrow-right-s-line"></i>
-                        </a>
-                    <?php
-                    } else {
-                    ?>
-                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                            <i class="ri-arrow-right-s-line"></i>
-                        </p>
-                    <?php
-                    }
-                    ?>
+                <div id="paginationContainer" class="flex justify-between items-center mt-3">
+                    <?php include '../includes/admin_table_components/producttype_pagination.php'; ?>
                 </div>
             </div>
         </div>

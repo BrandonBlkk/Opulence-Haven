@@ -197,13 +197,13 @@ if (isset($_POST['deletefacility'])) {
                 <!-- Facility Table -->
                 <div class="tableScrollBar overflow-y-auto max-h-[510px]">
                     <div id="facilityResults">
-                        <?php include 'facility_results.php'; ?>
+                        <?php include '../includes/admin_table_components/facility_results.php'; ?>
                     </div>
                 </div>
 
                 <!-- Pagination Controls -->
                 <div id="paginationContainer" class="flex justify-between items-center mt-3">
-                    <?php include 'facility_pagination.php'; ?>
+                    <?php include '../includes/admin_table_components/facility_pagination.php'; ?>
                 </div>
             </div>
         </div>
