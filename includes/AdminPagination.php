@@ -144,20 +144,23 @@ $totalProductImageRows = $totalProductImageRowsResult->fetch_assoc()['total'];
 // Calculate the total number of pages
 $totalProductImagePages = ceil($totalProductImageRows / $rowsPerPage);
 
-// Fetch total number of rows for pagination calculation
-$totalContactRowsQuery = "SELECT COUNT(*) as total FROM contacttb";
+// Construct the contact query based on search and status filter
 if ($filterStatus !== 'random' && !empty($searchContactQuery)) {
-    $totalContactRowsQuery = "SELECT COUNT(*) as total FROM contacttb WHERE Status = '$filterStatus' AND (FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%')";
+    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE Status = '$filterStatus' AND (FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%') $dateCondition";
 } elseif ($filterStatus !== 'random') {
-    $totalContactRowsQuery = "SELECT COUNT(*) as total FROM contacttb WHERE Status = '$filterStatus'";
+    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE Status = '$filterStatus' $dateCondition";
 } elseif (!empty($searchContactQuery)) {
-    $totalContactRowsQuery = "SELECT COUNT(*) as total FROM contacttb WHERE FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%'";
+    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%' $dateCondition";
+} else {
+    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE 1 $dateCondition";
 }
-$totalContactRowsResult = $connect->query($totalContactRowsQuery);
-$totalContactRows = $totalContactRowsResult->fetch_assoc()['total'];
+
+// Execute the count query
+$contactResult = $connect->query($contactQuery);
+$contactCount = $contactResult->fetch_assoc()['count'];
 
 // Calculate the total number of pages
-$totalContactPages = ceil($totalContactRows / $rowsPerPage);
+$totalContactPages = ceil($contactCount / $rowsPerPage);
 
 // Construct the supplier count query based on search
 if ($filterSupplierID !== 'random' && !empty($searchSupplierQuery)) {
