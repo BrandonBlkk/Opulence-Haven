@@ -45,6 +45,7 @@ $searchRuleQuery = isset($_GET['rule_search']) ? mysqli_real_escape_string($conn
 $searchFacilityTypeQuery = isset($_GET['facilitytype_search']) ? mysqli_real_escape_string($connect, $_GET['facilitytype_search']) : '';
 $searchFacilityQuery = isset($_GET['facility_search']) ? mysqli_real_escape_string($connect, $_GET['facility_search']) : '';
 $searchBookingQuery = isset($_GET['booking_search']) ? mysqli_real_escape_string($connect, $_GET['booking_search']) : '';
+$searchUserQuery = isset($_GET['user_search']) ? mysqli_real_escape_string($connect, $_GET['user_search']) : '';
 
 $filterRoleID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterStatus = isset($_GET['sort']) ? $_GET['sort'] : 'random';
@@ -259,22 +260,23 @@ $ruleCount = $ruleResult->fetch_assoc()['count'];
 // Calculate the total number of pages
 $totalRulePages = ceil($ruleCount / $rowsPerPage);
 
-// Fetch total number of rows for pagination calculation
-$totalUserRowsQuery = "SELECT COUNT(*) as total FROM usertb";
+// Construct the user count query based on search
 if ($filterMembershipID !== 'random' && !empty($searchUserQuery)) {
-    $totalUserRowsQuery = "SELECT COUNT(*) as total FROM usertb WHERE Membership = '$filterMembershipID' AND (UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%')";
+    $userQuery = "SELECT COUNT(*) as count FROM usertb WHERE Membership = '$filterMembershipID' AND (UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%')";
 } elseif ($filterMembershipID !== 'random') {
-    $totalUserRowsQuery = "SELECT COUNT(*) as total FROM usertb WHERE Membership = '$filterMembershipID'";
+    $userQuery = "SELECT COUNT(*) as count FROM usertb WHERE Membership = '$filterMembershipID'";
 } elseif (!empty($searchUserQuery)) {
-    $totalUserRowsQuery = "SELECT COUNT(*) as total FROM usertb WHERE UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%'";
+    $userQuery = "SELECT COUNT(*) as count FROM usertb WHERE UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%'";
+} else {
+    $userQuery = "SELECT COUNT(*) as count FROM usertb";
 }
 
-
-$totalUserRowsResult = $connect->query($totalUserRowsQuery);
-$totalUserRows = $totalUserRowsResult->fetch_assoc()['total'];
+// Execute the count query
+$userResult = $connect->query($userQuery);
+$userCount = $userResult->fetch_assoc()['count'];
 
 // Calculate the total number of pages
-$totalUserPages = ceil($totalUserRows / $rowsPerPage);
+$totalUserPages = ceil($userCount / $rowsPerPage);
 
 // Fetch total number of rows for pagination calculation
 $totalBookingRowsQuery = "SELECT COUNT(*) as total FROM reservationtb";
