@@ -31,25 +31,6 @@ $productCountQuery = "SELECT COUNT(*) as count FROM producttb";
 $productCountResult = $connect->query($productCountQuery);
 $allProductCount = $productCountResult->fetch_assoc()['count'];
 
-// Initialize search variables for room type
-$searchRoomTypeQuery = isset($_GET['roomtype_search']) ? mysqli_real_escape_string($connect, $_GET['roomtype_search']) : '';
-
-// Construct the room type query based on search
-if (!empty($searchRoomTypeQuery)) {
-    $roomTypeSelect = "SELECT * FROM roomtypetb WHERE RoomType LIKE '%$searchRoomTypeQuery%' OR RoomDescription LIKE '%$searchRoomTypeQuery%' LIMIT $rowsPerPage OFFSET $roomTypeOffset";
-} else {
-    $roomTypeSelect = "SELECT * FROM roomtypetb LIMIT $rowsPerPage OFFSET $roomTypeOffset";
-}
-
-$roomTypeSelectQuery = $connect->query($roomTypeSelect);
-$roomTypes = [];
-
-if (mysqli_num_rows($roomTypeSelectQuery) > 0) {
-    while ($row = $roomTypeSelectQuery->fetch_assoc()) {
-        $roomTypes[] = $row;
-    }
-}
-
 // Construct the roomtype count query based on search
 if (!empty($searchRoomTypeQuery)) {
     $roomTypeQuery = "SELECT COUNT(*) as count FROM roomtypetb WHERE RoomType LIKE '%$searchRoomTypeQuery%' OR RoomDescription LIKE '%$searchRoomTypeQuery%'";

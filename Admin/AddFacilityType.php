@@ -59,7 +59,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
             $response['success'] = true;
             $response['facilitytype'] = $facilitytype;
         } else {
-            $response['success'] = true;
+            $response['success'] = false;
         }
     }
 
