@@ -16,42 +16,6 @@ $role = $adminProfileRow['RoleID'];
 $searchAdminQuery = isset($_GET['acc_search']) ? mysqli_real_escape_string($connect, $_GET['acc_search']) : '';
 $filterRoleID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 
-// Construct the admin query based on search and role filter with LIMIT and OFFSET
-if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {
-    $adminSelect = "SELECT * FROM admintb WHERE RoleID = '$filterRoleID' AND (FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%') LIMIT $rowsPerPage OFFSET $offset";
-} elseif ($filterRoleID !== 'random') {
-    $adminSelect = "SELECT * FROM admintb WHERE RoleID = '$filterRoleID' LIMIT $rowsPerPage OFFSET $offset";
-} elseif (!empty($searchAdminQuery)) {
-    $adminSelect = "SELECT * FROM admintb WHERE FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%' LIMIT $rowsPerPage OFFSET $offset";
-} else {
-    $adminSelect = "SELECT * FROM admintb LIMIT $rowsPerPage OFFSET $offset";
-}
-
-// Execute the query to fetch admins
-$adminSelectQuery = $connect->query($adminSelect);
-$admins = [];
-
-if (mysqli_num_rows($adminSelectQuery) > 0) {
-    while ($row = $adminSelectQuery->fetch_assoc()) {
-        $admins[] = $row;
-    }
-}
-
-// Construct the admin count query based on search and role filter
-if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {
-    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb WHERE RoleID = '$filterRoleID' AND (FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%')";
-} elseif ($filterRoleID !== 'random') {
-    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb WHERE RoleID = '$filterRoleID'";
-} elseif (!empty($searchAdminQuery)) {
-    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb WHERE FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%'";
-} else {
-    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb";
-}
-
-// Execute the count query
-$adminCountResult = $connect->query($adminCountQuery);
-$adminCount = $adminCountResult->fetch_assoc()['count'];
-
 // Fetch all supplier count
 $supplierCountQuery = "SELECT COUNT(*) as count FROM suppliertb";
 $supplierCountResult = $connect->query($supplierCountQuery);

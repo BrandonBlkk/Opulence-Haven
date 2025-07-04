@@ -1,6 +1,6 @@
 <?php
 // Set the number of rows per page
-$rowsPerPage = 1;
+$rowsPerPage = 3;
 
 // Get the current page number from the URL or default to 1
 $currentPage = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -67,20 +67,23 @@ if (!empty($searchFromDate) && !empty($searchToDate)) {
     $dateCondition = " AND ContactDate <= '$searchToDate 23:59:59'";
 }
 
-// Fetch total number of rows for pagination calculation
-$totalRowsQuery = "SELECT COUNT(*) as total FROM admintb";
+// Construct the admin count query based on search and role filter
 if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {
-    $totalRowsQuery = "SELECT COUNT(*) as total FROM admintb WHERE RoleID = '$filterRoleID' AND (FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%')";
+    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb WHERE RoleID = '$filterRoleID' AND (FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%')";
 } elseif ($filterRoleID !== 'random') {
-    $totalRowsQuery = "SELECT COUNT(*) as total FROM admintb WHERE RoleID = '$filterRoleID'";
+    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb WHERE RoleID = '$filterRoleID'";
 } elseif (!empty($searchAdminQuery)) {
-    $totalRowsQuery = "SELECT COUNT(*) as total FROM admintb WHERE FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%'";
+    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb WHERE FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%'";
+} else {
+    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb";
 }
-$totalRowsResult = $connect->query($totalRowsQuery);
-$totalRows = $totalRowsResult->fetch_assoc()['total'];
+
+// Execute the count query
+$adminCountResult = $connect->query($adminCountQuery);
+$adminCount = $adminCountResult->fetch_assoc()['count'];
 
 // Calculate the total number of pages
-$totalPages = ceil($totalRows / $rowsPerPage);
+$totalAdminPages = ceil($adminCount / $rowsPerPage);
 
 // Construct the prooducttype count query based on search
 if (!empty($searchProductTypeQuery)) {
