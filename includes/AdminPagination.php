@@ -40,11 +40,13 @@ $searchSupplierQuery = isset($_GET['supplier_search']) ? mysqli_real_escape_stri
 $searchProductTypeQuery = isset($_GET['producttype_search']) ? mysqli_real_escape_string($connect, $_GET['producttype_search']) : '';
 $searchProductQuery = isset($_GET['product_search']) ? mysqli_real_escape_string($connect, $_GET['product_search']) : '';
 $searchSizeQuery = isset($_GET['size_search']) ? mysqli_real_escape_string($connect, $_GET['size_search']) : '';
+$searchRoomTypeQuery = isset($_GET['roomtype_search']) ? mysqli_real_escape_string($connect, $_GET['roomtype_search']) : '';
 $searchRoomQuery = isset($_GET['room_search']) ? mysqli_real_escape_string($connect, $_GET['room_search']) : '';
 $searchRuleQuery = isset($_GET['rule_search']) ? mysqli_real_escape_string($connect, $_GET['rule_search']) : '';
 $searchFacilityTypeQuery = isset($_GET['facilitytype_search']) ? mysqli_real_escape_string($connect, $_GET['facilitytype_search']) : '';
 $searchFacilityQuery = isset($_GET['facility_search']) ? mysqli_real_escape_string($connect, $_GET['facility_search']) : '';
 $searchBookingQuery = isset($_GET['booking_search']) ? mysqli_real_escape_string($connect, $_GET['booking_search']) : '';
+$searchUserQuery = isset($_GET['user_search']) ? mysqli_real_escape_string($connect, $_GET['user_search']) : '';
 
 $filterRoleID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterStatus = isset($_GET['sort']) ? $_GET['sort'] : 'random';
@@ -66,20 +68,23 @@ if (!empty($searchFromDate) && !empty($searchToDate)) {
     $dateCondition = " AND ContactDate <= '$searchToDate 23:59:59'";
 }
 
-// Fetch total number of rows for pagination calculation
-$totalRowsQuery = "SELECT COUNT(*) as total FROM admintb";
+// Construct the admin count query based on search and role filter
 if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {
-    $totalRowsQuery = "SELECT COUNT(*) as total FROM admintb WHERE RoleID = '$filterRoleID' AND (FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%')";
+    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb WHERE RoleID = '$filterRoleID' AND (FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%')";
 } elseif ($filterRoleID !== 'random') {
-    $totalRowsQuery = "SELECT COUNT(*) as total FROM admintb WHERE RoleID = '$filterRoleID'";
+    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb WHERE RoleID = '$filterRoleID'";
 } elseif (!empty($searchAdminQuery)) {
-    $totalRowsQuery = "SELECT COUNT(*) as total FROM admintb WHERE FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%'";
+    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb WHERE FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%'";
+} else {
+    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb";
 }
-$totalRowsResult = $connect->query($totalRowsQuery);
-$totalRows = $totalRowsResult->fetch_assoc()['total'];
+
+// Execute the count query
+$adminCountResult = $connect->query($adminCountQuery);
+$adminCount = $adminCountResult->fetch_assoc()['count'];
 
 // Calculate the total number of pages
-$totalPages = ceil($totalRows / $rowsPerPage);
+$totalAdminPages = ceil($adminCount / $rowsPerPage);
 
 // Construct the prooducttype count query based on search
 if (!empty($searchProductTypeQuery)) {
@@ -143,20 +148,23 @@ $totalProductImageRows = $totalProductImageRowsResult->fetch_assoc()['total'];
 // Calculate the total number of pages
 $totalProductImagePages = ceil($totalProductImageRows / $rowsPerPage);
 
-// Fetch total number of rows for pagination calculation
-$totalContactRowsQuery = "SELECT COUNT(*) as total FROM contacttb";
+// Construct the contact query based on search and status filter
 if ($filterStatus !== 'random' && !empty($searchContactQuery)) {
-    $totalContactRowsQuery = "SELECT COUNT(*) as total FROM contacttb WHERE Status = '$filterStatus' AND (FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%')";
+    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE Status = '$filterStatus' AND (FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%') $dateCondition";
 } elseif ($filterStatus !== 'random') {
-    $totalContactRowsQuery = "SELECT COUNT(*) as total FROM contacttb WHERE Status = '$filterStatus'";
+    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE Status = '$filterStatus' $dateCondition";
 } elseif (!empty($searchContactQuery)) {
-    $totalContactRowsQuery = "SELECT COUNT(*) as total FROM contacttb WHERE FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%'";
+    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%' $dateCondition";
+} else {
+    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE 1 $dateCondition";
 }
-$totalContactRowsResult = $connect->query($totalContactRowsQuery);
-$totalContactRows = $totalContactRowsResult->fetch_assoc()['total'];
+
+// Execute the count query
+$contactResult = $connect->query($contactQuery);
+$contactCount = $contactResult->fetch_assoc()['count'];
 
 // Calculate the total number of pages
-$totalContactPages = ceil($totalContactRows / $rowsPerPage);
+$totalContactPages = ceil($contactCount / $rowsPerPage);
 
 // Construct the supplier count query based on search
 if ($filterSupplierID !== 'random' && !empty($searchSupplierQuery)) {
@@ -259,22 +267,23 @@ $ruleCount = $ruleResult->fetch_assoc()['count'];
 // Calculate the total number of pages
 $totalRulePages = ceil($ruleCount / $rowsPerPage);
 
-// Fetch total number of rows for pagination calculation
-$totalUserRowsQuery = "SELECT COUNT(*) as total FROM usertb";
+// Construct the user count query based on search
 if ($filterMembershipID !== 'random' && !empty($searchUserQuery)) {
-    $totalUserRowsQuery = "SELECT COUNT(*) as total FROM usertb WHERE Membership = '$filterMembershipID' AND (UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%')";
+    $userQuery = "SELECT COUNT(*) as count FROM usertb WHERE Membership = '$filterMembershipID' AND (UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%')";
 } elseif ($filterMembershipID !== 'random') {
-    $totalUserRowsQuery = "SELECT COUNT(*) as total FROM usertb WHERE Membership = '$filterMembershipID'";
+    $userQuery = "SELECT COUNT(*) as count FROM usertb WHERE Membership = '$filterMembershipID'";
 } elseif (!empty($searchUserQuery)) {
-    $totalUserRowsQuery = "SELECT COUNT(*) as total FROM usertb WHERE UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%'";
+    $userQuery = "SELECT COUNT(*) as count FROM usertb WHERE UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%'";
+} else {
+    $userQuery = "SELECT COUNT(*) as count FROM usertb";
 }
 
-
-$totalUserRowsResult = $connect->query($totalUserRowsQuery);
-$totalUserRows = $totalUserRowsResult->fetch_assoc()['total'];
+// Execute the count query
+$userResult = $connect->query($userQuery);
+$userCount = $userResult->fetch_assoc()['count'];
 
 // Calculate the total number of pages
-$totalUserPages = ceil($totalUserRows / $rowsPerPage);
+$totalUserPages = ceil($userCount / $rowsPerPage);
 
 // Fetch total number of rows for pagination calculation
 $totalBookingRowsQuery = "SELECT COUNT(*) as total FROM reservationtb";

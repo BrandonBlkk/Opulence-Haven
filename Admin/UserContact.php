@@ -100,7 +100,7 @@ if (isset($_POST['respondcontact'])) {
                             </label>
                             <!-- Search and filter form -->
                             <form method="GET" class="flex flex-col md:flex-row items-center gap-4 mb-4">
-                                <select name="sort" id="sort" class="border p-2 rounded text-sm" onchange="this.form.submit()">
+                                <select name="sort" id="sort" class="border p-2 rounded text-sm outline-none">
                                     <option value="random" <?= ($filterStatus === 'random') ? 'selected' : ''; ?>>All Status</option>
                                     <option value="pending" <?= ($filterStatus === 'pending') ? 'selected' : ''; ?>>Pending</option>
                                     <option value="responded" <?= ($filterStatus === 'responded') ? 'selected' : ''; ?>>Responded</option>
@@ -110,123 +110,17 @@ if (isset($_POST['respondcontact'])) {
                         </div>
                     </div>
                 </form>
+
+                <!-- Contact Table -->
                 <div class="tableScrollBar overflow-y-auto max-h-[510px]">
-                    <table class="min-w-full bg-white rounded-lg">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-600 text-sm">
-                                <th class="p-3 text-start">No</th>
-                                <th class="p-3 text-start hidden sm:table-cell">UserID</th>
-                                <th class="p-3 text-start">User</th>
-                                <th class="p-3 text-start hidden xl:table-cell">Phone</th>
-                                <th class="p-3 text-start hidden xl:table-cell">Country</th>
-                                <th class="p-3 text-start hidden lg:table-cell">Message</th>
-                                <th class=" p-3 text-start hidden md:table-cell">Status</th>
-                                <th class="p-3 text-start hidden xl:table-cell">Date</th>
-                                <th class="p-3 text-start">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-600 text-sm">
-                            <?php if (!empty($contacts)): ?>
-                                <?php
-                                $count = 1;
-                                ?>
-                                <?php foreach ($contacts as $contact): ?>
-                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                        <td class="p-3 text-start whitespace-nowrap">
-                                            <div class="flex items-center gap-2 font-medium text-gray-500">
-                                                <span><?= htmlspecialchars($count) ?></span>
-                                            </div>
-                                        </td>
-                                        <td class="p-3 text-start whitespace-nowrap hidden sm:table-cell">
-                                            <span><?= htmlspecialchars($contact['UserID']) ?></span>
-                                        </td>
-                                        <td class="p-3 text-start flex items-center gap-2">
-                                            <div id="profilePreview" class="w-10 h-10 object-cover rounded-full bg-[<?php echo $contact['ProfileBgColor'] ?>] text-white select-none">
-                                                <p class="w-full h-full flex items-center justify-center font-semibold"><?php echo strtoupper(substr($contact['UserName'], 0, 1)); ?></p>
-                                            </div>
-                                            <div>
-                                                <p class="font-bold"><?= htmlspecialchars($contact['FullName']) ?></p>
-                                                <p><?= htmlspecialchars($contact['UserEmail']) ?></p>
-                                            </div>
-                                        </td>
-                                        <td class="p-3 text-start hidden xl:table-cell">
-                                            <p><?= htmlspecialchars($contact['UserPhone']) ?></p>
-                                        </td>
-                                        <td class="p-3 text-start space-x-1 select-none hidden xl:table-cell">
-                                            <p><?= htmlspecialchars($contact['Country']) ?></p>
-                                        </td>
-                                        <td class="p-3 text-start space-x-1 hidden lg:table-cell"">
-                                        <p>
-                                            <?= htmlspecialchars(mb_strimwidth($contact['ContactMessage'], 0, 50, '...')) ?>
-                                        </p>
-                                    </td>
-                                    <td class=" p-3 text-start space-x-1 select-none hidden md:table-cell">
-                                            <span class="p-1 rounded-md <?= $contact['Status'] === 'responded' ? 'bg-green-100' : 'bg-red-100' ?>">
-                                                <?= htmlspecialchars($contact['Status']) ?>
-                                            </span>
-                                        </td>
-                                        <td class="p-3 text-start space-x-1 hidden xl:table-cell">
-                                            <p><?= htmlspecialchars(date('d M Y', strtotime($contact['ContactDate']))) ?></p>
-                                        </td>
-                                        <td class="p-3 text-start space-x-1 select-none">
-                                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                                data-contact-id="<?= htmlspecialchars($contact['ContactID']) ?>">
-                                            </i>
-                                        </td>
-                                    </tr>
-                                    <?php $count++; ?>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="9" class="p-3 text-center text-gray-500 py-52">
-                                        No contacts available.
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                    <div id="contactResults">
+                        <?php include '../includes/admin_table_components/contact_results.php'; ?>
+                    </div>
                 </div>
 
                 <!-- Pagination Controls -->
-                <div class="flex justify-center items-center mt-1 <?= (!empty($contacts) ? 'flex' : 'hidden') ?>">
-                    <!-- Previous Btn -->
-                    <?php if ($contactCurrentPage > 1) {
-                    ?>
-                        <a href="?contactpage=<?= $contactCurrentPage - 1 ?>&sort=<?= htmlspecialchars($filterStatus) ?>&contact_search=<?= htmlspecialchars($searchContactQuery) ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $contactpage == $contactCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <i class="ri-arrow-left-s-line"></i>
-                        </a>
-                    <?php
-                    } else {
-                    ?>
-                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                            <i class="ri-arrow-left-s-line"></i>
-                        </p>
-                    <?php
-                    }
-                    ?>
-                    <?php for ($contactpage = 1; $contactpage <= $totalContactPages; $contactpage++): ?>
-                        <a href="?contactpage=<?= $contactpage ?>&sort=<?= htmlspecialchars($filterStatus) ?>&contact_search=<?= htmlspecialchars($searchContactQuery) ?>"
-                            class="px-3 py-1 mx-1 border rounded select-none <?= $contactpage == $contactCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <?= $contactpage ?>
-                        </a>
-                    <?php endfor; ?>
-                    <!-- Next Btn -->
-                    <?php if ($contactCurrentPage < $totalContactPages) {
-                    ?>
-                        <a href="?contactpage=<?= $contactCurrentPage + 1 ?>&sort=<?= htmlspecialchars($filterStatus) ?>&contact_search=<?= htmlspecialchars($searchContactQuery) ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $contactpage == $contactCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <i class="ri-arrow-right-s-line"></i>
-                        </a>
-                    <?php
-                    } else {
-                    ?>
-                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                            <i class="ri-arrow-right-s-line"></i>
-                        </p>
-                    <?php
-                    }
-                    ?>
+                <div id="paginationContainer" class="flex justify-between items-center mt-3">
+                    <?php include '../includes/admin_table_components/contact_pagination.php'; ?>
                 </div>
             </div>
         </div>

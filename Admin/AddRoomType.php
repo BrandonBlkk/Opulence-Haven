@@ -12,6 +12,7 @@ $addRoomTypeSuccess = false;
 $updateRoomTypeSuccess = false;
 $deleteRoomTypeSuccess = false;
 $roomTypeID = AutoID('roomtypetb', 'RoomTypeID', 'RT-', 6);
+$response = ['success' => false, 'message' => '', 'generatedId' => $roomTypeID];
 
 // Add Room Type
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addroomtype'])) {
@@ -37,7 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addroomtype'])) {
     $count = $connect->query($checkQuery)->num_rows;
 
     if ($count > 0) {
-        $alertMessage = 'Room type you added is already existed.';
+        $response['message'] = 'Room type you added is already existed.';
     } else {
         $RoomTypeQuery = "INSERT INTO roomtypetb (RoomTypeID, RoomCoverImage, RoomType, RoomDescription, RoomCapacity, RoomPrice, RoomQuantity)
         VALUES ('$roomTypeID', '$fileName', '$roomtype', '$description', '$roomcapacity', '$roomprice', '$roomquantity')";
@@ -70,11 +71,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addroomtype'])) {
                 }
             }
 
-            $addRoomTypeSuccess = true;
+            $response['success'] = true;
+            $response['message'] = "A new room type has been successfully added.";
         } else {
-            $alertMessage = "Failed to add room type. Please try again.";
+            $response['message'] = "Failed to add room type. Please try again.";
         }
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Get Room Type Details
@@ -88,14 +94,18 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         default => null
     };
     if ($query) {
-        $result = $connect->query($query)->fetch_assoc();
+        $roomtype = $connect->query($query)->fetch_assoc();
 
-        if ($result) {
-            echo json_encode(['success' => true, 'roomtype' => $result]);
+        if ($roomtype) {
+            $response['success'] = true;
+            $response['roomtype'] = $roomtype;
         } else {
-            echo json_encode(['success' => false]);
+            $response['success'] = false;
         }
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
     exit;
 }
 
@@ -111,10 +121,15 @@ if (isset($_POST['editroomtype'])) {
     WHERE RoomTypeID = '$roomTypeId'";
 
     if ($connect->query($updateQuery)) {
-        $updateRoomTypeSuccess = true;
+        $response['success'] = true;
+        $response['message'] = 'The room type has been successfully updated.';
     } else {
-        $alertMessage = "Failed to update room type. Please try again.";
+        $response['message'] = "Failed to update room type. Please try again.";
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Delete Product Type
@@ -125,10 +140,15 @@ if (isset($_POST['deleteroomtype'])) {
     $deleteQuery = "DELETE FROM roomtypetb WHERE RoomTypeID = '$roomTypeId'";
 
     if ($connect->query($deleteQuery)) {
-        $deleteRoomTypeSuccess = true;
+        $response['success'] = true;
+        $response['generatedId'] = $roomTypeId;
     } else {
-        $alertMessage = "Failed to delete room type. Please try again.";
+        $response['message'] = "Failed to delete room type. Please try again.";
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 ?>
 
@@ -170,215 +190,17 @@ if (isset($_POST['deleteroomtype'])) {
                         <input type="text" name="roomtype_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full outline-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" placeholder="Search for room type..." value="<?php echo isset($_GET['roomtype_search']) ? htmlspecialchars($_GET['roomtype_search']) : ''; ?>">
                     </div>
                 </form>
+
+                <!-- Room Type Table -->
                 <div class="tableScrollBar overflow-y-auto max-h-[510px]">
-                    <table class="min-w-full bg-white rounded-lg">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-600 text-sm">
-                                <th class="p-3 text-start">ID</th>
-                                <th class="p-3 text-start">Cover Image</th>
-                                <th class="p-3 text-start">Type</th>
-                                <th class="p-3 text-start hidden sm:table-cell">Description</th>
-                                <th class="p-3 text-start hidden sm:table-cell">Capacity</th>
-                                <th class="p-3 text-start">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-600 text-sm">
-                            <?php if (!empty($roomTypes)): ?>
-                                <?php foreach ($roomTypes as $roomType): ?>
-                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                        <td class="p-3 text-start whitespace-nowrap">
-                                            <div class="flex items-center gap-2 font-medium text-gray-500">
-                                                <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                                <span><?= htmlspecialchars($roomType['RoomTypeID']) ?></span>
-                                            </div>
-                                        </td>
-                                        <td class="p-3 text-start select-none">
-                                            <img src="<?= htmlspecialchars($roomType['RoomCoverImage']) ?>" alt="Product Image" class="w-12 h-12 object-cover rounded-sm">
-                                        </td>
-                                        <td class="p-3 text-start">
-                                            <?= htmlspecialchars($roomType['RoomType']) ?>
-                                        </td>
-                                        <td class="p-3 text-start hidden sm:table-cell">
-                                            <?= htmlspecialchars($roomType['RoomDescription']) ?>
-                                        </td>
-                                        <td class="p-3 text-start hidden sm:table-cell">
-                                            <?= htmlspecialchars($roomType['RoomCapacity']) ?>
-                                        </td>
-                                        <td class="p-3 text-start space-x-1 select-none">
-                                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                                data-roomtype-id="<?= htmlspecialchars($roomType['RoomTypeID']) ?>"></i>
-                                            <button class="text-red-500">
-                                                <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                                    data-roomtype-id="<?= htmlspecialchars($roomType['RoomTypeID']) ?>"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="7" class="p-3 text-center text-gray-500 py-52">
-                                        No room types available.
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Add these to your head section -->
-                <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
-
-                <!-- After your table, add this modal -->
-                <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden items-center justify-center p-4">
-                    <div class="relative w-full max-w-4xl">
-                        <!-- Close button -->
-                        <button id="closeModal" class="absolute top-0 right-0 m-4 text-white text-3xl z-50"></button>
-
-                        <!-- Swiper container -->
-                        <div class="swiper-container">
-                            <div class="swiper-wrapper">
-                                <!-- Slides will be added dynamically via JavaScript -->
-                            </div>
-                            <!-- Add navigation buttons -->
-                            <div class="swiper-button-next text-white"></div>
-                            <div class="swiper-button-prev text-white"></div>
-                            <!-- Add pagination -->
-                            <div class="swiper-pagination"></div>
-                        </div>
+                    <div id="roomTypeResults">
+                        <?php include '../includes/admin_table_components/roomtype_results.php'; ?>
                     </div>
                 </div>
 
-                <!-- Add this script at the end of your body -->
-                <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-                <script>
-                    document.addEventListener('DOMContentLoaded', function() {
-                        // Initialize modal elements
-                        const modal = document.getElementById('imageModal');
-                        const closeBtn = document.getElementById('closeModal');
-                        const swiperWrapper = document.querySelector('.swiper-wrapper');
-
-                        // Get all table images
-                        const tableImages = document.querySelectorAll('tbody img[alt="Product Image"]');
-
-                        // Create a Swiper instance (will be initialized properly when modal opens)
-                        let swiper;
-
-                        // Add click event to each image
-                        tableImages.forEach(img => {
-                            img.style.cursor = 'pointer'; // Make it obvious it's clickable
-                            img.addEventListener('click', function() {
-                                // Get all images for this room type (assuming you might have multiple)
-                                const roomTypeId = this.closest('tr').querySelector('.details-btn').getAttribute('data-roomtype-id');
-
-                                // In a real app, you might fetch additional images from the server
-                                // For this example, we'll just use the cover image
-                                const images = [this.src];
-
-                                // Clear previous slides
-                                swiperWrapper.innerHTML = '';
-
-                                // Add new slides
-                                images.forEach(imageUrl => {
-                                    const slide = document.createElement('div');
-                                    slide.className = 'swiper-slide';
-                                    slide.innerHTML = `<img src="${imageUrl}" class="w-full h-full object-contain" alt="Room Image">`;
-                                    swiperWrapper.appendChild(slide);
-                                });
-
-                                // Initialize or update Swiper
-                                if (swiper) {
-                                    swiper.update();
-                                } else {
-                                    swiper = new Swiper('.swiper-container', {
-                                        loop: true,
-                                        pagination: {
-                                            el: '.swiper-pagination',
-                                            clickable: true,
-                                        },
-                                        navigation: {
-                                            nextEl: '.swiper-button-next',
-                                            prevEl: '.swiper-button-prev',
-                                        },
-                                    });
-                                }
-
-                                // Show modal
-                                modal.classList.remove('hidden');
-                                document.body.style.overflow = 'hidden';
-                            });
-                        });
-
-                        // Close modal
-                        closeBtn.addEventListener('click', function() {
-                            modal.classList.add('hidden');
-                            document.body.style.overflow = 'auto';
-                        });
-
-                        // Close when clicking outside content
-                        modal.addEventListener('click', function(e) {
-                            if (e.target === modal) {
-                                modal.classList.add('hidden');
-                                document.body.style.overflow = 'auto';
-                            }
-                        });
-                    });
-                </script>
-
-                <style>
-                    /* Custom styles for the swiper in modal */
-                    .swiper-container {
-                        width: 100%;
-                        height: 80vh;
-                    }
-
-                    .swiper-slide img {
-                        max-height: 100%;
-                        max-width: 100%;
-                        margin: 0 auto;
-                        display: block;
-                    }
-                </style>
-
                 <!-- Pagination Controls -->
-                <div class="flex justify-center items-center mt-1 <?= (!empty($roomTypes) ? 'flex' : 'hidden') ?>">
-                    <!-- Previous Btn -->
-                    <?php if ($roomTypeCurrentPage > 1) {
-                    ?>
-                        <a href="?roomtypepage=<?= $roomTypeCurrentPage - 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $roomtypepage == $roomTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <i class="ri-arrow-left-s-line"></i>
-                        </a>
-                    <?php
-                    } else {
-                    ?>
-                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                            <i class="ri-arrow-left-s-line"></i>
-                        </p>
-                    <?php
-                    }
-                    ?>
-                    <?php for ($roomtypepage = 1; $roomtypepage <= $totalRoomTypePages; $roomtypepage++): ?>
-                        <a href="?roomtypepage=<?= $roomtypepage ?>&roomtype_search=<?= htmlspecialchars($searchRoomTypeQuery) ?>"
-                            class="px-3 py-1 mx-1 border rounded select-none <?= $roomtypepage == $roomTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <?= $roomtypepage ?>
-                        </a>
-                    <?php endfor; ?>
-                    <!-- Next Btn -->
-                    <?php if ($roomTypeCurrentPage < $totalRoomTypePages) {
-                    ?>
-                        <a href="?roomtypepage=<?= $roomTypeCurrentPage + 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $roomtypepage == $roomTypeCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <i class="ri-arrow-right-s-line"></i>
-                        </a>
-                    <?php
-                    } else {
-                    ?>
-                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                            <i class="ri-arrow-right-s-line"></i>
-                        </p>
-                    <?php
-                    }
-                    ?>
+                <div id="paginationContainer" class="flex justify-between items-center mt-3">
+                    <?php include '../includes/admin_table_components/roomtype_pagination.php'; ?>
                 </div>
             </div>
         </div>

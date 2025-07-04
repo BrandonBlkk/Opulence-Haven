@@ -16,42 +16,6 @@ $role = $adminProfileRow['RoleID'];
 $searchAdminQuery = isset($_GET['acc_search']) ? mysqli_real_escape_string($connect, $_GET['acc_search']) : '';
 $filterRoleID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 
-// Construct the admin query based on search and role filter with LIMIT and OFFSET
-if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {
-    $adminSelect = "SELECT * FROM admintb WHERE RoleID = '$filterRoleID' AND (FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%') LIMIT $rowsPerPage OFFSET $offset";
-} elseif ($filterRoleID !== 'random') {
-    $adminSelect = "SELECT * FROM admintb WHERE RoleID = '$filterRoleID' LIMIT $rowsPerPage OFFSET $offset";
-} elseif (!empty($searchAdminQuery)) {
-    $adminSelect = "SELECT * FROM admintb WHERE FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%' LIMIT $rowsPerPage OFFSET $offset";
-} else {
-    $adminSelect = "SELECT * FROM admintb LIMIT $rowsPerPage OFFSET $offset";
-}
-
-// Execute the query to fetch admins
-$adminSelectQuery = $connect->query($adminSelect);
-$admins = [];
-
-if (mysqli_num_rows($adminSelectQuery) > 0) {
-    while ($row = $adminSelectQuery->fetch_assoc()) {
-        $admins[] = $row;
-    }
-}
-
-// Construct the admin count query based on search and role filter
-if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {
-    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb WHERE RoleID = '$filterRoleID' AND (FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%')";
-} elseif ($filterRoleID !== 'random') {
-    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb WHERE RoleID = '$filterRoleID'";
-} elseif (!empty($searchAdminQuery)) {
-    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb WHERE FirstName LIKE '%$searchAdminQuery%' OR LastName LIKE '%$searchAdminQuery%' OR UserName LIKE '%$searchAdminQuery%' OR AdminEmail LIKE '%$searchAdminQuery%'";
-} else {
-    $adminCountQuery = "SELECT COUNT(*) as count FROM admintb";
-}
-
-// Execute the count query
-$adminCountResult = $connect->query($adminCountQuery);
-$adminCount = $adminCountResult->fetch_assoc()['count'];
-
 // Fetch all supplier count
 $supplierCountQuery = "SELECT COUNT(*) as count FROM suppliertb";
 $supplierCountResult = $connect->query($supplierCountQuery);
@@ -66,25 +30,6 @@ $allProductTypeCount = $productTypeCountResult->fetch_assoc()['count'];
 $productCountQuery = "SELECT COUNT(*) as count FROM producttb";
 $productCountResult = $connect->query($productCountQuery);
 $allProductCount = $productCountResult->fetch_assoc()['count'];
-
-// Initialize search variables for room type
-$searchRoomTypeQuery = isset($_GET['roomtype_search']) ? mysqli_real_escape_string($connect, $_GET['roomtype_search']) : '';
-
-// Construct the room type query based on search
-if (!empty($searchRoomTypeQuery)) {
-    $roomTypeSelect = "SELECT * FROM roomtypetb WHERE RoomType LIKE '%$searchRoomTypeQuery%' OR RoomDescription LIKE '%$searchRoomTypeQuery%' LIMIT $rowsPerPage OFFSET $roomTypeOffset";
-} else {
-    $roomTypeSelect = "SELECT * FROM roomtypetb LIMIT $rowsPerPage OFFSET $roomTypeOffset";
-}
-
-$roomTypeSelectQuery = $connect->query($roomTypeSelect);
-$roomTypes = [];
-
-if (mysqli_num_rows($roomTypeSelectQuery) > 0) {
-    while ($row = $roomTypeSelectQuery->fetch_assoc()) {
-        $roomTypes[] = $row;
-    }
-}
 
 // Construct the roomtype count query based on search
 if (!empty($searchRoomTypeQuery)) {
@@ -141,70 +86,6 @@ if (!empty($searchFromDate) && !empty($searchToDate)) {
 } elseif (!empty($searchToDate)) {
     $dateCondition = " AND ContactDate <= '$searchToDate 23:59:59'";
 }
-
-// Construct the contact query based on search and status filter
-if ($filterStatus !== 'random' && !empty($searchContactQuery)) {
-    $contactSelect = "SELECT c.*, u.ProfileBgColor, u.UserName
-                      FROM contacttb c 
-                      LEFT JOIN usertb u ON c.UserID = u.UserID 
-                      WHERE c.Status = '$filterStatus' 
-                      AND (c.FullName LIKE '%$searchContactQuery%' 
-                           OR c.UserEmail LIKE '%$searchContactQuery%' 
-                           OR c.Country LIKE '%$searchContactQuery%') 
-                      $dateCondition 
-                      ORDER BY c.ContactID DESC 
-                      LIMIT $rowsPerPage OFFSET $contactOffset";
-} elseif ($filterStatus !== 'random') {
-    $contactSelect = "SELECT c.*, u.ProfileBgColor, u.UserName
-                      FROM contacttb c 
-                      LEFT JOIN usertb u ON c.UserID = u.UserID 
-                      WHERE c.Status = '$filterStatus' 
-                      $dateCondition 
-                      ORDER BY c.ContactID DESC 
-                      LIMIT $rowsPerPage OFFSET $contactOffset";
-} elseif (!empty($searchContactQuery)) {
-    $contactSelect = "SELECT c.*, u.ProfileBgColor, u.UserName
-                      FROM contacttb c 
-                      LEFT JOIN usertb u ON c.UserID = u.UserID 
-                      WHERE (c.FullName LIKE '%$searchContactQuery%' 
-                             OR c.UserEmail LIKE '%$searchContactQuery%' 
-                             OR c.Country LIKE '%$searchContactQuery%') 
-                      $dateCondition 
-                      ORDER BY c.ContactID DESC 
-                      LIMIT $rowsPerPage OFFSET $contactOffset";
-} else {
-    $contactSelect = "SELECT c.*, u.ProfileBgColor, u.UserName
-                      FROM contacttb c 
-                      LEFT JOIN usertb u ON c.UserID = u.UserID 
-                      WHERE 1 
-                      $dateCondition 
-                      ORDER BY c.ContactID DESC 
-                      LIMIT $rowsPerPage OFFSET $contactOffset";
-}
-
-$contactSelectQuery = $connect->query($contactSelect);
-$contacts = [];
-
-if (mysqli_num_rows($contactSelectQuery) > 0) {
-    while ($row = $contactSelectQuery->fetch_assoc()) {
-        $contacts[] = $row;
-    }
-}
-
-// Construct the contact query based on search and status filter
-if ($filterStatus !== 'random' && !empty($searchContactQuery)) {
-    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE Status = '$filterStatus' AND (FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%') $dateCondition";
-} elseif ($filterStatus !== 'random') {
-    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE Status = '$filterStatus' $dateCondition";
-} elseif (!empty($searchContactQuery)) {
-    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE FullName LIKE '%$searchContactQuery%' OR UserEmail LIKE '%$searchContactQuery%' OR Country LIKE '%$searchContactQuery%' $dateCondition";
-} else {
-    $contactQuery = "SELECT COUNT(*) as count FROM contacttb WHERE 1 $dateCondition";
-}
-
-// Execute the count query
-$contactResult = $connect->query($contactQuery);
-$contactCount = $contactResult->fetch_assoc()['count'];
 
 // Fetch contact count
 $contactCountQuery = "SELECT COUNT(*) as count FROM contacttb WHERE Status = 'pending'";

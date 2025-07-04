@@ -6,45 +6,6 @@ include('../includes/AdminPagination.php');
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
-
-// Initialize search variables for user
-$searchUserQuery = isset($_GET['user_search']) ? mysqli_real_escape_string($connect, $_GET['user_search']) : '';
-$filterMembershipID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
-
-// Construct the user query based on search
-if ($filterMembershipID !== 'random' && !empty($searchUserQuery)) {
-    $userSelect = "SELECT * FROM usertb WHERE Membership = '$filterMembershipID' AND (UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%') LIMIT $rowsPerPage OFFSET $userOffset";
-} elseif ($filterMembershipID !== 'random') {
-    $userSelect = "SELECT * FROM usertb WHERE Membership = '$filterMembershipID' LIMIT $rowsPerPage OFFSET $userOffset";
-} elseif (!empty($searchUserQuery)) {
-    $userSelect = "SELECT * FROM usertb WHERE UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%' LIMIT $rowsPerPage OFFSET $userOffset";
-} else {
-    $userSelect = "SELECT * FROM usertb LIMIT $rowsPerPage OFFSET $userOffset";
-}
-
-$userSelectQuery = $connect->query($userSelect);
-$users = [];
-
-if (mysqli_num_rows($userSelectQuery) > 0) {
-    while ($row = $userSelectQuery->fetch_assoc()) {
-        $users[] = $row;
-    }
-}
-
-// Construct the user count query based on search
-if ($filterMembershipID !== 'random' && !empty($searchUserQuery)) {
-    $userQuery = "SELECT COUNT(*) as count FROM usertb WHERE Membership = '$filterMembershipID' AND (UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%')";
-} elseif ($filterMembershipID !== 'random') {
-    $userQuery = "SELECT COUNT(*) as count FROM usertb WHERE Membership = '$filterMembershipID'";
-} elseif (!empty($searchUserQuery)) {
-    $userQuery = "SELECT COUNT(*) as count FROM usertb WHERE UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%'";
-} else {
-    $userQuery = "SELECT COUNT(*) as count FROM usertb";
-}
-
-// Execute the count query
-$userResult = $connect->query($userQuery);
-$userCount = $userResult->fetch_assoc()['count'];
 ?>
 
 <!DOCTYPE html>
@@ -79,7 +40,7 @@ $userCount = $userResult->fetch_assoc()['count'];
                 <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
                     <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Users <span class="text-gray-400 text-sm ml-2"><?php echo $userCount ?></span></h1>
                     <div class="flex flex-col sm:flex-row items-start sm:items-center w-full gap-2 sm:gap-0">
-                        <input type="text" name="user_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full"
+                        <input type="text" name="user_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full outline-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             placeholder="Search for user account..."
                             value="<?php echo isset($_GET['user_search']) ? htmlspecialchars($_GET['user_search']) : ''; ?>">
 
@@ -90,7 +51,7 @@ $userCount = $userResult->fetch_assoc()['count'];
                             </label>
 
                             <!-- Removed the nested form and moved the select here -->
-                            <select name="sort" id="sort" class="border p-2 rounded text-sm" onchange="this.form.submit()">
+                            <select name="sort" id="sort" class="border p-2 rounded text-sm outline-none">
                                 <option value="random" <?= ($filterMembershipID === 'random') ? 'selected' : '' ?>>All Users</option>
                                 <option value='1' <?= ($filterMembershipID === '1') ? 'selected' : '' ?>>Member</option>
                                 <option value="0" <?= ($filterMembershipID === '0') ? 'selected' : '' ?>>Standard</option>
@@ -103,120 +64,17 @@ $userCount = $userResult->fetch_assoc()['count'];
                         <?php endif; ?>
                     </div>
                 </form>
+
+                <!-- User Table -->
                 <div class="tableScrollBar overflow-y-auto max-h-[510px]">
-                    <table class="min-w-full bg-white rounded-lg">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-600 text-sm">
-                                <th class="p-3 text-start">User</th>
-                                <th class="p-3 text-start hidden md:table-cell">Phone</th>
-                                <th class="p-3 text-start hidden lg:table-cell">Membership</th>
-                                <th class="p-3 text-start text-nowrap hidden xl:table-cell">Last Check Out</th>
-                                <th class="p-3 text-start text-nowrap hidden xl:table-cell">Last Sign In</th>
-                                <th class="p-3 text-start">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-600 text-sm">
-                            <?php if (!empty($users)): ?>
-                                <?php foreach ($users as $user):
-                                    // Extract initials from the UserName
-                                    $nameParts = explode(' ', trim($user['UserName'])); // Split the name by spaces
-                                    $initials = substr($nameParts[0], 0, 1); // First letter of the first name
-                                    if (count($nameParts) > 1) {
-                                        $initials .= substr(end($nameParts), 0, 1); // First letter of the last name
-                                    }
-
-                                    $bgColor = $user['ProfileBgColor'];
-                                ?>
-                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                        <td class="p-3 text-start flex items-center gap-2 group">
-                                            <p
-                                                class="w-10 h-10 rounded-full bg-[<?= $bgColor ?>] text-white uppercase font-semibold flex items-center justify-center select-none">
-                                                <?= $initials ?>
-                                            </p>
-                                            <div>
-                                                <p class="font-bold"><?= htmlspecialchars($user['UserName']) ?></p>
-                                                <p><?= htmlspecialchars($user['UserEmail']) ?></p>
-                                            </div>
-
-                                            <a class="opacity-0 group-hover:opacity-100 transition-all duration-200" href="mailto:<?= htmlspecialchars($user['UserEmail']) ?>"><i class="ri-mail-fill text-lg"></i></a>
-                                        </td>
-                                        <td class="p-3 text-start hidden md:table-cell">
-                                            <?= htmlspecialchars($user['UserPhone']) ? htmlspecialchars($user['UserPhone']) : 'N/A' ?>
-                                        </td>
-                                        <td class="p-3 text-start space-x-1 select-none hidden lg:table-cell">
-                                            <?php if ($user['Membership'] == '1'): ?>
-                                                <span><i class="ri-vip-crown-line text-yellow-500"></i> VIP Email</span>
-                                            <?php else: ?>
-                                                <span><i class="ri-mail-line text-gray-500"></i> Standard Email</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td class="p-3 text-start hidden md:table-cell">
-                                            <?= htmlspecialchars(date('d M Y', strtotime($user['LastSignIn']))) ?>
-                                        </td>
-                                        <td class="p-3 text-start hidden md:table-cell">
-                                            <?= htmlspecialchars(date('d M Y', strtotime($user['LastSignIn']))) ?>
-                                        </td>
-                                        <td class="p-3 text-start space-x-1 select-none">
-                                            <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                                                data-user-id="<?= htmlspecialchars($user['UserID']) ?>"></i>
-                                            <button class=" text-red-500">
-                                                <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                                    data-user-id="<?= htmlspecialchars($user['UserID']) ?>"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="7" class="p-3 text-center text-gray-500 py-52">
-                                        No users available.
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                    <div id="userResults">
+                        <?php include '../includes/admin_table_components/userdetails_results.php'; ?>
+                    </div>
                 </div>
 
                 <!-- Pagination Controls -->
-                <div class="flex justify-center items-center mt-1 <?= (!empty($users) ? 'flex' : 'hidden') ?>">
-                    <!-- Previous Btn -->
-                    <?php if ($userCurrentPage > 1) {
-                    ?>
-                        <a href="?userpage=<?= $userCurrentPage - 1 ?>&user_search=<?= htmlspecialchars($searchUserQuery) ?>&sort=<?= htmlspecialchars($filterMembershipID) ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $userpage == $userCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <i class="ri-arrow-left-s-line"></i>
-                        </a>
-                    <?php
-                    } else {
-                    ?>
-                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                            <i class="ri-arrow-left-s-line"></i>
-                        </p>
-                    <?php
-                    }
-                    ?>
-                    <?php for ($userpage = 1; $userpage <= $totalUserPages; $userpage++): ?>
-                        <a href="?userpage=<?= $userpage ?>&user_search=<?= htmlspecialchars($searchUserQuery) ?>&sort=<?= htmlspecialchars($filterMembershipID) ?>"
-                            class="px-3 py-1 mx-1 border rounded select-none <?= $userpage == $userCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <?= $userpage ?>
-                        </a>
-                    <?php endfor; ?>
-                    <!-- Next Btn -->
-                    <?php if ($userCurrentPage < $totalUserPages) {
-                    ?>
-                        <a href="?userpage=<?= $userCurrentPage + 1 ?>&user_search=<?= htmlspecialchars($searchUserQuery) ?>&sort=<?= htmlspecialchars($filterMembershipID) ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $userpage == $userCurrentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <i class="ri-arrow-right-s-line"></i>
-                        </a>
-                    <?php
-                    } else {
-                    ?>
-                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                            <i class="ri-arrow-right-s-line"></i>
-                        </p>
-                    <?php
-                    }
-                    ?>
+                <div id="paginationContainer" class="flex justify-between items-center mt-3">
+                    <?php include '../includes/admin_table_components/userdetails_pagination.php'; ?>
                 </div>
             </div>
         </div>

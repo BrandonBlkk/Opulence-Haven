@@ -105,7 +105,7 @@ if (isset($_POST['deleteadmin'])) {
                             </label>
                             <!-- Search and filter form -->
                             <form method="GET" class="flex flex-col md:flex-row items-center gap-4 mb-4">
-                                <select name="sort" id="sort" class="border p-2 rounded text-sm" onchange="this.form.submit()">
+                                <select name="sort" id="sort" class="border p-2 rounded text-sm outline-none">
                                     <option value="random">All Roles</option>
                                     <?php
                                     $select = "SELECT * FROM roletb";
@@ -130,149 +130,18 @@ if (isset($_POST['deleteadmin'])) {
                         </div>
                     </div>
                 </form>
-                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
-                    <table class="min-w-full bg-white rounded-lg">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-600 text-sm">
-                                <th class="p-3 text-start">ID</th>
-                                <th class="p-3 text-start">Admin</th>
-                                <th class="p-3 text-start hidden md:table-cell">Role</th>
-                                <th class="p-3 text-start hidden lg:table-cell">Status</th>
-                                <th class="p-3 text-start text-nowrap hidden xl:table-cell">Reset Password</th>
-                                <th class="p-3 text-start">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-600 text-sm">
-                            <?php if (!empty($admins)): ?>
-                                <?php foreach ($admins as $admin): ?>
-                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                        <td class="p-3 text-start whitespace-nowrap">
-                                            <div class="flex items-center gap-2 font-medium text-gray-500">
-                                                <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                                                <span><?= htmlspecialchars($admin['AdminID']) ?></span>
-                                            </div>
-                                        </td>
-                                        <td class="p-3 text-start flex items-center gap-2">
-                                            <?php
-                                            if ($admin['AdminProfile'] === null) {
-                                            ?>
-                                                <div id="profilePreview" class="w-10 h-10 object-cover rounded-full bg-[<?php echo $admin['ProfileBgColor'] ?>] text-white select-none">
-                                                    <p class="w-full h-full flex items-center justify-center font-semibold"><?php echo strtoupper(substr($admin['UserName'], 0, 1)); ?></p>
-                                                </div>
-                                            <?php
-                                            } else {
-                                            ?>
-                                                <div class="w-10 h-10 rounded-full select-none">
-                                                    <img class="w-full h-full object-cover rounded-full"
-                                                        src="<?= htmlspecialchars($admin['AdminProfile']) ?>"
-                                                        alt="Profile">
-                                                </div>
-                                            <?php
-                                            }
-                                            ?>
-                                            <div>
-                                                <p class="font-bold"><?= htmlspecialchars($admin['FirstName'] . ' ' . $admin['LastName']) ?>
-                                                    <?php
-                                                    // Check if the admin ID matches the logged-in admin's ID
-                                                    if ($adminID == $admin['AdminID']) {
-                                                        echo "<span class='text-sm text-green-500 font-semibold'> (You)</span>";
-                                                    }
-                                                    ?>
-                                                </p>
-                                                <p><?= htmlspecialchars($admin['AdminEmail']) ?></p>
-                                            </div>
-                                        </td>
-                                        <td class="p-3 text-start hidden md:table-cell">
-                                            <select name="updateRole" class="border rounded p-2 bg-gray-50">
-                                                <?php
-                                                // Fetch roles for the dropdown
-                                                $rolesQuery = "SELECT * FROM roletb";
-                                                $rolesResult = $connect->query($rolesQuery);
 
-                                                if ($rolesResult->num_rows > 0) {
-                                                    while ($roleRow = $rolesResult->fetch_assoc()) {
-                                                        $selected = $roleRow['RoleID'] == $admin['RoleID'] ? 'selected' : '';
-                                                        echo "<option value='{$roleRow['RoleID']}' $selected>{$roleRow['Role']}</option>";
-                                                    }
-                                                } else {
-                                                    echo "<option value='' disabled>No roles available</option>";
-                                                }
-                                                ?>
-                                            </select>
-                                        </td>
-                                        <td class="p-3 text-start space-x-1 select-none hidden lg:table-cell">
-                                            <span class="p-1 rounded-md <?= $admin['Status'] === 'active' ? 'bg-green-100' : 'bg-red-100' ?>">
-                                                <?= htmlspecialchars($admin['Status']) ?>
-                                            </span>
-                                        </td>
-                                        <td class="reset-btn p-3 text-start space-x-1 hidden xl:table-cell">
-                                            <button data-admin-id="<?= htmlspecialchars($admin['AdminID']) ?>">
-                                                <span class="rounded-md border-2"><i class="ri-arrow-left-line text-md"></i></span>
-                                                <span>Reset</span>
-                                            </button>
-                                        </td>
-                                        <td class="p-3 text-start space-x-1 select-none">
-                                            <button class=" text-amber-500">
-                                                <i class="ri-edit-line text-xl"></i>
-                                            </button>
-                                            <button class=" text-red-500">
-                                                <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                                    data-admin-id="<?= htmlspecialchars($admin['AdminID']) ?>"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="7" class="p-3 text-center text-gray-500 py-52">
-                                        No admins available.
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+
+                <!-- Admin Table -->
+                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
+                    <div id="adminResults">
+                        <?php include '../includes/admin_table_components/role_management_results.php'; ?>
+                    </div>
                 </div>
 
                 <!-- Pagination Controls -->
-                <div class="flex justify-center items-center mt-1 <?= (!empty($admins) ? 'flex' : 'hidden') ?>">
-                    <!-- Previous Btn -->
-                    <?php if ($currentPage > 1) {
-                    ?>
-                        <a href="?page=<?= $currentPage - 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $page == $currentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <i class="ri-arrow-left-s-line"></i>
-                        </a>
-                    <?php
-                    } else {
-                    ?>
-                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                            <i class="ri-arrow-left-s-line"></i>
-                        </p>
-                    <?php
-                    }
-                    ?>
-                    <?php for ($page = 1; $page <= $totalPages; $page++): ?>
-                        <a href="?page=<?= $page ?>&sort=<?= htmlspecialchars($filterRoleID) ?>&acc_search=<?= htmlspecialchars($searchAdminQuery) ?>"
-                            class="px-3 py-1 mx-1 border rounded select-none <?= $page == $currentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <?= $page ?>
-                        </a>
-                    <?php endfor; ?>
-                    <!-- Next Btn -->
-                    <?php if ($currentPage < $totalPages) {
-                    ?>
-                        <a href="?page=<?= $currentPage + 1 ?>"
-                            class="px-3 py-1 mx-1 border rounded <?= $page == $currentPage ? 'bg-gray-200' : 'bg-white' ?>">
-                            <i class="ri-arrow-right-s-line"></i>
-                        </a>
-                    <?php
-                    } else {
-                    ?>
-                        <p class="px-3 py-1 mx-1 border rounded cursor-not-allowed bg-gray-200">
-                            <i class="ri-arrow-right-s-line"></i>
-                        </p>
-                    <?php
-                    }
-                    ?>
+                <div id="paginationContainer" class="flex justify-between items-center mt-3">
+                    <?php include '../includes/admin_table_components/role_management_pagination.php'; ?>
                 </div>
             </div>
         </div>
