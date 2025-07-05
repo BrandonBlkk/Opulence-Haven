@@ -3800,6 +3800,295 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// Reservation Details Modal
+document.addEventListener("DOMContentLoaded", () => {
+    // Modal Elements
+    const reservationModal = document.getElementById('reservationModal');
+    const closeReservationDetailButton = document.getElementById('closeReservationDetailButton');
+    // const loader = document.getElementById('loader');
+    const darkOverlay2 = document.getElementById('darkOverlay2');
+
+    // Get current pagination and search parameters from URL
+    // const urlParams = new URLSearchParams(window.location.search);
+    // const currentPage = urlParams.get('facilitypage') || 1;
+    // const currentSearch = urlParams.get('facility_search') || '';
+    // const currentSort = urlParams.get('sort') || 'random';
+
+    // Function to close modals
+    // const closeModal = () => {
+    //     addFacilityModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+    //     darkOverlay2.classList.add('opacity-0', 'invisible');
+    //     darkOverlay2.classList.remove('opacity-100');
+
+    //     const errors = ['facilityError'];
+    //     errors.forEach(error => {
+    //         hideError(document.getElementById(error));
+    //     });
+    // };
+
+    // closeReservationDetailButton.addEventListener('click', () => {
+    //     reservationModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+    //     darkOverlay2.classList.add('opacity-0', 'invisible');
+    //     darkOverlay2.classList.remove('opacity-100');
+
+    //     // const errors = ['updateFacilityError'];
+    //     // errors.forEach(error => {
+    //     //     hideError(document.getElementById(error));
+    //     // });
+    // });
+
+    // Function to attach event listeners to a row
+    // const attachEventListenersToRow = (row) => {
+    //     // Details button
+    //     const detailsBtn = row.querySelector('.details-btn');
+    //     if (detailsBtn) {
+    //         detailsBtn.addEventListener('click', function() {
+    //             const reservationId = this.getAttribute('data-reservation-id');
+    //             darkOverlay2.classList.remove('opacity-0', 'invisible');
+    //             darkOverlay2.classList.add('opacity-100');
+
+    //             fetch(`../Admin/Booking.php?action=getReservationDetails&id=${reservationId}`)
+    //                 .then(response => response.json())
+    //                 .then(data => {
+    //                     if (data.success) {
+    //                         document.getElementById('roomImage').src = data.reservation.RoomCoverImage;
+    //                         document.getElementById('roomType').textContent = data.reservation.RoomType;
+    //                         document.getElementById('roomDescription').textContent = data.reservation.RoomDescription;
+    //                         document.getElementById('pointsEarned').textContent = data.reservation.PointsEarned;
+    //                         document.getElementById('pointsRedeemed').textContent = data.reservation.PointsRedeemed;
+    //                         document.getElementById('totalPrice').textContent = data.reservation.TotalPrice;
+    //                         reservationModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+    //                     } else {
+    //                         console.error('Failed to load reservation details');
+    //                     }
+    //                 })
+    //                 .catch(error => console.error('Fetch error:', error));
+    //         });
+    //     }
+    // };
+    
+    // Function to format date
+function formatDate(dateString) {
+    const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    return new Date(dateString).toLocaleDateString('en-US', options);
+}
+
+// Function to attach event listeners to a row
+const attachEventListenersToRow = (row) => {
+    // Details button
+    const detailsBtn = row.querySelector('.details-btn');
+    if (detailsBtn) {
+        detailsBtn.addEventListener('click', function() {
+            const reservationId = this.getAttribute('data-reservation-id');
+            
+            // Make sure dark overlay exists and is shown
+            if (darkOverlay2) {
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+            }
+            
+            // Show the modal immediately while loading data
+            reservationModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+
+            fetch(`../Admin/Booking.php?action=getReservationDetails&id=${reservationId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.reservation) {
+                        const reservation = data.reservation;
+                        
+                        // Set user information
+                        document.getElementById('userName').textContent = `${reservation.Title || ''} ${reservation.FirstName} ${reservation.LastName}`;
+                        document.getElementById('userPhone').textContent = reservation.UserPhone;
+                        document.getElementById('reservationDate').textContent = formatDate(reservation.ReservationDate);
+                        
+                        // Calculate nights
+                        const checkInDate = new Date(reservation.CheckInDate);
+                        const checkOutDate = new Date(reservation.CheckOutDate);
+                        const nights = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
+                        
+                        // Set pricing information
+                        const roomRate = reservation.Price * nights;
+                        const taxesFees = roomRate * 0.1;
+                        const totalPrice = roomRate + taxesFees - (reservation.PointsDiscount || 0);
+                        
+                        document.getElementById('roomRateLabel').textContent = `Room Rate (${nights} night${nights > 1 ? 's' : ''}):`;
+                        document.getElementById('roomRate').textContent = `$ ${roomRate.toFixed(2)}`;
+                        
+                        if (reservation.PointsRedeemed > 0) {
+                            document.getElementById('pointsDiscountContainer').classList.remove('hidden');
+                            document.getElementById('pointsDiscountLabel').textContent = `Points Discount (${reservation.PointsRedeemed} points):`;
+                            document.getElementById('pointsDiscount').textContent = `- $ ${reservation.PointsDiscount.toFixed(2)}`;
+                        } else {
+                            document.getElementById('pointsDiscountContainer').classList.add('hidden');
+                        }
+                        
+                        document.getElementById('taxesFees').textContent = `$ ${taxesFees.toFixed(2)}`;
+                        document.getElementById('totalPrice').textContent = `$ ${totalPrice.toFixed(2)}`;
+                        
+                        if (reservation.PointsEarned > 0) {
+                            document.getElementById('pointsEarnedContainer').classList.remove('hidden');
+                            document.getElementById('pointsEarned').textContent = `+ ${reservation.PointsEarned} points`;
+                        } else {
+                            document.getElementById('pointsEarnedContainer').classList.add('hidden');
+                        }
+                    
+                        // Initialize Swiper with the room data
+                        initializeRoomSwiper(reservation);
+                        
+                    } else {
+                        console.error('Failed to load reservation details');
+                    }
+                })
+                .catch(error => console.error('Fetch error:', error));
+        });
+    }
+};
+
+// Function to initialize Swiper with room data
+function initializeRoomSwiper(reservation) {
+    const roomContainer = document.getElementById('roomContainer');
+    roomContainer.innerHTML = ''; // Clear previous content
+    
+    // Create a new slide for the room
+    const slide = document.createElement('div');
+    slide.className = 'swiper-slide';
+    
+    slide.innerHTML = `
+        <div class="flex flex-col md:flex-row gap-4 py-2">
+            <div class="md:w-1/3 select-none">
+                <div class="relative" style="height: 200px;">
+                    <img src="../Admin/${reservation.RoomCoverImage}" 
+                         alt="Room Image"
+                         class="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-105">
+                </div>
+            </div>
+
+            <div class="md:w-2/3">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h5 class="font-bold text-lg text-gray-800">${reservation.RoomType}</h5>
+                        <p class="text-sm text-gray-600 mt-1 line-clamp-2">${reservation.RoomDescription}</p>
+                        <div class="mt-2 text-xs text-gray-500">
+                            1 room of this type
+                            <div class="flex flex-wrap gap-2 mt-1">
+                                <div class="group relative">
+                                    <span class="bg-gray-100 px-2 py-1 rounded text-gray-600 font-semibold text-xs cursor-default">
+                                        Room #${reservation.RoomName}
+                                    </span>
+                                    <div class="absolute z-20 left-0 mt-1 w-64 bg-white p-3 rounded-lg shadow-sm border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                                        <div class="flex items-center gap-2 text-sm mb-1">
+                                            <i class="ri-calendar-check-line text-orange-500"></i>
+                                            ${new Date(reservation.CheckInDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} 
+                                            <span class="text-gray-400">→</span> 
+                                            ${new Date(reservation.CheckOutDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                        </div>
+                                        <div class="flex items-center gap-2 text-sm mb-2">
+                                            <i class="ri-user-line text-orange-500"></i>
+                                            ${reservation.Adult} Adult${reservation.Adult > 1 ? 's' : ''}
+                                            ${reservation.Children > 0 ? 
+                                                `<span class="text-gray-400">+</span> ${reservation.Children} Child${reservation.Children > 1 ? 'ren' : ''}` : 
+                                                ''}
+                                        </div>
+                                        <div class="text-sm text-gray-600">
+                                            <span class="font-medium">$${reservation.Price.toFixed(2)}</span>
+                                            <span class="text-gray-500">/night</span>
+                                        </div>
+                                        <div class="bg-red-50 border-l-4 border-red-400 p-2 my-2 rounded-r">
+                                            <div class="flex items-start">
+                                                <i class="ri-alert-line text-red-500 mt-0.5 mr-1 text-sm"></i>
+                                                <span class="text-xs text-red-700">$50 fee if cancelled within 48 hours</span>
+                                            </div>
+                                        </div>
+                                        <button class="cancel-btn mt-1 w-full bg-red-50 hover:bg-red-100 text-red-600 text-xs font-medium py-2 px-3 rounded-md transition-colors duration-200 flex items-center justify-center select-none"
+                                            data-reservation-id="${reservation.ReservationID}">
+                                            <i class="ri-close-circle-line mr-1"></i> Cancel Reservation
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="../User/RoomDetails.php?roomTypeID=${reservation.RoomTypeID}&checkin_date=${reservation.CheckInDate}&checkout_date=${reservation.CheckOutDate}&adults=${reservation.Adult}&children=${reservation.Children}"
+                    class="mt-2 text-orange-600 hover:text-orange-700 font-medium inline-flex items-center text-xs bg-orange-50 px-3 py-1 rounded-full">
+                    <i class="ri-information-line mr-1"></i> Room Details
+                </a>
+            </div>
+        </div>
+    `;
+    
+    roomContainer.appendChild(slide);
+    
+    // Initialize Swiper
+    const swiper = new Swiper('.roomTypeSwiper', {
+        slidesPerView: 1,
+        spaceBetween: 20,
+        centeredSlides: true,
+        pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+        },
+        breakpoints: {
+            768: {
+                slidesPerView: 1,
+                spaceBetween: 30
+            }
+        }
+    });
+    
+    // Add event listener to cancel button
+    const cancelBtn = slide.querySelector('.cancel-btn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+            const reservationId = this.getAttribute('data-reservation-id');
+            // Add your cancellation logic here
+            alert(`Canceling reservation ${reservationId}`);
+        });
+    }
+}
+
+// Close modal button
+document.getElementById('closeReservationDetailButton').addEventListener('click', function() {
+    reservationModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+    if (darkOverlay2) {
+        darkOverlay2.classList.remove('opacity-100');
+        darkOverlay2.classList.add('opacity-0', 'invisible');
+    }
+});
+
+// Make sure to initialize Swiper library
+document.addEventListener('DOMContentLoaded', function() {
+    // Load Swiper CSS if not already loaded
+    if (!document.querySelector('link[href*="swiper-bundle.min.css"]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css';
+        document.head.appendChild(link);
+    }
+    
+    // Load Swiper JS if not already loaded
+    if (!window.Swiper) {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js';
+        script.onload = function() {
+            console.log('Swiper loaded successfully');
+        };
+        document.body.appendChild(script);
+    }
+});
+
+    // Function to initialize action buttons for all rows
+    function initializeReservationActionButtons() {
+        document.querySelectorAll('tbody tr').forEach(row => {
+            attachEventListenersToRow(row);
+        });
+    }
+
+    // Call this function after loading new content via AJAX
+    initializeReservationActionButtons();
+});
+
 // Full form validation function
 const validateProductTypeForm = () => {
     const isTypeValid = validateProductType();

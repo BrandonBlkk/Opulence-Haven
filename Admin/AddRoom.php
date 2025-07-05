@@ -165,7 +165,7 @@ if (isset($_POST['deleteroom'])) {
                                     <input type="hidden" name="room_search" value="<?php echo htmlspecialchars($searchProductQuery); ?>">
                                 <?php endif; ?>
 
-                                <select name="sort" id="sort" class="border p-2 rounded text-sm" onchange="this.form.submit()">
+                                <select name="sort" id="sort" class="border p-2 rounded text-sm outline-none">
                                     <option value="random">All Room Types</option>
                                     <?php
                                     $select = "SELECT * FROM roomtypetb";
