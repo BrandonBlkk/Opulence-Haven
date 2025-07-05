@@ -1,6 +1,6 @@
 <?php
 // Set the number of rows per page
-$rowsPerPage = 1;
+$rowsPerPage = 10;
 
 // Get the current page number from the URL or default to 1
 $currentPage = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -16,7 +16,7 @@ $facilityTypeCurrentPage = isset($_GET['facilitytypepage']) && is_numeric($_GET[
 // $facilityCurrentPage = isset($_GET['facilitypage']) && is_numeric($_GET['facilitypage']) ? (int)$_GET['facilitypage'] : 1;
 $ruleCurrentPage = isset($_GET['rulepage']) && is_numeric($_GET['rulepage']) ? (int)$_GET['rulepage'] : 1;
 $userCurrentPage = isset($_GET['userpage']) && is_numeric($_GET['userpage']) ? (int)$_GET['userpage'] : 1;
-$bookingCurrentPage = isset($_GET['bookingpage']) && is_numeric($_GET['bookingpage']) ? (int)$_GET['bookingpage'] : 1;
+$reservationCurrentPage  = isset($_GET['bookingpage']) && is_numeric($_GET['bookingpage']) ? (int)$_GET['bookingpage'] : 1;
 
 // Calculate the offset for the query
 $offset = ($currentPage - 1) * $rowsPerPage;
@@ -33,7 +33,7 @@ $facilityTypeOffset = ($facilityTypeCurrentPage - 1) * $rowsPerPage;
 $facilityOffset = ($currentPage - 1) * $rowsPerPage;
 $ruleOffset = ($ruleCurrentPage - 1) * $rowsPerPage;
 $userOffset = ($userCurrentPage - 1) * $rowsPerPage;
-$bookingOffset = ($bookingCurrentPage - 1) * $rowsPerPage;
+$reservationOffset = ($reservationCurrentPage  - 1) * $rowsPerPage;
 
 // Initialize search and filter variables
 $searchSupplierQuery = isset($_GET['supplier_search']) ? mysqli_real_escape_string($connect, $_GET['supplier_search']) : '';
@@ -285,10 +285,9 @@ $userCount = $userResult->fetch_assoc()['count'];
 // Calculate the total number of pages
 $totalUserPages = ceil($userCount / $rowsPerPage);
 
-// Fetch total number of rows for pagination calculation
-$totalBookingRowsQuery = "SELECT COUNT(*) as total FROM reservationtb";
-if ($filterStatus !== 'random' && !empty($searchProductQuery)) {
-    $totalBookingRowsQuery = "SELECT COUNT(*) as total 
+// Count query - simplified using the same conditions
+if ($filterStatus !== 'random' && !empty($searchBookingQuery)) {
+    $BookingQuery = "SELECT COUNT(*) as count 
                     FROM reservationtb r
                     JOIN usertb u ON r.UserID = u.UserID  
                     WHERE r.Status = '$filterStatus' 
@@ -298,12 +297,12 @@ if ($filterStatus !== 'random' && !empty($searchProductQuery)) {
                          OR r.ReservationID LIKE '%$searchBookingQuery%'
                          OR u.UserName LIKE '%$searchBookingQuery%')";
 } elseif ($filterStatus !== 'random') {
-    $totalBookingRowsQuery = "SELECT COUNT(*) as total 
+    $BookingQuery = "SELECT COUNT(*) as count 
                     FROM reservationtb r
                     JOIN usertb u ON r.UserID = u.UserID 
                     WHERE r.Status = '$filterStatus'";
-} elseif (!empty($searchProductQuery)) {
-    $totalBookingRowsQuery = "SELECT COUNT(*) as total 
+} elseif (!empty($searchBookingQuery)) {
+    $BookingQuery = "SELECT COUNT(*) as count 
                     FROM reservationtb r
                     JOIN usertb u ON r.UserID = u.UserID 
                     WHERE (r.FirstName LIKE '%$searchBookingQuery%'
@@ -311,9 +310,15 @@ if ($filterStatus !== 'random' && !empty($searchProductQuery)) {
                           OR r.UserPhone LIKE '%$searchBookingQuery%'
                           OR r.ReservationID LIKE '%$searchBookingQuery%'
                           OR u.UserName LIKE '%$searchBookingQuery%')";
+} else {
+    $BookingQuery = "SELECT COUNT(*) as count 
+                    FROM reservationtb r
+                    JOIN usertb u ON r.UserID = u.UserID";
 }
-$totalBookingRowsResult = $connect->query($totalBookingRowsQuery);
-$totalBookingRows = $totalBookingRowsResult->fetch_assoc()['total'];
+
+// Execute the count query
+$bookingResult = $connect->query($BookingQuery);
+$bookingCount = $bookingResult->fetch_assoc()['count'];
 
 // Calculate the total number of pages
-$totalBookingPages = ceil($totalBookingRows / $rowsPerPage);
+$totalReservationPages = ceil($bookingCount / $rowsPerPage);

@@ -120,24 +120,32 @@ if (mysqli_num_rows($roomSelectQuery) > 0) {
         xhr.send();
     }
 
-    // Function to handle search
-    function handleSearch() {
-        const searchInput = document.querySelector('input[name="room_search"]');
-
-        // Reset to page 1 when searching
+    // Function to handle search and filter
+    function handleSearchFilter() {
+        // Reset to page 1 when searching or filtering
         loadRoomPage(1);
     }
 
-    // Initialize event listeners for search
+    // Initialize event listeners for search and filter
     document.addEventListener('DOMContentLoaded', function() {
         const searchInput = document.querySelector('input[name="room_search"]');
+        const filterSelect = document.querySelector('select[name="sort"]');
 
         if (searchInput) {
             searchInput.addEventListener('input', function() {
                 const urlParams = new URLSearchParams(window.location.search);
                 urlParams.set('room_search', this.value);
                 window.history.pushState({}, '', `?${urlParams.toString()}`);
-                handleSearch();
+                handleSearchFilter();
+            });
+        }
+
+        if (filterSelect) {
+            filterSelect.addEventListener('change', function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                urlParams.set('sort', this.value);
+                window.history.pushState({}, '', `?${urlParams.toString()}`);
+                handleSearchFilter();
             });
         }
 
@@ -207,8 +215,13 @@ if (mysqli_num_rows($roomSelectQuery) > 0) {
     window.addEventListener('popstate', function() {
         const urlParams = new URLSearchParams(window.location.search);
         const searchInput = document.querySelector('input[name="room_search"]');
+        const filterSelect = document.querySelector('select[name="sort"]');
+
         if (searchInput) {
             searchInput.value = urlParams.get('room_search') || '';
+        }
+        if (filterSelect) {
+            filterSelect.value = urlParams.get('sort') || '';
         }
         loadRoomPage(urlParams.get('roompage') || 1);
     });
