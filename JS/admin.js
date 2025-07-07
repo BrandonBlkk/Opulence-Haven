@@ -1275,9 +1275,51 @@ document.addEventListener("DOMContentLoaded", () => {
                     .then(data => {
                         if (data.success) {
                             document.getElementById('updateRoomTypeID').value = roomTypeId;
+                            document.getElementById('updateRoomTypeImage').setAttribute('src', data.roomtype.RoomCoverImage);
+                            document.getElementById('updateRoomTypeImage').src = data.roomtype.RoomCoverImage;
                             document.getElementById('updateRoomTypeInput').value = data.roomtype.RoomType;
                             document.getElementById('updateRoomTypeDescriptionInput').value = data.roomtype.RoomDescription;
                             document.getElementById('updateRoomCapacityInput').value = data.roomtype.RoomCapacity;
+                            document.getElementById('updateRoomPriceInput').value = data.roomtype.RoomPrice;
+                            document.getElementById('updateRoomQuantityInput').value = data.roomtype.RoomQuantity;
+                            
+                            // Uncheck all facilities first
+                            const allFacilityCheckboxes = document.querySelectorAll('#updateFacilitiesContainer input[type="checkbox"]');
+                            allFacilityCheckboxes.forEach(checkbox => {
+                                checkbox.checked = false;
+                            });
+                            
+                            // Check the associated facilities
+                            if (data.facilities && data.facilities.length > 0) {
+                                data.facilities.forEach(facilityId => {
+                                    const facilityCheckbox = document.getElementById(`update_facility_${facilityId}`);
+                                    if (facilityCheckbox) {
+                                        facilityCheckbox.checked = true;
+                                    }
+                                });
+                            }
+                            
+                            // Display additional images
+                            const additionalPreviewContainer = document.getElementById('additional-preview-container');
+                            additionalPreviewContainer.innerHTML = ''; // Clear previous images
+                            
+                            if (data.additional_images && data.additional_images.length > 0) {
+                                data.additional_images.forEach((imagePath, index) => {
+                                    const imageDiv = document.createElement('div');
+                                    imageDiv.className = 'relative group';
+                                    imageDiv.innerHTML = `
+                                        <img src="${imagePath}" class="w-full h-32 object-cover rounded-lg select-none">
+                                        <button type="button" class="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity" data-image-index="${index}">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                        <input type="hidden" name="existing_additional_images[]" value="${imagePath}">
+                                    `;
+                                    additionalPreviewContainer.appendChild(imageDiv);
+                                });
+                            }
+                            
                             updateRoomTypeModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
                         } else {
                             console.error('Failed to load room type details');
@@ -1286,7 +1328,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     .catch(error => console.error('Fetch error:', error));
             });
         }
-
+        
         // Delete button
         const deleteBtn = row.querySelector('.delete-btn');
         if (deleteBtn) {
@@ -1401,6 +1443,12 @@ document.addEventListener("DOMContentLoaded", () => {
             errors.forEach(error => {
                 hideError(document.getElementById(error));
             });
+        });
+
+        document.getElementById("updateRoomTypeModalCancelBtn2")?.addEventListener("click", () => {
+            updateRoomTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
         });
 
         document.getElementById("updateRoomTypeInput")?.addEventListener("keyup", validateUpdateRoomType);
