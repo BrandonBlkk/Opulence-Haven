@@ -8,9 +8,6 @@ if (!$connect) {
 }
 
 $alertMessage = '';
-$addRoomTypeSuccess = false;
-$updateRoomTypeSuccess = false;
-$deleteRoomTypeSuccess = false;
 $roomTypeID = AutoID('roomtypetb', 'RoomTypeID', 'RT-', 6);
 $response = ['success' => false, 'message' => '', 'generatedId' => $roomTypeID];
 
@@ -90,15 +87,40 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
 
     // Build query based on action
     $query = match ($action) {
-        'getRoomTypeDetails' => "SELECT * FROM roomtypetb WHERE RoomTypeID = '$id'",
+        'getRoomTypeDetails' => "SELECT rt.*, rti.ImagePath 
+                         FROM roomtypetb rt 
+                         LEFT JOIN roomtypeimagetb rti ON rt.RoomTypeID = rti.RoomTypeID 
+                         WHERE rt.RoomTypeID = '$id'",
         default => null
     };
+
     if ($query) {
-        $roomtype = $connect->query($query)->fetch_assoc();
+        $result = $connect->query($query);
+        $roomtype = $result->fetch_assoc();
 
         if ($roomtype) {
+            // Get associated facilities
+            $facilityQuery = "SELECT FacilityID FROM roomtypefacilitytb WHERE RoomTypeID = '$id'";
+            $facilityResult = $connect->query($facilityQuery);
+            $associatedFacilities = array();
+
+            while ($row = $facilityResult->fetch_assoc()) {
+                $associatedFacilities[] = $row['FacilityID'];
+            }
+
+            // Get additional images
+            $imageQuery = "SELECT ImagePath FROM roomtypeimagetb WHERE RoomTypeID = '$id'";
+            $imageResult = $connect->query($imageQuery);
+            $additionalImages = array();
+
+            while ($row = $imageResult->fetch_assoc()) {
+                $additionalImages[] = $row['ImagePath'];
+            }
+
             $response['success'] = true;
             $response['roomtype'] = $roomtype;
+            $response['facilities'] = $associatedFacilities;
+            $response['additional_images'] = $additionalImages;
         } else {
             $response['success'] = false;
         }
@@ -109,22 +131,164 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     exit;
 }
 
+// // Update Product Type
+// if (isset($_POST['editroomtype'])) {
+//     $roomTypeId = mysqli_real_escape_string($connect, $_POST['roomtypeid']);
+//     $RoomType = mysqli_real_escape_string($connect, $_POST['updateroomtype']);
+//     $updatedRoomTypeDescription = mysqli_real_escape_string($connect, $_POST['updateroomtypedescription']);
+//     $updatedRoomCapacity = mysqli_real_escape_string($connect, $_POST['updateroomcapacity']);
+//     $updateRoomTypePrice = mysqli_real_escape_string($connect, $_POST['updateroomprice']);
+//     $updateRoomTypeQuantity = mysqli_real_escape_string($connect, $_POST['updateroomquantity']);
+
+//     // Update query
+//     $updateQuery = "UPDATE roomtypetb SET RoomType = ?, RoomDescription = ?, RoomCapacity = ?, RoomPrice = ?, RoomQuantity = ?
+//     WHERE RoomTypeID = '$roomTypeId'";
+
+//     $stmt = $connect->prepare($updateQuery);
+//     $stmt->bind_param("ssidi", $RoomType, $updatedRoomTypeDescription, $updatedRoomCapacity, $updateRoomTypePrice, $updateRoomTypeQuantity);
+
+//     if ($stmt->execute()) {
+//         $response['success'] = true;
+//         $response['message'] = 'The room type has been successfully updated.';
+//     } else {
+//         $response['message'] = "Failed to update room type. Please try again.";
+//     }
+
+//     header('Content-Type: application/json');
+//     echo json_encode($response);
+//     exit();
+// }
+
 // Update Product Type
 if (isset($_POST['editroomtype'])) {
     $roomTypeId = mysqli_real_escape_string($connect, $_POST['roomtypeid']);
     $RoomType = mysqli_real_escape_string($connect, $_POST['updateroomtype']);
     $updatedRoomTypeDescription = mysqli_real_escape_string($connect, $_POST['updateroomtypedescription']);
     $updatedRoomCapacity = mysqli_real_escape_string($connect, $_POST['updateroomcapacity']);
+    $updateRoomTypePrice = mysqli_real_escape_string($connect, $_POST['updateroomprice']);
+    $updateRoomTypeQuantity = mysqli_real_escape_string($connect, $_POST['updateroomquantity']);
 
-    // Update query
-    $updateQuery = "UPDATE roomtypetb SET RoomType = '$RoomType', RoomDescription = '$updatedRoomTypeDescription', RoomCapacity = '$updatedRoomCapacity' 
-    WHERE RoomTypeID = '$roomTypeId'";
+    // Initialize response array
+    $response = ['success' => false, 'message' => ''];
 
-    if ($connect->query($updateQuery)) {
+    try {
+        // Start transaction
+        $connect->begin_transaction();
+
+        // Handle cover image upload if provided
+        $coverImagePath = null;
+        if (!empty($_FILES['update_roomcoverimage']['name'])) {
+            $coverImage = $_FILES['update_roomcoverimage'];
+            $uploadDir = 'AdminImages/';
+            $fileExtension = pathinfo($coverImage['name'], PATHINFO_EXTENSION);
+            $fileName = uniqid() . '_' . time() . '.' . $fileExtension;
+            $targetPath = $uploadDir . $fileName;
+
+            // Validate and move uploaded file
+            if (move_uploaded_file($coverImage['tmp_name'], $targetPath)) {
+                // First delete old cover image if exists
+                $getOldImage = "SELECT RoomCoverImage FROM roomtypetb WHERE RoomTypeID = '$roomTypeId'";
+                $oldImageResult = $connect->query($getOldImage);
+                if ($oldImageResult->num_rows > 0) {
+                    $oldImage = $oldImageResult->fetch_assoc();
+                    if (file_exists($oldImage['RoomCoverImage'])) {
+                        unlink($oldImage['RoomCoverImage']);
+                    }
+                }
+                $coverImagePath = $targetPath;
+            }
+        }
+
+        // Update query for room type
+        $updateQuery = "UPDATE roomtypetb SET 
+                        RoomType = ?, 
+                        RoomDescription = ?, 
+                        RoomCapacity = ?, 
+                        RoomPrice = ?, 
+                        RoomQuantity = ?" .
+            ($coverImagePath ? ", RoomCoverImage = '$coverImagePath'" : "") .
+            " WHERE RoomTypeID = '$roomTypeId'";
+
+        $stmt = $connect->prepare($updateQuery);
+        $stmt->bind_param("ssidi", $RoomType, $updatedRoomTypeDescription, $updatedRoomCapacity, $updateRoomTypePrice, $updateRoomTypeQuantity);
+
+        if (!$stmt->execute()) {
+            throw new Exception("Failed to update room type.");
+        }
+
+        // Handle additional images
+        if (!empty($_FILES['additional_images']['name'][0])) {
+            $uploadDir = 'AdminImages/';
+            $allowedExtensions = ['jpg', 'jpeg', 'png'];
+
+            // First delete existing additional images for this room type
+            $deleteExistingQuery = "DELETE FROM roomimagetb WHERE RoomTypeID = '$roomTypeId'";
+            if (!$connect->query($deleteExistingQuery)) {
+                throw new Exception("Failed to clear existing room images.");
+            }
+
+            // Process new additional images
+            foreach ($_FILES['additional_images']['tmp_name'] as $key => $tmpName) {
+                $fileName = $_FILES['additional_images']['name'][$key];
+                $fileSize = $_FILES['additional_images']['size'][$key];
+                $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+                // Validate file
+                if (!in_array($fileExtension, $allowedExtensions)) {
+                    continue; // Skip invalid files
+                }
+                if ($fileSize > 5000000) { // 5MB limit
+                    continue;
+                }
+
+                $newFileName = uniqid() . '_' . time() . '.' . $fileExtension;
+                $targetPath = $uploadDir . $newFileName;
+
+                if (move_uploaded_file($tmpName, $targetPath)) {
+                    // Insert into roomimagetb
+                    $insertImageQuery = "INSERT INTO roomimagetb (ImagePath, RoomTypeID) VALUES ('$targetPath', '$roomTypeId')";
+                    if (!$connect->query($insertImageQuery)) {
+                        throw new Exception("Failed to save additional images.");
+                    }
+                }
+            }
+        }
+
+        // Handle facilities update
+        if (isset($_POST['update_facilities'])) {
+            // First delete existing facilities for this room type
+            $deleteFacilitiesQuery = "DELETE FROM roomtypefacilitytb WHERE RoomTypeID = '$roomTypeId'";
+            if (!$connect->query($deleteFacilitiesQuery)) {
+                throw new Exception("Failed to clear existing facilities.");
+            }
+
+            // Insert new facilities
+            foreach ($_POST['update_facilities'] as $facilityId) {
+                $facilityId = mysqli_real_escape_string($connect, $facilityId);
+                $insertFacilityQuery = "INSERT INTO roomtypefacilitytb (RoomTypeID, FacilityID) VALUES ('$roomTypeId', '$facilityId')";
+                if (!$connect->query($insertFacilityQuery)) {
+                    throw new Exception("Failed to save facilities.");
+                }
+            }
+        } else {
+            // If no facilities selected, remove all facilities for this room
+            $deleteFacilitiesQuery = "DELETE FROM roomtypefacilitytb WHERE RoomTypeID = '$roomTypeId'";
+            $connect->query($deleteFacilitiesQuery);
+        }
+
+        // Update LastUpdate timestamp
+        $updateTimestampQuery = "UPDATE roomtypetb SET LastUpdate = NOW() WHERE RoomTypeID = '$roomTypeId'";
+        $connect->query($updateTimestampQuery);
+
+        // Commit transaction
+        $connect->commit();
+
         $response['success'] = true;
         $response['message'] = 'The room type has been successfully updated.';
-    } else {
-        $response['message'] = "Failed to update room type. Please try again.";
+    } catch (Exception $e) {
+        // Rollback transaction on error
+        $connect->rollback();
+        $response['message'] = $e->getMessage();
     }
 
     header('Content-Type: application/json');
@@ -205,15 +369,77 @@ if (isset($_POST['deleteroomtype'])) {
             </div>
         </div>
 
-        <!-- Room Type Details Modal -->
+        <!-- Update Room Type Modal -->
         <div id="updateRoomTypeModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
-            <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center w-full sm:max-w-[500px]">
-                <h2 class="text-xl text-start text-gray-700 font-bold">Edit Room Type</h2>
-                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="updateRoomTypeForm">
+            <div class="bg-white w-full max-w-4xl p-6 rounded-md shadow-md max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl text-gray-700 font-bold">Update Room Type</h2>
+                    <button id="updateRoomTypeModalCancelBtn" class="text-gray-400 hover:text-gray-500">
+                        <i class="ri-close-line text-xl"></i>
+                    </button>
+                </div>
+                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" enctype="multipart/form-data" id="updateRoomTypeForm">
                     <input type="hidden" name="roomtypeid" id="updateRoomTypeID">
+
+                    <!-- Cover Image Upload -->
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Cover Image (High-Quality JPG/PNG/JPEG)</label>
+                        <div id="update-cover-preview-container" class="mb-4">
+                            <div class="relative group">
+                                <img id="updateRoomTypeImage" class="w-full h-40 object-cover rounded-lg border border-gray-200 select-none" src="">
+                                <button type="button" onclick="removeUpdateCoverImage()"
+                                    class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 shadow-md transition-opacity opacity-0 group-hover:opacity-100">
+                                    ×
+                                </button>
+                            </div>
+                        </div>
+                        <div class="relative">
+                            <div id="update-upload-area" class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                                <div class="flex flex-col items-center justify-center space-y-2 py-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <p class="text-sm text-gray-600">Click to upload or drag and drop</p>
+                                    <p class="text-xs text-gray-500">PNG, JPG, JPEG (Max. 5MB)</p>
+                                </div>
+                                <input type="file" name="update_roomcoverimage" id="update-cover-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/jpeg,image/png,image/jpg">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Images Upload -->
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Additional Room Images (Max 5 images)</label>
+                        <div id="additional-preview-container" class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4"></div>
+                        <div class="relative">
+                            <div id="additional-upload-area" class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                                <div class="flex flex-col items-center justify-center space-y-2 py-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <p class="text-sm text-gray-600">Click to upload or drag and drop</p>
+                                    <p class="text-xs text-gray-500">PNG, JPG, JPEG (Max. 5MB each, Max 5 files)</p>
+                                </div>
+                                <input type="file" name="additional_images[]" id="additional-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/jpeg,image/png,image/jpg" multiple>
+                            </div>
+                        </div>
+                    </div>
+
+                    <script>
+                        // Handle removal of existing additional images
+                        document.addEventListener('click', function(e) {
+                            if (e.target.closest('[data-image-index]')) {
+                                e.preventDefault();
+                                const button = e.target.closest('[data-image-index]');
+                                const imageDiv = button.parentElement;
+                                imageDiv.remove();
+                            }
+                        });
+                    </script>
+
                     <!-- Room Type Input -->
                     <div class="relative w-full">
-                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">Room Type Information</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Room Type Information</label>
                         <input
                             id="updateRoomTypeInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
@@ -223,35 +449,86 @@ if (isset($_POST['deleteroomtype'])) {
                         <small id="updateRoomTypeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
                     <!-- Description Input -->
-                    <div class="relative w-full">
-                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">Description</label>
+                    <div class="relative">
                         <textarea
                             id="updateRoomTypeDescriptionInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            type="text"
                             name="updateroomtypedescription"
+                            rows="3"
                             placeholder="Enter room type description"></textarea>
-                        <small id="updateRoomTypeDescriptionError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                        <small id="updateRoomTypeDescriptionError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
-                    <!-- Capacity Input -->
-                    <div class="relative w-full">
-                        <input
-                            id="updateRoomCapacityInput"
-                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                            type="number"
-                            name="updateroomcapacity"
-                            placeholder="Enter room capacity">
-                        <small id="updateRoomCapacityError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Capacity Input -->
+                        <div class="relative w-full">
+                            <input
+                                id="updateRoomCapacityInput"
+                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                type="number"
+                                name="updateroomcapacity"
+                                placeholder="Enter room capacity">
+                            <small id="updateRoomCapacityError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                        </div>
+                        <!-- Room Price -->
+                        <div class="relative">
+                            <input
+                                id="updateRoomPriceInput"
+                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                type="number"
+                                name="updateroomprice"
+                                placeholder="Enter room price">
+                            <small id="updateRoomPriceError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                        </div>
+                        <!-- Quantity Input -->
+                        <div class="relative w-full">
+                            <input
+                                id="updateRoomQuantityInput"
+                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                type="number"
+                                name="updateroomquantity"
+                                placeholder="Enter room quantity">
+                            <small id="updateRoomQuantityError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                        </div>
                     </div>
-                    <!-- Submit Button -->
+
+                    <!-- Facilities Selection -->
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Select Facilities</label>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-2 border rounded" id="updateFacilitiesContainer">
+                            <?php
+                            $facilityQuery = "SELECT * FROM facilitytb";
+                            $facilityResult = $connect->query($facilityQuery);
+
+                            if ($facilityResult->num_rows > 0) {
+                                while ($facility = $facilityResult->fetch_assoc()) {
+                                    $facilityID = $facility['FacilityID'];
+                                    $facilityName = $facility['Facility'];
+                                    echo '
+        <div class="flex items-center">
+            <input type="checkbox" id="update_facility_' . $facilityID . '" name="update_facilities[]" value="' . $facilityID . '" class="h-4 w-4 text-amber-500 focus:ring-amber-500 border-gray-300 rounded">
+            <label for="update_facility_' . $facilityID . '" class="ml-2 text-sm text-gray-700">' . $facilityName . '</label>
+        </div>';
+                                }
+                            } else {
+                                echo '<p class="text-sm text-gray-500 col-span-3">No facilities available</p>';
+                            }
+                            ?>
+                        </div>
+                        <small id="updateFacilitiesError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                    </div>
+
                     <div class="flex justify-end gap-4 select-none">
-                        <div id="updateRoomTypeModalCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm">
+                        <div id="updateRoomTypeModalCancelBtn2" class="px-4 py-2 text-amber-500 font-semibold hover:text-amber-600">
                             Cancel
                         </div>
+                        <!-- Submit Button -->
                         <button
                             type="submit"
-                            name="editroomtype"
-                            class="bg-amber-500 text-white px-4 py-2 select-none hover:bg-amber-600 rounded-sm">
-                            Save
+                            name="updateroomtype"
+                            class="bg-amber-500 text-white font-semibold px-4 py-2 rounded-sm select-none hover:bg-amber-600 transition-colors">
+                            Update Room Type
                         </button>
                     </div>
                 </form>
@@ -284,7 +561,12 @@ if (isset($_POST['deleteroomtype'])) {
         <!-- Add Room Type Form -->
         <div id="addRoomTypeModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white w-full max-w-4xl p-6 rounded-md shadow-md max-h-[90vh] overflow-y-auto">
-                <h2 class="text-xl text-gray-700 font-bold mb-4">Add New Room Type</h2>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl text-gray-700 font-bold">Add New Room Type</h2>
+                    <button id="addRoomTypeCancelBtn" class="text-gray-400 hover:text-gray-500">
+                        <i class="ri-close-line text-xl"></i>
+                    </button>
+                </div>
                 <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" enctype="multipart/form-data" id="roomTypeForm">
 
                     <!-- Cover Image Upload -->
@@ -349,6 +631,7 @@ if (isset($_POST['deleteroomtype'])) {
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="text"
                             name="description"
+                            rows="3"
                             placeholder="Enter room type description"></textarea>
                         <small id="roomTypeDescriptionError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
@@ -413,7 +696,7 @@ if (isset($_POST['deleteroomtype'])) {
                     </div>
 
                     <div class="flex justify-end gap-4 select-none">
-                        <div id="addRoomTypeCancelBtn" class="px-4 py-2 text-amber-500 font-semibold hover:text-amber-600">
+                        <div id="addRoomTypeCancelBtn2" class="px-4 py-2 text-amber-500 font-semibold hover:text-amber-600">
                             Cancel
                         </div>
                         <!-- Submit Button -->
