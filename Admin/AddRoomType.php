@@ -131,34 +131,6 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     exit;
 }
 
-// // Update Product Type
-// if (isset($_POST['editroomtype'])) {
-//     $roomTypeId = mysqli_real_escape_string($connect, $_POST['roomtypeid']);
-//     $RoomType = mysqli_real_escape_string($connect, $_POST['updateroomtype']);
-//     $updatedRoomTypeDescription = mysqli_real_escape_string($connect, $_POST['updateroomtypedescription']);
-//     $updatedRoomCapacity = mysqli_real_escape_string($connect, $_POST['updateroomcapacity']);
-//     $updateRoomTypePrice = mysqli_real_escape_string($connect, $_POST['updateroomprice']);
-//     $updateRoomTypeQuantity = mysqli_real_escape_string($connect, $_POST['updateroomquantity']);
-
-//     // Update query
-//     $updateQuery = "UPDATE roomtypetb SET RoomType = ?, RoomDescription = ?, RoomCapacity = ?, RoomPrice = ?, RoomQuantity = ?
-//     WHERE RoomTypeID = '$roomTypeId'";
-
-//     $stmt = $connect->prepare($updateQuery);
-//     $stmt->bind_param("ssidi", $RoomType, $updatedRoomTypeDescription, $updatedRoomCapacity, $updateRoomTypePrice, $updateRoomTypeQuantity);
-
-//     if ($stmt->execute()) {
-//         $response['success'] = true;
-//         $response['message'] = 'The room type has been successfully updated.';
-//     } else {
-//         $response['message'] = "Failed to update room type. Please try again.";
-//     }
-
-//     header('Content-Type: application/json');
-//     echo json_encode($response);
-//     exit();
-// }
-
 // Update Product Type
 if (isset($_POST['editroomtype'])) {
     $roomTypeId = mysqli_real_escape_string($connect, $_POST['roomtypeid']);
@@ -222,7 +194,7 @@ if (isset($_POST['editroomtype'])) {
             $allowedExtensions = ['jpg', 'jpeg', 'png'];
 
             // First delete existing additional images for this room type
-            $deleteExistingQuery = "DELETE FROM roomimagetb WHERE RoomTypeID = '$roomTypeId'";
+            $deleteExistingQuery = "DELETE FROM roomtypeimagetb WHERE RoomTypeID = '$roomTypeId'";
             if (!$connect->query($deleteExistingQuery)) {
                 throw new Exception("Failed to clear existing room images.");
             }
@@ -245,8 +217,8 @@ if (isset($_POST['editroomtype'])) {
                 $targetPath = $uploadDir . $newFileName;
 
                 if (move_uploaded_file($tmpName, $targetPath)) {
-                    // Insert into roomimagetb
-                    $insertImageQuery = "INSERT INTO roomimagetb (ImagePath, RoomTypeID) VALUES ('$targetPath', '$roomTypeId')";
+                    // Insert into roomtypeimagetb
+                    $insertImageQuery = "INSERT INTO roomtypeimagetb (ImagePath, RoomTypeID) VALUES ('$targetPath', '$roomTypeId')";
                     if (!$connect->query($insertImageQuery)) {
                         throw new Exception("Failed to save additional images.");
                     }
@@ -410,9 +382,9 @@ if (isset($_POST['deleteroomtype'])) {
                     <!-- Additional Images Upload -->
                     <div>
                         <label class="block text-gray-700 font-medium mb-2">Additional Room Images (Max 5 images)</label>
-                        <div id="additional-preview-container" class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4"></div>
+                        <div id="update-additional-preview-container" class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4"></div>
                         <div class="relative">
-                            <div id="additional-upload-area" class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                            <div id="update-additional-upload-area" class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
                                 <div class="flex flex-col items-center justify-center space-y-2 py-4">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -420,7 +392,7 @@ if (isset($_POST['deleteroomtype'])) {
                                     <p class="text-sm text-gray-600">Click to upload or drag and drop</p>
                                     <p class="text-xs text-gray-500">PNG, JPG, JPEG (Max. 5MB each, Max 5 files)</p>
                                 </div>
-                                <input type="file" name="additional_images[]" id="additional-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/jpeg,image/png,image/jpg" multiple>
+                                <input type="file" name="additional_images[]" id="update-additional-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/jpeg,image/png,image/jpg" multiple>
                             </div>
                         </div>
                     </div>
@@ -598,9 +570,9 @@ if (isset($_POST['deleteroomtype'])) {
                     <!-- Additional Images Upload -->
                     <div>
                         <label class="block text-gray-700 font-medium mb-2">Additional Room Images (Max 5 images)</label>
-                        <div id="additional-preview-container" class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4"></div>
+                        <div id="add-additional-preview-container" class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4"></div>
                         <div class="relative">
-                            <div id="additional-upload-area" class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                            <div id="add-additional-upload-area" class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
                                 <div class="flex flex-col items-center justify-center space-y-2 py-4">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -608,7 +580,7 @@ if (isset($_POST['deleteroomtype'])) {
                                     <p class="text-sm text-gray-600">Click to upload or drag and drop</p>
                                     <p class="text-xs text-gray-500">PNG, JPG, JPEG (Max. 5MB each, Max 5 files)</p>
                                 </div>
-                                <input type="file" name="additional_images[]" id="additional-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/jpeg,image/png,image/jpg" multiple>
+                                <input type="file" name="additional_images[]" id="add-additional-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/jpeg,image/png,image/jpg" multiple>
                             </div>
                         </div>
                     </div>
@@ -717,12 +689,26 @@ if (isset($_POST['deleteroomtype'])) {
             const coverPreview = document.getElementById('cover-preview');
             const coverPreviewContainer = document.getElementById('cover-preview-container');
             const uploadArea = document.getElementById('upload-area');
-            const additionalInput = document.getElementById('additional-input');
-            const additionalPreviewContainer = document.getElementById('additional-preview-container');
-            const additionalUploadArea = document.getElementById('additional-upload-area');
-            let additionalImages = [];
 
-            // Cover Image Handling
+            // Update modal cover image handling
+            const updateCoverInput = document.getElementById('update-cover-input');
+            const updateCoverPreview = document.getElementById('updateRoomTypeImage');
+            const updateCoverPreviewContainer = document.getElementById('update-cover-preview-container');
+            const updateUploadArea = document.getElementById('update-upload-area');
+
+            // Add modal elements
+            const addAdditionalInput = document.getElementById('add-additional-input');
+            const addAdditionalPreviewContainer = document.getElementById('add-additional-preview-container');
+            const addAdditionalUploadArea = document.getElementById('add-additional-upload-area');
+            let addAdditionalImages = [];
+
+            // Update modal elements
+            const updateAdditionalInput = document.getElementById('update-additional-input');
+            const updateAdditionalPreviewContainer = document.getElementById('update-additional-preview-container');
+            const updateAdditionalUploadArea = document.getElementById('update-additional-upload-area');
+            let updateAdditionalImages = [];
+
+            // Cover Image Handling (remains the same)
             coverInput.addEventListener('change', function(event) {
                 const file = event.target.files[0];
                 if (file) {
@@ -747,13 +733,38 @@ if (isset($_POST['deleteroomtype'])) {
                 uploadArea.classList.remove('hidden');
             }
 
-            // Additional Images Handling
-            additionalInput.addEventListener('change', function(event) {
-                handleAdditionalFiles(event.target.files);
+            // Update Modal Cover Image Handling
+            updateCoverInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('File size exceeds 5MB limit');
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        updateCoverPreview.src = e.target.result;
+                        updateCoverPreviewContainer.classList.remove('hidden');
+                        updateUploadArea.classList.add('hidden');
+                    }
+                    reader.readAsDataURL(file);
+                }
             });
 
-            function handleAdditionalFiles(files) {
-                if (additionalImages.length + files.length > 5) {
+            function removeUpdateCoverImage() {
+                updateCoverInput.value = '';
+                updateCoverPreviewContainer.classList.add('hidden');
+                updateUploadArea.classList.remove('hidden');
+            }
+
+            // Add Modal Additional Images Handling
+            addAdditionalInput.addEventListener('change', function(event) {
+                handleAddAdditionalFiles(event.target.files);
+            });
+
+            function handleAddAdditionalFiles(files) {
+                if (addAdditionalImages.length + files.length > 5) {
                     alert('You can upload a maximum of 5 additional images');
                     return;
                 }
@@ -768,62 +779,126 @@ if (isset($_POST['deleteroomtype'])) {
 
                     const reader = new FileReader();
                     reader.onload = function(e) {
-                        const imageId = 'additional-img-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
-                        additionalImages.push({
+                        const imageId = 'add-additional-img-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+                        addAdditionalImages.push({
                             id: imageId,
                             file: file,
                             preview: e.target.result
                         });
 
-                        updateAdditionalPreviews();
+                        updateAddAdditionalPreviews();
                     }
                     reader.readAsDataURL(file);
                 }
             }
 
-            function updateAdditionalPreviews() {
-                additionalPreviewContainer.innerHTML = '';
+            function updateAddAdditionalPreviews() {
+                addAdditionalPreviewContainer.innerHTML = '';
 
-                additionalImages.forEach((image, index) => {
+                addAdditionalImages.forEach((image, index) => {
                     const previewDiv = document.createElement('div');
                     previewDiv.className = 'relative group';
                     previewDiv.innerHTML = `
                 <img src="${image.preview}" class="w-full h-32 object-cover rounded-lg border border-gray-200">
-                <button type="button" onclick="removeAdditionalImage('${image.id}')" 
+                <button type="button" onclick="removeAddAdditionalImage('${image.id}')" 
                     class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 shadow-md transition-opacity opacity-0 group-hover:opacity-100">
                     ×
                 </button>
             `;
-                    additionalPreviewContainer.appendChild(previewDiv);
+                    addAdditionalPreviewContainer.appendChild(previewDiv);
                 });
 
-                if (additionalImages.length >= 5) {
-                    additionalUploadArea.classList.add('hidden');
+                if (addAdditionalImages.length >= 5) {
+                    addAdditionalUploadArea.classList.add('hidden');
                 } else {
-                    additionalUploadArea.classList.remove('hidden');
+                    addAdditionalUploadArea.classList.remove('hidden');
                 }
             }
 
-            function removeAdditionalImage(id) {
-                additionalImages = additionalImages.filter(img => img.id !== id);
-                updateAdditionalPreviews();
+            function removeAddAdditionalImage(id) {
+                addAdditionalImages = addAdditionalImages.filter(img => img.id !== id);
+                updateAddAdditionalPreviews();
             }
 
-            // Drag and Drop Handling
+            // Update Modal Additional Images Handling
+            updateAdditionalInput.addEventListener('change', function(event) {
+                handleUpdateAdditionalFiles(event.target.files);
+            });
+
+            function handleUpdateAdditionalFiles(files) {
+                if (updateAdditionalImages.length + files.length > 5) {
+                    alert('You can upload a maximum of 5 additional images');
+                    return;
+                }
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert(`File ${file.name} exceeds 5MB limit`);
+                        continue;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imageId = 'update-additional-img-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+                        updateAdditionalImages.push({
+                            id: imageId,
+                            file: file,
+                            preview: e.target.result
+                        });
+
+                        updateUpdateAdditionalPreviews();
+                    }
+                    reader.readAsDataURL(file);
+                }
+            }
+
+            function updateUpdateAdditionalPreviews() {
+                updateAdditionalPreviewContainer.innerHTML = '';
+
+                updateAdditionalImages.forEach((image, index) => {
+                    const previewDiv = document.createElement('div');
+                    previewDiv.className = 'relative group';
+                    previewDiv.innerHTML = `
+                <img src="${image.preview}" class="w-full h-32 object-cover rounded-lg border border-gray-200">
+                <button type="button" onclick="removeUpdateAdditionalImage('${image.id}')" 
+                    class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 shadow-md transition-opacity opacity-0 group-hover:opacity-100">
+                    ×
+                </button>
+            `;
+                    updateAdditionalPreviewContainer.appendChild(previewDiv);
+                });
+
+                if (updateAdditionalImages.length >= 5) {
+                    updateAdditionalUploadArea.classList.add('hidden');
+                } else {
+                    updateAdditionalUploadArea.classList.remove('hidden');
+                }
+            }
+
+            function removeUpdateAdditionalImage(id) {
+                updateAdditionalImages = updateAdditionalImages.filter(img => img.id !== id);
+                updateUpdateAdditionalPreviews();
+            }
+
+            // Drag and Drop Handling (updated for both modals)
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                [uploadArea, additionalUploadArea].forEach(area => {
+                [uploadArea, addAdditionalUploadArea, updateAdditionalUploadArea].forEach(area => {
                     area.addEventListener(eventName, preventDefaults, false);
                 });
             });
 
             ['dragenter', 'dragover'].forEach(eventName => {
                 uploadArea.addEventListener(eventName, () => highlight(uploadArea), false);
-                additionalUploadArea.addEventListener(eventName, () => highlight(additionalUploadArea), false);
+                addAdditionalUploadArea.addEventListener(eventName, () => highlight(addAdditionalUploadArea), false);
+                updateAdditionalUploadArea.addEventListener(eventName, () => highlight(updateAdditionalUploadArea), false);
             });
 
             ['dragleave', 'drop'].forEach(eventName => {
                 uploadArea.addEventListener(eventName, () => unhighlight(uploadArea), false);
-                additionalUploadArea.addEventListener(eventName, () => unhighlight(additionalUploadArea), false);
+                addAdditionalUploadArea.addEventListener(eventName, () => unhighlight(addAdditionalUploadArea), false);
+                updateAdditionalUploadArea.addEventListener(eventName, () => unhighlight(updateAdditionalUploadArea), false);
             });
 
             function preventDefaults(e) {
@@ -839,10 +914,16 @@ if (isset($_POST['deleteroomtype'])) {
                 element.classList.remove('border-blue-400', 'bg-blue-50');
             }
 
-            additionalUploadArea.addEventListener('drop', function(e) {
+            addAdditionalUploadArea.addEventListener('drop', function(e) {
                 const dt = e.dataTransfer;
                 const files = dt.files;
-                handleAdditionalFiles(files);
+                handleAddAdditionalFiles(files);
+            });
+
+            updateAdditionalUploadArea.addEventListener('drop', function(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleUpdateAdditionalFiles(files);
             });
         </script>
     </div>

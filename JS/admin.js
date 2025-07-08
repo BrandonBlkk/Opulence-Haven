@@ -1275,8 +1275,17 @@ document.addEventListener("DOMContentLoaded", () => {
                     .then(data => {
                         if (data.success) {
                             document.getElementById('updateRoomTypeID').value = roomTypeId;
-                            document.getElementById('updateRoomTypeImage').setAttribute('src', data.roomtype.RoomCoverImage);
-                            document.getElementById('updateRoomTypeImage').src = data.roomtype.RoomCoverImage;
+                            
+                            // Handle cover image display
+                            if (data.roomtype.RoomCoverImage) {
+                                updateCoverPreview.src = data.roomtype.RoomCoverImage;
+                                updateCoverPreviewContainer.classList.remove('hidden');
+                                updateUploadArea.classList.add('hidden');
+                            } else {
+                                updateCoverPreviewContainer.classList.add('hidden');
+                                updateUploadArea.classList.remove('hidden');
+                            }
+                            
                             document.getElementById('updateRoomTypeInput').value = data.roomtype.RoomType;
                             document.getElementById('updateRoomTypeDescriptionInput').value = data.roomtype.RoomDescription;
                             document.getElementById('updateRoomCapacityInput').value = data.roomtype.RoomCapacity;
@@ -1300,7 +1309,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             }
                             
                             // Display additional images
-                            const additionalPreviewContainer = document.getElementById('additional-preview-container');
+                            const additionalPreviewContainer = document.getElementById('update-additional-preview-container');
                             additionalPreviewContainer.innerHTML = ''; // Clear previous images
                             
                             if (data.additional_images && data.additional_images.length > 0) {
