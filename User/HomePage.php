@@ -507,7 +507,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
                         Take your pick of distinctive Opulence experiences and enjoy cherished moments in unforgettable locations.
                         In your own time, make space for the essentials of life at our hotels, resorts, suites, and residences.
                     </p>
-                    <a href="#" class="bg-amber-500 rounded-sm hover:bg-amber-600 text-white font-semibold text-center py-2 px-4 select-none transition-colors duration-300 self-start sm:self-end">
+                    <a href="aboutus.php" class="bg-amber-500 rounded-sm hover:bg-amber-600 text-white font-semibold text-center py-2 px-4 select-none transition-colors duration-300 self-start sm:self-end">
                         Read more
                     </a>
                 </div>
