@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 </head>
 
-<body class="relative">
+<body class="relative min-w-[380px]">
     <?php
     include('../includes/Navbar.php');
     include('../includes/Cookies.php');
@@ -338,23 +338,86 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
             </div>
 
             <!-- Search Form at Bottom Center -->
-            <form id="checkin-form" action="../User/RoomBooking.php" method="GET" class="fixed bottom-8 left-1/2 transform -translate-x-1/2 w-full sm:max-w-[1030px] z-10 p-4 bg-white rounded-sm shadow-sm border flex justify-between items-center space-x-4 transition-all duration-1000">
-                <div class="flex items-center space-x-4">
-                    <div class="flex gap-3">
+            <form id="checkin-form" action="../User/RoomBooking.php" method="GET"
+                class="fixed bottom-8 left-1/2 transform -translate-x-1/2 w-full max-w-[95%] sm:max-w-[1030px] z-10 p-4 bg-white rounded-sm shadow-sm border lg:flex justify-between items-end space-x-4 transition-all duration-1000 hidden">
+                <div class="flex w-full md:items-center gap-4">
+                    <div class="flex gap-3 w-full">
                         <!-- Check-in Date -->
-                        <div>
-                            <label class="font-semibold text-blue-900">Check-In Date</label>
-                            <input type="date" id="checkin-date" name="checkin_date" class="p-3 border border-gray-300 rounded-sm outline-none" placeholder="Check-in Date" required>
+                        <div class="w-full">
+                            <label class="font-semibold text-blue-900 block mb-1">Check-In Date</label>
+                            <input type="date" id="checkin-date" name="checkin_date"
+                                class="w-full p-3 border border-gray-300 rounded-sm outline-none" placeholder="Check-in Date" required>
                         </div>
                         <!-- Check-out Date -->
-                        <div>
-                            <label class="font-semibold text-blue-900">Check-Out Date</label>
-                            <input type="date" id="checkout-date" name="checkout_date" class="p-3 border border-gray-300 rounded-sm outline-none" placeholder="Check-out Date" required>
+                        <div class="w-full">
+                            <label class="font-semibold text-blue-900 block mb-1">Check-Out Date</label>
+                            <input type="date" id="checkout-date" name="checkout_date"
+                                class="w-full p-3 border border-gray-300 rounded-sm outline-none" placeholder="Check-out Date" required>
                         </div>
                     </div>
-                    <div class="flex">
+                    <div class="flex flex-col sm:flex-row gap-3 w-full">
                         <!-- Adults -->
-                        <select id="adults" name="adults" class="p-3 border border-gray-300 rounded-sm outline-none">
+                        <div class="w-full">
+                            <label class="font-semibold text-blue-900 block mb-1">Adults</label>
+                            <select id="adults" name="adults" class="w-full p-3 border border-gray-300 rounded-sm outline-none">
+                                <option value="1">1 Adult</option>
+                                <option value="2">2 Adults</option>
+                                <option value="3">3 Adults</option>
+                                <option value="4">4 Adults</option>
+                                <option value="5">5 Adults</option>
+                                <option value="6">6 Adults</option>
+                            </select>
+                        </div>
+                        <!-- Children -->
+                        <div class="w-full">
+                            <label class="font-semibold text-blue-900 block mb-1">Children</label>
+                            <select id="children" name="children" class="w-full p-3 border border-gray-300 rounded-sm outline-none">
+                                <option value="0">0 Children</option>
+                                <option value="1">1 Child</option>
+                                <option value="2">2 Children</option>
+                                <option value="3">3 Children</option>
+                                <option value="4">4 Children</option>
+                                <option value="5">5 Children</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Button -->
+                <button type="submit" name="check_availability"
+                    class="w-full mb-0.5 sm:w-auto p-3 bg-blue-900 text-nowrap text-white rounded-sm hover:bg-blue-950 uppercase font-semibold transition-colors duration-300 select-none mt-2 sm:mt-0">
+                    Check Availability
+                </button>
+            </form>
+
+            <!-- Mobile Check-In Button (only shown on small screens) -->
+            <button id="mobile-checkin-button" class="lg:hidden fixed bottom-3 right-3 bg-blue-900 text-white p-4 rounded-full z-20 shadow-md hover:bg-blue-950 transform transition-all duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </button>
+
+            <!-- Mobile Check-In Slide-Up Form -->
+            <div id="mobile-checkin-form" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white p-4 border-t shadow-md z-30 transform translate-y-full transition-transform duration-500">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-blue-900 font-semibold text-lg">Book a Room</h2>
+                    <button id="close-mobile-form" class="text-red-500 font-bold text-lg">&times;</button>
+                </div>
+                <form action="../User/RoomBooking.php" method="GET" class="flex flex-col space-y-3">
+                    <!-- Check-in Date -->
+                    <div>
+                        <label class="font-semibold text-blue-900">Check-In Date</label>
+                        <input type="date" id="mobile-checkin-date" name="checkin_date" class="p-2 border border-gray-300 roundedmd w-full" required>
+                    </div>
+                    <!-- Check-out Date -->
+                    <div>
+                        <label class="font-semibold text-blue-900">Check-Out Date</label>
+                        <input type="date" id="mobile-checkout-date" name="checkout_date" class="p-2 border border-gray-300 rounded-sm w-full" required>
+                    </div>
+                    <!-- Adults -->
+                    <div>
+                        <label class="font-semibold text-blue-900">Adults</label>
+                        <select name="adults" class="p-2 border border-gray-300 rounded-sm w-full">
                             <option value="1">1 Adult</option>
                             <option value="2">2 Adults</option>
                             <option value="3">3 Adults</option>
@@ -362,8 +425,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
                             <option value="5">5 Adults</option>
                             <option value="6">6 Adults</option>
                         </select>
-                        <!-- Children -->
-                        <select id="children" name="children" class="p-3 border border-gray-300 rounded-sm outline-none">
+                    </div>
+                    <!-- Children -->
+                    <div>
+                        <label class="font-semibold text-blue-900">Children</label>
+                        <select name="children" class="p-2 border border-gray-300 rounded-sm w-full">
                             <option value="0">0 Children</option>
                             <option value="1">1 Child</option>
                             <option value="2">2 Children</option>
@@ -372,13 +438,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
                             <option value="5">5 Children</option>
                         </select>
                     </div>
-                </div>
+                    <!-- Submit Button -->
+                    <button type="submit" name="check_availability" class="p-3 bg-blue-900 text-white rounded-sm hover:bg-blue-950 uppercase font-semibold transition">
+                        Check Availability
+                    </button>
+                </form>
+            </div>
 
-                <!-- Search Button -->
-                <button type="submit" name="check_availability" class="p-3 bg-blue-900 text-white rounded-sm hover:bg-blue-950 uppercase font-semibold transition-colors duration-300 select-none">
-                    Check Availability
-                </button>
-            </form>
+            <script>
+                // Slide form for desktop
+                let checkin_form = document.getElementById('checkin-form');
+                let mobile_checkin_form = document.getElementById('mobile-checkin-form');
+                let lastScrollPosition = window.scrollY;
+                let isScrollingDown = false;
+
+                // Mobile check-in form handling
+                const mobileBtn = document.getElementById('mobile-checkin-button');
+                const mobileForm = document.getElementById('mobile-checkin-form');
+                const closeForm = document.getElementById('close-mobile-form');
+                const mobileBtnText = mobileBtn.querySelector('span');
+                const mobileBtnIcon = mobileBtn.querySelector('svg');
+
+                if (checkin_form) {
+                    checkin_form.classList.add('hidden', 'lg:flex'); // Hide on mobile only
+                    checkin_form.style.bottom = '32px';
+
+                    window.addEventListener('scroll', () => {
+                        const currentScrollPosition = window.scrollY;
+                        isScrollingDown = currentScrollPosition > lastScrollPosition;
+                        lastScrollPosition = currentScrollPosition;
+
+                        let scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+                        let scrollPercentage = (window.scrollY / scrollableHeight) * 100;
+
+                        if (window.scrollY <= 10) {
+                            checkin_form.style.bottom = '32px';
+                        } else if (isScrollingDown) {
+                            if (scrollPercentage < 80) {
+                                checkin_form.style.bottom = '32px';
+                            } else {
+                                checkin_form.style.bottom = '-100%';
+                            }
+                        } else {
+                            checkin_form.style.bottom = '-100%';
+                        }
+                    });
+                }
+
+                if (mobileBtn && mobileForm && closeForm) {
+                    mobileBtn.addEventListener('click', () => {
+                        mobileForm.classList.remove('translate-y-full');
+                    });
+
+                    closeForm.addEventListener('click', () => {
+                        mobileForm.classList.add('translate-y-full');
+                    });
+                }
+            </script>
         </div>
 
         <div class="flex flex-col items-center justify-center py-16 px-3 text-center">
@@ -507,7 +623,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
                         Take your pick of distinctive Opulence experiences and enjoy cherished moments in unforgettable locations.
                         In your own time, make space for the essentials of life at our hotels, resorts, suites, and residences.
                     </p>
-                    <a href="#" class="bg-amber-500 rounded-sm hover:bg-amber-600 text-white font-semibold text-center py-2 px-4 select-none transition-colors duration-300 self-start sm:self-end">
+                    <a href="aboutus.php" class="bg-amber-500 rounded-sm hover:bg-amber-600 text-white font-semibold text-center py-2 px-4 select-none transition-colors duration-300 self-start sm:self-end">
                         Read more
                     </a>
                 </div>

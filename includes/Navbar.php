@@ -5,7 +5,7 @@ include('../User/CleanupReservations.php');
 $current_page = basename($_SERVER['PHP_SELF']);
 ?>
 
-<section id="sale-section" class="SVG2 p-2 text-center bg-blue-950 text-white">
+<section id="sale-section" class="SVG2 p-2 text-sm sm:text-base text-center bg-blue-950 text-white">
     <?php if ($current_page === 'Dining.php'): ?>
         <p>Reserve your table for an exquisite dining experience!</p>
     <?php else: ?>

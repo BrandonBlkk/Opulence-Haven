@@ -36,7 +36,7 @@
                     <h1 class="text-lg font-semibold text-black mb-3">Information</h1>
                     <ul class="text-sm flex flex-col gap-1 text-slate-700">
                         <li>
-                            <a class="hover:underline" href="AboutUs.php">About Us</a>
+                            <a class="hover:underline" href="aboutus.php">About Us</a>
                         </li>
                         <li>
                             <a class="hover:underline" href="../User/Contact.php">Contact</a>
