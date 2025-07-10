@@ -37,7 +37,7 @@ $session_userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
             <div class="swiper-slide relative">
                 <img src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80"
                     alt="Opulence Haven Hotel Lobby"
-                    class="w-full h-full object-cover object-center">
+                    class="w-full h-full object-cover object-center select-none">
                 <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
                     <div class="text-center px-4" data-aos="fade-up">
                         <h1 class="text-white text-4xl lg:text-6xl font-bold mb-6">Our Story</h1>
@@ -49,7 +49,7 @@ $session_userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
             <div class="swiper-slide relative">
                 <img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80"
                     alt="Opulence Haven Exterior"
-                    class="w-full h-full object-cover object-center">
+                    class="w-full h-full object-cover object-center select-none">
                 <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
                     <div class="text-center px-4" data-aos="fade-up">
                         <h1 class="text-white text-4xl lg:text-6xl font-bold mb-6">Our Heritage</h1>
@@ -90,7 +90,7 @@ $session_userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
 
                 <!-- Image Content -->
                 <div class="order-1 lg:order-2 relative" data-aos="fade-left" data-aos-mobile="false">
-                    <div class="relative aspect-w-16 aspect-h-12 lg:aspect-none">
+                    <div class="relative aspect-w-16 aspect-h-12 lg:aspect-none select-none">
                         <img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
                             alt="Opulence Haven Hotel Exterior"
                             class="w-full h-full object-cover object-center rounded-sm shadow-lg">
@@ -194,12 +194,12 @@ $session_userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
             <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
                 <!-- Image -->
                 <div class="relative" data-aos="fade-right" data-aos-mobile="false">
-                    <div class="aspect-w-16 aspect-h-9 overflow-hidden">
+                    <div class="aspect-w-16 aspect-h-9 overflow-hidden select-none">
                         <img src="../UserImages/modern-highrise-building.jpg"
                             class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700"
                             alt="Hotel Image">
                     </div>
-                    <div class="absolute -bottom-6 -right-6 bg-white p-6 shadow-md hidden lg:block">
+                    <div class="absolute -bottom-6 -right-6 bg-gray-50 p-6 hidden lg:block">
                         <span class="block text-xs uppercase tracking-wider text-amber-600">Innovation</span>
                         <span class="block text-2xl font-serif font-medium mt-1">Digital Future</span>
                     </div>
@@ -407,21 +407,10 @@ $session_userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
 
                         <!-- Action buttons -->
                         <div class="space-y-5">
-                            <!-- Primary action -->
-                            <a href="#" class="group relative flex items-center justify-center px-8 py-4 bg-gradient-to-r from-amber-600 to-amber-700 rounded-sm overflow-hidden transition-all duration-300">
-                                <span class="relative flex items-center text-lg font-medium text-white tracking-wider">
-                                    Book Direct & Save
-                                    <svg class="ml-3 h-5 w-5 text-amber-200 transition-transform duration-300 group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                    </svg>
-                                </span>
-                                <div class="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-amber-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                            </a>
-
                             <!-- Secondary action -->
                             <a href="RoomBooking.php" class="group relative flex items-center justify-center px-8 py-4 border border-amber-500/30 rounded-sm overflow-hidden transition-all duration-300 hover:border-amber-400/50">
                                 <span class="relative flex items-center text-lg font-medium text-amber-500">
-                                    Explore Suites
+                                    Explore Rooms
                                     <svg class="ml-3 h-5 w-5 text-amber-500 transition-all duration-300 group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                         <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
                                     </svg>

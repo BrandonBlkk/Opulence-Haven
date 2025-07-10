@@ -253,14 +253,16 @@ if (isset($_POST['room_favourite'])) {
 
     <main class="pb-4">
         <div class="relative swiper-container flex justify-center">
-            <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="get" class="w-full sm:max-w-[1030px] z-10 p-4 bg-white border-b flex justify-between items-center space-x-4">
-                <div class="flex items-center space-x-4">
-                    <div class="flex gap-3">
+            <!-- Desktop Form (shown on lg screens and up) -->
+            <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="get"
+                class="hidden lg:flex w-full sm:max-w-[1030px] z-10 p-4 bg-white border-b justify-between items-end space-x-4">
+                <div class="flex items-center space-x-4 w-full">
+                    <div class="flex gap-3 w-full">
                         <!-- Check-in Date -->
-                        <div>
-                            <label class="font-semibold text-blue-900">Check-In Date</label>
+                        <div class="w-full">
+                            <label class="font-semibold text-blue-900 block mb-1">Check-In Date</label>
                             <input type="date" id="checkin-date" name="checkin_date"
-                                class="p-3 border border-gray-300 rounded-sm outline-none"
+                                class="w-full p-3 border border-gray-300 rounded-sm outline-none"
                                 value="<?php echo isset($_GET['checkin_date']) ? $_GET['checkin_date'] : ''; ?>"
                                 placeholder="Check-in Date">
                             <?php if (isset($_SESSION['alert'])): ?>
@@ -271,48 +273,126 @@ if (isset($_POST['room_favourite'])) {
                             <?php endif; ?>
                         </div>
                         <!-- Check-out Date -->
-                        <div>
-                            <label class="font-semibold text-blue-900">Check-Out Date</label>
+                        <div class="w-full">
+                            <label class="font-semibold text-blue-900 block mb-1">Check-Out Date</label>
                             <input type="date" id="checkout-date" name="checkout_date"
-                                class="p-3 border border-gray-300 rounded-sm outline-none"
+                                class="w-full p-3 border border-gray-300 rounded-sm outline-none"
                                 value="<?php echo isset($_GET['checkout_date']) ? $_GET['checkout_date'] : ''; ?>"
                                 placeholder="Check-out Date">
                         </div>
-
-                        <script>
-                            document.addEventListener('DOMContentLoaded', () => {
-                                const today = new Date().toISOString().split('T')[0];
-                                const checkInDateInput = document.getElementById('checkin-date');
-                                const checkOutDateInput = document.getElementById('checkout-date');
-                                checkInDateInput.setAttribute('min', today);
-                                checkOutDateInput.setAttribute('min', today);
-                            });
-                        </script>
                     </div>
-                    <div class="flex">
+                    <div class="flex gap-3 w-full">
                         <!-- Adults -->
-                        <select id="adults" name="adults" class="p-3 border border-gray-300 rounded-sm outline-none">
+                        <div class="w-full">
+                            <label class="font-semibold text-blue-900 block mb-1">Adults</label>
+                            <select id="adults" name="adults" class="w-full p-3 border border-gray-300 rounded-sm outline-none">
+                                <?php for ($i = 1; $i <= 6; $i++): ?>
+                                    <option value="<?= $i ?>" <?= $adults == $i ? 'selected' : '' ?>><?= $i ?> Adult<?= $i > 1 ? 's' : '' ?></option>
+                                <?php endfor; ?>
+                            </select>
+                        </div>
+                        <!-- Children -->
+                        <div class="w-full">
+                            <label class="font-semibold text-blue-900 block mb-1">Children</label>
+                            <select id="children" name="children" class="w-full p-3 border border-gray-300 rounded-sm outline-none">
+                                <?php for ($i = 0; $i <= 5; $i++): ?>
+                                    <option value="<?= $i ?>" <?= $children == $i ? 'selected' : '' ?>><?= $i ?> <?= $i == 1 ? 'Child' : 'Children' ?></option>
+                                <?php endfor; ?>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Button -->
+                <button type="submit" name="check_availability"
+                    class="p-3 mb-0.5 bg-blue-900 text-white rounded-sm hover:bg-blue-950 uppercase font-semibold transition-colors duration-300 select-none whitespace-nowrap">
+                    Check Availability
+                </button>
+            </form>
+
+            <!-- Mobile Check-In Button (shown on small screens) -->
+            <button id="mobile-search-button" class="lg:hidden fixed bottom-3 right-3 bg-blue-900 text-white p-4 rounded-full z-20 shadow-md hover:bg-blue-950 transform transition-all duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </button>
+
+            <!-- Mobile Check-In Slide-Up Form -->
+            <div id="mobile-search-form" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white p-4 border-t shadow-md z-30 transform translate-y-full transition-transform duration-500">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-blue-900 font-semibold text-lg">Book a Room</h2>
+                    <button id="close-mobile-search" class="text-red-500 font-bold text-lg">&times;</button>
+                </div>
+                <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="get" class="flex flex-col space-y-3">
+                    <!-- Check-in Date -->
+                    <div>
+                        <label class="font-semibold text-blue-900">Check-In Date</label>
+                        <input type="date" id="mobile-checkin-date" name="checkin_date"
+                            class="p-2 border border-gray-300 rounded-sm w-full"
+                            value="<?php echo isset($_GET['checkin_date']) ? $_GET['checkin_date'] : ''; ?>" required>
+                    </div>
+                    <!-- Check-out Date -->
+                    <div>
+                        <label class="font-semibold text-blue-900">Check-Out Date</label>
+                        <input type="date" id="mobile-checkout-date" name="checkout_date"
+                            class="p-2 border border-gray-300 rounded-sm w-full"
+                            value="<?php echo isset($_GET['checkout_date']) ? $_GET['checkout_date'] : ''; ?>" required>
+                    </div>
+                    <!-- Adults -->
+                    <div>
+                        <label class="font-semibold text-blue-900">Adults</label>
+                        <select name="adults" class="p-2 border border-gray-300 rounded-sm w-full">
                             <?php for ($i = 1; $i <= 6; $i++): ?>
                                 <option value="<?= $i ?>" <?= $adults == $i ? 'selected' : '' ?>><?= $i ?> Adult<?= $i > 1 ? 's' : '' ?></option>
                             <?php endfor; ?>
                         </select>
-                        <!-- Children -->
-                        <select id="children" name="children" class="p-3 border border-gray-300 rounded-sm outline-none">
+                    </div>
+                    <!-- Children -->
+                    <div>
+                        <label class="font-semibold text-blue-900">Children</label>
+                        <select name="children" class="p-2 border border-gray-300 rounded-sm w-full">
                             <?php for ($i = 0; $i <= 5; $i++): ?>
                                 <option value="<?= $i ?>" <?= $children == $i ? 'selected' : '' ?>><?= $i ?> <?= $i == 1 ? 'Child' : 'Children' ?></option>
                             <?php endfor; ?>
                         </select>
                     </div>
-                </div>
-
-                <!-- Search Button -->
-                <div class="flex items-center space-x-2 select-none">
-                    <button type="submit" name="check_availability"
-                        class="p-3 bg-blue-900 text-white rounded-sm hover:bg-blue-950 uppercase font-semibold transition-colors duration-300">
+                    <!-- Submit Button -->
+                    <button type="submit" name="check_availability" class="p-3 bg-blue-900 text-white rounded-sm hover:bg-blue-950 uppercase font-semibold transition">
                         Check Availability
                     </button>
-                </div>
-            </form>
+                </form>
+            </div>
+
+            <script>
+                // Set min dates for date inputs
+                document.addEventListener('DOMContentLoaded', () => {
+                    const today = new Date().toISOString().split('T')[0];
+                    const checkInDateInput = document.getElementById('checkin-date');
+                    const checkOutDateInput = document.getElementById('checkout-date');
+                    const mobileCheckInInput = document.getElementById('mobile-checkin-date');
+                    const mobileCheckOutInput = document.getElementById('mobile-checkout-date');
+
+                    if (checkInDateInput) checkInDateInput.setAttribute('min', today);
+                    if (checkOutDateInput) checkOutDateInput.setAttribute('min', today);
+                    if (mobileCheckInInput) mobileCheckInInput.setAttribute('min', today);
+                    if (mobileCheckOutInput) mobileCheckOutInput.setAttribute('min', today);
+                });
+
+                // Mobile search form handling
+                const mobileSearchBtn = document.getElementById('mobile-search-button');
+                const mobileSearchForm = document.getElementById('mobile-search-form');
+                const closeMobileSearch = document.getElementById('close-mobile-search');
+
+                if (mobileSearchBtn && mobileSearchForm && closeMobileSearch) {
+                    mobileSearchBtn.addEventListener('click', () => {
+                        mobileSearchForm.classList.remove('translate-y-full');
+                    });
+
+                    closeMobileSearch.addEventListener('click', () => {
+                        mobileSearchForm.classList.add('translate-y-full');
+                    });
+                }
+            </script>
         </div>
 
         <section class="max-w-[1200px] mx-auto px-4 py-8">
