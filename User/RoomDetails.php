@@ -642,14 +642,16 @@ if (isset($_POST['submitreview'])) {
                 </form>
 
                 <!-- Mobile Check-In Button (shown on small screens) -->
-                <button id="mobile-search-button" class="lg:hidden fixed bottom-3 right-3 bg-blue-900 text-white p-4 rounded-full z-20 shadow-md hover:bg-blue-950 transform transition-all duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                </button>
+                <div id="mobileButtonsWrapper" class="lg:hidden fixed bottom-3 right-3 transform transition-all duration-300 z-20">
+                    <button id="mobile-checkin-button" class="bg-blue-900 text-white p-3 rounded-full z-20 shadow-md hover:bg-blue-950 transform transition-all duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </button>
+                </div>
 
                 <!-- Mobile Check-In Slide-Up Form -->
-                <div id="mobile-search-form" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white p-4 border-t shadow-md z-30 transform translate-y-full transition-transform duration-500">
+                <div id="mobile-checkin-form" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white p-4 border-t shadow-md z-30 transform translate-y-full transition-transform duration-500">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-blue-900 font-semibold text-lg">Book a Room</h2>
                         <button id="close-mobile-search" class="text-red-500 font-bold text-lg">&times;</button>
@@ -1458,141 +1460,116 @@ if (isset($_POST['submitreview'])) {
                 <div id="facilities-section" class="space-y-6 mb-8">
                     <h2 class="text-2xl font-bold text-gray-800 mb-6">Facilities of Opulence Haven</h2>
 
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
-                        <!-- Great for your stay -->
-                        <div class="space-y-4">
-                            <div class="flex items-center gap-1">
-                                <?php
-                                // Get the icon for 'Stay' category
-                                $stayIconQuery = "SELECT FacilityTypeIcon FROM facilitytypetb WHERE FacilityType = 'Stay'";
-                                $stayIconResult = $connect->query($stayIconQuery);
-                                $stayIcon = $stayIconResult->fetch_assoc();
-                                ?>
-                                <i class="<?= htmlspecialchars($stayIcon['FacilityTypeIcon']) ?> text-xl leading-none"></i>
-                                <h3 class="text-md font-semibold text-gray-700">Great for your stay</h3>
-                            </div>
-                            <div class="grid grid-cols-1 gap-3">
-                                <?php
-                                $safetyQuery = "SELECT * FROM facilitytb 
-                       WHERE FacilityTypeID = (SELECT FacilityTypeID FROM facilitytypetb WHERE FacilityType = 'Stay')
-                       ORDER BY Facility";
-                                $safetyResult = $connect->query($safetyQuery);
+                    <div class="flex flex-wrap gap-6">
+                        <?php
+                        // Define all facility categories with their display titles and icons
+                        $categories = [
+                            'Stay' => ['title' => 'Great for your stay', 'icon' => true],
+                            'Bathroom' => ['title' => 'Bathroom', 'icon' => false],
+                            'Bedroom' => ['title' => 'Bedroom', 'icon' => false],
+                            'Outdoors' => ['title' => 'Outdoors', 'icon' => false],
+                            'Activities' => ['title' => 'Activities', 'icon' => false],
+                            'Living Area' => ['title' => 'Living Area', 'icon' => true],
+                            'Media & Technology' => ['title' => 'Media & Technology', 'icon' => true],
+                            'Food & Drink' => ['title' => 'Food & Drink', 'icon' => false],
+                            'Reception services' => ['title' => 'Reception services', 'icon' => false],
+                            'Cleaning services' => ['title' => 'Cleaning services', 'icon' => false],
+                            'Safety & security' => ['title' => 'Safety & security', 'icon' => false],
+                            'General' => ['title' => 'General', 'icon' => false]
+                        ];
 
-                                while ($facility = $safetyResult->fetch_assoc()) {
-                                    echo '
-                                <div class="flex items-center gap-2">
-                                    <i class="ri-checkbox-circle-line text-base text-green-500 leading-none"></i>
-                                    <span class="text-gray-700 text-sm leading-none">' . htmlspecialchars($facility['Facility']) . '</span>
-                                </div>
-                                ';
+                        foreach ($categories as $type => $info) {
+                            // Check if there are facilities for this category
+                            $checkQuery = "SELECT COUNT(*) as count FROM facilitytb 
+                          WHERE FacilityTypeID = (SELECT FacilityTypeID FROM facilitytypetb WHERE FacilityType = ?)";
+                            $stmt = $connect->prepare($checkQuery);
+                            $stmt->bind_param("s", $type);
+                            $stmt->execute();
+                            $result = $stmt->get_result();
+                            $row = $result->fetch_assoc();
+
+                            if ($row['count'] > 0) {
+                                // Get icon for this category if available
+                                $icon = '';
+                                if ($info['icon']) {
+                                    $iconQuery = "SELECT FacilityTypeIcon FROM facilitytypetb WHERE FacilityType = ?";
+                                    $iconStmt = $connect->prepare($iconQuery);
+                                    $iconStmt->bind_param("s", $type);
+                                    $iconStmt->execute();
+                                    $iconResult = $iconStmt->get_result();
+                                    $iconData = $iconResult->fetch_assoc();
+                                    $icon = $iconData['FacilityTypeIcon'] ?? '';
                                 }
-                                ?>
-                            </div>
-                        </div>
 
-                        <!-- Bathroom -->
-                        <div class="space-y-4">
-                            <h3 class="text-md font-semibold text-gray-700">Bathroom</h3>
-                            <div class="grid grid-cols-1 gap-3">
-                                <?php
-                                $safetyQuery = "SELECT * FROM facilitytb 
-                           WHERE FacilityTypeID = (SELECT FacilityTypeID FROM facilitytypetb WHERE FacilityType = 'Bathroom')
-                           ORDER BY Facility";
-                                $safetyResult = $connect->query($safetyQuery);
+                                echo '<div class="space-y-4 min-w-[200px] max-w-[300px] flex-1">';
 
-                                while ($facility = $safetyResult->fetch_assoc()) {
-                                    echo '
-                                <div class="flex items-center gap-2">
-                                    <i class="ri-checkbox-circle-line text-base text-green-500 leading-none"></i>
-                                    <span class="text-gray-700 text-sm leading-none">' . htmlspecialchars($facility['Facility']) . '</span>
-                                </div>
-                                ';
+                                // Display title with icon if available
+                                if ($icon) {
+                                    echo '<div class="flex items-center gap-1">';
+                                    echo '<i class="' . htmlspecialchars($icon) . ' text-xl leading-none"></i>';
+                                    echo '<h3 class="text-md font-semibold text-gray-700">' . htmlspecialchars($info['title']) . '</h3>';
+                                    echo '</div>';
+                                } else {
+                                    echo '<h3 class="text-md font-semibold text-gray-700">' . htmlspecialchars($info['title']) . '</h3>';
                                 }
-                                ?>
-                            </div>
-                        </div>
 
-                        <!-- Activities -->
-                        <div class="space-y-4">
-                            <h3 class="text-md font-semibold text-gray-700">Activities</h3>
-                            <div class="grid grid-cols-1 gap-3">
-                                <?php
-                                $safetyQuery = "SELECT * FROM facilitytb 
-                           WHERE FacilityTypeID = (SELECT FacilityTypeID FROM facilitytypetb WHERE FacilityType = 'Activities')
-                           ORDER BY Facility";
-                                $safetyResult = $connect->query($safetyQuery);
+                                echo '<div class="grid grid-cols-1 gap-3">';
 
-                                while ($facility = $safetyResult->fetch_assoc()) {
-                                    echo '
-                                <div class="flex items-center gap-2">
-                                    <i class="ri-checkbox-circle-line text-base text-green-500 leading-none"></i>
-                                    <span class="text-gray-700 text-sm leading-none">' . htmlspecialchars($facility['Facility']) . '</span>
-                                </div>
-                                ';
+                                // Get and display all facilities for this category
+                                $facilityQuery = "SELECT * FROM facilitytb 
+                                 WHERE FacilityTypeID = (SELECT FacilityTypeID FROM facilitytypetb WHERE FacilityType = ?)
+                                 ORDER BY Facility";
+                                $facilityStmt = $connect->prepare($facilityQuery);
+                                $facilityStmt->bind_param("s", $type);
+                                $facilityStmt->execute();
+                                $facilityResult = $facilityStmt->get_result();
+
+                                while ($facility = $facilityResult->fetch_assoc()) {
+                                    echo '<div class="flex items-center gap-2">';
+                                    echo '<i class="ri-checkbox-circle-line text-base text-green-500 leading-none"></i>';
+                                    echo '<span class="text-gray-700 text-sm leading-none">' . htmlspecialchars($facility['Facility']) . '</span>';
+
+                                    // Check if this facility has additional charge
+                                    if (strpos($facility['Facility'], 'Additional charge') !== false) {
+                                        echo '<span class="text-xs text-gray-500 ml-1">(Additional charge)</span>';
+                                    }
+
+                                    echo '</div>';
                                 }
-                                ?>
-                            </div>
-                        </div>
 
-                        <!-- Living Area -->
-                        <div class="space-y-4">
-                            <div class="flex items-center gap-1">
-                                <?php
-                                $stayIconQuery = "SELECT FacilityTypeIcon FROM facilitytypetb WHERE FacilityType = 'Living Area'";
-                                $stayIconResult = $connect->query($stayIconQuery);
-                                $stayIcon = $stayIconResult->fetch_assoc();
-                                ?>
-                                <i class="<?= htmlspecialchars($stayIcon['FacilityTypeIcon']) ?> text-xl leading-none"></i>
-                                <h3 class="text-md font-semibold text-gray-700">Living Area</h3>
-                            </div>
-                            <div class="grid grid-cols-1 gap-3">
-                                <?php
-                                $safetyQuery = "SELECT * FROM facilitytb 
-                           WHERE FacilityTypeID = (SELECT FacilityTypeID FROM facilitytypetb WHERE FacilityType = 'Living Area')
-                           ORDER BY Facility";
-                                $safetyResult = $connect->query($safetyQuery);
+                                echo '</div></div>';
+                            }
+                        }
 
-                                while ($facility = $safetyResult->fetch_assoc()) {
-                                    echo '
-                                <div class="flex items-center gap-2">
-                                    <i class="ri-checkbox-circle-line text-base text-green-500 leading-none"></i>
-                                    <span class="text-gray-700 text-sm leading-none">' . htmlspecialchars($facility['Facility']) . '</span>
-                                </div>
-                                ';
-                                }
-                                ?>
-                            </div>
-                        </div>
+                        // Special cases for Internet and Parking which might be text descriptions
+                        $textFacilities = ['Internet', 'Parking'];
+                        foreach ($textFacilities as $facility) {
+                            $checkQuery = "SELECT COUNT(*) as count FROM facilitytb 
+                          WHERE FacilityTypeID = (SELECT FacilityTypeID FROM facilitytypetb WHERE FacilityType = ?)";
+                            $stmt = $connect->prepare($checkQuery);
+                            $stmt->bind_param("s", $facility);
+                            $stmt->execute();
+                            $result = $stmt->get_result();
+                            $row = $result->fetch_assoc();
 
-                        <!-- Media & Technology -->
-                        <div class="space-y-4">
-                            <div class="flex items-center gap-1">
-                                <?php
-                                $stayIconQuery = "SELECT FacilityTypeIcon FROM facilitytypetb WHERE FacilityType = 'Media & Technology'";
-                                $stayIconResult = $connect->query($stayIconQuery);
-                                $stayIcon = $stayIconResult->fetch_assoc();
-                                ?>
-                                <i class="<?= htmlspecialchars($stayIcon['FacilityTypeIcon']) ?> text-xl leading-none"></i>
-                                <h3 class="text-md font-semibold text-gray-700">Media & Technology</h3>
-                            </div>
-                            <div class="grid grid-cols-1 gap-3">
-                                <?php
-                                $safetyQuery = "SELECT * FROM facilitytb 
-                           WHERE FacilityTypeID = (SELECT FacilityTypeID FROM facilitytypetb WHERE FacilityType = 'Media & Technology')
-                           ORDER BY Facility";
-                                $safetyResult = $connect->query($safetyQuery);
+                            if ($row['count'] > 0) {
+                                echo '<div class="space-y-4 min-w-[200px] max-w-[300px] flex-1">';
+                                echo '<h3 class="text-md font-semibold text-gray-700">' . htmlspecialchars($facility) . '</h3>';
 
-                                while ($facility = $safetyResult->fetch_assoc()) {
-                                    echo '
-                                <div class="flex items-center gap-2">
-                                    <i class="ri-checkbox-circle-line text-base text-green-500 leading-none"></i>
-                                    <span class="text-gray-700 text-sm leading-none">' . htmlspecialchars($facility['Facility']) . '</span>
-                                </div>
-                                ';
-                                }
-                                ?>
-                            </div>
-                        </div>
+                                $descQuery = "SELECT Facility FROM facilitytb 
+                             WHERE FacilityTypeID = (SELECT FacilityTypeID FROM facilitytypetb WHERE FacilityType = ?)
+                             LIMIT 1";
+                                $descStmt = $connect->prepare($descQuery);
+                                $descStmt->bind_param("s", $facility);
+                                $descStmt->execute();
+                                $descResult = $descStmt->get_result();
+                                $desc = $descResult->fetch_assoc();
+
+                                echo '<p class="text-gray-700 text-sm">' . htmlspecialchars($desc['Facility']) . '</p>';
+                                echo '</div>';
+                            }
+                        }
+                        ?>
                     </div>
                 </div>
 

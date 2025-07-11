@@ -111,42 +111,110 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// // Checkin Form
-// let checkin_form = document.getElementById('checkin-form');
-// let lastScrollPosition = window.scrollY;
-// let isScrollingDown = false;
+// Checkin Form scroll behavior
+let checkin_form = document.getElementById('checkin-form');
+let mobile_checkin_form = document.getElementById('mobile-checkin-form');
+let lastScrollPosition = window.scrollY;
+let isScrollingDown = false;
+const darkOverlay2 = document.getElementById('darkOverlay2');
 
-// if (checkin_form) {
-//     // Show form initially at page load (top of page)
-//     checkin_form.style.bottom = '32px';
-    
-//     window.addEventListener('scroll', () => {
-//         // Determine scroll direction
-//         const currentScrollPosition = window.scrollY;
-//         isScrollingDown = currentScrollPosition > lastScrollPosition;
-//         lastScrollPosition = currentScrollPosition;
-        
-//         // Calculate scroll position
-//         let scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
-//         let scrollPercentage = (window.scrollY / scrollableHeight) * 100;
-        
-//         // At very top of page (start point), always show
-//         if (window.scrollY <= 10) {  
-//             checkin_form.style.bottom = '32px';
-//         }
-//         else if (isScrollingDown) {
-//             // When scrolling down, show until 80%
-//             if (scrollPercentage < 80) {
-//                 checkin_form.style.bottom = '32px';  // Show form
-//             } else {
-//                 checkin_form.style.bottom = '-100%'; // Hide after 80%
-//             }
-//         } else {
-//             // When scrolling up, hide immediately
-//             checkin_form.style.bottom = '-100%';
-//         }
-//     });
-// }
+if (checkin_form && mobile_checkin_form) {
+    checkin_form.classList.add('hidden', 'lg:flex');
+    checkin_form.style.bottom = '32px';
+
+    window.addEventListener('scroll', () => {
+        const currentScrollPosition = window.scrollY;
+        isScrollingDown = currentScrollPosition > lastScrollPosition;
+        lastScrollPosition = currentScrollPosition;
+
+        let scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+        let scrollPercentage = (window.scrollY / scrollableHeight) * 100;
+
+        if (window.scrollY <= 10) {
+            checkin_form.style.bottom = '32px';
+        } else if (isScrollingDown) {
+            if (scrollPercentage < 80) {
+                checkin_form.style.bottom = '32px';
+            } else {
+                checkin_form.style.bottom = '-100%';
+            }
+        } else {
+            checkin_form.style.bottom = '-100%';
+        }
+    });
+}
+
+// Handle mobile check-in buttons and forms 
+document.querySelectorAll('#mobile-checkin-button').forEach(button => {
+    button.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Find the closest mobile form to this button
+        const wrapper = button.closest('#mobileButtonsWrapper');
+        if (wrapper) {
+            const form = wrapper.nextElementSibling;
+            if (form && form.id === 'mobile-checkin-form') {
+                form.classList.remove('translate-y-full');
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+            }
+        }
+    });
+});
+
+// Handle all close buttons for mobile forms
+document.querySelectorAll('[id^="close-mobile"]').forEach(closeBtn => {
+    closeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const form = closeBtn.closest('#mobile-checkin-form');
+        if (form) {
+            form.classList.add('translate-y-full');
+            darkOverlay2.classList.remove('opacity-100');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+        }
+    });
+});
+
+// Close overlay when clicking on it
+if (darkOverlay2) {
+    darkOverlay2.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.querySelectorAll('#mobile-checkin-form').forEach(form => {
+            form.classList.add('translate-y-full');
+            darkOverlay2.classList.remove('opacity-100');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+        });
+    });
+}
+
+// Mobile filter sidebar toggle
+const mobileFilterButton = document.getElementById('mobileFilterButton');
+const mobileFilterSidebar = document.getElementById('mobileFilterSidebar');
+const closeMobileFilter = document.getElementById('closeMobileFilter');
+const sidebarContent = document.getElementById('sidebarContent');
+
+if (mobileFilterButton && mobileFilterSidebar && closeMobileFilter && sidebarContent) {
+    function openSidebar() {
+        mobileFilterSidebar.classList.remove('-translate-x-full');
+        mobileFilterSidebar.classList.add('translate-x-0');
+        darkOverlay2.classList.remove('opacity-0', 'invisible');
+        darkOverlay2.classList.add('opacity-100');
+        sidebarContent.classList.remove('-translate-x-full');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSidebar() {
+        darkOverlay2.classList.remove('opacity-100');
+        darkOverlay2.classList.add('opacity-0', 'invisible');
+        sidebarContent.classList.add('-translate-x-full');
+        mobileFilterSidebar.classList.add('-translate-x-full');
+        mobileFilterSidebar.classList.remove('translate-x-0');
+        document.body.style.overflow = '';
+    }
+
+    mobileFilterButton.addEventListener('click', openSidebar);
+    closeMobileFilter.addEventListener('click', closeSidebar);
+    darkOverlay2.addEventListener('click', closeSidebar);
+}
 
 // Cookie Modal
 const cookieModal = document.getElementById('cookieModal');
@@ -334,14 +402,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // MoveUp Btn
 const moveUpBtn = document.getElementById('moveUpBtn');
-if (moveUpBtn) {
+const mobileButtonsWrapper = document.getElementById('mobileButtonsWrapper');
+
+if (moveUpBtn || mobileButtonsWrapper) {
     window.addEventListener('scroll', () => {
+        // Check if screen size is larger than sm 
+        const isLargeScreen = window.matchMedia('(min-width: 640px)').matches;
+        
         if (window.scrollY > 1000) {
             moveUpBtn.classList.remove('-right-full');
             moveUpBtn.classList.add('right-0');
+            
+            // Only adjust mobile button position on larger screens
+            if (isLargeScreen) {
+                mobileButtonsWrapper.classList.remove('bottom-3');
+                mobileButtonsWrapper.classList.add('bottom-[75px]');
+            }
         } else {
             moveUpBtn.classList.remove('right-0');
             moveUpBtn.classList.add('-right-full');
+            
+            // Only adjust mobile button position on larger screens
+            if (isLargeScreen) {
+                mobileButtonsWrapper.classList.remove('bottom-[75px]');
+                mobileButtonsWrapper.classList.add('bottom-3');
+            }
         }
     });
 }
@@ -366,7 +451,6 @@ const confirmModal = document.getElementById('confirmModal');
 const cancelBtn = document.getElementById('cancelBtn');
 const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
 const darkOverlay = document.getElementById('darkOverlay');
-const darkOverlay2 = document.getElementById('darkOverlay2');
 
 if (logoutBtn && confirmModal && cancelBtn && confirmLogoutBtn && darkOverlay2) {
     // Show Modal

@@ -311,14 +311,24 @@ if (isset($_POST['room_favourite'])) {
             </form>
 
             <!-- Mobile Check-In Button (shown on small screens) -->
-            <button id="mobile-search-button" class="lg:hidden fixed bottom-3 right-3 bg-blue-900 text-white p-4 rounded-full z-20 shadow-md hover:bg-blue-950 transform transition-all duration-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-            </button>
+            <div id="mobileButtonsWrapper" class="lg:hidden fixed bottom-3 right-3 gap-3 z-20 transform transition-all duration-300">
+                <div id="mobileFilterButton">
+                    <button class="bg-amber-500 text-white p-3 rounded-full shadow-lg hover:bg-orange-600 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        </svg>
+                    </button>
+                </div>
+
+                <button id="mobile-checkin-button" class="bg-blue-900 text-white mt-1 p-3 rounded-full shadow-md hover:bg-blue-950 transform transition-all duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </button>
+            </div>
 
             <!-- Mobile Check-In Slide-Up Form -->
-            <div id="mobile-search-form" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white p-4 border-t shadow-md z-30 transform translate-y-full transition-transform duration-500">
+            <div id="mobile-checkin-form" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white p-4 border-t shadow-md z-40 transform translate-y-full transition-transform duration-500">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-blue-900 font-semibold text-lg">Book a Room</h2>
                     <button id="close-mobile-search" class="text-red-500 font-bold text-lg">&times;</button>
@@ -377,36 +387,25 @@ if (isset($_POST['room_favourite'])) {
                     if (mobileCheckInInput) mobileCheckInInput.setAttribute('min', today);
                     if (mobileCheckOutInput) mobileCheckOutInput.setAttribute('min', today);
                 });
-
-                // Mobile search form handling
-                const mobileSearchBtn = document.getElementById('mobile-search-button');
-                const mobileSearchForm = document.getElementById('mobile-search-form');
-                const closeMobileSearch = document.getElementById('close-mobile-search');
-
-                if (mobileSearchBtn && mobileSearchForm && closeMobileSearch) {
-                    mobileSearchBtn.addEventListener('click', () => {
-                        mobileSearchForm.classList.remove('translate-y-full');
-                    });
-
-                    closeMobileSearch.addEventListener('click', () => {
-                        mobileSearchForm.classList.add('translate-y-full');
-                    });
-                }
             </script>
         </div>
 
         <section class="max-w-[1200px] mx-auto px-4 py-8">
-            <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-bold text-gray-800">Rooms: <?= $foundProperties ?> properties found</h1>
-                <div class="text-sm">
-                    <span class="text-gray-600">Sort by:</span>
-                    <select id="sortRooms" class="ml-2 border-none font-medium focus:ring-0 outline-none">
-                        <option value="top_picks">Our top picks</option>
-                        <option value="price_low_high">Price (low to high)</option>
-                        <option value="price_high_low">Price (high to low)</option>
-                        <option value="rating">Star rating</option>
-                    </select>
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+                <h1 class="text-xl sm:text-2xl font-bold text-gray-800">Rooms: <?= $foundProperties ?> properties found</h1>
+
+                <div class="flex items-center justify-between sm:justify-start gap-4">
+                    <div class="text-sm">
+                        <span class="text-gray-600 hidden sm:inline">Sort by:</span>
+                        <select id="sortRooms" class="ml-0 sm:ml-2 border-none font-medium focus:ring-0 outline-none bg-gray-100 sm:bg-transparent px-3 py-1 rounded sm:px-0 sm:py-0">
+                            <option value="top_picks">Our top picks</option>
+                            <option value="price_low_high">Price (low to high)</option>
+                            <option value="price_high_low">Price (high to low)</option>
+                            <option value="rating">Star rating</option>
+                        </select>
+                    </div>
                 </div>
+
                 <script>
                     // Add event listener for sorting
                     document.getElementById('sortRooms').addEventListener('change', function() {
@@ -426,8 +425,8 @@ if (isset($_POST['room_favourite'])) {
             </div>
 
             <div class="flex flex-col md:flex-row gap-3">
-                <!-- Left: Filter Panel -->
-                <aside class="w-full md:w-1/4">
+                <!-- Desktop Filter Panel (visible on md and larger screens) -->
+                <aside class="hidden lg:block w-full md:w-1/4">
                     <form method="GET" action="" class="bg-white p-4 rounded-md shadow-sm border sticky top-4" id="filterForm">
                         <!-- Preserve existing GET parameters -->
                         <input type="hidden" name="checkin_date" value="<?= $checkin_date ?>">
@@ -507,19 +506,116 @@ if (isset($_POST['room_favourite'])) {
                         <!-- Keep the submit button for accessibility (hidden but still functional) -->
                         <button type="submit" class="hidden">Apply Filters</button>
                     </form>
+                </aside>
 
-                    <script>
-                        document.addEventListener('DOMContentLoaded', function() {
-                            // Show loading skeleton when filters are changed
-                            const filterForm = document.getElementById('filterForm');
-                            const mainContent = document.querySelector('.hotel-listings-container');
+                <!-- Mobile Filter Sidebar (hidden by default) -->
+                <div id="mobileFilterSidebar" class="fixed inset-0 z-40 -translate-x-full transition-transform duration-500">
+                    <!-- Sidebar Content -->
+                    <div class="absolute inset-y-0 left-0 w-4/5 max-w-sm bg-white overflow-y-auto transform transition-transform duration-300 ease-in-out -translate-x-full" id="sidebarContent">
+                        <div class="p-4">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold text-gray-700">Filter by</h3>
+                                <button id="closeMobileFilter" class="text-gray-500 hover:text-gray-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
 
-                            // Create skeleton loading element
-                            const skeletonLoading = document.createElement('div');
-                            skeletonLoading.className = 'skeleton-loading';
-                            skeletonLoading.innerHTML = `
-                        
-                            <!-- Hotel Listings Skeleton (3 items) -->
+                            <form method="GET" action="" id="mobileFilterForm">
+                                <!-- Preserve existing GET parameters -->
+                                <input type="hidden" name="checkin_date" value="<?= $checkin_date ?>">
+                                <input type="hidden" name="checkout_date" value="<?= $checkout_date ?>">
+                                <input type="hidden" name="adults" value="<?= $adults ?>">
+                                <input type="hidden" name="children" value="<?= $children ?>">
+                                <input type="hidden" name="roomTypeID" value="<?= $roomtype['RoomTypeID'] ?>">
+                                <input type="hidden" name="sort" value="<?= htmlspecialchars($sort) ?>">
+                                <?php if ($has_dates): ?>
+                                    <input type="hidden" name="checkin" value="<?= htmlspecialchars($checkin_date) ?>">
+                                    <input type="hidden" name="checkout" value="<?= htmlspecialchars($checkout_date) ?>">
+                                    <input type="hidden" name="guests" value="<?= htmlspecialchars($totelGuest) ?>">
+                                <?php endif; ?>
+
+                                <h4 class="font-medium text-gray-800 my-4">Popular filters</h4>
+                                <div class="space-y-3">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="sea_view" value="1" class="mr-2 rounded text-orange-500 w-5 h-4 mobile-auto-submit" <?= isset($_GET['sea_view']) ? 'checked' : '' ?>>
+                                        <span class="text-sm">Sea view</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="restaurant" value="1" class="mr-2 rounded text-orange-500 w-5 h-4 mobile-auto-submit" <?= isset($_GET['restaurant']) ? 'checked' : '' ?>>
+                                        <span class="text-sm">Restaurant</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="air_conditioning" value="1" class="mr-2 rounded text-orange-500 w-5 h-4 mobile-auto-submit" <?= isset($_GET['air_conditioning']) ? 'checked' : '' ?>>
+                                        <span class="text-sm">Air conditioning</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="swimming_pool" value="1" class="mr-2 rounded text-orange-500 w-5 h-4 mobile-auto-submit" <?= isset($_GET['swimming_pool']) ? 'checked' : '' ?>>
+                                        <span class="text-sm">Swimming Pool</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="apartments" value="1" class="mr-2 rounded text-orange-500 w-5 h-4 mobile-auto-submit" <?= isset($_GET['apartments']) ? 'checked' : '' ?>>
+                                        <span class="text-sm">Apartments</span>
+                                    </label>
+                                </div>
+
+                                <h4 class="font-medium text-gray-800 my-4">Facilities</h4>
+                                <div class="space-y-3">
+                                    <?php
+                                    $select = "SELECT * FROM facilitytb";
+                                    $query = $connect->query($select);
+                                    $count = $query->num_rows;
+                                    if ($count) {
+                                        for ($i = 0; $i < $count; $i++) {
+                                            $row = $query->fetch_assoc();
+                                            $faculty_id = $row['FacilityID'];
+                                            $facility = $row['Facility'];
+                                            $checked = isset($_GET['facilities']) && in_array($faculty_id, $_GET['facilities']) ? 'checked' : '';
+                                    ?>
+                                            <label class="flex items-center">
+                                                <input type="checkbox" name="facilities[]" value="<?= $faculty_id ?>" class="mr-2 rounded text-orange-500 w-5 h-4 mobile-auto-submit" <?= $checked ?>>
+                                                <span class="text-sm"><?= htmlspecialchars($facility) ?></span>
+                                            </label>
+                                    <?php
+                                        }
+                                    } else {
+                                        echo "<option value='' disabled>No data yet</option>";
+                                    }
+                                    ?>
+                                </div>
+
+                                <h4 class="font-medium text-gray-800 my-4">Room rating</h4>
+                                <div class="space-y-3">
+                                    <?php for ($i = 1; $i <= 5; $i++): ?>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" name="ratings[]" value="<?= $i ?>" class="mr-2 rounded text-orange-500 w-5 h-4 mobile-auto-submit"
+                                                <?= isset($_GET['ratings']) && in_array($i, $_GET['ratings']) ? 'checked' : '' ?>>
+                                            <span class="text-sm"><?= $i ?> star<?= $i > 1 ? 's' : '' ?></span>
+                                        </label>
+                                    <?php endfor; ?>
+                                </div>
+
+                                <div class="mt-6">
+                                    <button type="submit" class="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 transition-colors">
+                                        Apply Filters
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Auto-submit for desktop filters
+                        const filterForm = document.getElementById('filterForm');
+                        const mainContent = document.querySelector('.hotel-listings-container');
+
+                        // Create skeleton loading element
+                        const skeletonLoading = document.createElement('div');
+                        skeletonLoading.className = 'skeleton-loading';
+                        skeletonLoading.innerHTML = `
                             ${Array(3).fill().map(() => `
                                 <div class="bg-white overflow-hidden animate-pulse mb-2">
                                     <div class="flex flex-col md:flex-row rounded-md shadow-sm border">
@@ -541,57 +637,69 @@ if (isset($_POST['room_favourite'])) {
                                     </div>
                                 </div>
                             `).join('')}
-                        </div>
-                    `;
+                        `;
 
-                            // Auto-submit when any checkbox is clicked
-                            document.querySelectorAll('.auto-submit').forEach(function(checkbox) {
-                                checkbox.addEventListener('change', function() {
-                                    // Show loading skeleton
-                                    if (mainContent) {
-                                        mainContent.innerHTML = '';
-                                        mainContent.appendChild(skeletonLoading);
-                                    }
+                        // Auto-submit when any checkbox is clicked (desktop)
+                        document.querySelectorAll('.auto-submit').forEach(function(checkbox) {
+                            checkbox.addEventListener('change', function() {
+                                // Show loading skeleton
+                                if (mainContent) {
+                                    mainContent.innerHTML = '';
+                                    mainContent.appendChild(skeletonLoading);
+                                }
 
-                                    // For checkboxes with the same name (like facilities[]), we need to ensure all are included
-                                    if (this.name.endsWith('[]')) {
-                                        document.querySelectorAll('input[name="' + this.name + '"]').forEach(function(cb) {
-                                            if (!cb.checked) {
-                                                // Add hidden input for unchecked boxes to maintain state
-                                                const hiddenInput = document.createElement('input');
-                                                hiddenInput.type = 'hidden';
-                                                hiddenInput.name = cb.name;
-                                                hiddenInput.value = cb.value;
-                                                hiddenInput.classList.add('temp-hidden');
-                                                document.getElementById('filterForm').appendChild(hiddenInput);
-                                            }
-                                        });
+                                // For checkboxes with the same name (like facilities[]), we need to ensure all are included
+                                if (this.name.endsWith('[]')) {
+                                    document.querySelectorAll('input[name="' + this.name + '"]').forEach(function(cb) {
+                                        if (!cb.checked) {
+                                            // Add hidden input for unchecked boxes to maintain state
+                                            const hiddenInput = document.createElement('input');
+                                            hiddenInput.type = 'hidden';
+                                            hiddenInput.name = cb.name;
+                                            hiddenInput.value = cb.value;
+                                            hiddenInput.classList.add('temp-hidden');
+                                            document.getElementById('filterForm').appendChild(hiddenInput);
+                                        }
+                                    });
 
-                                        // Remove any existing temp hidden inputs for this checkbox
-                                        document.querySelectorAll('input.temp-hidden[name="' + this.name + '"]').forEach(function(el) {
-                                            el.remove();
-                                        });
-                                    }
+                                    // Remove any existing temp hidden inputs for this checkbox
+                                    document.querySelectorAll('input.temp-hidden[name="' + this.name + '"]').forEach(function(el) {
+                                        el.remove();
+                                    });
+                                }
 
-                                    // Submit the form
-                                    document.getElementById('filterForm').submit();
-                                });
+                                // Submit the form
+                                document.getElementById('filterForm').submit();
                             });
                         });
-                    </script>
-                </aside>
+
+                        // Mobile form submission with loading state
+                        const mobileFilterForm = document.getElementById('mobileFilterForm');
+
+                        mobileFilterForm.addEventListener('submit', function(e) {
+                            // Show loading skeleton
+                            if (mainContent) {
+                                mainContent.innerHTML = '';
+                                mainContent.appendChild(skeletonLoading);
+                            }
+
+                            // Close the mobile sidebar
+                            closeSidebar();
+                        });
+                    });
+                </script>
 
                 <?php if ($foundProperties > 0): ?>
                     <!-- Right: Hotel Listings -->
                     <div class="w-full space-y-2">
-                        <!-- Entire Homes CTA -->
+                        <!-- Entire Homes CTA - Responsive Version -->
                         <div class="bg-white p-4 rounded-md shadow-sm border">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <h3 class="font-medium text-gray-800">Looking for a space of your own?</h3>
-                                    <p class="text-sm text-gray-600">Find privacy and peace of mind with an entire home or apartment to yourself</p>
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
+                                <div class="flex-1">
+                                    <h3 class="font-medium text-gray-800 text-base sm:text-lg">Looking for a space of your own?</h3>
+                                    <p class="text-sm text-gray-600 mt-1">Find privacy and peace of mind with an entire home or apartment to yourself</p>
                                 </div>
-                                <button class="text-orange-500 font-medium hover:text-orange-600">
+                                <button class="text-orange-500 font-medium hover:text-orange-600 whitespace-nowrap text-right sm:text-left mt-2 sm:mt-0">
                                     Show entire homes & apartments →
                                 </button>
                             </div>
@@ -606,7 +714,8 @@ if (isset($_POST['room_favourite'])) {
                         ?>
                             <div class="bg-white overflow-hidden hotel-listings-container">
                                 <a href="../User/RoomDetails.php?roomTypeID=<?php echo htmlspecialchars($roomtype['RoomTypeID']) ?>&reservation_id=<?= $reservation_id ?>&room_id=<?= $room_id ?>&checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>&edit=<?= $edit ?>" class="flex flex-col md:flex-row rounded-md shadow-sm border">
-                                    <div class="md:w-[28%] h-64 overflow-hidden select-none rounded-l-md relative">
+                                    <!-- Image Section - Full width on mobile, 28% on desktop -->
+                                    <div class="w-full md:w-[28%] h-48 sm:h-56 md:h-64 overflow-hidden select-none rounded-t-md md:rounded-l-md md:rounded-tr-none relative">
                                         <img src="../Admin/<?= htmlspecialchars($roomtype['RoomCoverImage']) ?>" alt="<?= htmlspecialchars($roomtype['RoomType']) ?>" class="w-full h-full object-cover">
                                         <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post">
                                             <input type="hidden" name="checkin_date" value="<?= $checkin_date ?>">
@@ -614,15 +723,18 @@ if (isset($_POST['room_favourite'])) {
                                             <input type="hidden" name="adults" value="<?= $adults ?>">
                                             <input type="hidden" name="children" value="<?= $children ?>">
                                             <input type="hidden" name="roomTypeID" value="<?= $roomtype['RoomTypeID'] ?>">
-                                            <button type="submit" name="room_favourite">
+                                            <button type="submit" name="room_favourite" class="focus:outline-none">
                                                 <i class="absolute top-3 right-3 ri-heart-fill text-xl cursor-pointer flex items-center justify-center bg-white w-9 h-9 rounded-full hover:bg-slate-100 transition-colors duration-300 <?= $is_favorited ? 'text-red-500 hover:text-red-600' : 'text-slate-400 hover:text-red-300' ?>"></i>
                                             </button>
                                         </form>
                                     </div>
-                                    <div class="md:w-2/3 p-4">
-                                        <div class="flex justify-between items-start">
-                                            <div class="flex items-center gap-4">
-                                                <h2 class="text-xl font-bold text-gray-800"><?= htmlspecialchars($roomtype['RoomType']) ?></h2>
+
+                                    <!-- Content Section -->
+                                    <div class="w-full md:w-2/3 p-3 sm:p-4">
+                                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                                            <!-- Room Title and Rating -->
+                                            <div class="flex flex-col gap-1 sm:gap-2">
+                                                <h2 class="text-lg sm:text-xl font-bold text-gray-800"><?= htmlspecialchars($roomtype['RoomType']) ?></h2>
                                                 <?php
                                                 // Get average rating
                                                 $review_select = "SELECT Rating FROM roomtypereviewtb WHERE RoomTypeID = '$roomtype[RoomTypeID]'";
@@ -644,8 +756,8 @@ if (isset($_POST['room_favourite'])) {
                                                     $averageRating = 0;
                                                 }
                                                 ?>
-                                                <div class="flex items-center gap-3">
-                                                    <div class="select-none space-x-1 cursor-pointer">
+                                                <div class="flex items-center gap-2 sm:gap-3">
+                                                    <div class="select-none space-x-0.5 sm:space-x-1 cursor-pointer">
                                                         <?php
                                                         $fullStars = floor($averageRating);
                                                         $halfStar = ($averageRating - $fullStars) >= 0.5 ? 1 : 0;
@@ -653,45 +765,57 @@ if (isset($_POST['room_favourite'])) {
 
                                                         // Display full stars
                                                         for ($i = 0; $i < $fullStars; $i++) {
-                                                            echo '<i class="ri-star-fill text-amber-500"></i>';
+                                                            echo '<i class="ri-star-fill text-amber-500 text-sm sm:text-base"></i>';
                                                         }
 
                                                         // Display half star if needed
                                                         if ($halfStar) {
-                                                            echo '<i class="ri-star-half-line text-amber-500"></i>';
+                                                            echo '<i class="ri-star-half-line text-amber-500 text-sm sm:text-base"></i>';
                                                         }
 
                                                         // Display empty stars
                                                         for ($i = 0; $i < $emptyStars; $i++) {
-                                                            echo '<i class="ri-star-line text-amber-500"></i>';
+                                                            echo '<i class="ri-star-line text-amber-500 text-sm sm:text-base"></i>';
                                                         }
                                                         ?>
                                                     </div>
-                                                    <p class="text-gray-500 text-sm">
+                                                    <p class="text-gray-500 text-xs sm:text-sm">
                                                         (<?php echo $totalReviews; ?> review<?php echo ($totalReviews > 1) ? 's' : ''; ?>)
                                                     </p>
                                                 </div>
                                             </div>
+
+                                            <!-- Price -->
                                             <div class="text-right">
-                                                <div class="text-sm text-gray-500">Price starts from</div>
-                                                <div class="text-lg font-bold text-orange-500">USD<?= number_format($roomtype['RoomPrice'], 2) ?></div>
+                                                <div class="text-xs sm:text-sm text-gray-500">Price starts from</div>
+                                                <div class="text-base sm:text-lg font-bold text-orange-500">USD<?= number_format($roomtype['RoomPrice'], 2) ?></div>
                                             </div>
                                         </div>
-                                        <div class="text-sm text-gray-600 mt-1"><?= htmlspecialchars($roomtype['RoomType']) ?> <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Max <?= $roomtype['RoomCapacity'] ?> <?php if ($roomtype['RoomCapacity'] > 1) echo 'guests';
-                                                                                                                                                                                                                                        else echo 'guest'; ?></span> <span class="text-gray-400">•</span> Show on map</div>
-                                        <p class="text-sm text-gray-700 mt-3">
+
+                                        <!-- Room Details -->
+                                        <div class="text-xs sm:text-sm text-gray-600 mt-2">
+                                            <?= htmlspecialchars($roomtype['RoomType']) ?>
+                                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Max <?= $roomtype['RoomCapacity'] ?> <?php if ($roomtype['RoomCapacity'] > 1) echo 'guests';
+                                                                                                                                                    else echo 'guest'; ?></span>
+                                            <span class="text-gray-400">•</span> Show on map
+                                        </div>
+
+                                        <!-- Description -->
+                                        <p class="text-xs sm:text-sm text-gray-700 mt-2 sm:mt-3">
                                             <?php
                                             $description = $roomtype['RoomDescription'] ?? '';
                                             $truncated = mb_strimwidth(htmlspecialchars($description), 0, 250, '...');
                                             echo $truncated;
                                             ?>
                                         </p>
-                                        <div class="flex flex-wrap gap-1 mt-4 select-none">
+
+                                        <!-- Facilities -->
+                                        <div class="flex flex-wrap gap-1 mt-3 sm:mt-4 select-none">
                                             <?php
                                             $facilitiesQuery = "SELECT f.Facility
-                                    FROM roomtypefacilitytb rf
-                                    JOIN facilitytb f ON rf.FacilityID = f.FacilityID
-                                    WHERE rf.RoomTypeID = '" . $roomtype['RoomTypeID'] . "'";
+                FROM roomtypefacilitytb rf
+                JOIN facilitytb f ON rf.FacilityID = f.FacilityID
+                WHERE rf.RoomTypeID = '" . $roomtype['RoomTypeID'] . "'";
                                             $facilitiesResult = $connect->query($facilitiesQuery);
 
                                             if ($facilitiesResult->num_rows > 0) {
