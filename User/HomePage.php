@@ -391,14 +391,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
             </form>
 
             <!-- Mobile Check-In Button (only shown on small screens) -->
-            <button id="mobile-checkin-button" class="lg:hidden fixed bottom-3 right-3 bg-blue-900 text-white p-4 rounded-full z-20 shadow-md hover:bg-blue-950 transform transition-all duration-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-            </button>
+            <div id="mobileButtonsWrapper" class="lg:hidden fixed bottom-3 right-3 transform transition-all duration-300 z-20">
+                <button id="mobile-checkin-button" class="bg-blue-900 text-white p-3 rounded-full shadow-md hover:bg-blue-950 transform transition-all duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </button>
+            </div>
 
             <!-- Mobile Check-In Slide-Up Form -->
-            <div id="mobile-checkin-form" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white p-4 border-t shadow-md z-30 transform translate-y-full transition-transform duration-500">
+            <div id="mobile-checkin-form" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white p-4 border-t shadow-md z-40 transform translate-y-full transition-transform duration-500">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-blue-900 font-semibold text-lg">Book a Room</h2>
                     <button id="close-mobile-form" class="text-red-500 font-bold text-lg">&times;</button>
@@ -444,57 +446,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
                     </button>
                 </form>
             </div>
-
-            <script>
-                // Slide form for desktop
-                let checkin_form = document.getElementById('checkin-form');
-                let mobile_checkin_form = document.getElementById('mobile-checkin-form');
-                let lastScrollPosition = window.scrollY;
-                let isScrollingDown = false;
-
-                // Mobile check-in form handling
-                const mobileBtn = document.getElementById('mobile-checkin-button');
-                const mobileForm = document.getElementById('mobile-checkin-form');
-                const closeForm = document.getElementById('close-mobile-form');
-                const mobileBtnText = mobileBtn.querySelector('span');
-                const mobileBtnIcon = mobileBtn.querySelector('svg');
-
-                if (checkin_form) {
-                    checkin_form.classList.add('hidden', 'lg:flex'); // Hide on mobile only
-                    checkin_form.style.bottom = '32px';
-
-                    window.addEventListener('scroll', () => {
-                        const currentScrollPosition = window.scrollY;
-                        isScrollingDown = currentScrollPosition > lastScrollPosition;
-                        lastScrollPosition = currentScrollPosition;
-
-                        let scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
-                        let scrollPercentage = (window.scrollY / scrollableHeight) * 100;
-
-                        if (window.scrollY <= 10) {
-                            checkin_form.style.bottom = '32px';
-                        } else if (isScrollingDown) {
-                            if (scrollPercentage < 80) {
-                                checkin_form.style.bottom = '32px';
-                            } else {
-                                checkin_form.style.bottom = '-100%';
-                            }
-                        } else {
-                            checkin_form.style.bottom = '-100%';
-                        }
-                    });
-                }
-
-                if (mobileBtn && mobileForm && closeForm) {
-                    mobileBtn.addEventListener('click', () => {
-                        mobileForm.classList.remove('translate-y-full');
-                    });
-
-                    closeForm.addEventListener('click', () => {
-                        mobileForm.classList.add('translate-y-full');
-                    });
-                }
-            </script>
         </div>
 
         <div class="flex flex-col items-center justify-center py-16 px-3 text-center">
