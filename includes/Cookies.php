@@ -5,8 +5,8 @@
     </p>
     <p class="text-gray-600 mt-2 text-sm">
         By clicking "Accept," you consent to our use of cookies. For more details, please read our
-        <a href="../Policies/PrivacyPolicy.php" class="text-blue-950 underline hover:text-blue-900">Privacy Policy</a> and
-        <a href="../Policies/CookiePolicy.php" class="text-blue-950 underline hover:text-blue-900">Cookie Policy</a>.
+        <a href="../Policies/privacy_policy.php" class="text-blue-950 underline hover:text-blue-900">Privacy Policy</a> and
+        <a href="../Policies/cookie_policy.php" class="text-blue-950 underline hover:text-blue-900">Cookie Policy</a>.
     </p>
     <p class="text-gray-500 text-xs mt-4">
         Note: You can manage your cookie preferences in your browser settings at any time.

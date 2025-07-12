@@ -184,13 +184,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                 </div>
 
                 <!-- Signin Button -->
-                <a href="UserSignIn.php" class="relative text-center px-4 py-2 rounded-md cursor-pointer select-none group">
+                <a href="user_signin.php" class="relative text-center px-4 py-2 rounded-md cursor-pointer select-none group">
                     <p class="relative z-10 text-blue-900 font-semibold">Sign In Now</p>
                     <div class="absolute inset-0 rounded-md group-hover:bg-gray-100 transition-colors duration-300"></div>
                 </a>
                 <p class="text-xs text-slate-700">By creating an account, you agree to our
-                    <a href="../Policies/PrivacyPolicy.php" class="hover:underline underline-offset-2">Privacy policy</a> and
-                    <a href="../Policies/TermOfUse.php" class="hover:underline underline-offset-2">Terms of use</a>.
+                    <a href="../Policies/privacy_policy.php" class="hover:underline underline-offset-2">Privacy policy</a> and
+                    <a href="../Policies/terms_of_use.php" class="hover:underline underline-offset-2">Terms of use</a>.
                 </p>
             </form>
 

@@ -317,7 +317,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['change_password'])) {
 
                     <!-- Button -->
                     <div class="mt-8 relative z-20">
-                        <a href="../User/UserSignIn.php"
+                        <a href="../User/user_signin.php"
                             class="w-full flex justify-center items-center px-6 py-3 text-base font-medium text-white bg-amber-500 hover:bg-amber-600 rounded-lg transition duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 select-none">
                             Continue to Login
                         </a>
@@ -384,7 +384,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['change_password'])) {
             <?php if (!$showCompleteMessage): ?>
                 <div class="mt-6 text-center">
                     <p class="text-sm text-gray-600">Remembered your password?
-                        <a href="UserSignIn.php" class="text-amber-500 hover:underline">Back to Login</a>
+                        <a href="user_signin.php" class="text-amber-500 hover:underline">Back to Login</a>
                     </p>
                 </div>
             <?php endif; ?>

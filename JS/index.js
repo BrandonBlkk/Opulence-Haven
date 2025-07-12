@@ -490,7 +490,7 @@ if (logoutBtn && confirmModal && cancelBtn && confirmLogoutBtn && darkOverlay2) 
         }
     
         // Notify the server to destroy the session
-        fetch('../User/UserLogout.php', { method: 'POST' })
+        fetch('../User/user_logout.php', { method: 'POST' })
             .then(() => {
                 // Redirect after logout
                 window.location.href = 'HomePage.php';
@@ -551,7 +551,7 @@ if (profileDeleteBtn && confirmDeleteModal && cancelDeleteBtn && confirmDeleteBt
         loader.style.display = "flex";
 
         // Notify the server to delete the account
-        fetch("UserAccountDelete.php", {
+        fetch("user_account_delete.php", {
             method: "POST",
         }) 
             .then(() => {
@@ -833,7 +833,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(data => {
                 if (data.success) {
                     // Redirect to payment page on success
-                    window.location.href = `../User/Stripe.php?reservation_id=${data.reservation_id}`;
+                    window.location.href = `../User/stripe.php?reservation_id=${data.reservation_id}`;
                 } else {
                     // Re-enable button and hide spinner
                     submitButton.disabled = false;

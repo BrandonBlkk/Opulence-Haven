@@ -45,13 +45,13 @@
                             <a class="hover:underline" href="../Policies/TermsAndConditions.php">Terms & Conditions</a>
                         </li>
                         <li>
-                            <a class="hover:underline" href="../Policies/CookiePolicy.php">Cookies Policy</a>
+                            <a class="hover:underline" href="../Policies/cookie_policy.php">Cookies Policy</a>
                         </li>
                         <li>
-                            <a class="hover:underline" href="../Policies/TermOfUse.php">Terms of Use</a>
+                            <a class="hover:underline" href="../Policies/terms_of_use.php">Terms of Use</a>
                         </li>
                         <li>
-                            <a class="hover:underline" href="../Policies/PrivacyPolicy.php">Privacy Policy</a>
+                            <a class="hover:underline" href="../Policies/privacy_policy.php">Privacy Policy</a>
                         </li>
                         <li>
                             <a class="hover:underline" href="Support.php">Customer Support</a>

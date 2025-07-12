@@ -553,12 +553,12 @@ if (isset($_POST['submitreview'])) {
 
                 <div class="flex flex-col space-y-2 my-3">
                     <a
-                        href="../User/UserSignIn.php"
+                        href="../User/user_signin.php"
                         class="px-6 py-2.5 bg-amber-500 text-white rounded-md hover:from-indigo-700 hover:to-purple-700 transition-colors font-medium text-center shadow-sm select-none">
                         Sign In
                     </a>
                     <a
-                        href="../User/UserSignUp.php"
+                        href="../User/user_signup.php"
                         class="text-xs text-center text-blue-900 hover:text-blue-800 hover:underline transition-colors">
                         Don't have an account? Register
                     </a>
@@ -752,21 +752,6 @@ if (isset($_POST['submitreview'])) {
                             });
                         }
                     });
-
-                    // Mobile search form handling
-                    const mobileSearchBtn = document.getElementById('mobile-search-button');
-                    const mobileSearchForm = document.getElementById('mobile-search-form');
-                    const closeMobileSearch = document.getElementById('close-mobile-search');
-
-                    if (mobileSearchBtn && mobileSearchForm && closeMobileSearch) {
-                        mobileSearchBtn.addEventListener('click', () => {
-                            mobileSearchForm.classList.remove('translate-y-full');
-                        });
-
-                        closeMobileSearch.addEventListener('click', () => {
-                            mobileSearchForm.classList.add('translate-y-full');
-                        });
-                    }
                 </script>
                 <!-- Breadcrumbs -->
                 <div class="flex text-sm text-slate-600 my-4">
@@ -814,7 +799,7 @@ if (isset($_POST['submitreview'])) {
                                     ?>
                                 </div>
                             </div>
-                            <h1 class="text-2xl font-bold"><?= htmlspecialchars($roomtype['RoomType']) ?></h1>
+                            <h1 class="text-xl sm:text-2xl font-bold"><?= htmlspecialchars($roomtype['RoomType']) ?></h1>
                         </div>
 
                         <!-- Address -->
@@ -906,7 +891,7 @@ if (isset($_POST['submitreview'])) {
                     </div>
 
                     <!-- Swiper Modal -->
-                    <div id="swiperModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden items-center justify-center">
+                    <div id="swiperModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden">
                         <div class="relative w-full mx-auto">
                             <!-- Close Button -->
                             <button onclick="closeSwiper()" class="absolute top-2 right-2 text-white text-2xl z-50">&times;</button>
@@ -1458,7 +1443,7 @@ if (isset($_POST['submitreview'])) {
                 </script>
 
                 <div id="facilities-section" class="space-y-6 mb-8">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Facilities of Opulence Haven</h2>
+                    <h2 class="text-xl font-bold text-gray-800 mb-6">Facilities of Opulence Haven</h2>
 
                     <div class="flex flex-wrap gap-6">
                         <?php

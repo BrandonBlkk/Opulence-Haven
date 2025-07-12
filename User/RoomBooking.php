@@ -210,12 +210,12 @@ if (isset($_POST['room_favourite'])) {
 
                 <div class="flex flex-col space-y-2 my-3">
                     <a
-                        href="../User/UserSignIn.php"
+                        href="../User/user_signin.php"
                         class="px-6 py-2.5 bg-amber-500 text-white rounded-md hover:from-indigo-700 hover:to-purple-700 transition-colors font-medium text-center shadow-sm select-none">
                         Sign In
                     </a>
                     <a
-                        href="../User/UserSignUp.php"
+                        href="../User/user_signup.php"
                         class="text-xs text-center text-blue-900 hover:text-blue-800 hover:underline transition-colors">
                         Don't have an account? Register
                     </a>

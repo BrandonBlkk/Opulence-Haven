@@ -107,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     window.location.href = '../Admin/AdminDashboard.php';
                 } else if (data.locked) {
                     // Account locked
-                    window.location.href = '../User/WaitingRoom.php';
+                    window.location.href = '../User/waiting_room.php';
                 } else {
                     // Show error message
                     showAlert(data.message || 'Sign-in failed. Please try again.', true);
