@@ -9,7 +9,7 @@ include('../User/CleanupReservations.php');
         <!-- Account and Favorites -->
         <div class="flex items-center">
             <!-- My Account -->
-            <a href="../User/UserSignIn.php" class="font-semibold text-slate-500 hover:bg-gray-200 p-2 rounded-sm transition-colors duration-200">
+            <a href="../User/user_signin.php" class="font-semibold text-slate-500 hover:bg-gray-200 p-2 rounded-sm transition-colors duration-200">
                 <?php echo !empty($_SESSION['UserName']) ? $_SESSION['UserName'] : 'My account'; ?>
             </a>
             <!-- Favorites -->

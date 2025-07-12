@@ -57,7 +57,7 @@
             totalSeconds--;
 
             if (totalSeconds < 0) {
-                window.location.href = "UserSignIn.php";
+                window.location.href = "user_signin.php";
             }
         }
 

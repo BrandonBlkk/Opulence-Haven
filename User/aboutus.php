@@ -223,7 +223,7 @@ $session_userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
                     </div>
 
                     <div class="mt-10">
-                        <a href="RoomBooking.php" class="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-sm shadow-sm text-white bg-amber-500 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 select-none transition-all duration-300 group">
+                        <a href="room_booking.php" class="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-sm shadow-sm text-white bg-amber-500 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 select-none transition-all duration-300 group">
                             Explore Our Rooms
                             <svg class="ml-3 h-5 w-5 transform group-hover:translate-x-1 transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -408,7 +408,7 @@ $session_userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
                         <!-- Action buttons -->
                         <div class="space-y-5">
                             <!-- Secondary action -->
-                            <a href="RoomBooking.php" class="group relative flex items-center justify-center px-8 py-4 border border-amber-500/30 rounded-sm overflow-hidden transition-all duration-300 hover:border-amber-400/50">
+                            <a href="room_booking.php" class="group relative flex items-center justify-center px-8 py-4 border border-amber-500/30 rounded-sm overflow-hidden transition-all duration-300 hover:border-amber-400/50">
                                 <span class="relative flex items-center text-lg font-medium text-amber-500">
                                     Explore Rooms
                                     <svg class="ml-3 h-5 w-5 text-amber-500 transition-all duration-300 group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">

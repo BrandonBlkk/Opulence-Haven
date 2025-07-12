@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Show loader
             if (loader) loader.style.display = 'flex';
             
-            fetch('../User/UserSignUp.php', {
+            fetch('../User/user_signup.php', {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -118,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Show loader
             if (loader) loader.style.display = 'flex';
             
-            fetch('../User/UserSignIn.php', {
+            fetch('../User/user_signin.php', {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -141,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     window.location.href = '../User/HomePage.php';
                 } else if (data.locked) {
                     // Account locked
-                    window.location.href = '../User/WaitingRoom.php';
+                    window.location.href = '../User/waiting_room.php';
                 } else {
                     // Show error message
                     showAlert(data.message || 'Sign-in failed. Please try again.', true);

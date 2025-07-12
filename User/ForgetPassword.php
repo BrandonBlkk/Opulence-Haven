@@ -137,7 +137,7 @@ if (isset($_POST['reset'])) {
                     <div class='footer'>
                         <p>© " . date('Y') . " Opulence Haven. All rights reserved.</p>
                         <p>
-                            <a href='http://localhost/OpulenceHaven/Policies/PrivacyPolicy.php' style='color: #6b7280; text-decoration: none; margin: 0 10px;'>Privacy Policy</a>
+                            <a href='http://localhost/OpulenceHaven/Policies/privacy_policy.php' style='color: #6b7280; text-decoration: none; margin: 0 10px;'>Privacy Policy</a>
                             <a href='http://localhost/OpulenceHaven/Policies/TermsOfUse.php' style='color: #6b7280; text-decoration: none; margin: 0 10px;'>Terms of Service</a>
                         </p>
                         <p>Opulence Haven, 459 Pyay Road, Kamayut Township , 11041 Yangon, Myanmar</p>
@@ -210,7 +210,7 @@ if (isset($_POST['reset'])) {
             </div>
             <div class="mt-6 text-center">
                 <p class="text-sm text-gray-600">Remembered your password?
-                    <a href="UserSignIn.php" class="text-amber-500 hover:underline">Back to Sign In</a>
+                    <a href="user_signin.php" class="text-amber-500 hover:underline">Back to Sign In</a>
                 </p>
             </div>
         </div>

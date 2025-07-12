@@ -338,7 +338,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
             </div>
 
             <!-- Search Form at Bottom Center -->
-            <form id="checkin-form" action="../User/RoomBooking.php" method="GET"
+            <form id="checkin-form" action="../User/room_booking.php" method="GET"
                 class="fixed bottom-8 left-1/2 transform -translate-x-1/2 w-full max-w-[95%] sm:max-w-[1030px] z-10 p-4 bg-white rounded-sm shadow-sm border lg:flex justify-between items-end space-x-4 transition-all duration-1000 hidden">
                 <div class="flex w-full md:items-center gap-4">
                     <div class="flex gap-3 w-full">
@@ -405,7 +405,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
                     <h2 class="text-blue-900 font-semibold text-lg">Book a Room</h2>
                     <button id="close-mobile-form" class="text-red-500 font-bold text-lg">&times;</button>
                 </div>
-                <form action="../User/RoomBooking.php" method="GET" class="flex flex-col space-y-3">
+                <form action="../User/room_booking.php" method="GET" class="flex flex-col space-y-3">
                     <!-- Check-in Date -->
                     <div>
                         <label class="font-semibold text-blue-900">Check-In Date</label>

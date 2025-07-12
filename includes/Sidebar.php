@@ -45,8 +45,8 @@
         <div>
             <div class="flex flex-col gap-3 py-2 pb-4 border-b">
                 <h1><?php echo !empty($_SESSION['UserID']) ? 'Create a new account' : 'First time with us?'; ?></h1>
-                <a href="../User/UserSignUp.php" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold text-center p-2 select-none transition-colors duration-300">Sign Up</a>
-                <a href="../User/UserSignIn.php" class="border hover:bg-gray-100 font-semibold text-blue-900 text-center p-2 select-none transition-colors duration-300">Sign In</a>
+                <a href="../User/user_signup.php" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold text-center p-2 select-none transition-colors duration-300">Sign Up</a>
+                <a href="../User/user_signin.php" class="border hover:bg-gray-100 font-semibold text-blue-900 text-center p-2 select-none transition-colors duration-300">Sign In</a>
             </div>
             <div x-data="{ expanded: false, height: 0 }" class="flex flex-col py-2">
                 <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex items-center justify-between">
@@ -98,7 +98,7 @@
                         $count = $result->fetch_assoc()['count'];
                         $stmt->close();
                         ?>
-                        <a href="../User/UpcomingStays.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
+                        <a href="../User/upcoming_stays.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
                             <div class="flex items-center gap-1">
                                 <i class="ri-calendar-event-line text-xl"></i>
                                 <p class="font-semibold text-sm">Upcoming Stays</p>
