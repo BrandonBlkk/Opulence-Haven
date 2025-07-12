@@ -1,12 +1,12 @@
 <?php
-include('../User/CleanupReservations.php');
+include('../User/cleanup_reservations.php');
 
 // Get the current file name
 $current_page = basename($_SERVER['PHP_SELF']);
 ?>
 
 <section id="sale-section" class="SVG2 p-2 text-sm sm:text-base text-center bg-blue-950 text-white">
-    <?php if ($current_page === 'Dining.php'): ?>
+    <?php if ($current_page === 'dining.php'): ?>
         <p>Reserve your table for an exquisite dining experience!</p>
     <?php else: ?>
         <p>Reserve your perfect room today!</p>
@@ -18,18 +18,18 @@ $current_page = basename($_SERVER['PHP_SELF']);
     include('../includes/MoveRightLoader.php');
     ?>
     <nav class="flex items-center justify-between max-w-[1050px] mx-auto p-3">
-        <a href="../User/HomePage.php">
+        <a href="../User/home_page.php">
             <img src="../UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-28 select-none" alt="Logo">
         </a>
 
         <div class="flex items-center gap-5 select-none">
-            <?php if ($current_page === 'Dining.php'): ?>
+            <?php if ($current_page === 'dining.php'): ?>
                 <div id="diningBtn" class="flex items-center gap-1 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-200">
                     <i class="ri-service-bell-line text-2xl cursor-pointer"></i>
                     <p class="font-semibold">Dine With Us</p>
                 </div>
             <?php else: ?>
-                <a href="../User/Favorite.php" class="flex items-center gap-1 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-200">
+                <a href="../User/favorite.php" class="flex items-center gap-1 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-200">
                     <i class="ri-heart-line text-2xl cursor-pointer"></i>
                     <p class="font-semibold">Favorite</p>
                 </a>
@@ -53,7 +53,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </div>
     <div class="flex flex-col justify-between gap-3 h-full">
         <div>
-            <form action="../User/Dining.php" method="post" id="diningForm" class="flex flex-col gap-4">
+            <form action="../User/dining.php" method="post" id="diningForm" class="flex flex-col gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Reservation Details</label>
                     <div class="flex flex-col sm:flex-row sm:gap-2">

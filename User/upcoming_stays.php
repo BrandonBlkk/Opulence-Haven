@@ -51,7 +51,7 @@ if ($userID) {
             } catch (Exception $e) {
                 // Handle invalid dates
                 $alertMessage = "Invalid dates: " . $e->getMessage();
-                header("Location: Reservation.php");
+                header("Location: reservation.php");
                 exit();
             }
         }
@@ -101,7 +101,7 @@ if ($userID) {
             } catch (Exception $e) {
                 // Handle invalid dates
                 $alertMessage = "Invalid dates: " . $e->getMessage();
-                header("Location: Reservation.php");
+                header("Location: reservation.php");
                 exit();
             }
         }

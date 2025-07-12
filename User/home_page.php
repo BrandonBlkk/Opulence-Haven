@@ -209,7 +209,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
                     const formData = new FormData();
                     formData.append('UserID', userID.value);
 
-                    fetch('../User/HomePage.php', {
+                    fetch('../User/home_page.php', {
                             method: 'POST',
                             body: formData
                         })
@@ -257,7 +257,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
     <?php if (isset($welcomeMessage)): ?>
         <div id="welcomeAlert" class="fixed -top-1 opacity-0 right-3 z-50 transition-all duration-200">
             <div class="flex items-center gap-3 p-3 rounded-lg shadow-lg bg-white backdrop-blur-sm border border-gray-200">
-                <a href="../User/HomePage.php">
+                <a href="../User/home_page.php">
                     <img src="../UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-16 select-none" alt="Logo">
                 </a>
                 <div>
@@ -477,7 +477,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
             </a>
 
             <!-- Card 2 -->
-            <a href="Dining.php" class="block w-full md:max-w-[450px] mx-auto group">
+            <a href="dining.php" class="block w-full md:max-w-[450px] mx-auto group">
                 <div class="h-auto sm:h-[280px] select-none overflow-hidden">
                     <img src="../UserImages/FORMAT-16-9E---1920-X-1080-PX (1)_3by2.webp" class="w-full h-full object-cover rounded-sm transform group-hover:scale-105 transition-transform duration-200" alt="Image">
                 </div>

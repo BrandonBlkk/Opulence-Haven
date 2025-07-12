@@ -118,7 +118,7 @@ if (isset($_POST['reset'])) {
                         <p> Your verification code: <strong>$otp</strong> </p>
                         
                         <div style='text-align: center;'>
-                            <a href='http://localhost/OpulenceHaven/Admin/ResetPassword.php?token=$token' class='button'>
+                            <a href='http://localhost/OpulenceHaven/User/reset_password.php?token=$token' class='button'>
                                 Reset Your Password
                             </a>
                         </div>

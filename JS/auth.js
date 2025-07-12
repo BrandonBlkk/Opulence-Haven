@@ -63,14 +63,14 @@ document.addEventListener("DOMContentLoaded", () => {
                             // Redirect after email is sent
                             setTimeout(() => {
                                 if (loader) loader.style.display = 'none';
-                                window.location.href = '../User/HomePage.php';
+                                window.location.href = '../User/home_page.php';
                             }, 1000);
                         } else {
                             // Handle email sending error
                             if (loader) loader.style.display = 'none';
                             showAlert('Account created but failed to send welcome email. Please contact support.' , true);
                             setTimeout(() => {
-                                window.location.href = '../User/HomePage.php';
+                                window.location.href = '../User/home_page.php';
                             }, 3000);
                         }
                     })
@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (loader) loader.style.display = 'none';
                         showAlert('Account created but failed to send welcome email. Please contact support.', true);
                         setTimeout(() => {
-                            window.location.href = '../User/HomePage.php';
+                            window.location.href = '../User/home_page.php';
                         }, 3000);
                     });
                 } else {
@@ -138,7 +138,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (data.success) {
                     // Successful sign-in
                     if (loader) loader.style.display = 'flex';
-                    window.location.href = '../User/HomePage.php';
+                    window.location.href = '../User/home_page.php';
                 } else if (data.locked) {
                     // Account locked
                     window.location.href = '../User/waiting_room.php';
@@ -180,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
             formData.append('email', email);
             formData.append('reset', 'true');
 
-            fetch('../User/ForgetPassword.php', {
+            fetch('../User/forget_password.php', {
                 method: 'POST',
                 body: formData,
                 headers: {

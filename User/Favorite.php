@@ -112,7 +112,7 @@ if (isset($_POST['room_favourite'])) {
 
                                                 const formData = new FormData(this);
 
-                                                fetch('../User/Favorite.php', {
+                                                fetch('../User/favorite.php', {
                                                         method: 'POST',
                                                         body: formData,
                                                         headers: {

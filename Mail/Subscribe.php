@@ -65,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
                     <div class="footer">
                         <p>&copy; 2025 Opulence Haven. All rights reserved.</p>
-                        <p><a href="http://localhost/OpulenceHaven/User/HomePage.php">Visit our website</a></p>
+                        <p><a href="http://localhost/OpulenceHaven/User/home_page.php">Visit our website</a></p>
                     </div>
                 </body>
                 </html>

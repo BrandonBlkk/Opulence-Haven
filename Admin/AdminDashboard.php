@@ -84,7 +84,7 @@ $availablePercentage = ($allAvailableRooms / $totalRooms) * 100;
     <?php if (isset($welcomeMessage)): ?>
         <div id="welcomeAlert" class="fixed -top-1 opacity-0 right-3 z-50 transition-all duration-200">
             <div class="flex items-center gap-3 p-3 rounded-lg shadow-lg bg-white backdrop-blur-sm border border-gray-200">
-                <a href="../User/HomePage.php">
+                <a href="../Admin/AdminDashboard.php">
                     <img src="../UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-16 select-none" alt="Logo">
                 </a>
                 <div>

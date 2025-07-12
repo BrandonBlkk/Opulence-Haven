@@ -191,7 +191,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
             $stmtRoomStatus->bind_param("s", $roomID);
             $stmtRoomStatus->execute();
 
-            header("Location: Reservation.php?reservation_id=$reservationID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
+            header("Location: reservation.php?reservation_id=$reservationID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
             exit();
         } else {
             $alertMessage = "Room is already reserved for the selected dates.";
@@ -324,7 +324,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
         $connect->commit();
 
         $_SESSION['success'] = "Reservation updated successfully! Total for $nights nights: $" . number_format($newTotal, 2);
-        $redirect_url = "Reservation.php?roomID=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children";
+        $redirect_url = "reservation.php?roomID=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children";
         header("Location: $redirect_url");
         exit();
     } catch (Exception $e) {
@@ -755,7 +755,7 @@ if (isset($_POST['submitreview'])) {
                 </script>
                 <!-- Breadcrumbs -->
                 <div class="flex text-sm text-slate-600 my-4">
-                    <a href="../User/HomePage.php" class="underline">Home</a>
+                    <a href="../User/home_page.php" class="underline">Home</a>
                     <span><i class="ri-arrow-right-s-fill"></i></span>
                     <a href="../User/room_booking.php?checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="underline">Rooms</a>
                     <span><i class="ri-arrow-right-s-fill"></i></span>

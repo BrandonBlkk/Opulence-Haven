@@ -80,7 +80,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
         <section class="flex flex-col sm:flex-row justify-center gap-10 p-3">
             <div>
                 <div class="flex text-sm text-slate-600">
-                    <a href="HomePage.php" class="underline">Home</a>
+                    <a href="home_page.php" class="underline">Home</a>
                     <span><i class="ri-arrow-right-s-fill"></i></span>
                     <a href="contact.php" class="underline">Contact</a>
                 </div>

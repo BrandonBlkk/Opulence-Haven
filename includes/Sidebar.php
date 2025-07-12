@@ -57,14 +57,14 @@
                     x-ref="dropdown"
                     :style="{ height: expanded ? height + 'px' : '0px' }"
                     class="overflow-hidden transition-all duration-300 select-none">
-                    <a href="../User/ProfileEdit.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
+                    <a href="../User/profile_edit.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
                         <div class="flex items-center gap-1">
                             <i class="ri-user-settings-line text-xl"></i>
                             <p class="font-semibold text-sm">Your Profile</p>
                         </div>
                     </a>
                     <div class="pl-3">
-                        <a href="../User/Reservation.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
+                        <a href="../User/reservation.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
                             <div class="flex items-center gap-1">
                                 <i class="ri-hotel-bed-line text-xl"></i>
                                 <p class="font-semibold text-sm">Current Selections</p>

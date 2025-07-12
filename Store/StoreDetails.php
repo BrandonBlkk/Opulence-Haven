@@ -246,7 +246,7 @@ if ($productReviewSelectQuery->num_rows > 0) {
 
     <main class="max-w-[1310px] mx-auto px-4 py-5 min-w-[380px]">
         <div class="flex text-sm text-slate-600">
-            <a href="../User/HomePage.php" class="underline">Home</a>
+            <a href="../User/home_page.php" class="underline">Home</a>
             <span><i class="ri-arrow-right-s-fill"></i></span>
             <a href="Store.php" class="underline">Store</a>
             <span><i class="ri-arrow-right-s-fill"></i></span>

@@ -93,7 +93,7 @@ if ($userID) {
                 } catch (Exception $e) {
                     // Handle invalid dates
                     $alertMessage = "Invalid dates: " . $e->getMessage();
-                    header("Location: Reservation.php");
+                    header("Location: reservation.php");
                     exit();
                 }
             }
@@ -203,7 +203,7 @@ if (isset($_POST['room_favourite'])) {
         }
 
         // Redirect back with the same search parameters
-        $redirect_url = "Reservation.php?roomID=$room_id&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children";
+        $redirect_url = "reservation.php?roomID=$room_id&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children";
         header("Location: $redirect_url");
         exit();
     } else {
@@ -284,7 +284,7 @@ if (isset($_GET['payment'])) {
     }
 
     // Remove payment parameter from URL
-    header("Location: Reservation.php");
+    header("Location: reservation.php");
     exit();
 }
 ?>
