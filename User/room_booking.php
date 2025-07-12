@@ -132,7 +132,7 @@ if (isset($_POST['room_favourite'])) {
         }
 
         // Redirect back with the same search parameters
-        $redirect_url = "RoomBooking.php?checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children";
+        $redirect_url = "room_booking.php?checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children";
         header("Location: $redirect_url");
         exit();
     } else {
@@ -713,7 +713,7 @@ if (isset($_POST['room_favourite'])) {
                             $is_favorited = $favorite_result->fetch_assoc()['count'] > 0;
                         ?>
                             <div class="bg-white overflow-hidden hotel-listings-container">
-                                <a href="../User/RoomDetails.php?roomTypeID=<?php echo htmlspecialchars($roomtype['RoomTypeID']) ?>&reservation_id=<?= $reservation_id ?>&room_id=<?= $room_id ?>&checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>&edit=<?= $edit ?>" class="flex flex-col md:flex-row rounded-md shadow-sm border">
+                                <a href="../User/room_details.php?roomTypeID=<?php echo htmlspecialchars($roomtype['RoomTypeID']) ?>&reservation_id=<?= $reservation_id ?>&room_id=<?= $room_id ?>&checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>&edit=<?= $edit ?>" class="flex flex-col md:flex-row rounded-md shadow-sm border">
                                     <!-- Image Section - Full width on mobile, 28% on desktop -->
                                     <div class="w-full md:w-[28%] h-48 sm:h-56 md:h-64 overflow-hidden select-none rounded-t-md md:rounded-l-md md:rounded-tr-none relative">
                                         <img src="../Admin/<?= htmlspecialchars($roomtype['RoomCoverImage']) ?>" alt="<?= htmlspecialchars($roomtype['RoomType']) ?>" class="w-full h-full object-cover">

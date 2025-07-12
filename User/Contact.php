@@ -82,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                 <div class="flex text-sm text-slate-600">
                     <a href="HomePage.php" class="underline">Home</a>
                     <span><i class="ri-arrow-right-s-fill"></i></span>
-                    <a href="Contact.php" class="underline">Contact</a>
+                    <a href="contact.php" class="underline">Contact</a>
                 </div>
                 <h1 class="text-2xl font-semibold text-black mb-3">Locate Us</h1>
                 <ul class="text-lg flex flex-col gap-1 text-slate-700">

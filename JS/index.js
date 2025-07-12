@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const formData = new FormData(this);
 
-            fetch('../User/RoomDetails.php', {
+            fetch('../User/room_details.php', {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -576,7 +576,7 @@ document.addEventListener("DOMContentLoaded", () => {
             loader.style.display = 'none';
                 showAlert('Your message has been successfully sent.');
             setTimeout(() => {
-               window.location.href = '../User/Contact.php';
+               window.location.href = '../User/contact.php';
             }, 5000);
         }, 1000);
     } else if (alertMessage) {

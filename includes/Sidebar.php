@@ -98,7 +98,7 @@
                         $count = $result->fetch_assoc()['count'];
                         $stmt->close();
                         ?>
-                        <a href="../User/UpcomingStays.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
+                        <a href="../User/upcoming_stays.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
                             <div class="flex items-center gap-1">
                                 <i class="ri-calendar-event-line text-xl"></i>
                                 <p class="font-semibold text-sm">Upcoming Stays</p>

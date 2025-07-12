@@ -52,13 +52,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
 
     if ($checkInDate == '' || $checkOutDate == '') {
         $_SESSION['alert'] = "Check-in and check-out dates are required.";
-        header("Location: RoomDetails.php?roomTypeID=$roomtype_id&room_id=$room_id&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children");
+        header("Location: room_details.php?roomTypeID=$roomtype_id&room_id=$room_id&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children");
         exit();
     }
 
     if ($userID == null) {
         $_SESSION['alert'] = "Please log in to reserve a room.";
-        header("Location: RoomDetails.php?roomTypeID=$roomtype_id&room_id=$room_id&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
+        header("Location: room_details.php?roomTypeID=$roomtype_id&room_id=$room_id&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
         exit();
     }
 
@@ -70,14 +70,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
 
         if ($checkIn <= $today) {
             $_SESSION['alert'] = "Check-in date must be at least tomorrow.";
-            header("Location: RoomDetails.php?roomTypeID=$roomtype_id&room_id=$room_id&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
+            header("Location: room_details.php?roomTypeID=$roomtype_id&room_id=$room_id&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
             exit();
         }
 
         $checkOut = new DateTime($checkOutDate);
         if ($checkOut <= $checkIn) {
             $_SESSION['alert'] = "Check-out date must be after check-in date.";
-            header("Location: RoomDetails.php?roomTypeID=$roomtype_id&room_id=$room_id&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
+            header("Location: room_details.php?roomTypeID=$roomtype_id&room_id=$room_id&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
             exit();
         }
 
@@ -102,7 +102,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
         if ($guests) {
             if ($priceData['RoomCapacity'] < $guests) {
                 $_SESSION['alert'] = "Room capacity (" . $priceData['RoomCapacity'] . ") is less than the number of guests ($guests).";
-                header("Location: RoomDetails.php?roomTypeID=$roomtype_id&room_id=$room_id&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
+                header("Location: room_details.php?roomTypeID=$roomtype_id&room_id=$room_id&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
                 exit();
             }
         }
@@ -220,21 +220,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
 
     if ($checkIn <= $today) {
         $_SESSION['alert'] = "Check-in date must be in the future.";
-        $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&reservation_id=$reservationID&room_id=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children&edit=1";
+        $redirect_url = "room_details.php?roomTypeID=$roomTypeID&reservation_id=$reservationID&room_id=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children&edit=1";
         header("Location: $redirect_url");
         exit();
     }
 
     if ($checkOut <= $checkIn) {
         $_SESSION['alert'] = "Check-out date must be after check-in date.";
-        $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&reservation_id=$reservationID&room_id=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children&edit=1";
+        $redirect_url = "room_details.php?roomTypeID=$roomTypeID&reservation_id=$reservationID&room_id=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children&edit=1";
         header("Location: $redirect_url");
         exit();
     }
 
     if ($userID == null) {
         $_SESSION['alert'] = "Please log in to reserve a room.";
-        header("Location: RoomDetails.php?roomTypeID=$roomtype_id&room_id=$room_id&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
+        header("Location: room_details.php?roomTypeID=$roomtype_id&room_id=$room_id&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
         exit();
     }
 
@@ -250,7 +250,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
 
     if ($guests > $roomData['RoomCapacity']) {
         $_SESSION['alert'] = "Room capacity (" . $roomData['RoomCapacity'] . ") is less than the number of guests ($guests).";
-        $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&reservation_id=$reservationID&room_id=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children&edit=1";
+        $redirect_url = "room_details.php?roomTypeID=$roomTypeID&reservation_id=$reservationID&room_id=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children&edit=1";
         header("Location: $redirect_url");
         exit();
     }
@@ -331,7 +331,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
         // Rollback transaction on error
         $connect->rollback();
         $_SESSION['alert'] = "Error updating reservation: " . $e->getMessage();
-        $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&reservation_id=$reservationID&room_id=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children&edit=1";
+        $redirect_url = "room_details.php?roomTypeID=$roomTypeID&reservation_id=$reservationID&room_id=$roomID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children&edit=1";
         header("Location: $redirect_url");
         exit();
     }
@@ -474,7 +474,7 @@ if (isset($_POST['submitreview'])) {
 
             if ($connect->query($insert)) {
                 // Redirect back with the same search parameters
-                $redirect_url = "RoomDetails.php?roomTypeID=$roomTypeID&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children";
+                $redirect_url = "room_details.php?roomTypeID=$roomTypeID&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children";
                 header("Location: $redirect_url");
                 exit();
             }
@@ -757,9 +757,9 @@ if (isset($_POST['submitreview'])) {
                 <div class="flex text-sm text-slate-600 my-4">
                     <a href="../User/HomePage.php" class="underline">Home</a>
                     <span><i class="ri-arrow-right-s-fill"></i></span>
-                    <a href="../User/RoomBooking.php?checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="underline">Rooms</a>
+                    <a href="../User/room_booking.php?checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="underline">Rooms</a>
                     <span><i class="ri-arrow-right-s-fill"></i></span>
-                    <a href="../User/RoomDetails.php?roomTypeID=<?php echo htmlspecialchars($roomtype['RoomTypeID']) ?>&checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class=" underline">Store Details</a>
+                    <a href="../User/room_details.php?roomTypeID=<?php echo htmlspecialchars($roomtype['RoomTypeID']) ?>&checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class=" underline">Store Details</a>
                 </div>
 
                 <!-- Navigation tabs -->

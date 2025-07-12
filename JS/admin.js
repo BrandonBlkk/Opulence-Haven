@@ -4067,7 +4067,7 @@ function initializeRoomSwiper(reservation) {
                     </div>
                 </div>
 
-                <a href="../User/RoomDetails.php?roomTypeID=${reservation.RoomTypeID}&checkin_date=${reservation.CheckInDate}&checkout_date=${reservation.CheckOutDate}&adults=${reservation.Adult}&children=${reservation.Children}"
+                <a href="../User/room_details.php?roomTypeID=${reservation.RoomTypeID}&checkin_date=${reservation.CheckInDate}&checkout_date=${reservation.CheckOutDate}&adults=${reservation.Adult}&children=${reservation.Children}"
                     class="mt-2 text-orange-600 hover:text-orange-700 font-medium inline-flex items-center text-xs bg-orange-50 px-3 py-1 rounded-full">
                     <i class="ri-information-line mr-1"></i> Room Details
                 </a>

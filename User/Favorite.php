@@ -219,7 +219,7 @@ if (isset($_POST['room_favourite'])) {
                                                                                 ?></p>
                                             <p class="text-sm text-gray-600"><?php echo $room['Adult'] ?> <?php echo $room['Adult'] > 1 ? 'adults' : 'adult'; ?> - <?php echo $room['Children'] ?> <?php echo $room['Children'] > 1 ? 'children' : 'child'; ?> - 1 room</p>
                                         </div>
-                                        <a href="../User/RoomDetails.php?roomTypeID=<?php echo $room['RoomTypeID'] ?>&checkin_date=<?= $room['CheckInDate'] ?>&checkout_date=<?= $room['CheckOutDate'] ?>&adults=<?= $room['Adult'] ?>&children=<?= $room['Children'] ?>" class="px-4 py-2 bg-amber-500 text-white font-semibold rounded-md hover:bg-amber-600 transition-colors select-none">
+                                        <a href="../User/room_details.php?roomTypeID=<?php echo $room['RoomTypeID'] ?>&checkin_date=<?= $room['CheckInDate'] ?>&checkout_date=<?= $room['CheckOutDate'] ?>&adults=<?= $room['Adult'] ?>&children=<?= $room['Children'] ?>" class="px-4 py-2 bg-amber-500 text-white font-semibold rounded-md hover:bg-amber-600 transition-colors select-none">
                                             View Details
                                         </a>
                                     </div>

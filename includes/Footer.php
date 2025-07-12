@@ -39,7 +39,7 @@
                             <a class="hover:underline" href="aboutus.php">About Us</a>
                         </li>
                         <li>
-                            <a class="hover:underline" href="../User/Contact.php">Contact</a>
+                            <a class="hover:underline" href="../User/contact.php">Contact</a>
                         </li>
                         <li>
                             <a class="hover:underline" href="../Policies/TermsAndConditions.php">Terms & Conditions</a>

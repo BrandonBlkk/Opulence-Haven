@@ -124,8 +124,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param("s", $roomId);
         $stmt->execute();
 
-        // Then redirect to the RoomBooking.php page with parameters
-        header("Location: RoomBooking.php?reservation_id=$reservationId&room_id=$roomId&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children&edit=1");
+        // Then redirect to the room_booking.php page with parameters
+        header("Location: room_booking.php?reservation_id=$reservationId&room_id=$roomId&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children&edit=1");
         exit();
     }
 }
@@ -722,7 +722,7 @@ if (isset($_GET['payment'])) {
                                             echo '<div class="text-center py-6">';
                                             echo '<i class="ri-shopping-cart-line text-4xl text-gray-300 mb-3"></i>';
                                             echo '<p class="text-gray-500">Your reservation is empty</p>';
-                                            echo '<a href="RoomBooking.php" class="mt-2 inline-block text-blue-600 hover:text-blue-800 text-sm font-medium">';
+                                            echo '<a href="room_booking.php" class="mt-2 inline-block text-blue-600 hover:text-blue-800 text-sm font-medium">';
                                             echo 'Add rooms to your reservation →';
                                             echo '</a>';
                                             echo '</div>';
@@ -914,14 +914,14 @@ if (isset($_GET['payment'])) {
 
                             <div id="no-rooms-message" class="text-center py-32" style="display: none;">
                                 <p class="text-gray-500">You don't have any rooms reserved yet.</p>
-                                <a href="RoomBooking.php" class="text-blue-600 hover:underline mt-2 inline-block">
+                                <a href="room_booking.php" class="text-blue-600 hover:underline mt-2 inline-block">
                                     Browse available rooms
                                 </a>
                             </div>
                         <?php else: ?>
                             <div class="text-center py-32">
                                 <p class="text-gray-500">You don't have any rooms reserved yet.</p>
-                                <a href="RoomBooking.php" class="text-blue-600 hover:underline mt-2 inline-block">
+                                <a href="room_booking.php" class="text-blue-600 hover:underline mt-2 inline-block">
                                     Browse available rooms
                                 </a>
                             </div>
@@ -989,7 +989,7 @@ if (isset($_GET['payment'])) {
                             </div>
 
                             <div class="flex justify-between items-center">
-                                <a href="../User/RoomBooking.php?checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="text-blue-600 hover:text-blue-800 font-medium">Back</a>
+                                <a href="../User/room_booking.php?checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="text-blue-600 hover:text-blue-800 font-medium">Back</a>
                                 <button type="submit" id="submitButton" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md flex items-center justify-center select-none">
                                     <span id="buttonText">Continue to payment</span>
                                     <svg id="buttonSpinner" class="hidden w-5 h-5 ml-2 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
