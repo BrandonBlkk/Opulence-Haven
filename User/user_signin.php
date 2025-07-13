@@ -76,7 +76,7 @@ if (isset($_GET['code'])) {
             }
         }
 
-        header("Location: HomePage.php");
+        header("Location: home_page.php");
         exit;
     } else {
         echo "Google Sign-In Failed";
@@ -239,7 +239,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
                     <small id="passwordError2" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                 </div>
 
-                <a href="ForgetPassword.php" class="text-xs text-gray-400 hover:text-gray-500">Forget your password?</a>
+                <a href="forget_password.php" class="text-xs text-gray-400 hover:text-gray-500">Forget your password?</a>
 
                 <input type="hidden" name="signin" value="1">
 

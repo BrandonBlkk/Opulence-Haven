@@ -103,8 +103,8 @@ $line_items[] = [
 // Create Stripe checkout session
 $checkout_session = \Stripe\Checkout\Session::create([
     "mode" => "payment",
-    "success_url" => "http://localhost/OpulenceHaven/User/Reservation.php?payment=success",
-    "cancel_url" => "http://localhost/OpulenceHaven/User/Reservation.php?payment=cancel",
+    "success_url" => "http://localhost/OpulenceHaven/User/reservation.php?payment=success",
+    "cancel_url" => "http://localhost/OpulenceHaven/User/reservation.php?payment=cancel",
     "locale" => "auto",
     "customer_email" => $_SESSION['UserEmail'] ?? null,
     "metadata" => [

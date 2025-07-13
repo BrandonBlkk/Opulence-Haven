@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
             this.disabled = true;
             this.textContent = 'Removing...';
 
-            fetch('../User/Reservation.php', {
+            fetch('../User/reservation.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -377,7 +377,7 @@ document.addEventListener("DOMContentLoaded", () => {
             loader.style.display = 'none';
             showAlert('A dining table has been successfully reserved.');
             setTimeout(() => {
-                window.location.href = '../User/Dining.php';
+                window.location.href = '../User/dining.php';
             }, 5000);
         }, 1000);
     } else if (alertMessage) {
@@ -493,7 +493,7 @@ if (logoutBtn && confirmModal && cancelBtn && confirmLogoutBtn && darkOverlay2) 
         fetch('../User/user_logout.php', { method: 'POST' })
             .then(() => {
                 // Redirect after logout
-                window.location.href = 'HomePage.php';
+                window.location.href = 'home_page.php';
             })
             .catch((error) => {
                 console.error('Logout failed:', error);
@@ -556,7 +556,7 @@ if (profileDeleteBtn && confirmDeleteModal && cancelDeleteBtn && confirmDeleteBt
         }) 
             .then(() => {
                 // Redirect after account deletion
-                window.location.href = "HomePage.php";
+                window.location.href = "home_page.php";
             })
             .catch((error) => console.error("Account deletion failed:", error));
     });
@@ -626,7 +626,7 @@ document.addEventListener("DOMContentLoaded", () => {
             formData.append('modify', true);
 
             // AJAX request
-            fetch('../User/ProfileEdit.php', {
+            fetch('../User/profile_edit.php', {
                 method: 'POST',
                 body: formData
             })
@@ -674,7 +674,7 @@ document.addEventListener("DOMContentLoaded", () => {
             submitBtn.textContent = 'Updating...';
 
             // AJAX request
-            fetch('../User/ProfileEdit.php', {
+            fetch('../User/profile_edit.php', {
                 method: 'POST',
                 body: formData
             })
@@ -723,7 +723,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dayaftertomorrow.setDate(dayaftertomorrow.getDate() + 2);
         const dayaftertomorrowStr = dayaftertomorrow.toISOString().split('T')[0];
 
-        if (window.location.pathname.includes('/User/HomePage.php')) { 
+        if (window.location.pathname.includes('/User/home_page.php')) { 
             // Set default values
             checkInDateInput.value = tomorrowStr;
             checkOutDateInput.value = dayaftertomorrowStr;
@@ -820,7 +820,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const formData = new FormData(reservationForm);
             formData.append("submit_reservation", true);
 
-            fetch("../User/Reservation.php", {
+            fetch("../User/reservation.php", {
                 method: "POST",
                 body: formData
             })

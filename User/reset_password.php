@@ -59,7 +59,7 @@ if (isset($_POST['verify_otp'])) {
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['change_password'])) {
     if (!isset($_SESSION['otp_verified']) || !isset($_SESSION['otp_token']) || $_SESSION['otp_token'] !== $token) {
         echo "<script>alert('Session expired. Please restart the password reset process.')</script>";
-        echo "<script>window.location = 'ForgetPassword.php'</script>";
+        echo "<script>window.location = 'forget_password.php'</script>";
         exit();
     }
 
@@ -166,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['change_password'])) {
                         </button>
 
                         <div class="text-center text-sm text-gray-500 mt-4">
-                            <p>Didn't receive code? <a href="ForgetPassword.php" class="text-amber-500 hover:underline">Request again</a></p>
+                            <p>Didn't receive code? <a href="forget_password.php" class="text-amber-500 hover:underline">Request again</a></p>
                         </div>
                     </form>
 
