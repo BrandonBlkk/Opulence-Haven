@@ -495,7 +495,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
             </a>
 
             <!-- Card 3 -->
-            <a href="../Store/Store.php" class="block w-full md:max-w-[450px] mx-auto group">
+            <a href="../Store/store.php" class="block w-full md:max-w-[450px] mx-auto group">
                 <div class="h-auto sm:h-[280px] select-none overflow-hidden">
                     <img src="../UserImages/Standard-Room-model.jpg" class="w-full h-full object-cover rounded-sm transform group-hover:scale-105 transition-transform duration-200" alt="Image">
                 </div>

@@ -73,10 +73,10 @@
                         <a class="hover:underline" href="NearbyAttractions.php">Nearby Attractions</a>
                     </li>
                     <li>
-                        <a class="hover:underline" href="../Store/RoomEssentials.php">Room Essentials</a>
+                        <a class="hover:underline" href="../Store/room_essentials.php">Room Essentials</a>
                     </li>
                     <li>
-                        <a class="hover:underline" href="../Store/Toiletries&Spa.php">Toiletries & Spa</a>
+                        <a class="hover:underline" href="../Store/toiletrie_spa.php">Toiletries & Spa</a>
                     </li>
                     <li>
                         <a class="hover:underline" href="FAQ.php">Frequently Asked Questions</a>

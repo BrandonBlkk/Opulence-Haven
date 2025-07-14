@@ -97,9 +97,9 @@ if ($productSelectQuery->num_rows > 0) {
         <div class="flex text-sm text-slate-600">
             <a href="../User/home_page.php" class="underline">Home</a>
             <span><i class="ri-arrow-right-s-fill"></i></span>
-            <a href="Store.php" class="underline">Store</a>
+            <a href="store.php" class="underline">Store</a>
             <span><i class="ri-arrow-right-s-fill"></i></span>
-            <a href="RoomEssentials.php" class="underline">Room Essentials</a>
+            <a href="room_essentials.php" class="underline">Room Essentials</a>
         </div>
 
         <section class="mt-3">
@@ -110,7 +110,7 @@ if ($productSelectQuery->num_rows > 0) {
             <h1 class="uppercase text-xl sm:text-2xl text-blue-900 font-semibold my-5">Opulence bed</h1>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 border-t pt-5">
                 <!-- Card 1 -->
-                <a href="StoreDetails.php" class="block w-full group">
+                <a href="store_details.php" class="block w-full group">
                     <div class="relative">
                         <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
                             <img src="../UserImages/pillow-bed-decoration-interior-bedroom.jpg" class="w-full h-full object-cover rounded-sm" alt="Store Image">
@@ -130,7 +130,7 @@ if ($productSelectQuery->num_rows > 0) {
                     </div>
                 </a>
 
-                <a href="StoreDetails.php" class="block w-full group">
+                <a href="store_details.php" class="block w-full group">
                     <div class="relative">
                         <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
                             <img src="../UserImages/mattress-2029193_1280.jpg" class="w-full h-full object-cover rounded-sm" alt="Store Image">
@@ -150,7 +150,7 @@ if ($productSelectQuery->num_rows > 0) {
                     </div>
                 </a>
 
-                <a href="StoreDetails.php" class="block w-full group">
+                <a href="store_details.php" class="block w-full group">
                     <div class="relative">
                         <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
                             <img src="../UserImages/novotel-mattress-protector-114-04-16-01-lrg.jpg" class="w-full h-full object-cover rounded-sm" alt="Store Image">
@@ -170,7 +170,7 @@ if ($productSelectQuery->num_rows > 0) {
                     </div>
                 </a>
 
-                <a href="StoreDetails.php" class="block w-full group">
+                <a href="store_details.php" class="block w-full group">
                     <div class="relative">
                         <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
                             <img src="../UserImages/mattress-2489612_1280.jpg" class="w-full h-full object-cover rounded-sm" alt="Store Image">
@@ -197,7 +197,7 @@ if ($productSelectQuery->num_rows > 0) {
             <h1 class="uppercase text-xl sm:text-2xl text-blue-900 font-semibold my-5">Pillows</h1>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 border-t pt-5">
                 <?php foreach ($pillowProducts as $product): ?>
-                    <a href="StoreDetails.php?product_ID=<?php echo htmlspecialchars($product['ProductID']) ?>" class="block w-full <?= $product['SecondaryImagePath'] ? 'group' : '' ?>">
+                    <a href="store_details.php?product_ID=<?php echo htmlspecialchars($product['ProductID']) ?>" class="block w-full <?= $product['SecondaryImagePath'] ? 'group' : '' ?>">
                         <div class="relative">
                             <div class="relative w-full h-auto md:h-[350px] lg:h-[300px] select-none mb-4">
                                 <!-- Primary Image -->
@@ -236,7 +236,7 @@ if ($productSelectQuery->num_rows > 0) {
             <h1 class="uppercase text-xl sm:text-2xl text-blue-900 font-semibold my-5">Linens</h1>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 border-t pt-5">
                 <?php foreach ($linenProducts as $product): ?>
-                    <a href="StoreDetails.php" class="block w-full group <?= $product['SecondaryImagePath'] ? '' : 'pointer-events-none' ?>">
+                    <a href="store_details.php" class="block w-full group <?= $product['SecondaryImagePath'] ? '' : 'pointer-events-none' ?>">
                         <div class="relative">
                             <div class="relative w-full h-auto md:h-[350px] lg:h-[300px] select-none mb-4">
                                 <!-- Primary Image -->
@@ -269,7 +269,7 @@ if ($productSelectQuery->num_rows > 0) {
             <h1 class="uppercase text-xl sm:text-2xl text-blue-900 font-semibold my-5">Duvets</h1>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 border-t pt-5">
                 <?php foreach ($duvetsProducts as $product): ?>
-                    <a href="StoreDetails.php" class="block w-full group <?= $product['SecondaryImagePath'] ? '' : 'pointer-events-none' ?>">
+                    <a href="store_details.php" class="block w-full group <?= $product['SecondaryImagePath'] ? '' : 'pointer-events-none' ?>">
                         <div class="relative">
                             <div class="relative w-full h-auto md:h-[350px] lg:h-[300px] select-none mb-4">
                                 <!-- Primary Image -->

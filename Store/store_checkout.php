@@ -88,7 +88,7 @@ $userData = $connect->query($user)->fetch_assoc();
             <div>
                 <p class="text-2xl">Cart <span>(<?php echo $cartCount; ?>)</span></p>
             </div>
-            <a href="AddToCart.php" class="text-sm text-gray-500">
+            <a href="add_to_cart.php" class="text-sm text-gray-500">
                 <i class="ri-arrow-left-line"></i>
                 Back to cart
             </a>

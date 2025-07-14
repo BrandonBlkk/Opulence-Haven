@@ -66,9 +66,9 @@ if (isset($_GET['search'])) {
         <div class="flex text-sm text-slate-600">
             <a href="../User/home_page.php" class="underline">Home</a>
             <span><i class="ri-arrow-right-s-fill"></i></span>
-            <a href="Store.php" class="underline">Store</a>
+            <a href="store.php" class="underline">Store</a>
             <span><i class="ri-arrow-right-s-fill"></i></span>
-            <a href="ProductSearch.php?search=<?= urlencode($searchQuery) ?>" class="underline">Product Search</a>
+            <a href="product_search.php?search=<?= urlencode($searchQuery) ?>" class="underline">Product Search</a>
         </div>
 
         <!-- Search Results -->
@@ -87,7 +87,7 @@ if (isset($_GET['search'])) {
             <?php else: ?>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 border-t pt-5">
                     <?php foreach ($products as $product): ?>
-                        <a href="StoreDetails.php?product_ID=<?php echo htmlspecialchars($product['ProductID']) ?>" class="block w-full <?= $product['SecondaryImagePath'] ? 'group' : '' ?>">
+                        <a href="store_details.php?product_ID=<?php echo htmlspecialchars($product['ProductID']) ?>" class="block w-full <?= $product['SecondaryImagePath'] ? 'group' : '' ?>">
                             <div class="relative">
                                 <div class="relative w-full h-auto md:h-[350px] lg:h-[300px] select-none mb-4">
                                     <!-- Primary Image -->

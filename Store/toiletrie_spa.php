@@ -56,9 +56,9 @@ if ($productSelectQuery->num_rows > 0) {
         <div class="flex text-sm text-slate-600">
             <a href="../User/home_page.php" class="underline">Home</a>
             <span><i class="ri-arrow-right-s-fill"></i></span>
-            <a href="Store.php" class="underline">Store</a>
+            <a href="store.php" class="underline">Store</a>
             <span><i class="ri-arrow-right-s-fill"></i></span>
-            <a href="Toiletries&Spa.php" class="underline">Toiletries and Spa</a>
+            <a href="toiletrie_spa.php" class="underline">Toiletries and Spa</a>
         </div>
 
         <section class="mt-3">
@@ -70,7 +70,7 @@ if ($productSelectQuery->num_rows > 0) {
             <h1 class="uppercase text-xl sm:text-2xl text-blue-900 font-semibold my-5">Toiletries</h1>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 border-t pt-5">
                 <?php foreach ($toiletriesProducts as $product): ?>
-                    <a href="StoreDetails.php" class="block w-full group">
+                    <a href="store_details.php" class="block w-full group">
                         <div class="relative">
                             <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
                                 <img src="<?= htmlspecialchars($product['UserImg1']) ?>" class="w-full h-full object-cover rounded-sm" alt="Store Image">
@@ -94,7 +94,7 @@ if ($productSelectQuery->num_rows > 0) {
             <h1 class="uppercase text-xl sm:text-2xl text-blue-900 font-semibold my-5">Toiletries</h1>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 border-t pt-5">
                 <?php foreach ($spaProducts as $product): ?>
-                    <a href="StoreDetails.php" class="block w-full group">
+                    <a href="store_details.php" class="block w-full group">
                         <div class="relative">
                             <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
                                 <img src="<?= htmlspecialchars($product['UserImg1']) ?>" class="w-full h-full object-cover rounded-sm" alt="Store Image">
@@ -117,7 +117,7 @@ if ($productSelectQuery->num_rows > 0) {
             <h1 class="uppercase text-xl sm:text-2xl text-blue-900 font-semibold my-5">Toiletries</h1>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 border-t pt-5">
                 <!-- Card 1 -->
-                <a href="StoreDetails.php" class="block w-full group">
+                <a href="store_details.php" class="block w-full group">
                     <div class="relative">
                         <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
                             <img src="../UserImages/beautiful-hotel-insights-details.jpg" class="w-full h-full object-cover rounded-sm" alt="Store Image">
@@ -137,7 +137,7 @@ if ($productSelectQuery->num_rows > 0) {
                     </div>
                 </a>
 
-                <a href="StoreDetails.php" class="block w-full group">
+                <a href="store_details.php" class="block w-full group">
                     <div class="relative">
                         <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
                             <img src="../UserImages/hilton-bath-mat-HIL-312-NL-WH_xlrg.jpg" class="w-full h-full object-cover rounded-sm" alt="Store Image">
@@ -157,7 +157,7 @@ if ($productSelectQuery->num_rows > 0) {
                     </div>
                 </a>
 
-                <a href="StoreDetails.php" class="block w-full group">
+                <a href="store_details.php" class="block w-full group">
                     <div class="relative">
                         <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
                             <img src="../UserImages/nov_.jpeg" class="w-full h-full object-cover rounded-sm" alt="Store Image">
@@ -177,7 +177,7 @@ if ($productSelectQuery->num_rows > 0) {
                     </div>
                 </a>
 
-                <a href="StoreDetails.php" class="block w-full group">
+                <a href="store_details.php" class="block w-full group">
                     <div class="relative">
                         <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
                             <img src="../UserImages/w-hotels-hooded-robe-WHO-400-MIC-SH-WL-GY_lrg.webp" class="w-full h-full object-cover rounded-sm" alt="Store Image">
@@ -197,7 +197,7 @@ if ($productSelectQuery->num_rows > 0) {
                     </div>
                 </a>
 
-                <a href="StoreDetails.php" class="block w-full group">
+                <a href="store_details.php" class="block w-full group">
                     <div class="relative">
                         <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
                             <img src="../UserImages/westin-hotel-body-wash-HB-301-WT_lrg.webp" class="w-full h-full object-cover rounded-sm" alt="Store Image">
@@ -217,7 +217,7 @@ if ($productSelectQuery->num_rows > 0) {
                     </div>
                 </a>
 
-                <a href="StoreDetails.php" class="block w-full group">
+                <a href="store_details.php" class="block w-full group">
                     <div class="relative">
                         <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
                             <img src="../UserImages/the-ritz-carlton-spa-fresh-hand-wash-RTZ-300-LS-SF_lrg.jpg" class="w-full h-full object-cover rounded-sm" alt="Store Image">
@@ -243,7 +243,7 @@ if ($productSelectQuery->num_rows > 0) {
             <h1 class="uppercase text-xl sm:text-2xl text-blue-900 font-semibold my-5">Spa</h1>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 border-t pt-5">
                 <!-- Card 1 -->
-                <a href="StoreDetails.php" class="block w-full group">
+                <a href="store_details.php" class="block w-full group">
                     <div class="relative">
                         <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
                             <img src="../UserImages/the-ritz-carlton-spa-fresh-body-scrub-RTZ-306-SF-6_lrg.jpg" class="w-full h-full object-cover rounded-sm" alt="Store Image">
@@ -263,7 +263,7 @@ if ($productSelectQuery->num_rows > 0) {
                     </div>
                 </a>
 
-                <a href="StoreDetails.php" class="block w-full group">
+                <a href="store_details.php" class="block w-full group">
                     <div class="relative">
                         <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
                             <img src="../UserImages/westin-hotel-shampoo-conditioner-set-HB-307-WT_lrg.webp" class="w-full h-full object-cover rounded-sm" alt="Store Image">
@@ -283,7 +283,7 @@ if ($productSelectQuery->num_rows > 0) {
                     </div>
                 </a>
 
-                <a href="StoreDetails.php" class="block w-full group">
+                <a href="store_details.php" class="block w-full group">
                     <div class="relative">
                         <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
                             <img src="../UserImages/61pAmDdgVxL.jpg" class="w-full h-full object-cover rounded-sm" alt="Store Image">
@@ -303,7 +303,7 @@ if ($productSelectQuery->num_rows > 0) {
                     </div>
                 </a>
 
-                <a href="StoreDetails.php" class="block w-full group">
+                <a href="store_details.php" class="block w-full group">
                     <div class="relative">
                         <div class="h-auto md:h-[350px] lg:h-[300px] select-none">
                             <img src="../UserImages/Quick-Recovery_1_0dbd5318-0b51-484b-a116-ae029b87a40e.webp" class="w-full h-full object-cover rounded-sm" alt="Store Image">

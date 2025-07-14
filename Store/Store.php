@@ -28,7 +28,7 @@ if (!$connect) {
         <div class="flex text-sm text-slate-600">
             <a href="../User/home_page.php" class="underline">Home</a>
             <span><i class="ri-arrow-right-s-fill"></i></span>
-            <a href="Store.php" class="underline">Store</a>
+            <a href="store.php" class="underline">Store</a>
         </div>
 
         <section class="mt-3">
@@ -43,7 +43,7 @@ if (!$connect) {
                         <p class="text-blue-900 font-semibold mb-3">A hotel-quality bed at home</p>
                         <p class="text-slate-600 text-sm">Treat yourself with Opulence sleeping experience in the comfort of your own bedroom.</p>
                     </div>
-                    <a href="RoomEssentials.php" class="relative z-10 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-center py-2 px-8 rounded-full transition-colors duration-300">Discover</a>
+                    <a href="room_essentials.php" class="relative z-10 bg-amber-500 hover:bg-amber-600 text-white font-semibold text-center py-2 px-8 rounded-full transition-colors duration-300">Discover</a>
                 </div>
             </div>
         </section>

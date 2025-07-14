@@ -132,7 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const stockDisplay = document.getElementById('stockDisplay');
                 
                 // AJAX request
-                fetch('../Store/StoreDetails.php', {
+                fetch('../Store/store_details.php', {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -209,7 +209,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const formData = new FormData(paymentForm);
             formData.append("submit_reservation", true);
 
-            fetch("../Store/StoreCheckout.php", {
+            fetch("../Store/store_checkout.php", {
                 method: "POST",
                 body: formData
             })
@@ -222,7 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(data => {
                 if (data.success) {
                     // Redirect to payment page on success
-                    window.location.href = `../Store/Stripe.php?reservation_id=${data.order_id}`;
+                    window.location.href = `../Store/stripe.php?reservation_id=${data.order_id}`;
                 } else {
                     // Re-enable button and hide spinner
                     submitButton.disabled = false;
