@@ -1,7 +1,7 @@
 <?php
 session_start();
 include('../config/dbConnection.php');
-include('../includes/MaskEmail.php');
+include('../includes/mask_email.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -102,7 +102,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['resetPassword'])) {
 
 <body class="relative min-w-[380px]">
     <?php
-    include('../includes/Navbar.php');
+    include('../includes/navbar.php');
     ?>
 
     <section class="max-w-[1300px] mx-auto">
@@ -282,8 +282,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['resetPassword'])) {
     </div>
 
     <?php
-    include('../includes/Alert.php');
-    include('../includes/Footer.php');
+    include('../includes/alert.php');
+    include('../includes/footer.php');
     ?>
     <script src="//unpkg.com/alpinejs" defer></script>
     <script type="module" src="../JS/index.js"></script>

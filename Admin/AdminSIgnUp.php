@@ -1,7 +1,7 @@
 <?php
 session_start();
 include('../config/dbConnection.php');
-include('../includes/AutoIDFunc.php');
+include('../includes/auto_id_func.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -256,8 +256,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
 
     <!-- Loader -->
     <?php
-    include('../includes/Alert.php');
-    include('../includes/Loader.php');
+    include('../includes/alert.php');
+    include('../includes/loader.php');
     ?>
 
     <script type="module" src="../JS/adminAuth.js"></script>

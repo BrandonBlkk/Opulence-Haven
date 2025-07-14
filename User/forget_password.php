@@ -218,8 +218,8 @@ if (isset($_POST['reset'])) {
 
     <!-- Loader -->
     <?php
-    include('../includes/Loader.php');
-    include('../includes/Alert.php');
+    include('../includes/loader.php');
+    include('../includes/alert.php');
     ?>
 
     <script src="//unpkg.com/alpinejs" defer></script>

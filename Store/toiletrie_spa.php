@@ -49,7 +49,7 @@ if ($productSelectQuery->num_rows > 0) {
 
 <body>
     <?php
-    include('../includes/StoreNavbar.php');
+    include('../includes/store_navbar.php');
     ?>
 
     <main class="max-w-[1310px] min-w-[380px] mx-auto px-4 py-5">
@@ -328,8 +328,8 @@ if ($productSelectQuery->num_rows > 0) {
 
     <!-- MoveUp Btn -->
     <?php
-    include('../includes/MoveUpBtn.php');
-    include('../includes/Footer.php');
+    include('../includes/moveup_btn.php');
+    include('../includes/footer.php');
     ?>
 
     <script type="module" src="../JS/store.js"></script>

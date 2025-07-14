@@ -156,8 +156,8 @@ if (isset($_POST['room_favourite'])) {
 
 <body class="relative min-w-[380px]">
     <?php
-    include('../includes/Navbar.php');
-    include('../includes/Cookies.php');
+    include('../includes/navbar.php');
+    include('../includes/cookies.php');
     ?>
 
     <!-- Login Modal -->
@@ -872,9 +872,9 @@ if (isset($_POST['room_favourite'])) {
 
     <!-- MoveUp Btn -->
     <?php
-    include('../includes/MoveUpBtn.php');
-    include('../includes/Alert.php');
-    include('../includes/Footer.php');
+    include('../includes/moveup_btn.php');
+    include('../includes/alert.php');
+    include('../includes/footer.php');
     ?>
 
     <script src="//unpkg.com/alpinejs" defer></script>

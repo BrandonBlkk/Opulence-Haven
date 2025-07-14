@@ -1,8 +1,8 @@
 <?php
 session_start();
 include('../config/dbConnection.php');
-include('../includes/AutoIDFunc.php');
-include('../includes/MaskEmail.php');
+include('../includes/auto_id_func.php');
+include('../includes/mask_email.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -304,8 +304,8 @@ if (isset($_GET['payment'])) {
 
 <body class="relative min-w-[380px]">
     <?php
-    include('../includes/Navbar.php');
-    include('../includes/Cookies.php');
+    include('../includes/navbar.php');
+    include('../includes/cookies.php');
     ?>
 
     <div class="max-w-[1150px] mx-auto px-4 py-8">
@@ -1007,10 +1007,10 @@ if (isset($_GET['payment'])) {
 
     <!-- MoveUp Btn -->
     <?php
-    include('../includes/MoveUpBtn.php');
-    include('../includes/Loader.php');
-    include('../includes/Alert.php');
-    include('../includes/Footer.php');
+    include('../includes/moveup_btn.php');
+    include('../includes/loader.php');
+    include('../includes/alert.php');
+    include('../includes/footer.php');
     ?>
     <script>
         document.addEventListener('DOMContentLoaded', function() {

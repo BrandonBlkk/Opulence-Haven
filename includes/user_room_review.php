@@ -182,10 +182,10 @@
 
 <!-- Write Review -->
 <?php
-include('UserWriteReview.php');
+include('user_write_review.php');
 ?>
 
 <!-- Loader -->
 <?php
-include('Loader.php');
+include('loader.php');
 ?>

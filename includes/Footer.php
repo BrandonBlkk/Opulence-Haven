@@ -119,7 +119,7 @@
 
                     <!-- Loader -->
                     <?php
-                    include('../includes/Loader.php');
+                    include('../includes/loader.php');
                     ?>
 
                     <script>

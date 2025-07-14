@@ -241,7 +241,7 @@ if ($productReviewSelectQuery->num_rows > 0) {
 
 <body>
     <?php
-    include('../includes/StoreNavbar.php');
+    include('../includes/store_navbar.php');
     ?>
 
     <main class="max-w-[1310px] mx-auto px-4 py-5 min-w-[380px]">
@@ -750,9 +750,9 @@ if ($productReviewSelectQuery->num_rows > 0) {
 
     <!-- MoveUp Btn -->
     <?php
-    include('../includes/Alert.php');
-    include('../includes/Loader.php');
-    include('../includes/Footer.php');
+    include('../includes/alert.php');
+    include('../includes/loader.php');
+    include('../includes/footer.php');
     ?>
 
     <script type="module" src="../JS/store.js"></script>

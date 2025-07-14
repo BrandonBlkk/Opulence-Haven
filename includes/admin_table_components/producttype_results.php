@@ -1,6 +1,6 @@
 <?php
 include(__DIR__ . '/../../config/dbConnection.php');
-include(__DIR__ . '/../AdminPagination.php');
+include(__DIR__ . '/../admin_pagination.php');
 
 // Construct the product type query based on search
 if (!empty($searchProductTypeQuery)) {

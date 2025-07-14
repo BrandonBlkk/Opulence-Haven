@@ -173,7 +173,7 @@
 
 <!-- Loader -->
 <?php
-include('Loader.php');
+include('loader.php');
 ?>
 
 <!-- Overlay -->

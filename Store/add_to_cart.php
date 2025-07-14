@@ -21,7 +21,7 @@ if (!$connect) {
 
 <body>
     <?php
-    include('../includes/StoreNavbar.php');
+    include('../includes/store_navbar.php');
     ?>
 
     <main class="max-w-[1310px] min-w-[380px] mx-auto p-4">
@@ -216,7 +216,7 @@ if (!$connect) {
 
     <!-- MoveUp Btn -->
     <?php
-    include('../includes/Footer.php');
+    include('../includes/footer.php');
     ?>
 
     <script type="module" src="../JS/store.js"></script>

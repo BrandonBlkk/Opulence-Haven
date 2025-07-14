@@ -326,8 +326,8 @@ include('../User/cleanup_reservations.php');
 <div id="darkOverlay2" class="fixed inset-0 bg-black bg-opacity-50 opacity-0 invisible z-40 transition-opacity duration-300"></div>
 
 <?php
-include('MoveRightLoader.php');
-include('MaintenanceAlert.php');
+include('move_right_loader.php');
+include('maintenance_alert.php');
 ?>
 
 <div class="sticky top-0 w-full bg-white border-b z-30 min-w-[380px]">

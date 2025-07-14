@@ -1,7 +1,7 @@
 <?php
 // contact_pagination.php
 include(__DIR__ . '/../../config/dbConnection.php');
-include(__DIR__ . '/../AdminPagination.php');
+include(__DIR__ . '/../admin_pagination.php');
 ?>
 
 <!-- Pagination Info -->

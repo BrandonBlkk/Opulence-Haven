@@ -1,6 +1,6 @@
 <?php
 include(__DIR__ . '/../../config/dbConnection.php');
-include(__DIR__ . '/../AdminPagination.php');
+include(__DIR__ . '/../admin_pagination.php');
 
 // Construct the product query based on search and product type filter
 if ($filterProductID !== 'random' && !empty($searchProductQuery)) {

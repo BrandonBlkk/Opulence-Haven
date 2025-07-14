@@ -21,7 +21,7 @@ if (!$connect) {
 
 <body class="relative min-w-[380px]">
     <?php
-    include('../includes/Navbar.php');
+    include('../includes/navbar.php');
     ?>
 
     <main class="py-4">
@@ -84,8 +84,8 @@ if (!$connect) {
 
     <!-- MoveUp Btn -->
     <?php
-    include('../includes/MoveUpBtn.php');
-    include('../includes/Footer.php');
+    include('../includes/moveup_btn.php');
+    include('../includes/footer.php');
     ?>
     <script src="//unpkg.com/alpinejs" defer></script>
     <script src="../JS/index.js"></script>

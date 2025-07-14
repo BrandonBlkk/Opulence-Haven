@@ -58,7 +58,7 @@ if (isset($_POST['room_favourite'])) {
 
 <body class="relative min-w-[380px]">
     <?php
-    include('../includes/Navbar.php');
+    include('../includes/navbar.php');
     ?>
 
     <main class="pb-4 px-4 max-w-[1310px] mx-auto">
@@ -241,7 +241,7 @@ if (isset($_POST['room_favourite'])) {
     </main>
 
     <?php
-    include('../includes/Footer.php');
+    include('../includes/footer.php');
     ?>
 
     <script src="//unpkg.com/alpinejs" defer></script>

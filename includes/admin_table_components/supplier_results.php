@@ -1,6 +1,6 @@
 <?php
 include(__DIR__ . '/../../config/dbConnection.php');
-include(__DIR__ . '/../AdminPagination.php');
+include(__DIR__ . '/../admin_pagination.php');
 
 // Construct the supplier query based on search and role filter
 if ($filterSupplierID !== 'random' && !empty($searchSupplierQuery)) {

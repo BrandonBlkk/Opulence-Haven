@@ -1,7 +1,7 @@
 <?php
 session_start();
 include('../config/dbConnection.php');
-include('../includes/AutoIDFunc.php');
+include('../includes/auto_id_func.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -65,8 +65,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
 
 <body class="relative min-w-[380px]">
     <?php
-    include('../includes/Navbar.php');
-    include('../includes/Cookies.php');
+    include('../includes/navbar.php');
+    include('../includes/cookies.php');
     ?>
 
     <main class="pb-4">
@@ -353,10 +353,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
 
     <!-- MoveUp Btn -->
     <?php
-    include('../includes/MoveUpBtn.php');
-    include('../includes/Alert.php');
-    include('../includes/Loader.php');
-    include('../includes/Footer.php');
+    include('../includes/moveup_btn.php');
+    include('../includes/alert.php');
+    include('../includes/loader.php');
+    include('../includes/footer.php');
     ?>
     <script src="//unpkg.com/alpinejs" defer></script>
     <script type="module" src="../JS/index.js"></script>
