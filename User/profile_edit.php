@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../config/dbConnection.php');
+include('../config/db_connection.php');
 include('../includes/mask_email.php');
 
 if (!$connect) {

@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../config/dbConnection.php');
+include('../config/db_connection.php');
 include('../includes/auto_id_func.php');
 include('../includes/admin_pagination.php');
 
