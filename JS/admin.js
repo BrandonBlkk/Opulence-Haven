@@ -3509,7 +3509,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (loader) loader.style.display = 'flex';
             
             // Send email
-            fetch('../Mail/Contact.php', {
+            fetch('../Mail/contact.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
