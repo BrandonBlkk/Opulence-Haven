@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../config/dbConnection.php');
+include('../config/db_connection.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -80,7 +80,7 @@ if (isset($session_userID) && !empty($_SESSION['UserID'])) {
             $connect->query($insert_query);
 
             // Refresh the page
-            header("Location: ../Store/StoreDetails.php?product_ID=$product_id");
+            header("Location: ../Store/store_details.php?product_ID=$product_id");
         }
     }
 } else {
@@ -98,7 +98,7 @@ if (isset($_POST['removefromfavorites'])) {
     $connect->query($delete_query);
 
     // Refresh the page
-    header("Location: ../Store/StoreDetails.php?product_ID=$product_id");
+    header("Location: ../Store/store_details.php?product_ID=$product_id");
 }
 
 // Add product to cart
@@ -241,16 +241,16 @@ if ($productReviewSelectQuery->num_rows > 0) {
 
 <body>
     <?php
-    include('../includes/StoreNavbar.php');
+    include('../includes/store_navbar.php');
     ?>
 
     <main class="max-w-[1310px] mx-auto px-4 py-5 min-w-[380px]">
         <div class="flex text-sm text-slate-600">
             <a href="../User/home_page.php" class="underline">Home</a>
             <span><i class="ri-arrow-right-s-fill"></i></span>
-            <a href="Store.php" class="underline">Store</a>
+            <a href="store.php" class="underline">Store</a>
             <span><i class="ri-arrow-right-s-fill"></i></span>
-            <a href="StoreDetails.php?product_ID=<?= urlencode($product_id) ?>" class=" underline">Store Details</a>
+            <a href="store_details.php?product_ID=<?= urlencode($product_id) ?>" class=" underline">Store Details</a>
         </div>
 
         <form id="addToBagForm" action="<?php $_SERVER["PHP_SELF"] ?>" method="post" enctype="multipart/form-data" class="flex flex-col md:flex-row justify-center gap-3 mt-3">
@@ -750,9 +750,9 @@ if ($productReviewSelectQuery->num_rows > 0) {
 
     <!-- MoveUp Btn -->
     <?php
-    include('../includes/Alert.php');
-    include('../includes/Loader.php');
-    include('../includes/Footer.php');
+    include('../includes/alert.php');
+    include('../includes/loader.php');
+    include('../includes/footer.php');
     ?>
 
     <script type="module" src="../JS/store.js"></script>

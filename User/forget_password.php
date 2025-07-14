@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../config/dbConnection.php');
+include('../config/db_connection.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -218,8 +218,8 @@ if (isset($_POST['reset'])) {
 
     <!-- Loader -->
     <?php
-    include('../includes/Loader.php');
-    include('../includes/Alert.php');
+    include('../includes/loader.php');
+    include('../includes/alert.php');
     ?>
 
     <script src="//unpkg.com/alpinejs" defer></script>

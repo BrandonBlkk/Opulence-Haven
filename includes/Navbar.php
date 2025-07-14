@@ -15,7 +15,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
 <div class="sticky top-0 w-full bg-white border-b z-30">
     <?php
-    include('../includes/MoveRightLoader.php');
+    include('../includes/move_right_loader.php');
     ?>
     <nav class="flex items-center justify-between max-w-[1050px] mx-auto p-3">
         <a href="../User/home_page.php">
@@ -37,8 +37,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <i id="menubar" class="ri-menu-4-line text-3xl cursor-pointer transition-transform duration-300"></i>
         </div>
         <?php
-        include('Sidebar.php');
-        include('MaintenanceAlert.php');
+        include('sidebar.php');
+        include('maintenance_alert.php');
         ?>
     </nav>
 </div>
@@ -145,7 +145,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
 <!-- Loader -->
 <?php
-include('Loader.php');
+include('loader.php');
 ?>
 
 <!-- Overlay -->

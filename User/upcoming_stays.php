@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../config/dbConnection.php');
+include('../config/db_connection.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -126,8 +126,8 @@ if ($userID) {
 
 <body class="relative">
     <?php
-    include('../includes/Navbar.php');
-    include('../includes/Cookies.php');
+    include('../includes/navbar.php');
+    include('../includes/cookies.php');
     ?>
 
     <?php
@@ -737,8 +737,8 @@ if ($userID) {
 
     <!-- MoveUp Btn -->
     <?php
-    include('../includes/MoveUpBtn.php');
-    include('../includes/Footer.php');
+    include('../includes/moveup_btn.php');
+    include('../includes/footer.php');
     ?>
 
     <script src="//unpkg.com/alpinejs" defer></script>

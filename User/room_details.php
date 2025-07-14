@@ -1,7 +1,7 @@
 <?php
 session_start();
-include('../config/dbConnection.php');
-include('../includes/AutoIDFunc.php');
+include('../config/db_connection.php');
+include('../includes/auto_id_func.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -499,8 +499,8 @@ if (isset($_POST['submitreview'])) {
 
 <body class="relative min-w-[380px]">
     <?php
-    include('../includes/Navbar.php');
-    include('../includes/Cookies.php');
+    include('../includes/navbar.php');
+    include('../includes/cookies.php');
     ?>
 
     <!-- Login Modal -->
@@ -1601,10 +1601,10 @@ if (isset($_POST['submitreview'])) {
 
     <!-- MoveUp Btn -->
     <?php
-    include('../includes/MoveUpBtn.php');
-    include('../includes/Alert.php');
-    include('../includes/UserRoomReview.php');
-    include('../includes/Footer.php');
+    include('../includes/moveup_btn.php');
+    include('../includes/alert.php');
+    include('../includes/user_room_review.php');
+    include('../includes/footer.php');
     ?>
 
     <script>

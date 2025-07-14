@@ -1,7 +1,7 @@
 <?php
 session_start();
-include('../config/dbConnection.php');
-include('../includes/AutoIDFunc.php');
+include('../config/db_connection.php');
+include('../includes/auto_id_func.php');
 require '../vendor/autoload.php';
 $googleConfig = require __DIR__ . '/../config/google.php';
 
@@ -285,8 +285,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
 
     <!-- Loader -->
     <?php
-    include('../includes/Alert.php');
-    include('../includes/Loader.php');
+    include('../includes/alert.php');
+    include('../includes/loader.php');
     ?>
 
     <script type="module" src="../JS/auth.js"></script>

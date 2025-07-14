@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../config/dbConnection.php');
+include('../config/db_connection.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -77,7 +77,7 @@ $availablePercentage = ($allAvailableRooms / $totalRooms) * 100;
 
 <body class="bg-slate-100">
     <?php
-    include('../includes/AdminNavbar.php');
+    include('../includes/admin_navbar.php');
     ?>
 
     <!-- Welcome message -->
@@ -1282,7 +1282,7 @@ $availablePercentage = ($allAvailableRooms / $totalRooms) * 100;
 
     <!-- Loader -->
     <?php
-    include('../includes/Loader.php');
+    include('../includes/loader.php');
     ?>
 
     <script src="//unpkg.com/alpinejs" defer></script>

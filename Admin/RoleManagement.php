@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../config/dbConnection.php');
+include('../config/db_connection.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -75,7 +75,7 @@ if (isset($_POST['deleteadmin'])) {
 </head>
 
 <body>
-    <?php include('../includes/AdminNavbar.php'); ?>
+    <?php include('../includes/admin_navbar.php'); ?>
 
     <!-- Main Container -->
     <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px] relative min-w-[380px]">
@@ -283,8 +283,8 @@ if (isset($_POST['deleteadmin'])) {
 
     <!-- Loader -->
     <?php
-    include('../includes/Alert.php');
-    include('../includes/Loader.php');
+    include('../includes/alert.php');
+    include('../includes/loader.php');
     ?>
 
     <script src="//unpkg.com/alpinejs" defer></script>

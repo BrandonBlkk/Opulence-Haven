@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../config/dbConnection.php');
+include('../config/db_connection.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -49,8 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
 
 <body class="relative min-w-[380px]">
     <?php
-    include('../includes/Navbar.php');
-    include('../includes/Cookies.php');
+    include('../includes/navbar.php');
+    include('../includes/cookies.php');
     ?>
 
     <?php
@@ -495,7 +495,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
             </a>
 
             <!-- Card 3 -->
-            <a href="../Store/Store.php" class="block w-full md:max-w-[450px] mx-auto group">
+            <a href="../Store/store.php" class="block w-full md:max-w-[450px] mx-auto group">
                 <div class="h-auto sm:h-[280px] select-none overflow-hidden">
                     <img src="../UserImages/Standard-Room-model.jpg" class="w-full h-full object-cover rounded-sm transform group-hover:scale-105 transition-transform duration-200" alt="Image">
                 </div>
@@ -593,8 +593,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
 
     <!-- MoveUp Btn -->
     <?php
-    include('../includes/MoveUpBtn.php');
-    include('../includes/Footer.php');
+    include('../includes/moveup_btn.php');
+    include('../includes/footer.php');
     ?>
 
     <!-- AOS JS -->

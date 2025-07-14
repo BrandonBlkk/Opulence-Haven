@@ -1,7 +1,7 @@
 <?php
 session_start();
-include('../config/dbConnection.php');
-include('../includes/AutoIDFunc.php');
+include('../config/db_connection.php');
+include('../includes/auto_id_func.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -173,7 +173,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["removeItem"])) {
 </head>
 
 <body>
-    <?php include('../includes/AdminNavbar.php'); ?>
+    <?php include('../includes/admin_navbar.php'); ?>
 
     <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px] min-w-[380px]">
         <div class="w-full bg-white p-2">
@@ -338,8 +338,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["removeItem"])) {
         </div>
     </div>
 
-    <?php include('../includes/Alert.php'); ?>
-    <?php include('../includes/Loader.php'); ?>
+    <?php include('../includes/alert.php'); ?>
+    <?php include('../includes/loader.php'); ?>
     <script src="//unpkg.com/alpinejs" defer></script>
     <script type="module" src="../JS/admin.js"></script>
 </body>

@@ -1,6 +1,6 @@
 <?php
-include(__DIR__ . '/../../config/dbConnection.php');
-include(__DIR__ . '/../AdminPagination.php');
+include(__DIR__ . '/../../config/db_connection.php');
+include(__DIR__ . '/../admin_pagination.php');
 
 // Construct the admin query based on search and role filter with LIMIT and OFFSET
 if ($filterRoleID !== 'random' && !empty($searchAdminQuery)) {

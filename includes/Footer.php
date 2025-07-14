@@ -73,10 +73,10 @@
                         <a class="hover:underline" href="NearbyAttractions.php">Nearby Attractions</a>
                     </li>
                     <li>
-                        <a class="hover:underline" href="../Store/RoomEssentials.php">Room Essentials</a>
+                        <a class="hover:underline" href="../Store/room_essentials.php">Room Essentials</a>
                     </li>
                     <li>
-                        <a class="hover:underline" href="../Store/Toiletries&Spa.php">Toiletries & Spa</a>
+                        <a class="hover:underline" href="../Store/toiletrie_spa.php">Toiletries & Spa</a>
                     </li>
                     <li>
                         <a class="hover:underline" href="FAQ.php">Frequently Asked Questions</a>
@@ -112,14 +112,14 @@
                 <div class="border-l-0 lg:border-l pl-0 lg:pl-16">
                     <h1 class="text-2xl font-semibold mb-3">Newsletter Sign Up</h1>
                     <!-- Newsletter Form -->
-                    <form id="newsletterForm" class="flex flex-col gap-6 sm:gap-0 sm:flex-row" method="POST" action="../User/Subscribe.php">
+                    <form id="newsletterForm" class="flex flex-col gap-6 sm:gap-0 sm:flex-row" method="POST" action="../Mail/subscribe.php">
                         <input class="border w-full p-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" type="email" id="email" name="email" placeholder="Your email please" required>
                         <input class="bg-black py-2 px-5 text-white select-none cursor-pointer" type="submit" value="SUBSCRIBE">
                     </form>
 
                     <!-- Loader -->
                     <?php
-                    include('../includes/Loader.php');
+                    include('../includes/loader.php');
                     ?>
 
                     <script>
@@ -134,7 +134,7 @@
                             const formData = new FormData(this);
 
                             // Send the form data using AJAX
-                            fetch('../Mail/Subscribe.php', {
+                            fetch('../Mail/subscribe.php', {
                                     method: 'POST',
                                     body: formData
                                 })

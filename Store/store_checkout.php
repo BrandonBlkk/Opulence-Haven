@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../config/dbConnection.php');
+include('../config/db_connection.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -45,7 +45,7 @@ $userData = $connect->query($user)->fetch_assoc();
 
 <body>
     <?php
-    include('../includes/StoreNavbar.php');
+    include('../includes/store_navbar.php');
     ?>
 
     <main class="max-w-[1310px] min-w-[380px] mx-auto p-4">
@@ -88,7 +88,7 @@ $userData = $connect->query($user)->fetch_assoc();
             <div>
                 <p class="text-2xl">Cart <span>(<?php echo $cartCount; ?>)</span></p>
             </div>
-            <a href="AddToCart.php" class="text-sm text-gray-500">
+            <a href="add_to_cart.php" class="text-sm text-gray-500">
                 <i class="ri-arrow-left-line"></i>
                 Back to cart
             </a>
@@ -331,8 +331,8 @@ $userData = $connect->query($user)->fetch_assoc();
 
     <!-- MoveUp Btn -->
     <?php
-    include('../includes/Alert.php');
-    include('../includes/Footer.php');
+    include('../includes/alert.php');
+    include('../includes/footer.php');
     ?>
 
     <script type="module" src="../JS/store.js"></script>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../config/dbConnection.php');
+include('../config/db_connection.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -77,7 +77,7 @@ if (isset($_POST['respondcontact'])) {
 </head>
 
 <body>
-    <?php include('../includes/AdminNavbar.php'); ?>
+    <?php include('../includes/admin_navbar.php'); ?>
 
     <!-- Main Container -->
     <div class="p-3 ml-0 md:ml-[250px] min-w-[380px] relative">
@@ -230,8 +230,8 @@ if (isset($_POST['respondcontact'])) {
 
     <!-- Loader -->
     <?php
-    include('../includes/Alert.php');
-    include('../includes/Loader.php');
+    include('../includes/alert.php');
+    include('../includes/loader.php');
     ?>
 
     <script src="//unpkg.com/alpinejs" defer></script>

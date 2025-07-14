@@ -13,7 +13,7 @@ include('../User/cleanup_reservations.php');
                 <?php echo !empty($_SESSION['UserName']) ? $_SESSION['UserName'] : 'My account'; ?>
             </a>
             <!-- Favorites -->
-            <a href="Favorite.php" class="flex items-center gap-2 font-semibold text-slate-500 hover:bg-gray-200 p-2 rounded-sm transition-colors duration-200">
+            <a href="favorite.php" class="flex items-center gap-2 font-semibold text-slate-500 hover:bg-gray-200 p-2 rounded-sm transition-colors duration-200">
                 <i class="ri-heart-line text-xl"></i>
                 <span>Favorites</span>
             </a>
@@ -181,7 +181,7 @@ include('../User/cleanup_reservations.php');
 
         <!-- Shopping Cart -->
         <div class="relative group">
-            <a href="../Store/AddToCart.php" class="bg-blue-900 text-white py-1 px-3 cursor-pointer flex items-center gap-2">
+            <a href="../Store/add_to_cart.php" class="bg-blue-900 text-white py-1 px-3 cursor-pointer flex items-center gap-2">
                 <i class="ri-shopping-cart-2-line text-xl"></i>
                 <span>
                     <?php
@@ -281,7 +281,7 @@ include('../User/cleanup_reservations.php');
                                 <span>Total:</span>
                                 <span>$<?= number_format($total, 2) ?></span>
                             </div>
-                            <a href="../Store/AddToCart.php"
+                            <a href="../Store/add_to_cart.php"
                                 class="block mt-3 bg-blue-900 text-white text-center py-2 text-sm rounded hover:bg-blue-800 transition-colors">
                                 Checkout
                             </a>
@@ -298,7 +298,7 @@ include('../User/cleanup_reservations.php');
 </section>
 
 <!-- Search Bar -->
-<form method="get" action="../Store/ProductSearch.php" id="search-bar" class="fixed -top-full w-full bg-white py-5 px-4 shadow-lg transition-all duration-300 z-50">
+<form method="get" action="../Store/product_search.php" id="search-bar" class="fixed -top-full w-full bg-white py-5 px-4 shadow-lg transition-all duration-300 z-50">
     <h1 class="text-xl font-semibold pb-4">Find Your Favorites</h1>
     <div class="flex items-center bg-gray-100 rounded-lg p-2">
         <!-- Search Icon -->
@@ -326,24 +326,24 @@ include('../User/cleanup_reservations.php');
 <div id="darkOverlay2" class="fixed inset-0 bg-black bg-opacity-50 opacity-0 invisible z-40 transition-opacity duration-300"></div>
 
 <?php
-include('MoveRightLoader.php');
-include('MaintenanceAlert.php');
+include('move_right_loader.php');
+include('maintenance_alert.php');
 ?>
 
 <div class="sticky top-0 w-full bg-white border-b z-30 min-w-[380px]">
     <nav class="flex items-center justify-between max-w-[1050px] mx-auto p-3">
         <div class="flex items-end gap-1 select-none">
-            <a href="Store.php">
+            <a href="store.php">
                 <img src="../UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-28 select-none" alt="Logo">
             </a>
             <p class="text-amber-500 text-sm font-semibold">STORE</p>
         </div>
         <div class="flex items-center gap-5 select-none relative">
             <div class="items-center hidden sm:flex">
-                <a href="RoomEssentials.php" class="flex items-center gap-1 font-semibold hover:bg-gray-100 p-2 rounded-sm transition-colors duration-200">
+                <a href="room_essentials.php" class="flex items-center gap-1 font-semibold hover:bg-gray-100 p-2 rounded-sm transition-colors duration-200">
                     Room Essentials
                 </a>
-                <a href="Toiletries&Spa.php" class="flex items-center gap-1 font-semibold hover:bg-gray-100 p-2 rounded-sm transition-colors duration-200">
+                <a href="toiletrie_spa.php" class="flex items-center gap-1 font-semibold hover:bg-gray-100 p-2 rounded-sm transition-colors duration-200">
                     Toiletries and Spa
                 </a>
                 <a href="Traditional.php" class="flex items-center gap-1 font-semibold hover:bg-gray-100 p-2 rounded-sm transition-colors duration-200">
@@ -360,10 +360,10 @@ include('MaintenanceAlert.php');
             </div>
             <div class="flex flex-col justify-between gap-3 h-full">
                 <div class="select-none">
-                    <a href="../Store/RoomEssentials.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
+                    <a href="../Store/room_essentials.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
                         <p class="font-semibold text-2xl sm:text-sm">Room Essentials</p>
                     </a>
-                    <a href="../Store/Toiletries&Spa.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
+                    <a href="../Store/toiletrie_spa.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
                         <p class="font-semibold text-2xl sm:text-sm">Toiletries and Spa</p>
                     </a>
                     <a href="../Store/Traditional.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">

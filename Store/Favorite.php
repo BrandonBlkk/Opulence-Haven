@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../config/dbConnection.php');
+include('../config/db_connection.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -57,16 +57,16 @@ if (isset($_GET['sort']) && $_GET['sort'] === 'recent') {
 </head>
 
 <body>
-    <?php include('../includes/StoreNavbar.php'); ?>
+    <?php include('../includes/store_navbar.php'); ?>
 
     <main class="max-w-[1310px] min-w-[380px] mx-auto px-4 py-5">
         <!-- Breadcrumb -->
         <div class="flex text-sm text-slate-600">
             <a href="../User/home_page.php" class="underline">Home</a>
             <span><i class="ri-arrow-right-s-fill"></i></span>
-            <a href="Store.php" class="underline">Store</a>
+            <a href="store.php" class="underline">Store</a>
             <span><i class="ri-arrow-right-s-fill"></i></span>
-            <a href="Favorite.php" class="underline">Favorites</a>
+            <a href="favorite.php" class="underline">Favorites</a>
         </div>
 
         <!-- Favorite Products Section -->
@@ -88,7 +88,7 @@ if (isset($_GET['sort']) && $_GET['sort'] === 'recent') {
             <?php else: ?>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 border-t pt-5">
                     <?php foreach ($favoriteProducts as $product): ?>
-                        <a href="StoreDetails.php?product_ID=<?php echo htmlspecialchars($product['ProductID']) ?>" class="block w-full <?= $product['SecondaryImagePath'] ? 'group' : '' ?>">
+                        <a href="store_details.php?product_ID=<?php echo htmlspecialchars($product['ProductID']) ?>" class="block w-full <?= $product['SecondaryImagePath'] ? 'group' : '' ?>">
                             <div class="relative">
                                 <div class="relative w-full h-auto md:h-[350px] lg:h-[300px] select-none mb-4">
                                     <!-- Primary Image -->
@@ -126,8 +126,8 @@ if (isset($_GET['sort']) && $_GET['sort'] === 'recent') {
 
     <!-- MoveUp Btn -->
     <?php
-    include('../includes/MoveUpBtn.php');
-    include('../includes/Footer.php');
+    include('../includes/moveup_btn.php');
+    include('../includes/footer.php');
     ?>
 
     <script type="module" src="../JS/store.js"></script>
@@ -137,7 +137,7 @@ if (isset($_GET['sort']) && $_GET['sort'] === 'recent') {
         function applyFilter() {
             const sortFilter = document.getElementById('sortFilter');
             const selectedValue = sortFilter.value;
-            window.location.href = `Favorite.php?sort=${selectedValue}`;
+            window.location.href = `favorite.php?sort=${selectedValue}`;
         }
     </script>
 </body>

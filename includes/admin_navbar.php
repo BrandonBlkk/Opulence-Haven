@@ -1,5 +1,5 @@
 <?php
-include('../includes/AdminPagination.php');
+include('../includes/admin_pagination.php');
 
 // Get the current file name
 $current_page = basename($_SERVER['PHP_SELF']);

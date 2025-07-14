@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../config/dbConnection.php');
+include('../config/db_connection.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -21,7 +21,7 @@ if (!$connect) {
 
 <body class="relative min-w-[380px]">
     <?php
-    include('../includes/Navbar.php');
+    include('../includes/navbar.php');
     ?>
 
     <main class=" px-3 max-w-[1310px] mx-auto py-4">
@@ -120,7 +120,7 @@ if (!$connect) {
     </main>
 
     <?php
-    include('../includes/Footer.php');
+    include('../includes/footer.php');
     ?>
     <script src="//unpkg.com/alpinejs" defer></script>
     <script src="../JS/index.js"></script>

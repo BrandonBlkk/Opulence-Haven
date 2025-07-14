@@ -1,8 +1,8 @@
 <?php
 session_start();
-include('../config/dbConnection.php');
-include('../includes/UpdateImageFunc.php');
-include('../includes/MaskEmail.php');
+include('../config/db_connection.php');
+include('../includes/update_image_func.php');
+include('../includes/mask_email.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -208,7 +208,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['changePassword'])) {
 </head>
 
 <body class="min-w-[380px]">
-    <?php include('../includes/AdminNavbar.php'); ?>
+    <?php include('../includes/admin_navbar.php'); ?>
 
     <!-- Main Container -->
     <div class="p-3 ml-0 md:ml-[250px]">
@@ -571,8 +571,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['changePassword'])) {
 
     <!-- Loader -->
     <?php
-    include('../includes/Alert.php');
-    include('../includes/Loader.php');
+    include('../includes/alert.php');
+    include('../includes/loader.php');
     ?>
 
     <script src="//unpkg.com/alpinejs" defer></script>

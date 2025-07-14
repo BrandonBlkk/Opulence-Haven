@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once('../config/dbConnection.php');
+require_once('../config/db_connection.php');
 require '../vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;

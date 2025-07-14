@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../config/dbConnection.php');
+include('../config/db_connection.php');
 require_once __DIR__ . '/../vendor/autoload.php';
 $stripeConfig = require __DIR__ . '/../config/stripe.php';
 
@@ -146,8 +146,8 @@ $orderID = $pendingOrder['OrderID'] ?? null;
 try {
     $checkout_session = \Stripe\Checkout\Session::create([
         "mode" => "payment",
-        "success_url" => "http://localhost/OpulenceHaven/Store/StoreCheckout.php?payment=success",
-        "cancel_url" => "http://localhost/OpulenceHaven/Store/StoreCheckout.php?payment=cancel",
+        "success_url" => "http://localhost/OpulenceHaven/Store/store_checkout.php?payment=success",
+        "cancel_url" => "http://localhost/OpulenceHaven/Store/store_checkout.php?payment=cancel",
         "locale" => "auto",
         "customer_email" => $_SESSION['UserEmail'] ?? null,
         "metadata" => [

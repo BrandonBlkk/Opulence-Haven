@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../config/dbConnection.php');
+include('../config/db_connection.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -27,8 +27,8 @@ $session_userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
 
 <body class="relative min-w-[350px]">
     <?php
-    include('../includes/Navbar.php');
-    include('../includes/Cookies.php');
+    include('../includes/navbar.php');
+    include('../includes/cookies.php');
     ?>
 
     <!-- Hero Section with Swiper -->
@@ -473,8 +473,8 @@ $session_userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
     </script>
 
     <?php
-    include('../includes/MoveUpBtn.php');
-    include('../includes/Footer.php');
+    include('../includes/moveup_btn.php');
+    include('../includes/footer.php');
     ?>
 
     <!-- AOS JS with mobile detection -->
