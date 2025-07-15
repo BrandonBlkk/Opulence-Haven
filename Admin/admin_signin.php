@@ -100,7 +100,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
     <div class="p-3">
         <!-- Logo -->
         <div class="flex items-end gap-1 select-none">
-            <a href="../User/AdminDashboard.php">
+            <a href="../User/admin_dashboard.php">
                 <img src="../UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-28 select-none" alt="Logo">
             </a>
             <p class="text-amber-500 text-sm font-semibold">ADMIN</p>
@@ -134,7 +134,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
                 <small id="signinPasswordError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
             </div>
 
-            <a href="ForgetPassword.php" class="text-xs text-gray-400 hover:text-gray-500">Forget your password?</a>
+            <a href="forget_password.php" class="text-xs text-gray-400 hover:text-gray-500">Forget your password?</a>
 
             <input type="hidden" name="signin" value="1">
 
@@ -155,7 +155,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
             </div>
 
             <!-- Signup Button -->
-            <a href="AdminSignUp.php" class="relative text-center px-4 py-2 rounded-md cursor-pointer select-none group">
+            <a href="admin_signup.php" class="relative text-center px-4 py-2 rounded-md cursor-pointer select-none group">
                 <p class="relative z-10 text-blue-900 font-semibold">Sign Up Now</p>
                 <div class="absolute inset-0 rounded-md group-hover:bg-gray-100 transition-colors duration-300"></div>
             </a>

@@ -120,7 +120,7 @@ if (isset($_POST['reset'])) {
                         <p> Your verification code: <strong>$otp</strong> </p>
                         
                         <div style='text-align: center;'>
-                            <a href='http://localhost/OpulenceHaven/Admin/ResetPassword.php?token=$token' class='button'>
+                            <a href='http://localhost/OpulenceHaven/Admin/reset_password.php?token=$token' class='button'>
                                 Reset Your Password
                             </a>
                         </div>
@@ -212,7 +212,7 @@ if (isset($_POST['reset'])) {
             </div>
             <div class="mt-6 text-center">
                 <p class="text-sm text-gray-600">Remembered your password?
-                    <a href="AdminSignIn.php" class="text-amber-500 hover:underline">Back to Sign In</a>
+                    <a href="admin_signin.php" class="text-amber-500 hover:underline">Back to Sign In</a>
                 </p>
             </div>
         </div>

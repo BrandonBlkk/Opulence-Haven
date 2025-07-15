@@ -13,7 +13,7 @@ $username = $_SESSION["UserName"];
 
 if (!isset($_SESSION["AdminEmail"])) {
     echo "<script>window.alert('Login first! You cannot direct access the admin info.')</script>";
-    echo "<script>window.location = 'AdminSignIn.php'</script>";
+    echo "<script>window.location = 'admin_signin.php'</script>";
 }
 
 // Check if there's a welcome message to display
@@ -84,7 +84,7 @@ $availablePercentage = ($allAvailableRooms / $totalRooms) * 100;
     <?php if (isset($welcomeMessage)): ?>
         <div id="welcomeAlert" class="fixed -top-1 opacity-0 right-3 z-50 transition-all duration-200">
             <div class="flex items-center gap-3 p-3 rounded-lg shadow-lg bg-white backdrop-blur-sm border border-gray-200">
-                <a href="../Admin/AdminDashboard.php">
+                <a href="../Admin/admin_dashboard.php">
                     <img src="../UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-16 select-none" alt="Logo">
                 </a>
                 <div>
@@ -1162,7 +1162,7 @@ $availablePercentage = ($allAvailableRooms / $totalRooms) * 100;
             <div class="flex-1 divide-y-2 divide-slate-100 bg-white p-3">
                 <div class="flex items-center justify-between">
                     <h1 class="text-lg font-bold text-gray-700 mb-2">New Users</h1>
-                    <a href="UserDetails.php" class="text-sm font-semibold text-blue-600 hover:text-blue-900 transition-colors duration-200 select-none">View all</a>
+                    <a href="user_details.php" class="text-sm font-semibold text-blue-600 hover:text-blue-900 transition-colors duration-200 select-none">View all</a>
                 </div>
                 <?php foreach ($allUsers as $user):
                     // Extract initials from the UserName

@@ -259,7 +259,7 @@ if (mysqli_num_rows($roomTypeSelectQuery) > 0) {
                     darkOverlay2.classList.remove('opacity-0', 'invisible');
                     darkOverlay2.classList.add('opacity-100');
 
-                    fetch(`../Admin/AddRoomType.php?action=getRoomTypeDetails&id=${roomTypeId}`)
+                    fetch(`../Admin/add_roomtype.php?action=getRoomTypeDetails&id=${roomTypeId}`)
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
@@ -285,7 +285,7 @@ if (mysqli_num_rows($roomTypeSelectQuery) > 0) {
                     darkOverlay2.classList.remove('opacity-0', 'invisible');
                     darkOverlay2.classList.add('opacity-100');
 
-                    fetch(`../Admin/AddRoomType.php?action=getRoomTypeDetails&id=${roomTypeId}`)
+                    fetch(`../Admin/add_roomtype.php?action=getRoomTypeDetails&id=${roomTypeId}`)
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {

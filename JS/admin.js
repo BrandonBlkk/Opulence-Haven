@@ -61,7 +61,7 @@ if (adminLogoutBtn && adminConfirmModal && cancelBtn && adminConfirmLogoutBtn &&
         loader.style.display = 'flex';
 
         // Notify the server to destroy the session
-        fetch('AdminLogout.php', { method: 'POST' })
+        fetch('admin_logout.php', { method: 'POST' })
             .then(() => {
                 // Redirect after logout
                 window.location.href = 'AdminSignin.php';
@@ -105,7 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
             loader.style.display = 'none';
             showAlert('A new role has been successfully added.');
             setTimeout(() => {
-                window.location.href = 'RoleManagement.php';
+                window.location.href = 'role_management.php';
             }, 5000);
         }, 1000);
     } else if (alertMessage) {
@@ -164,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Function to fetch and render suppliers with current pagination
     const fetchAndRenderSuppliers = () => {
-        let fetchUrl = `../Admin/AddSupplier.php?supplierpage=${currentPage}`;
+        let fetchUrl = `../Admin/add_supplier.php?supplierpage=${currentPage}`;
         
         if (currentSearch) {
             fetchUrl += `&supplier_search=${encodeURIComponent(currentSearch)}`;
@@ -206,7 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Function to fetch product type name by ID
     const fetchProductTypeName = async (productTypeId) => {
         try {
-            const response = await fetch(`../Admin/AddSupplier.php?action=getProductTypeName&id=${productTypeId}`);
+            const response = await fetch(`../Admin/add_supplier.php?action=getProductTypeName&id=${productTypeId}`);
             const data = await response.json();
             return data.success ? data.productType : 'None';
         } catch (error) {
@@ -240,7 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/AddSupplier.php?action=getSupplierDetails&id=${supplierId}`)
+                fetch(`../Admin/add_supplier.php?action=getSupplierDetails&id=${supplierId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -272,7 +272,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/AddSupplier.php?action=getSupplierDetails&id=${supplierId}`)
+                fetch(`../Admin/add_supplier.php?action=getSupplierDetails&id=${supplierId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -341,7 +341,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const formData = new FormData(supplierForm);
             formData.append('addsupplier', true);
 
-            fetch('AddSupplier.php', {
+            fetch('add_supplier.php', {
                 method: 'POST',
                 body: formData
             })
@@ -418,7 +418,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const formData = new FormData(updateSupplierForm);
                 formData.append('editsupplier', true);
 
-                fetch('AddSupplier.php', {
+                fetch('add_supplier.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -478,7 +478,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const formData = new FormData(supplierDeleteForm);
                 formData.append('deletesupplier', true);
 
-                fetch('../Admin/AddSupplier.php', {
+                fetch('../Admin/add_supplier.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -551,7 +551,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Function to fetch and render product types with current pagination
     const fetchAndRenderProductTypes = () => {
-        let fetchUrl = `../Admin/AddProductType.php?producttypepage=${currentPage}`;
+        let fetchUrl = `../Admin/add_producttype.php?producttypepage=${currentPage}`;
         
         if (currentSearch) {
             fetchUrl += `&producttype_search=${encodeURIComponent(currentSearch)}`;
@@ -622,7 +622,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/AddProductType.php?action=getProductTypeDetails&id=${productTypeId}&producttypepage=${currentPage}`)
+                fetch(`../Admin/add_producttype.php?action=getProductTypeDetails&id=${productTypeId}&producttypepage=${currentPage}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -646,7 +646,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/AddProductType.php?action=getProductTypeDetails&id=${productTypeId}&producttypepage=${currentPage}`)
+                fetch(`../Admin/add_producttype.php?action=getProductTypeDetails&id=${productTypeId}&producttypepage=${currentPage}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -701,7 +701,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const formData = new FormData(productTypeForm);
             formData.append('addproducttype', true);
 
-            fetch('AddProductType.php', {
+            fetch('add_producttype.php', {
                 method: 'POST',
                 body: formData
             })
@@ -764,7 +764,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Include current page in the form data
                 formData.append('producttypepage', currentPage);
 
-                fetch('AddProductType.php', {
+                fetch('add_producttype.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -819,7 +819,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Include current page in the form data
                 formData.append('producttypepage', currentPage);
 
-                fetch('../Admin/AddProductType.php', {
+                fetch('../Admin/add_producttype.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -893,7 +893,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Function to fetch and render products with current pagination
     const fetchAndRenderProducts = () => {
-        let fetchUrl = `../Admin/AddProduct.php?productpage=${currentPage}`;
+        let fetchUrl = `../Admin/add_product.php?productpage=${currentPage}`;
         
         if (currentSearch) {
             fetchUrl += `&product_search=${encodeURIComponent(currentSearch)}`;
@@ -942,7 +942,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/AddProduct.php?action=getProductDetails&id=${productId}`)
+                fetch(`../Admin/add_product.php?action=getProductDetails&id=${productId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -974,7 +974,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/AddProduct.php?action=getProductDetails&id=${productId}`)
+                fetch(`../Admin/add_product.php?action=getProductDetails&id=${productId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -1034,7 +1034,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const formData = new FormData(productForm);
             formData.append('addproduct', true);
 
-            fetch('AddProduct.php', {
+            fetch('add_product.php', {
                 method: 'POST',
                 body: formData
             })
@@ -1102,7 +1102,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const formData = new FormData(updateProductForm);
                 formData.append('editproduct', true);
 
-                fetch('AddProduct.php', {
+                fetch('add_product.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -1154,7 +1154,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const formData = new FormData(productDeleteForm);
                 formData.append('deleteproduct', true);
 
-                fetch('../Admin/AddProduct.php', {
+                fetch('../Admin/add_product.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -1226,7 +1226,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Function to fetch and render room types with current pagination
     const fetchAndRenderRoomTypes = () => {
-        let fetchUrl = `../Admin/AddRoomType.php?roomtypepage=${currentPage}`;
+        let fetchUrl = `../Admin/add_roomtype.php?roomtypepage=${currentPage}`;
         
         if (currentSearch) {
             fetchUrl += `&roomtype_search=${encodeURIComponent(currentSearch)}`;
@@ -1270,7 +1270,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/AddRoomType.php?action=getRoomTypeDetails&id=${roomTypeId}`)
+                fetch(`../Admin/add_roomtype.php?action=getRoomTypeDetails&id=${roomTypeId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -1347,7 +1347,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/AddRoomType.php?action=getRoomTypeDetails&id=${roomTypeId}`)
+                fetch(`../Admin/add_roomtype.php?action=getRoomTypeDetails&id=${roomTypeId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -1408,7 +1408,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const formData = new FormData(roomTypeForm);
             formData.append('addroomtype', true);
 
-            fetch('AddRoomType.php', {
+            fetch('add_roomtype.php', {
                 method: 'POST',
                 body: formData
             })
@@ -1479,7 +1479,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const formData = new FormData(updateRoomTypeForm);
                 formData.append('editroomtype', true);
 
-                fetch('AddRoomType.php', {
+                fetch('add_roomtype.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -1525,7 +1525,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const formData = new FormData(roomTypeDeleteForm);
                 formData.append('deleteroomtype', true);
 
-                fetch('../Admin/AddRoomType.php', {
+                fetch('../Admin/add_roomtype.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -1594,7 +1594,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Function to fetch and render rooms with current pagination
     const fetchAndRenderRooms = () => {
-        let fetchUrl = `../Admin/AddRoom.php?roompage=${currentPage}`;
+        let fetchUrl = `../Admin/add_room.php?roompage=${currentPage}`;
         
         if (currentSearch) {
             fetchUrl += `&room_search=${encodeURIComponent(currentSearch)}`;
@@ -1660,7 +1660,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/AddRoom.php?action=getRoomDetails&id=${roomId}`)
+                fetch(`../Admin/add_room.php?action=getRoomDetails&id=${roomId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -1685,7 +1685,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/AddRoom.php?action=getRoomDetails&id=${roomId}&roompage=${currentPage}`)
+                fetch(`../Admin/add_room.php?action=getRoomDetails&id=${roomId}&roompage=${currentPage}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -1738,7 +1738,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const formData = new FormData(roomForm);
             formData.append('addroom', true);
 
-            fetch('AddRoom.php', {
+            fetch('add_room.php', {
                 method: 'POST',
                 body: formData
             })
@@ -1791,7 +1791,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 formData.append('editroom', true);
                 formData.append('roompage', currentPage);
 
-                fetch('AddRoom.php', {
+                fetch('add_room.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -1833,7 +1833,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 formData.append('deleteroom', true);
                 formData.append('roompage', currentPage);
 
-                fetch('../Admin/AddRoom.php', {
+                fetch('../Admin/add_room.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -1897,7 +1897,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Function to fetch and render facility types with current pagination
     const fetchAndRenderFacilityTypes = () => {
-        let fetchUrl = `../Admin/AddFacilityType.php?facilitytypepage=${currentPage}`;
+        let fetchUrl = `../Admin/add_facilitytype.php?facilitytypepage=${currentPage}`;
         
         if (currentSearch) {
             fetchUrl += `&facilitytype_search=${encodeURIComponent(currentSearch)}`;
@@ -1943,7 +1943,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/AddFacilityType.php?action=getFacilityTypeDetails&id=${facilityTypeId}`)
+                fetch(`../Admin/add_facilitytype.php?action=getFacilityTypeDetails&id=${facilityTypeId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -1968,7 +1968,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/AddFacilityType.php?action=getFacilityTypeDetails&id=${facilityTypeId}`)
+                fetch(`../Admin/add_facilitytype.php?action=getFacilityTypeDetails&id=${facilityTypeId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -2023,7 +2023,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const formData = new FormData(facilityTypeForm);
             formData.append('addfacilitytype', true);
 
-            fetch('AddFacilityType.php', {
+            fetch('add_facilitytype.php', {
                 method: 'POST',
                 body: formData
             })
@@ -2084,7 +2084,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const formData = new FormData(updateFacilityTypeForm);
                 formData.append('editfacilitytype', true);
 
-                fetch('AddFacilityType.php', {
+                fetch('add_facilitytype.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -2137,7 +2137,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const formData = new FormData(facilityTypeDeleteForm);
                 formData.append('deletefacilitytype', true);
 
-                fetch('../Admin/AddFacilityType.php', {
+                fetch('../Admin/add_facilitytype.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -2205,7 +2205,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Function to fetch and render facilities with current pagination
     const fetchAndRenderFacilities = () => {
-        let fetchUrl = `../Admin/AddFacility.php?facilitypage=${currentPage}`;
+        let fetchUrl = `../Admin/add_facility.php?facilitypage=${currentPage}`;
         
         if (currentSearch) {
             fetchUrl += `&facility_search=${encodeURIComponent(currentSearch)}`;
@@ -2254,7 +2254,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/AddFacility.php?action=getFacilityDetails&id=${facilityId}`)
+                fetch(`../Admin/add_facility.php?action=getFacilityDetails&id=${facilityId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -2282,7 +2282,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/AddFacility.php?action=getFacilityDetails&id=${facilityId}`)
+                fetch(`../Admin/add_facility.php?action=getFacilityDetails&id=${facilityId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -2335,7 +2335,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const formData = new FormData(facilityForm);
             formData.append('addfacility', true);
 
-            fetch('AddFacility.php', {
+            fetch('add_facility.php', {
                 method: 'POST',
                 body: formData
             })
@@ -2392,7 +2392,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const formData = new FormData(updateFacilityForm);
                 formData.append('editfacility', true);
 
-                fetch('AddFacility.php', {
+                fetch('add_facility.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -2442,7 +2442,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const formData = new FormData(facilityDeleteForm);
                 formData.append('deletefacility', true);
 
-                fetch('../Admin/AddFacility.php', {
+                fetch('../Admin/add_facility.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -2509,7 +2509,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Function to fetch and render rules with current pagination
     const fetchAndRenderRules = () => {
-        let fetchUrl = `../Admin/AddRule.php?rulepage=${currentPage}`;
+        let fetchUrl = `../Admin/add_rule.php?rulepage=${currentPage}`;
         
         if (currentSearch) {
             fetchUrl += `&rule_search=${encodeURIComponent(currentSearch)}`;
@@ -2555,7 +2555,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/AddRule.php?action=getRuleDetails&id=${ruleId}`)
+                fetch(`../Admin/add_rule.php?action=getRuleDetails&id=${ruleId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -2581,7 +2581,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/AddRule.php?action=getRuleDetails&id=${ruleId}`)
+                fetch(`../Admin/add_rule.php?action=getRuleDetails&id=${ruleId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -2638,7 +2638,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const formData = new FormData(ruleForm);
             formData.append('addrule', true);
 
-            fetch('AddRule.php', {
+            fetch('add_rule.php', {
                 method: 'POST',
                 body: formData
             })
@@ -2701,7 +2701,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const formData = new FormData(updateRuleForm);
                 formData.append('editrule', true);
 
-                fetch('AddRule.php', {
+                fetch('add_rule.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -2755,7 +2755,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const formData = new FormData(ruleDeleteForm);
                 formData.append('deleterule', true);
 
-                fetch('../Admin/AddRule.php', {
+                fetch('../Admin/add_rule.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -2832,7 +2832,7 @@ document.addEventListener("DOMContentLoaded", () => {
             loader.style.display = 'none';
             showAlert('A new product image has been successfully added.');
             setTimeout(() => {
-                window.location.href = 'ProductImage.php';
+                window.location.href = 'product_image.php';
             }, 5000);
         }, 1000);
     } else if (alertMessage) {
@@ -2871,7 +2871,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 darkOverlay2.classList.add('opacity-100');
 
                 // Fetch product  details
-                fetch(`../Admin/ProductImage.php?action=getProductImageDetails&id=${ImageId}`)
+                fetch(`../Admin/product_image.php?action=getProductImageDetails&id=${ImageId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -2909,7 +2909,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 showAlert('The product image has been successfully updated.');
                 setTimeout(() => {
-                    window.location.href = 'ProductImage.php';
+                    window.location.href = 'product_image.php';
                 }, 5000);
             }, 500);
         } else if (alertMessage) {
@@ -2947,7 +2947,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const ImageId = this.getAttribute('data-productimage-id');
 
                 // Fetch fafcility details
-                fetch(`../Admin/ProductImage.php?action=getProductImageDetails&id=${ImageId}`)
+                fetch(`../Admin/product_image.php?action=getProductImageDetails&id=${ImageId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -2977,7 +2977,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show Alert
             showAlert('The product image has been successfully deleted.');
             setTimeout(() => {
-                window.location.href = 'ProductImage.php';
+                window.location.href = 'product_image.php';
             }, 5000);
         } else if (alertMessage) {
             // Show Alert
@@ -3023,7 +3023,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Function to fetch and render product sizes with current pagination
     const fetchAndRenderProductSizes = () => {
-        let fetchUrl = `../Admin/AddSize.php?productsizepage=${currentPage}`;
+        let fetchUrl = `../Admin/add_size.php?productsizepage=${currentPage}`;
         
         if (currentSearch) {
             fetchUrl += `&size_search=${encodeURIComponent(currentSearch)}`;
@@ -3067,7 +3067,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Function to fetch product name by ID
     const fetchProductName = async (productId) => {
         try {
-            const response = await fetch(`../Admin/AddSize.php?action=getProductName&id=${productId}`);
+            const response = await fetch(`../Admin/add_size.php?action=getProductName&id=${productId}`);
             const data = await response.json();
             return data.success ? data.productName : 'None';
         } catch (error) {
@@ -3106,7 +3106,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/AddSize.php?action=getProductSizeDetails&id=${productSizeId}`)
+                fetch(`../Admin/add_size.php?action=getProductSizeDetails&id=${productSizeId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -3131,7 +3131,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/AddSize.php?action=getProductSizeDetails&id=${productSizeId}`)
+                fetch(`../Admin/add_size.php?action=getProductSizeDetails&id=${productSizeId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -3186,7 +3186,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const formData = new FormData(productSizeForm);
             formData.append('addproductsize', true);
 
-            fetch('AddSize.php', {
+            fetch('add_size.php', {
                 method: 'POST',
                 body: formData
             })
@@ -3247,7 +3247,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const formData = new FormData(updateProductSizeForm);
                 formData.append('editproductsize', true);
 
-                fetch('AddSize.php', {
+                fetch('add_size.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -3300,7 +3300,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const formData = new FormData(productSizeDeleteForm);
                 formData.append('deleteproductsize', true);
 
-                fetch('../Admin/AddSize.php', {
+                fetch('../Admin/add_size.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -3356,7 +3356,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const adminId = this.getAttribute('data-admin-id');
 
                 // Fetch admin details
-                fetch(`../Admin/RoleManagement.php?action=getAdminDetails&id=${adminId}`)
+                fetch(`../Admin/role_management.php?action=getAdminDetails&id=${adminId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -3416,7 +3416,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show Alert
             showAlert('The admin account has been successfully deleted.');
             setTimeout(() => {
-                window.location.href = 'RoleManagement.php';
+                window.location.href = 'role_management.php';
             }, 5000);
         } else if (alertMessage) {
             // Show Alert
@@ -3463,7 +3463,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 darkOverlay2.classList.add('opacity-100');
 
                 // Fetch contact details
-                fetch(`../Admin/UserContact.php?action=getContactDetails&id=${contactId}`)
+                fetch(`../Admin/user_contact.php?action=getContactDetails&id=${contactId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -3529,16 +3529,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (data.success) {
                     showAlert('Response sent successfully and email notification delivered.', 'success');
-                    window.location.href = '../Admin/UserContact.php';
+                    window.location.href = '../Admin/user_contact.php';
                 } else {
                     showAlert(`Response saved but failed to send email notification: ${data.message || 'Please try again.'}`, true);
-                    window.location.href = '../Admin/UserContact.php';
+                    window.location.href = '../Admin/user_contact.php';
                 }
             })
             .catch(error => {
                 if (loader) loader.style.display = 'none';
                 showAlert(`Response saved but failed to send email notification: ${error.message}`, true);
-                window.location.href = '../Admin/UserContact.php';
+                window.location.href = '../Admin/user_contact.php';
             });
         } else if (alertMessage) {
             // Show Alert
@@ -3598,7 +3598,7 @@ if (changePasswordBtn && changePasswordModal && cancelChangeBtn && darkOverlay2)
             const formData = new FormData(changePasswordForm);
             formData.append('changePassword', true);
 
-            fetch('../Admin/AdminProfileEdit.php', {
+            fetch('../Admin/admin_profile_edit.php', {
                 method: 'POST',
                 body: formData
             })
@@ -3682,12 +3682,12 @@ if (adminProfileDeleteBtn && confirmDeleteModal && cancelDeleteBtn && confirmDel
         loader.style.display = "flex";
 
         // Notify the server to delete the account
-        fetch("../Admin/AdminAccountDelete.php", {
+        fetch("../Admin/admin_account_delete.php", {
             method: "POST",
         })
             .then(() => {
                 // Redirect after account deletion
-                window.location.href = "AdminSignin.php";
+                window.location.href = "admin_signin.php";
             })
             .catch((error) => console.error("Account deletion failed:", error));
     });
@@ -3728,7 +3728,7 @@ document.addEventListener("DOMContentLoaded", () => {
             formData.append('modify', true);
 
             // AJAX request
-            fetch('../Admin/AdminProfileEdit.php', {
+            fetch('../Admin/admin_profile_edit.php', {
                 method: 'POST',
                 body: formData
             })
@@ -3795,7 +3795,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const adminId = this.getAttribute('data-admin-id');
 
                 // Fetch admin details
-                fetch(`../Admin/RoleManagement.php?action=getAdminDetails&id=${adminId}`)
+                fetch(`../Admin/role_management.php?action=getAdminDetails&id=${adminId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -3825,7 +3825,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show Alert
             showAlert('The admin password has been successfully reset.');
             setTimeout(() => {
-                window.location.href = 'RoleManagement.php';
+                window.location.href = 'role_management.php';
             }, 5000);
         } else if (alertMessage) {
             // Show Alert
@@ -3848,7 +3848,7 @@ document.addEventListener("DOMContentLoaded", () => {
             loader.style.display = 'none';
             showAlert('Purchase completed successfully! Stock increased.');
             setTimeout(() => {
-                window.location.href = '../Admin/ProductPurchase.php';
+                window.location.href = '../Admin/product_purchase.php';
             }, 5000);
         }, 1000);
     } else if (alertMessage) {
@@ -3904,7 +3904,7 @@ document.addEventListener("DOMContentLoaded", () => {
     //             darkOverlay2.classList.remove('opacity-0', 'invisible');
     //             darkOverlay2.classList.add('opacity-100');
 
-    //             fetch(`../Admin/Booking.php?action=getReservationDetails&id=${reservationId}`)
+    //             fetch(`../Admin/reservation.php?action=getReservationDetails&id=${reservationId}`)
     //                 .then(response => response.json())
     //                 .then(data => {
     //                     if (data.success) {
@@ -3947,7 +3947,7 @@ const attachEventListenersToRow = (row) => {
             // Show the modal immediately while loading data
             reservationModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
 
-            fetch(`../Admin/Booking.php?action=getReservationDetails&id=${reservationId}`)
+            fetch(`../Admin/reservation.php?action=getReservationDetails&id=${reservationId}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.reservation) {
