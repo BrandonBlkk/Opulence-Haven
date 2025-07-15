@@ -213,7 +213,7 @@ if (mysqli_num_rows($contactSelectQuery) > 0) {
                     darkOverlay2.classList.add('opacity-100');
 
                     // Fetch contact details
-                    fetch(`../Admin/UserContact.php?action=getContactDetails&id=${contactId}`)
+                    fetch(`../Admin/user_contact.php?action=getContactDetails&id=${contactId}`)
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {

@@ -165,7 +165,7 @@ if (isset($_POST['deleteproduct'])) {
                 </div>
                 <div class="flex items-center gap-3">
                     <!-- Image Button -->
-                    <a href="ProductImage.php" class="bg-amber-500 text-white px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
+                    <a href="product_image.php" class="bg-amber-500 text-white px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
                         <i class="ri-folder-image-line text-xl"></i>
                     </a>
                     <!-- Add Product Button -->
@@ -516,7 +516,7 @@ if (isset($_POST['deleteproduct'])) {
                     <div class="flex justify-between items-center gap-4 select-none">
                         <!-- Product Size -->
                         <div>
-                            <a class="mt-1 text-sm text-amber-500 cursor-pointer" href="AddSize.php">Add product size</a>
+                            <a class="mt-1 text-sm text-amber-500 cursor-pointer" href="add_size.php">Add product size</a>
                         </div>
                         <div class="flex items-center">
                             <div id="addProductCancelBtn" class="px-4 py-2 text-amber-500 font-semibold hover:text-amber-600">

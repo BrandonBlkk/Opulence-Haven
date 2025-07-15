@@ -77,7 +77,7 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
                             <?php endif; ?>
 
                             <?php if ($isLowStock): ?>
-                                <a href="ProductPurchase.php?ProductID=<?= $product['ProductID'] ?>" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">
+                                <a href="product_purchase.php?ProductID=<?= $product['ProductID'] ?>" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">
                                     Reorder
                                 </a>
                             <?php endif; ?>
@@ -87,7 +87,7 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
                         <?= htmlspecialchars(date('d M Y', strtotime($product['AddedDate']))) ?>
                     </td>
                     <td class="p-3 text-start space-x-1 select-none">
-                        <a href="ProductPurchase.php?ProductID=<?= $product['ProductID'] ?>" class="text-xs text-amber-600">
+                        <a href="product_purchase.php?ProductID=<?= $product['ProductID'] ?>" class="text-xs text-amber-600">
                             <i class="ri-store-line text-lg cursor-pointer"></i>
                         </a>
                         <i class="details-btn ri-eye-line text-lg cursor-pointer"

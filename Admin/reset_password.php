@@ -59,7 +59,7 @@ if (isset($_POST['verify_otp'])) {
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['change_password'])) {
     if (!isset($_SESSION['otp_verified']) || !isset($_SESSION['otp_token']) || $_SESSION['otp_token'] !== $token) {
         echo "<script>alert('Session expired. Please restart the password reset process.')</script>";
-        echo "<script>window.location = 'ForgetPassword.php'</script>";
+        echo "<script>window.location = 'forget_password.php'</script>";
         exit();
     }
 
@@ -166,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['change_password'])) {
                         </button>
 
                         <div class="text-center text-sm text-gray-500 mt-4">
-                            <p>Didn't receive code? <a href="ForgetPassword.php" class="text-amber-500 hover:underline">Request again</a></p>
+                            <p>Didn't receive code? <a href="forget_password.php" class="text-amber-500 hover:underline">Request again</a></p>
                         </div>
                     </form>
 
@@ -317,7 +317,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['change_password'])) {
 
                     <!-- Button -->
                     <div class="mt-8 relative z-20">
-                        <a href="../Admin/AdminSignIn.php"
+                        <a href="../Admin/admin_signin.php"
                             class="w-full flex justify-center items-center px-6 py-3 text-base font-medium text-white bg-amber-500 hover:bg-amber-600 rounded-lg transition duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 select-none">
                             Continue to Login
                         </a>
@@ -384,7 +384,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['change_password'])) {
             <?php if (!$showCompleteMessage): ?>
                 <div class="mt-6 text-center">
                     <p class="text-sm text-gray-600">Remembered your password?
-                        <a href="AdminSignIn.php" class="text-amber-500 hover:underline">Back to Login</a>
+                        <a href="admin_signin.php" class="text-amber-500 hover:underline">Back to Login</a>
                     </p>
                 </div>
             <?php endif; ?>

@@ -111,7 +111,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     <div class="p-3">
         <!-- Logo -->
         <div class="flex items-end gap-1 select-none">
-            <a href="../User/AdminDashboard.php">
+            <a href="../User/admin_dashboard.php">
                 <img src="../UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-28 select-none" alt="Logo">
             </a>
             <p class="text-amber-500 text-sm font-semibold">ADMIN</p>
@@ -244,7 +244,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
             </div>
 
             <!-- Signin Button -->
-            <a href="AdminSignIn.php" class="relative text-center px-4 py-2 rounded-md cursor-pointer select-none group">
+            <a href="admin_signin.php" class="relative text-center px-4 py-2 rounded-md cursor-pointer select-none group">
                 <p class="relative z-10 text-blue-900 font-semibold">Sign In Now</p>
                 <div class="absolute inset-0 rounded-md group-hover:bg-gray-100 transition-colors duration-300"></div>
             </a>

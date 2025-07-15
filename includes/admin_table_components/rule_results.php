@@ -142,7 +142,7 @@ if (mysqli_num_rows($ruleSelectQuery) > 0) {
                     darkOverlay2.classList.remove('opacity-0', 'invisible');
                     darkOverlay2.classList.add('opacity-100');
 
-                    fetch(`../Admin/AddRule.php?action=getRuleDetails&id=${ruleId}`)
+                    fetch(`../Admin/add_rule.php?action=getRuleDetails&id=${ruleId}`)
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
@@ -168,7 +168,7 @@ if (mysqli_num_rows($ruleSelectQuery) > 0) {
                     darkOverlay2.classList.remove('opacity-0', 'invisible');
                     darkOverlay2.classList.add('opacity-100');
 
-                    fetch(`../Admin/AddRule.php?action=getRuleDetails&id=${ruleId}`)
+                    fetch(`../Admin/add_rule.php?action=getRuleDetails&id=${ruleId}`)
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {

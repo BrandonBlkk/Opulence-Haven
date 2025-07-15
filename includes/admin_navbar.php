@@ -161,7 +161,7 @@ if (mysqli_num_rows($query) > 0) {
     <div>
         <!-- Logo -->
         <div class="flex items-end gap-1 select-none">
-            <a href="../Admin/AdminDashboard.php">
+            <a href="../Admin/admin_dashboard.php">
                 <img src="../UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-28 select-none" alt="Logo">
             </a>
             <p class="text-amber-500 text-sm font-semibold">ADMIN</p>
@@ -200,11 +200,11 @@ if (mysqli_num_rows($query) > 0) {
                 <div x-ref="dropdown"
                     :style="{ height: expanded ? height + 'px' : '0px' }"
                     class="overflow-hidden transition-all duration-300 select-none pl-3" class="pl-5 mb-2">
-                    <a href="AdminProfileEdit.php" class="flex items-center gap-3 p-2 rounded-sm text-slate-600 hover:bg-slate-100">
+                    <a href="admin_profile_edit.php" class="flex items-center gap-3 p-2 rounded-sm text-slate-600 hover:bg-slate-100">
                         <i class="ri-user-3-line text-xl"></i>
                         <span class="font-semibold text-sm">Your profile</span>
                     </a>
-                    <a href="AdminSignUp.php" class="flex items-center gap-3 p-2 rounded-sm text-slate-600 hover:bg-slate-100">
+                    <a href="admin_signup.php" class="flex items-center gap-3 p-2 rounded-sm text-slate-600 hover:bg-slate-100">
                         <i class="ri-user-add-line text-xl"></i>
                         <span class="font-semibold text-sm">Add another account</span>
                     </a>
@@ -213,12 +213,12 @@ if (mysqli_num_rows($query) > 0) {
             <div class="flex flex-col pt-2">
                 <div class="mb-2">
                     <h1 class="text-xs font-semibold text-gray-500">MAIN HOME</h1>
-                    <a href="AdminDashboard.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= $current_page === 'AdminDashboard.php' || $current_page === 'UserDetails.php' ? 'bg-slate-100' : '' ?>">
+                    <a href="admin_dashboard.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= $current_page === 'admin_dashboard.php' || $current_page === 'user_details.php' ? 'bg-slate-100' : '' ?>">
                         <i class="ri-dashboard-3-line text-xl"></i>
                         <span class="font-semibold text-sm">Dashboard</span>
                     </a>
                 </div>
-                <a href="RoleManagement.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1') ? 'flex' : 'hidden'; ?> <?= $current_page === 'RoleManagement.php' ? 'bg-slate-100' : '' ?>">
+                <a href="role_management.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1') ? 'flex' : 'hidden'; ?> <?= $current_page === 'role_management.php' ? 'bg-slate-100' : '' ?>">
                     <i class="ri-settings-3-line text-xl relative">
                         <p class="bg-red-500 rounded-full text-sm text-white w-5 h-5 text-center absolute -top-1 -right-2 select-none <?php echo ($orderCount != 0) ? 'block' : 'hidden'; ?>"><?php echo $orderCount ?></p>
                     </i>
@@ -228,7 +228,7 @@ if (mysqli_num_rows($query) > 0) {
                 <!-- Product Menu -->
                 <div x-data="{ expanded: false, height: 0 }" class="flex flex-col">
                     <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0"
-                        class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?> <?= $current_page === 'AddSupplier.php' || $current_page === 'AddProduct.php' || $current_page === 'ProductImage.php' || $current_page === 'AddSize.php' || $current_page === 'AddProductType.php' ? 'bg-slate-100' : '' ?>">
+                        class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?> <?= $current_page === 'add_supplier.php' || $current_page === 'add_product.php' || $current_page === 'product_image.php' || $current_page === 'add_size.php' || $current_page === 'add_producttype.php' ? 'bg-slate-100' : '' ?>">
                         <div class="flex items-center gap-4">
                             <i class="ri-stock-line text-xl"></i>
                             <span class="font-semibold text-sm">Product</span>
@@ -241,21 +241,21 @@ if (mysqli_num_rows($query) > 0) {
                         class="overflow-hidden transition-all duration-300 select-none">
                         <div class="pl-3">
                             <!-- Existing Links -->
-                            <a href="../Admin/AddSupplier.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
+                            <a href="../Admin/add_supplier.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">
                                     <i class="ri-group-line text-xl"></i>
                                     <span class="font-semibold text-sm">Add supplier</span>
                                 </div>
                                 <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allSupplierCount ?></p>
                             </a>
-                            <a href="../Admin/AddProduct.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
+                            <a href="../Admin/add_product.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">
                                     <i class="ri-suitcase-line text-xl"></i>
                                     <span class="font-semibold text-sm">Add product</span>
                                 </div>
                                 <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allProductCount ?></p>
                             </a>
-                            <a href="../Admin/AddProductType.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
+                            <a href="../Admin/add_producttype.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">
                                     <i class="ri-list-check-3 text-xl"></i>
                                     <span class="font-semibold text-sm">Add product type</span>
@@ -269,7 +269,7 @@ if (mysqli_num_rows($query) > 0) {
                 <!-- Room Menu -->
                 <div x-data="{ roomExpanded: false, subHeight: 0 }" class="flex flex-col">
                     <button @click="roomExpanded = !roomExpanded; subHeight = roomExpanded ? $refs.subDropdown.scrollHeight : 0"
-                        class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-gray-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?> <?= $current_page === 'AddRoomType.php' || $current_page === 'AddRoom.php' || $current_page === 'AddRule.php' || $current_page === 'AddFacility.php' || $current_page === 'AddFacilityType.php' ? 'bg-slate-100' : '' ?>">
+                        class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-gray-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?> <?= $current_page === 'add_roomtype.php' || $current_page === 'add_room.php' || $current_page === 'add_rule.php' || $current_page === 'add_facility.php' || $current_page === 'add_facilitytype.php' ? 'bg-slate-100' : '' ?>">
                         <div class="flex items-center gap-4">
                             <i class="ri-hotel-bed-line text-xl"></i>
                             <span class="font-semibold text-sm">Room</span>
@@ -280,7 +280,7 @@ if (mysqli_num_rows($query) > 0) {
                         x-ref="subDropdown"
                         :style="{ height: roomExpanded ? subHeight + 'px' : '0px' }"
                         class="overflow-hidden transition-all duration-300 pl-3">
-                        <a href="../Admin/AddRoomType.php"
+                        <a href="../Admin/add_roomtype.php"
                             class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?>">
                             <div class="flex items-center gap-1">
                                 <i class="ri-hotel-bed-line text-xl"></i>
@@ -288,7 +288,7 @@ if (mysqli_num_rows($query) > 0) {
                             </div>
                             <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allRoomTypeCount ?></p>
                         </a>
-                        <a href="../Admin/AddRoom.php"
+                        <a href="../Admin/add_room.php"
                             class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?>">
                             <div class="flex items-center gap-1">
                                 <i class="ri-hotel-bed-line text-xl"></i>
@@ -296,7 +296,7 @@ if (mysqli_num_rows($query) > 0) {
                             </div>
                             <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= htmlspecialchars($allRoomCount) ?></p>
                         </a>
-                        <a href="../Admin/AddRule.php"
+                        <a href="../Admin/add_rule.php"
                             class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?>">
                             <div class="flex items-center gap-1">
                                 <i class="ri-file-list-3-line text-xl"></i>
@@ -304,7 +304,7 @@ if (mysqli_num_rows($query) > 0) {
                             </div>
                             <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allRuleCount ?></p>
                         </a>
-                        <a href="../Admin/AddFacility.php"
+                        <a href="../Admin/add_facility.php"
                             class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?>">
                             <div class="flex items-center gap-1">
                                 <i class="ri-hotel-line text-xl"></i>
@@ -312,7 +312,7 @@ if (mysqli_num_rows($query) > 0) {
                             </div>
                             <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allFacilityCount ?></p>
                         </a>
-                        <a href="../Admin/AddFacilityType.php"
+                        <a href="../Admin/add_facilitytype.php"
                             class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '4') ? 'flex' : 'hidden'; ?>">
                             <div class="flex items-center gap-1">
                                 <i class="ri-list-check-3 text-xl"></i>
@@ -325,7 +325,7 @@ if (mysqli_num_rows($query) > 0) {
 
                 <!-- Purchase Menu -->
                 <div x-data="{ expanded: false, height: 0 }" class="flex flex-col">
-                    <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?> <?= $current_page === 'ProductPurchase.php' ? 'bg-slate-100' : '' ?>">
+                    <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex items-center justify-between gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?> <?= $current_page === 'product_purchase.php' ? 'bg-slate-100' : '' ?>">
                         <div class="flex items-center gap-4">
                             <i class="ri-shopping-cart-line text-xl"></i>
                             <span class="font-semibold text-sm">Purchase Menu</span>
@@ -337,13 +337,13 @@ if (mysqli_num_rows($query) > 0) {
                         :style="{ height: expanded ? height + 'px' : '0px' }"
                         class="overflow-hidden transition-all duration-300 select-none">
                         <div class="pl-3">
-                            <a href="../Admin/ProductPurchase.php" class="text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
+                            <a href="../Admin/product_purchase.php" class="text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">
                                     <i class="ri-truck-line text-xl"></i>
                                     <span class="font-semibold text-sm">Purchase Product</span>
                                 </div>
                             </a>
-                            <a href="../Admin/AddProduct.php" class="text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
+                            <a href="../Admin/add_product.php" class="text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">
                                     <i class="ri-history-line purchase-history-icon text-xl"></i>
                                     <span class="font-semibold text-sm">Purchase History</span>
@@ -367,14 +367,14 @@ if (mysqli_num_rows($query) > 0) {
                         :style="{ height: expanded ? height + 'px' : '0px' }"
                         class="overflow-hidden transition-all duration-300 select-none">
                         <div class="pl-3">
-                            <a href="../Admin/Booking.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '2') ? 'flex' : 'hidden'; ?>">
+                            <a href="../Admin/reservation.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '2') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">
                                     <i class="ri-booklet-line text-xl"></i>
                                     <span class="font-semibold text-sm">Reservation</span>
                                 </div>
                                 <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= htmlspecialchars($allReservationCount) ?></p>
                             </a>
-                            <a href="../Admin/AddProduct.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
+                            <a href="../Admin/add_product.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">
                                     <i class="ri-shopping-bag-2-line text-xl"></i>
                                     <span class="font-semibold text-sm">Order</span>
@@ -384,7 +384,7 @@ if (mysqli_num_rows($query) > 0) {
                         </div>
                     </div>
                 </div>
-                <a href="UserContact.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= $current_page === 'UserContact.php' ? 'bg-slate-100' : '' ?>">
+                <a href="user_contact.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= $current_page === 'user_contact.php' ? 'bg-slate-100' : '' ?>">
                     <i class="ri-message-3-line text-xl relative">
                         <p class="bg-red-500 rounded-full text-sm text-white w-5 h-5 text-center absolute -top-1 -right-2 select-none <?php echo ($allContactCount != 0) ? 'block' : 'hidden'; ?>"><?php echo $allContactCount ?></p>
                     </i>

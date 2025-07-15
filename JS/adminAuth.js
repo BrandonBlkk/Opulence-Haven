@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Show loader
             if (loader) loader.style.display = 'flex';
             
-            fetch('../Admin/AdminSignUp.php', {
+            fetch('../Admin/admin_signup.php', {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (data.success) {
                     // Successful sign-in
                     if (loader) loader.style.display = 'flex';
-                    window.location.href = '../Admin/AdminDashboard.php';
+                    window.location.href = '../Admin/admin_dashboard.php';
                 } else {
                     // Show error message
                     showAlert(data.message || 'Sign-up failed. Please try again.', true);
@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Show loader
             if (loader) loader.style.display = 'flex';
             
-            fetch('../Admin/AdminSignIn.php', {
+            fetch('../Admin/admin_signin.php', {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (data.success) {
                     // Successful sign-in
                     if (loader) loader.style.display = 'flex';
-                    window.location.href = '../Admin/AdminDashboard.php';
+                    window.location.href = '../Admin/admin_dashboard.php';
                 } else if (data.locked) {
                     // Account locked
                     window.location.href = '../User/waiting_room.php';
@@ -146,7 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
             formData.append('email', email);
             formData.append('reset', 'true');
 
-            fetch('../Admin/ForgetPassword.php', {
+            fetch('../Admin/forget_password.php', {
                 method: 'POST',
                 body: formData,
                 headers: {

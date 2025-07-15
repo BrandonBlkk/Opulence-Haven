@@ -137,7 +137,7 @@ if (mysqli_num_rows($facilityTypeSelectQuery) > 0) {
                     darkOverlay2.classList.remove('opacity-0', 'invisible');
                     darkOverlay2.classList.add('opacity-100');
 
-                    fetch(`../Admin/AddFacilityType.php?action=getFacilityTypeDetails&id=${facilityTypeId}`)
+                    fetch(`../Admin/add_facilitytype.php?action=getFacilityTypeDetails&id=${facilityTypeId}`)
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
@@ -162,7 +162,7 @@ if (mysqli_num_rows($facilityTypeSelectQuery) > 0) {
                     darkOverlay2.classList.remove('opacity-0', 'invisible');
                     darkOverlay2.classList.add('opacity-100');
 
-                    fetch(`../Admin/AddFacilityType.php?action=getFacilityTypeDetails&id=${facilityTypeId}`)
+                    fetch(`../Admin/add_facilitytype.php?action=getFacilityTypeDetails&id=${facilityTypeId}`)
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {

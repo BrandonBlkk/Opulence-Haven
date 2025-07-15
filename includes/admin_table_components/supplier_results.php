@@ -196,7 +196,7 @@ if (mysqli_num_rows($supplierSelectQuery) > 0) {
                     darkOverlay2.classList.remove('opacity-0', 'invisible');
                     darkOverlay2.classList.add('opacity-100');
 
-                    fetch(`../Admin/AddSupplier.php?action=getSupplierDetails&id=${supplierId}`)
+                    fetch(`../Admin/add_supplier.php?action=getSupplierDetails&id=${supplierId}`)
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
@@ -228,7 +228,7 @@ if (mysqli_num_rows($supplierSelectQuery) > 0) {
                     darkOverlay2.classList.remove('opacity-0', 'invisible');
                     darkOverlay2.classList.add('opacity-100');
 
-                    fetch(`../Admin/AddSupplier.php?action=getSupplierDetails&id=${supplierId}`)
+                    fetch(`../Admin/add_supplier.php?action=getSupplierDetails&id=${supplierId}`)
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
