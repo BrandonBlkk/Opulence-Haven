@@ -3782,14 +3782,9 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener('DOMContentLoaded', () => {
     const resetAdminPasswordModal = document.getElementById('resetAdminPasswordModal');
     const adminResetPasswordCancelBtn = document.getElementById('adminResetPasswordCancelBtn');
-    const alertMessage = document.getElementById('alertMessage').value;
-    const resetAdminPasswordSuccess = document.getElementById('resetAdminPasswordSuccess').value === 'true';
-
-    // Get all reset buttons
-    const resetBtns = document.querySelectorAll('.reset-btn');
+    const resetBtns = document.querySelectorAll('.reset-btn button');
 
     if (resetAdminPasswordModal && adminResetPasswordCancelBtn && resetBtns) {
-        // Add click event to each delete button
         resetBtns.forEach(btn => {
             btn.addEventListener('click', function () {
                 const adminId = this.getAttribute('data-admin-id');
@@ -3806,7 +3801,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     })
                     .catch(error => console.error('Fetch error:', error));
-
+                
                 // Show modal
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
@@ -3814,23 +3809,64 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Cancel button functionality
         adminResetPasswordCancelBtn.addEventListener('click', () => {
             resetAdminPasswordModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-            darkOverlay2.classList.add('opacity-0', 'invisible');
-            darkOverlay2.classList.remove('opacity-100');
+            if (darkOverlay2) {
+                darkOverlay2.classList.add('opacity-0', 'invisible');
+                darkOverlay2.classList.remove('opacity-100');
+            }
         });
+    }
+});
 
-        if (resetAdminPasswordSuccess) {
-            // Show Alert
-            showAlert('The admin password has been successfully reset.');
-            setTimeout(() => {
-                window.location.href = 'role_management.php';
-            }, 5000);
-        } else if (alertMessage) {
-            // Show Alert
-            showAlert(alertMessage);
-        }
+// Reset Password Form Handling
+document.addEventListener("DOMContentLoaded", () => {
+    const adminResetPasswordForm = document.getElementById('adminResetPasswordForm');
+    const loader = document.getElementById('loader');
+
+    if (adminResetPasswordForm) {
+        adminResetPasswordForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (loader) loader.style.display = 'flex';
+            
+            const formData = new FormData(adminResetPasswordForm);
+
+            fetch('../Admin/role_management.php', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (loader) loader.style.display = 'none';
+                
+                if (data.success) {
+                    // Hide modal
+                    resetAdminPasswordModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                    if (darkOverlay2) {
+                        darkOverlay2.classList.add('opacity-0', 'invisible');
+                        darkOverlay2.classList.remove('opacity-100');
+                    }
+
+                    showAlert(data.message);
+                } else {
+                    showAlert(data.message || 'Invalid email address. Please try again.', true);
+                }
+            })
+            .catch(error => {
+                if (loader) loader.style.display = 'none';
+                showAlert('An error occurred. Please try again.', true);
+                console.error('Error:', error);
+            });
+        });
     }
 });
 
