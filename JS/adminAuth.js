@@ -142,9 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (loader) loader.style.display = 'flex';
             
-            const formData = new FormData();
-            formData.append('email', email);
-            formData.append('reset', 'true');
+            const formData = new FormData(this);
 
             fetch('../Admin/forget_password.php', {
                 method: 'POST',

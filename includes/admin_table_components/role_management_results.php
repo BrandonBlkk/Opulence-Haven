@@ -99,7 +99,7 @@ if (mysqli_num_rows($adminSelectQuery) > 0) {
                         </span>
                     </td>
                     <td class="reset-btn p-3 text-start space-x-1 hidden xl:table-cell">
-                        <button data-admin-id="<?= htmlspecialchars($admin['AdminID']) ?>">
+                        <button class="reset-btn" data-admin-id="<?= htmlspecialchars($admin['AdminID']) ?>">
                             <span class="rounded-md border-2"><i class="ri-arrow-left-line text-md"></i></span>
                             <span>Reset</span>
                         </button>

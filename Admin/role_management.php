@@ -6,10 +6,19 @@ if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
+require '../vendor/autoload.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+// Timezone 
+date_default_timezone_set('Asia/Yangon');
+
 $alertMessage = '';
 $addRoleSuccess = false;
 $deleteAdminSuccess = false;
 $resetAdminPasswordSuccess = false;
+$response = ['success' => false, 'message' => ''];
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addrole'])) {
     $role = mysqli_real_escape_string($connect, $_POST['role']);
@@ -47,6 +56,161 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     exit;
 }
 
+// Reset Admin Password by Super Admin
+if (isset($_POST['resetpassword'])) {
+    $adminId = mysqli_real_escape_string($connect, $_POST['adminid']);
+
+    // First get admin details
+    $adminQuery = "SELECT AdminEmail, FirstName, LastName FROM admintb WHERE AdminID = '$adminId'";
+    $adminResult = $connect->query($adminQuery);
+
+    if ($adminResult->num_rows > 0) {
+        $adminData = $adminResult->fetch_assoc();
+        $adminEmail = $adminData['AdminEmail'];
+        $adminName = $adminData['FirstName'] . ' ' . $adminData['LastName'];
+
+        // Generate a random token and OTP
+        $token = bin2hex(random_bytes(16));
+        $otp = rand(100000, 999999);
+        $expiry = date("Y-m-d H:i:s", strtotime("+1 hour"));
+
+        // Store the token and expiry in the database
+        $updateQuery = "UPDATE admintb SET OTP = '$otp', Token = '$token', TokenExpiry = '$expiry' WHERE AdminEmail = '$adminEmail'";
+        $connect->query($updateQuery);
+
+        if ($updateQuery) {
+            // Send email notification
+            $mail = new PHPMailer(true);
+
+            try {
+                // Server settings
+                $mailConfig = require __DIR__ . '/../config/mail.php';
+
+                $mail->isSMTP();
+                $mail->Host       = $mailConfig['host'];
+                $mail->SMTPAuth   = true;
+                $mail->Username   = $mailConfig['username'];
+                $mail->Password   = $mailConfig['password'];
+                $mail->SMTPSecure = $mailConfig['encryption'];
+                $mail->Port       = $mailConfig['port'];
+
+                // Recipients
+                $mail->setFrom('opulencehaven25@gmail.com', 'Opulence Haven Admin');
+                $mail->addAddress($adminEmail, $adminName);
+
+                // Content
+                $mail->isHTML(true);
+                $mail->Subject = 'Your Admin Password Has Been Reset';
+                $mail->Body = "
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <meta charset='UTF-8'>
+                            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                            <title>Admin Password Reset</title>
+                            <style>
+                                body {
+                                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                                    line-height: 1.6;
+                                    color: #333333;
+                                    max-width: 600px;
+                                    margin: 0 auto;
+                                    padding: 20px;
+                                }
+                                .content {
+                                    background-color: #ffffff;
+                                    padding: 30px;
+                                    border-radius: 8px;
+                                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                                }
+                                .button {
+                                    display: inline-block;
+                                    padding: 12px 24px;
+                                    background-color: #F59E0B;
+                                    color: #ffffff !important;
+                                    text-decoration: none;
+                                    border-radius: 6px;
+                                    font-weight: 600;
+                                    margin: 20px 0;
+                                }
+                                .footer {
+                                    margin-top: 30px;
+                                    padding-top: 20px;
+                                    border-top: 1px solid #e5e7eb;
+                                    font-size: 14px;
+                                    color: #6b7280;
+                                    text-align: center;
+                                }
+                                .important-note {
+                                    background-color: #f9fafb;
+                                    padding: 12px;
+                                    border-radius: 6px;
+                                    font-size: 14px;
+                                    margin: 20px 0;
+                                }
+                                .support {
+                                    margin-top: 15px;
+                                    font-size: 14px;
+                                }
+                            </style>
+                        </head>
+                        <body>    
+                            <div class='content'>
+                                <h2 style='margin-top: 0; color: #111827;'>Admin Password Reset</h2>
+
+                                <p>Dear $adminName,</p>
+
+                                <p>Your Opulence Haven admin account password has been reset by a super administrator.</p>
+
+                                <div class='important-note'>
+                                    <strong>Important:</strong> This link will expire in 1 hour or after one use for security reasons.
+                                </div>
+
+                                <p> Your verification code: <strong>$otp</strong> </p>
+
+                                <div style='text-align: center;'>
+                                    <a href='http://localhost/OpulenceHaven/Admin/reset_password.php?token=$token' class='button'>
+                                        Reset Your Password
+                                    </a>
+                                </div>
+
+                                <p>If you didn't request this password reset, please contact our support team immediately.</p>
+
+                                <div class='support'>
+                                    <p>Need help? <a href='mailto:support@opulencehaven.com' style='color: #4F46E5;'>Contact our support team</a></p>
+                                </div>
+                            </div>
+
+                            <div class='footer'>
+                                <p>© " . date('Y') . " Opulence Haven. All rights reserved.</p>
+                                <p>
+                                    <a href='http://localhost/OpulenceHaven/Policies/PrivacyPolicy.php' style='color: #6b7280; text-decoration: none; margin: 0 10px;'>Privacy Policy</a>
+                                    <a href='http://localhost/OpulenceHaven/Policies/TermsOfUse.php' style='color: #6b7280; text-decoration: none; margin: 0 10px;'>Terms of Service</a>
+                                </p>
+                                <p>Opulence Haven, 459 Pyay Road, Kamayut Township, 11041 Yangon, Myanmar</p>
+                            </div>
+                        </body>
+                        </html>
+                    ";
+
+                $mail->send();
+                $response['success'] = true;
+                $response['message'] = "Password reset successfully. The admin has been notified via email.";
+            } catch (Exception $e) {
+                $response['message'] = "Password reset but email notification failed: " . $e->getMessage();
+            }
+        } else {
+            $response['message'] = "Database error. Please try again.";
+        }
+    } else {
+        $response['message'] = "Admin not found.";
+    }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
+}
+
 // Delete Admin
 if (isset($_POST['deleteadmin'])) {
     $adminId = mysqli_real_escape_string($connect, $_POST['adminid']);
@@ -57,7 +221,7 @@ if (isset($_POST['deleteadmin'])) {
     if ($connect->query($deleteQuery)) {
         $deleteAdminSuccess = true;
     } else {
-        $alertMessage = "Failed to delete admin. Please try again.";
+        $reponse['message'] = 'Failed to delete admin. Please try again.';
     }
 }
 ?>
@@ -133,7 +297,7 @@ if (isset($_POST['deleteadmin'])) {
 
 
                 <!-- Admin Table -->
-                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
+                <div class="tableScrollBar overflow-y-auto max-h-[495px]">
                     <div id="adminResults">
                         <?php include '../includes/admin_table_components/role_management_results.php'; ?>
                     </div>
@@ -148,7 +312,7 @@ if (isset($_POST['deleteadmin'])) {
 
         <!-- Reset Password Modal -->
         <div id="resetAdminPasswordModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
-            <form class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="resetPasswordForm">
+            <form class="bg-white max-w-md p-6 rounded-md shadow-md text-center" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="adminResetPasswordForm">
                 <h2 class="text-xl font-semibold mb-4">Reset Admin Password</h2>
                 <p class="text-slate-600 mb-2">
                     You are about to reset the password for:
@@ -159,20 +323,7 @@ if (isset($_POST['deleteadmin'])) {
                 </p>
 
                 <input type="hidden" name="adminid" id="resetAdminID">
-
-                <div class="flex flex-col relative mb-4">
-                    <div class="flex items-center justify-between border rounded">
-                        <input
-                            id="resetPasswordInput"
-                            class="p-2 w-full pr-10 rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                            type="password"
-                            name="password"
-                            placeholder="Enter a new password">
-                        <i id="toggleResetPassword" class="absolute right-1 ri-eye-line p-2 cursor-pointer"></i>
-                    </div>
-                    <small id="resetPasswordError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                </div>
-                <p class="text-xs text-red-500 mt-1 mb-4">Ensure you toggle password visibility only in a private and secure environment to protect your information from being seen by others.</p>
+                <input type="hidden" name="resetpassword" value="1">
 
                 <div class="flex justify-end gap-4 select-none">
                     <div id="adminResetPasswordCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm cursor-pointer">
