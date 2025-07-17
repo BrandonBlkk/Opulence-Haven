@@ -1,5 +1,4 @@
 // Show Alert Function
-// Store the timeout ID so we can clear it when a new alert is shown
 let alertTimeoutId = null;
 
 export const showAlert = (message, isError = false) => {
