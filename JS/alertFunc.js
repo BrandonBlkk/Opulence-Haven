@@ -1,8 +1,17 @@
 // Show Alert Function
+// Store the timeout ID so we can clear it when a new alert is shown
+let alertTimeoutId = null;
+
 export const showAlert = (message, isError = false) => {
     const alertBox = document.getElementById('alertBox');
     const alertText = document.getElementById('alertText');
     const alertIcon = document.getElementById('alertIcon');
+    
+    // Clear any existing timeout to prevent premature hiding
+    if (alertTimeoutId) {
+        clearTimeout(alertTimeoutId);
+        alertTimeoutId = null;
+    }
     
     // Reset any ongoing animations
     alertBox.style.transition = 'none';
@@ -34,9 +43,10 @@ export const showAlert = (message, isError = false) => {
     }, 10);
     
     // Hide alert after 5 seconds
-    setTimeout(() => {
+    alertTimeoutId = setTimeout(() => {
         alertBox.classList.remove('opacity-100', 'bottom-3');
         alertBox.classList.add('opacity-0', '-bottom-20');
+        alertTimeoutId = null;
     }, 5000);
 };
 
