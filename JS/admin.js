@@ -64,7 +64,7 @@ if (adminLogoutBtn && adminConfirmModal && cancelBtn && adminConfirmLogoutBtn &&
         fetch('admin_logout.php', { method: 'POST' })
             .then(() => {
                 // Redirect after logout
-                window.location.href = 'AdminSignin.php';
+                window.location.href = 'admin_signin.php';
             })
             .catch((error) => console.error('Logout failed:', error));
     });
