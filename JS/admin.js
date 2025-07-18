@@ -64,7 +64,7 @@ if (adminLogoutBtn && adminConfirmModal && cancelBtn && adminConfirmLogoutBtn &&
         fetch('admin_logout.php', { method: 'POST' })
             .then(() => {
                 // Redirect after logout
-                window.location.href = 'AdminSignin.php';
+                window.location.href = 'admin_signin.php';
             })
             .catch((error) => console.error('Logout failed:', error));
     });
@@ -3446,8 +3446,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmContactModal = document.getElementById('confirmContactModal');
     const confirmContactModalCancelBtn = document.getElementById('confirmContactModalCancelBtn');
     const alertMessage = document.getElementById('alertMessage')?.value || '';
-    const confirmContactSuccess = document.getElementById('confirmContactSuccess')?.value === 'true';
-    const loader = document.getElementById('loader'); // Make sure you have this element in your HTML
+    const loader = document.getElementById('loader');
+    const confirmContactForm = document.getElementById('confirmContactForm');
 
     // Get all details buttons
     const detailsBtns = document.querySelectorAll('.details-btn');
@@ -3464,37 +3464,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Fetch contact details
                 fetch(`../Admin/user_contact.php?action=getContactDetails&id=${contactId}`)
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         if (data.success) {
                             // Fill the modal form with contact data
                             document.getElementById('confirmContactID').value = contactId;
                             document.getElementById('contactDate').textContent = data.contact.ContactDate;
                             document.getElementById('contactMessage').textContent = data.contact.ContactMessage;
-                            document.getElementById('username').textContent = data.contact.FullName;
-                            document.getElementById('useremail').textContent = data.contact.UserEmail;
+                            document.getElementById('username').value = data.contact.FullName;
+                            document.getElementById('useremail').value = data.contact.UserEmail;
+                            document.getElementById('contactMessageInput').value = data.contact.ContactMessage;
+                            
+                            // Display the values in the div elements
+                            document.getElementById('displayUsername').textContent = data.contact.FullName;
+                            document.getElementById('displayUseremail').textContent = data.contact.UserEmail;
                             document.getElementById('userphone').textContent = data.contact.UserPhone;
                             document.getElementById('usercountry').textContent = data.contact.Country;
-
-                            // Add hidden input for contact message if not exists
-                            if (!document.getElementById('contactMessageInput')) {
-                                const input = document.createElement('input');
-                                input.type = 'hidden';
-                                input.id = 'contactMessageInput';
-                                input.name = 'contactMessage';
-                                input.value = data.contact.ContactMessage;
-                                document.getElementById('confirmContactForm').appendChild(input);
-                            } else {
-                                document.getElementById('contactMessageInput').value = data.contact.ContactMessage;
-                            }
 
                             // Show the modal
                             confirmContactModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
                         } else {
                             console.error('Failed to load contact details');
+                            showAlert('Failed to load contact details. Please try again.', true);
                         }
                     })
-                    .catch(error => console.error('Fetch error:', error));
+                    .catch(error => {
+                        console.error('Fetch error:', error);
+                        showAlert('Failed to load contact details. Please try again.', true);
+                        // Hide the overlay if there's an error
+                        darkOverlay2.classList.add('opacity-0', 'invisible');
+                        darkOverlay2.classList.remove('opacity-100');
+                    });
             });
         });
 
@@ -3502,45 +3507,87 @@ document.addEventListener('DOMContentLoaded', () => {
             confirmContactModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             document.getElementById('darkOverlay2').classList.add('opacity-0', 'invisible');
             document.getElementById('darkOverlay2').classList.remove('opacity-100');
+
+            // Clear the form
+            document.getElementById('confirmContactForm').reset();
         });
 
-        if (confirmContactSuccess) {
-            // Show loader
-            if (loader) loader.style.display = 'flex';
-            
-            // Send email
-            fetch('../Mail/contact.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'sendContactResponse'
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (loader) loader.style.display = 'none';
+        // Handle form submission with AJAX
+        if (confirmContactForm) {
+            confirmContactForm.addEventListener('submit', function(e) {
+                e.preventDefault();
                 
-                if (data.success) {
-                    showAlert('Response sent successfully and email notification delivered.', 'success');
-                    window.location.href = '../Admin/user_contact.php';
-                } else {
-                    showAlert(`Response saved but failed to send email notification: ${data.message || 'Please try again.'}`, true);
-                    window.location.href = '../Admin/user_contact.php';
-                }
-            })
-            .catch(error => {
-                if (loader) loader.style.display = 'none';
-                showAlert(`Response saved but failed to send email notification: ${error.message}`, true);
-                window.location.href = '../Admin/user_contact.php';
+                // Get form data
+                const formData = new FormData(this);
+                formData.append('respondcontact', '1');
+                
+                // First update the contact status
+                fetch('../Admin/user_contact.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        if (loader) loader.style.display = 'flex';
+                        
+                        // If contact update was successful, send the email
+                        return fetch('../Mail/contact.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                action: 'sendContactResponse'
+                            })
+                        });
+                    } else {
+                        throw new Error(data.message || 'Failed to update contact');
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (loader) loader.style.display = 'none';
+                    
+                    if (data.success) {
+                        showAlert('Response sent successfully and email notification delivered.');
+                        // Close the modal
+                        confirmContactModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                        document.getElementById('darkOverlay2').classList.add('opacity-0', 'invisible');
+                        document.getElementById('darkOverlay2').classList.remove('opacity-100');
+                    } else {
+                        showAlert(`Response saved but failed to send email notification: ${data.message || 'Please try again.'}`, true);
+                        console.error(data.message);
+                    }
+                })
+                .catch(error => {
+                    if (loader) loader.style.display = 'none';
+                    console.error('Error:', error);
+                    
+                    // More detailed error message
+                    let errorMsg = 'An error occurred. Please try again.';
+                    if (error.message.includes('Failed to fetch')) {
+                        errorMsg = 'Network error. Please check your connection.';
+                    } else if (error.message.includes('HTTP error')) {
+                        errorMsg = 'Server error. Please try again later.';
+                    }
+                    
+                    showAlert(errorMsg, true);
+                });
             });
-        } else if (alertMessage) {
+        }
+
+        if (alertMessage) {
             // Show Alert
             showAlert(alertMessage);
         }

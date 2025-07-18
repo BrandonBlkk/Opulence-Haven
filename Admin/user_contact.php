@@ -31,12 +31,15 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     exit;
 }
 
+$response = ['success' => false, 'message' => ''];
+
 // Update Contact
 if (isset($_POST['respondcontact'])) {
     $contactId = mysqli_real_escape_string($connect, $_POST['contactid']);
-    $response = mysqli_real_escape_string($connect, $_POST['adminResponse']);
-    $username = 'Bran';
-    $useremail = 'kyawzayartun0527@gmail.com';
+    $message = mysqli_real_escape_string($connect, $_POST['contactMessage']);
+    $adminResponse = mysqli_real_escape_string($connect, $_POST['adminResponse']);
+    $username = mysqli_real_escape_string($connect, $_POST['username']);
+    $useremail = mysqli_real_escape_string($connect, $_POST['useremail']);
 
     // Prepare and execute update query
     $updateQuery = "UPDATE contacttb SET Status = ? WHERE ContactID = '$contactId'";
@@ -47,20 +50,26 @@ if (isset($_POST['respondcontact'])) {
         $stmt->bind_param("s", $status);
 
         if ($stmt->execute()) {
-            $confirmContactSuccess = true;
+            $response['success'] = true;
+
             $_SESSION['contact_data'] = [
                 'useremail' => $useremail,
                 'username' => $username,
-                'response' => $response
+                'message' => $message,
+                'response' => $adminResponse
             ];
         } else {
-            $alertMessage = "Failed to update contact. Please try again.";
+            $reponse['message'] = 'Failed to update contact. Please try again.';
         }
 
         $stmt->close();
     } else {
-        $alertMessage = "Failed to prepare the update statement.";
+        $response['message'] = "Failed to update contact. Please try again.";
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 ?>
 
@@ -144,17 +153,20 @@ if (isset($_POST['respondcontact'])) {
                 <!-- Form -->
                 <form class="flex flex-col" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="confirmContactForm">
                     <input type="hidden" name="contactid" id="confirmContactID">
+                    <input type="hidden" name="username" id="username">
+                    <input type="hidden" name="useremail" id="useremail">
+                    <input type="hidden" name="contactMessage" id="contactMessageInput">
 
                     <div class="p-6 space-y-6">
                         <!-- User Information -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="space-y-1">
                                 <label class="block text-sm font-medium text-gray-500">Full Name</label>
-                                <div id="username" name="username" class="text-gray-800 font-medium p-2 bg-gray-50 rounded"></div>
+                                <div id="displayUsername" class="text-gray-800 font-medium p-2 bg-gray-50 rounded"></div>
                             </div>
                             <div class="space-y-1">
                                 <label class="block text-sm font-medium text-gray-500">Email Address</label>
-                                <div id="useremail" name="useremail" class="text-gray-800 p-2 bg-gray-50 rounded"></div>
+                                <div id="displayUseremail" class="text-gray-800 p-2 bg-gray-50 rounded"></div>
                             </div>
                             <div class="space-y-1">
                                 <label class="block text-sm font-medium text-gray-500">Phone Number</label>
@@ -169,13 +181,13 @@ if (isset($_POST['respondcontact'])) {
                         <!-- Original Message -->
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-700">Original Message</label>
-                            <div id="contactMessage" class="p-3 border border-gray-200 rounded-md bg-gray-50 text-gray-700 min-h-[100px] max-h-[200px] overflow-y-auto"></div>
+                            <div id="contactMessage" class="p-3 border border-gray-200 rounded-md bg-gray-50 text-gray-700 min-h-[100px] max-h-[200px] w-full overflow-y-auto"></div>
                         </div>
 
                         <!-- Admin Response -->
                         <div class="space-y-2">
                             <label for="adminResponse" class="block text-sm font-medium text-gray-700">Your Response</label>
-                            <textarea name="adminResponse" id="adminResponse" rows="4" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" placeholder="Type your response here..." required></textarea>
+                            <textarea name="adminResponse" id="adminResponse" rows="3" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" placeholder="Type your response here..." required></textarea>
                             <div class="flex items-center text-sm text-gray-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />

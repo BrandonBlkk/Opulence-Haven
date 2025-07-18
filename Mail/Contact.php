@@ -15,6 +15,7 @@ if (!isset($_SESSION['contact_data'])) {
 
 $email = $_SESSION['contact_data']['useremail'];
 $username = $_SESSION['contact_data']['username'];
+$message = $_SESSION['contact_data']['message'];
 $response = $_SESSION['contact_data']['response'];
 
 try {
@@ -38,44 +39,86 @@ try {
     // Content
     $mail->isHTML(true);
     $mail->Subject = 'Response to your inquiry';
-    $mail->Body    = "
-        <html>
-            <head>
-                <style>
-                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                    .header { background-color: #f8f8f8; padding: 20px; text-align: center; }
-                    .content { padding: 20px; }
-                    .response { background-color: #f9f9f9; padding: 15px; border-left: 4px solid #f0ad4e; margin: 15px 0; }
-                    .footer { margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; font-size: 0.9em; color: #777; }
-                </style>
-            </head>
-            <body>
-                <div class='container'>
-                    <div class='header'>
-                        <h2>Your Inquiry Response</h2>
-                    </div>
-                    <div class='content'>
-                        <p>Dear $username,</p>
-                        <p>Thank you for contacting us. Here is our response to your inquiry:</p>
-                        
-                        <div class='response'>
-                            <p><strong>Your original message:</strong></p>
-                            <p>{$contact['ContactMessage']}</p>
-                            <p><strong>Our response:</strong></p>
-                            <p>{$response}</p>
+    $mail->Body = "
+                <html>
+                    <head>
+                        <style>
+                            body { 
+                                font-family: Arial, sans-serif; 
+                                line-height: 1.6; 
+                                color: #333; 
+                                margin: 0;
+                                padding: 0;
+                                background-color: #f5f5f5;
+                            }
+                            .container { 
+                                margin: 0 auto; 
+                                padding: 20px; 
+                                background-color: #ffffff;
+                            }
+                            .header { 
+                                padding: 20px 0; 
+                                text-align: left;
+                                border-bottom: 1px solid #eeeeee;
+                            }
+                            .content { 
+                                padding: 20px 0; 
+                            }
+                            .response { 
+                                background-color: #f9f9f9; 
+                                padding: 15px; 
+                                border-left: 4px solid #f0ad4e; 
+                                margin: 20px 0; 
+                                border-radius: 0 4px 4px 0;
+                            }
+                            .footer { 
+                                margin-top: 20px; 
+                                padding-top: 20px; 
+                                border-top: 1px solid #eee; 
+                                font-size: 0.9em; 
+                                color: #777; 
+                            }
+                            h2 {
+                                color: #333;
+                                margin: 0 0 15px 0;
+                                font-size: 1.5em;
+                            }
+                            p {
+                                margin: 0 0 10px 0;
+                            }
+                            strong {
+                                color: #333;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class='container'>
+                            <div class='header'>
+                                <h2>Your Inquiry Response</h2>
+                            </div>
+                            
+                            <div class='content'>
+                                <p>Dear $username,</p>
+                                <p>Thank you for contacting us. Here is our response to your inquiry:</p>
+                                
+                                <div class='response'>
+                                    <p><strong>Your original message:</strong></p>
+                                    <p>{$message}</p>
+                                    <p><strong>Our response:</strong></p>
+                                    <p>{$response}</p>
+                                </div>
+                                
+                                <p>If you have any further questions, please don't hesitate to contact us again.</p>
+                            </div>
+                            
+                            <div class='footer'>
+                                <p>Best regards,</p>
+                                <p>Opulence Haven Team</p>
+                            </div>
                         </div>
-                        
-                        <p>If you have any further questions, please don't hesitate to contact us again.</p>
-                    </div>
-                    <div class='footer'>
-                        <p>Best regards,</p>
-                        <p>Your Company Team</p>
-                    </div>
-                </div>
-            </body>
-        </html>
-    ";
+                    </body>
+                </html>
+                ";
 
     $mail->AltBody = "Welcome to Opulence Haven, $username!\n\nThank you for creating an account with us. We're excited to have you as part of our community.\n\nAccount details:\nUsername: $username\nEmail: $email\n\nYou can now enjoy all the benefits of being a member. If you have any questions, please contact our support team.\n\n© " . date('Y') . " Opulence Haven. All rights reserved.";
 
