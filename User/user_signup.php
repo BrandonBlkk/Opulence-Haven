@@ -43,7 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     $count = $checkEmailQuery->num_rows;
 
     if ($count > 0) {
-        $alertMessage = 'Email you signed up with is already taken.';
+        $response['message'] = 'Email you signed up with is already taken.';
     } else {
         // Hash the password
         $password = password_hash($password, PASSWORD_DEFAULT);
