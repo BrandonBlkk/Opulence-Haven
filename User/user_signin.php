@@ -103,31 +103,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
     // Check if any rows were returned
     $emailExist = $result->num_rows;
 
-
     if (!$emailExist) {
         $response['message'] = 'No account found with the provided email. Please try again.';
     } else {
-        // Check if the email exists and fetch data
-        $checkAccQuery = $connect->prepare("SELECT * FROM usertb WHERE UserEmail = ? AND UserPassword = ?");
-        $checkAccQuery->bind_param("ss", $email, $password);
-        $checkAccQuery->execute();
-        $result = $checkAccQuery->get_result();
+        // Fetch the user data including the hashed password
+        $userData = $result->fetch_assoc();
 
-        $rowCount = $result->num_rows;
-
-        // Initialize or reset sign-in attempt counter based on email consistency
-        if (!isset($_SESSION['last_email']) || $_SESSION['last_email'] !== $email) {
-            $_SESSION['signin_attempts'] = 0;
-            $_SESSION['last_email'] = $email;
-        }
-
-        // Check customer account match with signup account
-        if ($rowCount > 0) {
-            $array = $result->fetch_assoc();
-            $user_id = $array["UserID"];
-            $user_username = $array["UserName"];
-            $user_email = $array["UserEmail"];
-            $last_signin = $array["LastSignIn"];
+        // Verify the password against the hashed password in database
+        if (password_verify($password, $userData['UserPassword'])) {
+            // Password is correct
+            $user_id = $userData["UserID"];
+            $user_username = $userData["UserName"];
+            $user_email = $userData["UserEmail"];
+            $last_signin = $userData["LastSignIn"];
 
             $_SESSION["UserID"] = $user_id;
             $_SESSION["UserName"] = $user_username;
@@ -154,6 +142,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
 
             $response['success'] = true;
         } else {
+            // Password is incorrect
+            // Initialize or reset sign-in attempt counter based on email consistency
+            if (!isset($_SESSION['last_email']) || $_SESSION['last_email'] !== $email) {
+                $_SESSION['signin_attempts'] = 0;
+                $_SESSION['last_email'] = $email;
+            }
+
             // Increment sign-in attempt counter for the same email
             $_SESSION['signin_attempts']++;
 
