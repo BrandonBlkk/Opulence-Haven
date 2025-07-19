@@ -45,6 +45,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     if ($count > 0) {
         $alertMessage = 'Email you signed up with is already taken.';
     } else {
+        // Hash the password
+        $password = password_hash($password, PASSWORD_DEFAULT);
+
         // Insert the new user data
         $insert_Query = $connect->prepare("INSERT INTO usertb (UserID, UserName, UserEmail, UserPassword, UserPhone, ProfileBgColor) 
                         VALUES (? , ?, ?, ?, ?, ?)");

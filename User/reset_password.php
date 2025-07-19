@@ -74,11 +74,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['change_password'])) {
         $alertMessage = 'New password and confirmation do not match.';
     } else {
         // Hash password
-        // $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+        $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
 
         // Update user password in database and clear tokens
         $updateQuery = "UPDATE usertb SET 
-                        UserPassword = '$newPassword', 
+                        UserPassword = '$hashedPassword', 
                         Token = NULL, 
                         OTP = NULL, 
                         TokenExpiry = NULL

@@ -61,10 +61,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['resetPassword'])) {
     if ($result && $result->num_rows > 0) {
         $user = $result->fetch_assoc();
 
-        if ($currentPassword === $user['UserPassword']) {
-            // Ensure the new password and confirmation password match
-            if ($newPassword === $confirmPassword) {
-                $updatePasswordQuery = "UPDATE usertb SET UserPassword = '$newPassword' WHERE UserID = '$id'";
+        // Verify the current password
+        if (password_verify($currentPassword, $user['UserPassword'])) {
+            // First check if new and confirm passwords match before hashing
+            if ($_POST['newpassword'] === $_POST['confirmpassword']) {
+                // Hash the new password
+                $newPasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+
+                $updatePasswordQuery = "UPDATE usertb SET UserPassword = '$newPasswordHash' WHERE UserID = '$id'";
                 $updatePasswordQueryResult = $connect->query($updatePasswordQuery);
 
                 if ($updatePasswordQueryResult) {
@@ -125,47 +129,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['resetPassword'])) {
                         </div>
                         <form action="<?php $_SERVER["PHP_SELF"] ?>" method="POST" id="updateProfileForm">
                             <div class="space-y-4">
-                                <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
-                                    <!-- Username Input -->
-                                    <div class="relative flex-1">
-                                        <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-                                        <input
-                                            id="usernameInput"
-                                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                            type="text"
-                                            name="username"
-                                            value="<?php echo $userData['UserName'] ?>"
-                                            placeholder="Enter your username">
-                                        <small id="usernameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                                    </div>
-                                    <!-- Email Input -->
-                                    <div class="relative flex-1">
-                                        <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                        <input
-                                            id="emailInput"
-                                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                            type="email"
-                                            name="email"
-                                            value="<?php echo maskEmail($userData['UserEmail']) ?>"
-                                            placeholder="Enter your email">
-                                        <small id="emailError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                                    </div>
-                                </div>
-                                <!-- Password Input -->
                                 <div>
-                                    <div class="flex flex-col relative">
-                                        <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                                        <input id="passwordInput"
-                                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                            type="password"
-                                            name="password"
-                                            value="<?php echo $userData['UserPassword'] ?>"
-                                            placeholder="Enter your password"
-                                            disabled>
-                                        <small id="passwordError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                                    <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
+                                        <!-- Username Input -->
+                                        <div class="relative flex-1">
+                                            <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                                            <input
+                                                id="usernameInput"
+                                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                                type="text"
+                                                name="username"
+                                                value="<?php echo $userData['UserName'] ?>"
+                                                placeholder="Enter your username">
+                                            <small id="usernameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                                        </div>
+                                        <!-- Email Input -->
+                                        <div class="relative flex-1">
+                                            <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                            <input
+                                                id="emailInput"
+                                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                                type="email"
+                                                name="email"
+                                                value="<?php echo maskEmail($userData['UserEmail']) ?>"
+                                                placeholder="Enter your email">
+                                            <small id="emailError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                                        </div>
                                     </div>
-                                    <p class="text-sm text-amber-500 mt-1 cursor-pointer">Reset your password?</p>
+                                    <p class="text-sm text-end text-amber-500 cursor-pointer">Reset your password?</p>
                                 </div>
+
                                 <!-- Phone Input -->
                                 <div class="relative">
                                     <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
