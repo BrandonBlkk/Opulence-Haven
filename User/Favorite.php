@@ -27,20 +27,26 @@ if (isset($_SESSION['UserID'])) {
     }
 }
 
-// Remove room from favorites
-if (isset($_POST['room_favourite'])) {
-    if ($userID) {
-        $roomTypeID = $_POST['roomTypeID'];
+// Remove room from favorite
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['roomTypeID'])) {
+    $userID = $_SESSION['UserID'];
+    $roomTypeID = $_POST['roomTypeID'];
 
-        $delete = "DELETE FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
-        $connect->query($delete);
+    // Delete from favorites
+    $delete = "DELETE FROM roomtypefavoritetb WHERE UserID = ? AND RoomTypeID = ?";
+    $stmt = $connect->prepare($delete);
+    $stmt->bind_param("ss", $userID, $roomTypeID);
 
-        $response = ['success' => true];
+    if ($stmt->execute()) {
+        $response['success'] = true;
+        $response['message'] = 'Favorite removed successfully';
+    } else {
+        $response['message'] = 'Failed to remove favorite';
     }
 
     header('Content-Type: application/json');
     echo json_encode($response);
-    exit();
+    exit;
 }
 ?>
 
@@ -75,7 +81,7 @@ if (isset($_POST['room_favourite'])) {
 
         <div class="my-5">
             <h1 class="uppercase text-xl sm:text-2xl text-blue-900 font-semibold">Your Favorites</h1>
-            <span class="text-amber-500">(<?php echo count($favorite_rooms); ?>) saved <?php echo count($favorite_rooms) > 1 ? 'rooms' : 'room'; ?></span>
+            <span id="favoriteCount" class="text-amber-500">(<?php echo count($favorite_rooms); ?>) saved <?php echo count($favorite_rooms) > 1 ? 'rooms' : 'room'; ?></span>
         </div>
         <?php
         if (isset($_SESSION['UserID']) && $_SESSION['UserID'] && !empty($favorite_rooms)) {
@@ -83,68 +89,27 @@ if (isset($_POST['room_favourite'])) {
             <section class="grid grid-cols-1 gap-6">
                 <?php foreach ($favorite_rooms as $room):
                     // Check if room is favorited
-                    $check_favorite = "SELECT COUNT(*) as count FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '" . $room['RoomTypeID'] . "'";
-                    $favorite_result = $connect->query($check_favorite);
-                    $is_favorited = $favorite_result->fetch_assoc()['count'] > 0;
+                    $check_favorite = "SELECT COUNT(*) as count FROM roomtypefavoritetb WHERE UserID = ? AND RoomTypeID = ?";
+                    $stmt = $connect->prepare($check_favorite);
+                    $stmt->bind_param("ss", $userID, $room['RoomTypeID']);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                    $is_favorited = $result->fetch_assoc()['count'];
+                    $stmt->close();
                 ?>
                     <!-- Card -->
-                    <div class="border rounded-lg overflow-hidden">
+                    <div class="border rounded-lg overflow-hidden favorite-room-card" data-room-id="<?= $room['RoomTypeID'] ?>">
                         <div class="flex flex-col md:flex-row">
                             <!-- Image -->
                             <div class="md:w-[28%] h-64 overflow-hidden select-none rounded-l-md relative">
                                 <img src="../Admin/<?= htmlspecialchars($room['RoomCoverImage']) ?>" alt="" class="w-full h-full object-cover">
-                                <form class="favoriteForms" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post">
+                                <form class="favoriteForms" method="post">
                                     <input type="hidden" name="roomTypeID" value="<?= $room['RoomTypeID'] ?>">
-                                    <button type="submit" name="room_favourite">
+                                    <button type="submit" name="room_favourite" class="favorite-btn">
                                         <i class="absolute top-3 right-3 ri-heart-fill text-xl cursor-pointer flex items-center justify-center bg-white w-9 h-9 rounded-full hover:bg-slate-100 transition-colors duration-300 <?= $is_favorited ? 'text-red-500 hover:text-red-600' : 'text-slate-400 hover:text-red-300' ?>"></i>
                                     </button>
                                 </form>
                             </div>
-
-                            <script>
-                                document.addEventListener("DOMContentLoaded", () => {
-                                    const favoriteForms = document.getElementById("favoriteForms");
-
-                                    if (favoriteForms) {
-                                        favoriteForms.forEach(form => {
-                                            form.addEventListener("submit", function(e) {
-                                                e.preventDefault();
-
-                                                const formData = new FormData(this);
-
-                                                fetch('../User/favorite.php', {
-                                                        method: 'POST',
-                                                        body: formData,
-                                                        headers: {
-                                                            'Accept': 'application/json'
-                                                        }
-                                                    })
-                                                    .then(response => {
-                                                        if (!response.ok) {
-                                                            // Revert visual state if request failed
-                                                            icon.classList.toggle('text-red-500', isFavorited);
-                                                            icon.classList.toggle('text-slate-400', !isFavorited);
-                                                            icon.classList.toggle('hover:text-red-600', isFavorited);
-                                                            icon.classList.toggle('hover:text-red-300', !isFavorited);
-                                                            throw new Error('Network response was not ok');
-                                                        }
-                                                        return response.json();
-                                                    })
-                                                    .then(data => {
-                                                        if (data.success) {
-                                                            //
-                                                        } else {
-                                                            //
-                                                        }
-                                                    })
-                                                    .catch(error => {
-                                                        console.error('Error:', error);
-                                                    });
-                                            });
-                                        });
-                                    }
-                                });
-                            </script>
 
                             <!-- Details -->
                             <div class="md:w-2/3 p-5">
@@ -229,6 +194,59 @@ if (isset($_POST['room_favourite'])) {
                     </div>
                 <?php endforeach; ?>
             </section>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Handle favorite button clicks
+                    document.querySelectorAll('.favorite-btn').forEach(button => {
+                        button.addEventListener('click', function(e) {
+                            e.preventDefault();
+
+                            const form = this.closest('form');
+                            const roomTypeID = form.querySelector('input[name="roomTypeID"]').value;
+                            const card = this.closest('.favorite-room-card');
+                            const favoriteCount = document.getElementById('favoriteCount');
+
+                            // Send AJAX request to remove from favorites
+                            fetch('../User/favorite.php', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/x-www-form-urlencoded',
+                                    },
+                                    body: `roomTypeID=${roomTypeID}`
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        // Remove card 
+                                        card.remove();
+
+                                        // Update the favorite count
+                                        const currentCount = parseInt(favoriteCount.textContent.match(/\d+/)[0]);
+                                        const newCount = currentCount - 1;
+
+                                        // Update the count display
+                                        favoriteCount.innerHTML = `(${newCount}) saved ${newCount === 1 ? 'room' : 'rooms' && newCount === 0 ? 'room' : 'rooms'}`;
+
+                                        // Check if there are no more favorite rooms
+                                        if (newCount === 0) {
+                                            const container = document.querySelector('section.grid');
+                                            const noFavoritesMessage = document.createElement('p');
+                                            noFavoritesMessage.className = 'mt-10 py-36 flex justify-center text-center text-base text-gray-400';
+                                            noFavoritesMessage.textContent = 'You have no favorite items yet.';
+                                            container.parentNode.replaceChild(noFavoritesMessage, container);
+                                        }
+                                    } else if (data.message) {
+                                        alert(data.message);
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                });
+                        });
+                    });
+                });
+            </script>
         <?php
         } else {
         ?>

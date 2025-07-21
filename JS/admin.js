@@ -1867,7 +1867,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const addFacilityTypeModal = document.getElementById('addFacilityTypeModal');
     const addFacilityTypeBtn = document.getElementById('addFacilityTypeBtn');
     const addFacilityTypeCancelBtn = document.getElementById('addFacilityTypeCancelBtn');
-    const loader = document.getElementById('loader');
     const darkOverlay2 = document.getElementById('darkOverlay2'); 
 
     // Update Facility Type Modal Elements
@@ -2018,8 +2017,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!validateFacilityTypeForm()) return;
 
-            loader.style.display = 'flex';
-
             const formData = new FormData(facilityTypeForm);
             formData.append('addfacilitytype', true);
 
@@ -2034,7 +2031,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 return res.json();
             })
             .then(data => {
-                loader.style.display = 'none';
                 showAlert(data.message, !data.success);
 
                 if (data.success) {
@@ -2048,7 +2044,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             })
             .catch(err => {
-                loader.style.display = 'none';
                 showAlert("Something went wrong. Please try again.", true);
                 console.error(err);
             });
@@ -2078,9 +2073,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (!validateUpdateFacilityTypeForm()) return;
 
-                const loader = document.getElementById('loader');
-                loader.style.display = 'flex';
-
                 const formData = new FormData(updateFacilityTypeForm);
                 formData.append('editfacilitytype', true);
 
@@ -2095,7 +2087,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     return res.json();
                 })
                 .then(data => {
-                    loader.style.display = 'none';
                     showAlert(data.message, !data.success);
 
                     if (data.success) {
@@ -2113,7 +2104,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 })
                 .catch(err => {
-                    loader.style.display = 'none';
                     showAlert("Something went wrong. Please try again.", true);
                     console.error(err);
                 });

@@ -16,7 +16,8 @@ if (isset($_SESSION['welcome_message']) && isset($_SESSION['UserName'])) {
 }
 
 // Update membership
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID']) && isset($_POST['action']) && $_POST['action'] === 'update_membership') {
+    $userID = $_POST['UserID'];
 
     $stmt = $connect->prepare("UPDATE usertb SET Membership = 1, PointsBalance = 500 WHERE UserID = ?");
     $stmt->bind_param("s", $userID);
@@ -71,31 +72,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
 
     <?php if ($Membership == 0 && $userID): ?>
         <!-- Side Popup Container -->
-        <div id="membershipPopup" class="fixed right-[-320px] top-1/2 -translate-y-1/2 w-80 bg-white shadow-lg rounded-l-md z-50 transition-all duration-300 ease-out">
+        <div id="membershipPopup" class="fixed right-[-320px] top-1/2 -translate-y-1/2 w-80 bg-white shadow-lg rounded-l-sm z-10 transition-all duration-300 ease-out">
             <!-- Header -->
-            <div class="flex justify-between items-center bg-orange-500 text-white p-3 rounded-tl-md">
+            <div class="flex justify-between items-center bg-blue-900 text-white p-3 rounded-tl-sm">
                 <h3 class="font-bold text-lg">Unlock Rewards!</h3>
                 <button id="closePopup" type="button" class="text-xl hover:text-gray-200">×</button>
             </div>
 
             <!-- Body with Form -->
-            <form id="membershipForm" class="p-4">
-                <input type="hidden" id="userID" value="<?php echo $userID; ?>">
-                <p class="text-gray-600 mb-4">Join our free membership and earn 500 bonus points today.</p>
+            <form id="membershipForm" class="bg-white rounded-lg shadow-md overflow-hidden">
+                <input type="hidden" id="userID" name="UserID" value="<?php echo $userID; ?>">
+                <input type="hidden" name="action" value="update_membership">
 
-                <div class="mb-4">
-                    <label for="newsletterOptIn" class="flex items-center">
-                        <input type="checkbox" id="newsletterOptIn" name="newsletterOptIn" class="mr-2">
-                        <span class="text-sm text-gray-600">Receive exclusive offers via email</span>
-                    </label>
+                <div class="p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Opulence Rewards</h3>
+                    <p class="text-gray-600 mb-6 text-sm">Join our free membership and earn 500 bonus points today.</p>
+
+                    <div class="mb-6">
+                        <label for="newsletterOptIn" class="flex items-start">
+                            <div class="flex items-center h-5">
+                                <input type="checkbox" id="newsletterOptIn" name="newsletterOptIn"
+                                    class="focus:ring-amber-500 h-4 w-4 text-amber-600 border-gray-300 rounded">
+                            </div>
+                            <div class="ml-3 text-sm">
+                                <span class="text-gray-700">Receive exclusive offers via email</span>
+                                <p class="text-gray-500 text-xs mt-1">Get access to special promotions and personalized experiences</p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <button type="submit"
+                        class="w-full bg-gradient-to-r bg-amber-500 
+               text-white py-3 px-4 rounded-md transition-all duration-300 shadow-md hover:shadow-lg
+               font-medium text-sm uppercase tracking-wider">
+                        Join Now - Earn 500 Points
+                    </button>
                 </div>
 
-                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white py-2 px-4 rounded-md transition-colors">
-                    Join Now
-                </button>
+                <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
+                    <p class="text-xs text-gray-500 text-center">
+                        By joining, you agree to our <a href="#" class="text-amber-600 hover:underline">Terms</a> and
+                        <a href="#" class="text-amber-600 hover:underline">Privacy Policy</a>
+                    </p>
+                </div>
             </form>
 
-            <!-- Add this inside #membershipPopup after the form -->
+            <!-- Success Message -->
             <div id="confettiSuccess" class="hidden text-center relative overflow-hidden p-4">
                 <div class="mx-auto relative flex items-center justify-center h-16 w-16 z-10">
                     <!-- Background Circle -->
@@ -187,7 +209,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
 
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                const userID = document.getElementById('userID');
                 const membershipPopup = document.getElementById('membershipPopup');
                 const membershipForm = document.getElementById('membershipForm');
                 const closeBtn = document.getElementById('closePopup');
@@ -202,21 +223,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
                     membershipPopup.classList.replace('right-0', 'right-[-320px]');
                 });
 
-                // Submit form and update membership
+                // Submit form and update membership using AJAX
                 membershipForm.addEventListener('submit', function(e) {
                     e.preventDefault();
 
-                    const formData = new FormData();
-                    formData.append('UserID', userID.value);
+                    const formData = new FormData(membershipForm);
 
+                    // Disable the submit button to prevent multiple submissions
+                    const submitButton = membershipForm.querySelector('button[type="submit"]');
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = 'Processing...';
+
+                    // Create AJAX request
                     fetch('../User/home_page.php', {
                             method: 'POST',
                             body: formData
                         })
-                        .then(res => res.text())
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.text();
+                        })
                         .then(data => {
-                            // Hide form and show animation
-                            form.classList.add('hidden');
+                            // Success - show animation
+                            membershipForm.classList.add('hidden');
                             document.getElementById('confettiSuccess').classList.remove('hidden');
 
                             // Start confetti
@@ -227,8 +258,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
                                 membershipPopup.classList.replace('right-0', 'right-[-320px]');
                             }, 4000);
                         })
-                        .catch(err => {
-                            alert('Error: ' + err);
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Error: ' + error.message);
+                            submitButton.disabled = false;
+                            submitButton.innerHTML = 'Join Now - Earn 500 Points';
                         });
                 });
             });
@@ -560,6 +594,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID'])) {
                         it’s time to bond with family or friends.
                     </p>
                 </div>
+            </div>
+        </section>
+
+        <section class="text-white bg-[url('../UserImages/pexels-maksgelatin-4352247.jpg')] bg-cover bg-center bg-no-repeat mb-4">
+            <div class="flex flex-col justify-center w-full lg:w-1/2 py-16 px-4 ml-28 relative">
+                <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="exclusiveMembershipForm">
+                    <!-- ✅ Hidden User ID Field -->
+                    <input type="hidden" id="userID" name="UserID" value="<?php echo isset($_SESSION['UserID']) ? $_SESSION['UserID'] : ''; ?>">
+
+                    <div class="text-blue-900 text-3xl md:text-4xl font-serif mb-4">Exclusive Membership</div>
+                    <div class="text-lg md:text-xl italic mb-6 text-black">
+                        Opulence Club<br>Privileges that elevate every stay.
+                    </div>
+                    <div class="border-t border-gray-400 w-16 my-4"></div>
+                    <p class="text-base md:text-lg mb-6 leading-relaxed">
+                        Unlock a world of benefits with the Opulence Membership — from complimentary room discounts and late check-outs
+                        to members-only rates and special offers tailored to your preferences.
+                    </p>
+                    <button type="submit"
+                        class="inline-block bg-gray-900 text-white px-6 py-3 rounded-full text-sm uppercase tracking-wide hover:bg-gray-700 transition select-none">
+                        Join Now
+                    </button>
+                </form>
+                <div id="membershipMessage" class="hidden absolute bottom-2 mt-4 p-3 rounded text-sm"></div>
             </div>
         </section>
 

@@ -337,12 +337,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
     }
 }
 
-// Add room to favorites
+// Add/Remove room from favorites
 if (isset($_POST['room_favourite'])) {
     // Initialize response
     $res = ['status' => '', 'error' => ''];
 
-    if (isset($userID) && $userID) {
+    if (isset($_SESSION['UserID']) && $_SESSION['UserID']) {
+        $userID = $_SESSION['UserID'];
         $roomTypeID = $connect->real_escape_string($_POST['roomTypeID']);
         $checkin_date = isset($_POST['checkin_date']) ? $connect->real_escape_string($_POST['checkin_date']) : '';
         $checkout_date = isset($_POST['checkout_date']) ? $connect->real_escape_string($_POST['checkout_date']) : '';
@@ -823,14 +824,16 @@ if (isset($_POST['submitreview'])) {
                         $is_favorited = $favorite_result->fetch_assoc()['count'] > 0;
                         ?>
 
-                        <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post" id="favoriteForms">
+                        <form id="favoriteForm" method="post">
                             <input type="hidden" name="checkin_date" value="<?= htmlspecialchars($checkin_date) ?>">
                             <input type="hidden" name="checkout_date" value="<?= htmlspecialchars($checkout_date) ?>">
                             <input type="hidden" name="adults" value="<?= htmlspecialchars($adults) ?>">
                             <input type="hidden" name="children" value="<?= htmlspecialchars($children) ?>">
                             <input type="hidden" name="roomTypeID" value="<?= htmlspecialchars($roomtype['RoomTypeID']) ?>">
-                            <button type="submit" name="room_favourite">
-                                <i class="ri-heart-fill text-2xl cursor-pointer flex items-center justify-center bg-white w-11 h-11 rounded-full hover:bg-slate-100 transition-colors duration-300 <?= $is_favorited ? 'text-red-500 hover:text-red-600' : 'text-slate-400 hover:text-red-300' ?>"></i>
+                            <input type="hidden" name="room_favourite" value="1">
+                            <button type="submit" name="room_favourite" id="favoriteBtn" class="relative group">
+                                <i id="heartIcon" class="ri-heart-fill text-2xl cursor-pointer flex items-center justify-center bg-white w-11 h-11 rounded-full hover:bg-slate-100 transition-all duration-500 ease-[cubic-bezier(0.68,-0.6,0.32,1.6)] <?= $is_favorited ? 'text-red-500 hover:text-red-600' : 'text-slate-400 hover:text-red-300' ?>"></i>
+                                <span id="heartParticles" class="absolute inset-0 overflow-hidden pointer-events-none"></span>
                             </button>
                         </form>
 
@@ -839,6 +842,160 @@ if (isset($_POST['submitreview'])) {
                             class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-2 rounded transition-colors select-none">
                             Reserve
                         </button>
+
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const favoriteForm = document.getElementById('favoriteForm');
+                                const favoriteBtn = document.getElementById('favoriteBtn');
+                                const heartIcon = document.getElementById('heartIcon');
+                                const heartParticles = document.getElementById('heartParticles');
+
+                                // Array of possible sparkle colors
+                                const sparkleColors = [
+                                    'bg-amber-500',
+                                    'bg-red-500',
+                                    'bg-pink-500',
+                                    'bg-yellow-400',
+                                    'bg-white',
+                                    'bg-blue-300'
+                                ];
+
+                                if (favoriteForm) {
+                                    favoriteForm.addEventListener('submit', function(e) {
+                                        e.preventDefault();
+
+                                        const formData = new FormData(this);
+                                        const wasFavorited = heartIcon.classList.contains('text-red-500');
+
+                                        // Add loading state with bounce effect
+                                        heartIcon.classList.add('animate-bounce');
+                                        favoriteBtn.disabled = true;
+
+                                        fetch('../User/room_details.php', {
+                                                method: 'POST',
+                                                body: formData,
+                                                headers: {
+                                                    'Accept': 'application/json'
+                                                }
+                                            })
+                                            .then(response => {
+                                                if (!response.ok) {
+                                                    throw new Error('Network response was not ok');
+                                                }
+                                                return response.json();
+                                            })
+                                            .then(data => {
+                                                if (data.status === 'added') {
+                                                    // Success animation for adding
+                                                    heartIcon.classList.remove('text-slate-400', 'hover:text-red-300');
+                                                    heartIcon.classList.add('text-red-500', 'hover:text-red-600');
+                                                    animateHeartChange(true, wasFavorited);
+                                                    createSparkleEffect(); // Add sparkle effect only when adding to favorites
+                                                } else if (data.status === 'removed') {
+                                                    // Success animation for removing
+                                                    heartIcon.classList.remove('text-red-500', 'hover:text-red-600');
+                                                    heartIcon.classList.add('text-slate-400', 'hover:text-red-300');
+                                                    animateHeartChange(false, wasFavorited);
+                                                } else if (data.status === 'not_logged_in') {
+                                                    window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.href);
+                                                } else if (data.error) {
+                                                    console.error('Error:', data.error);
+                                                    // Revert visual state if error occurred
+                                                    revertHeartState(wasFavorited);
+                                                    alert('An error occurred: ' + data.error);
+                                                }
+                                            })
+                                            .catch(error => {
+                                                console.error('Error:', error);
+                                                // Revert visual state if error occurred
+                                                revertHeartState(wasFavorited);
+                                                alert('An error occurred. Please try again.');
+                                            })
+                                            .finally(() => {
+                                                // Remove loading state after animation completes
+                                                setTimeout(() => {
+                                                    heartIcon.classList.remove('animate-bounce');
+                                                    favoriteBtn.disabled = false;
+                                                }, 500);
+                                            });
+                                    });
+                                }
+
+                                function animateHeartChange(isNowFavorited, wasFavorited) {
+                                    // Skip animation if state didn't actually change (shouldn't happen)
+                                    if (isNowFavorited === wasFavorited) return;
+                                }
+
+                                function revertHeartState(wasFavorited) {
+                                    if (wasFavorited) {
+                                        heartIcon.classList.add('text-red-500', 'hover:text-red-600');
+                                        heartIcon.classList.remove('text-slate-400', 'hover:text-red-300');
+                                    } else {
+                                        heartIcon.classList.add('text-slate-400', 'hover:text-red-300');
+                                        heartIcon.classList.remove('text-red-500', 'hover:text-red-600');
+                                    }
+                                }
+
+                                function createSparkleEffect() {
+                                    // Clear previous particles
+                                    heartParticles.innerHTML = '';
+
+                                    for (let i = 0; i < 5; i++) {
+                                        const sparkle = document.createElement('div');
+                                        // Get random color from sparkleColors array
+                                        const randomColor = sparkleColors[Math.floor(Math.random() * sparkleColors.length)];
+                                        sparkle.className = `absolute w-1.5 h-1.5 ${randomColor} rounded-full opacity-0`;
+                                        sparkle.style.left = `${30 + Math.random() * 40}%`;
+                                        sparkle.style.top = `${30 + Math.random() * 40}%`;
+
+                                        // Animate sparkle with more dynamic movement
+                                        sparkle.animate([{
+                                                transform: 'translate(0, 0) scale(0.5)',
+                                                opacity: 0
+                                            },
+                                            {
+                                                transform: `translate(${(Math.random() - 0.5) * 10}px, ${(Math.random() - 0.5) * 10}px) scale(1.8)`,
+                                                opacity: 0.9,
+                                                offset: 0.5
+                                            },
+                                            {
+                                                transform: `translate(${(Math.random() - 0.5) * 20}px, ${(Math.random() - 0.5) * 20}px) scale(0.2)`,
+                                                opacity: 0
+                                            }
+                                        ], {
+                                            duration: 1000,
+                                            delay: i * 150,
+                                            easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+                                        });
+
+                                        heartParticles.appendChild(sparkle);
+
+                                        // Remove sparkle after animation
+                                        setTimeout(() => {
+                                            sparkle.remove();
+                                        }, 1150 + i * 150);
+                                    }
+                                }
+                            });
+                        </script>
+
+                        <style>
+                            @keyframes bounce {
+
+                                0%,
+                                100% {
+                                    transform: scale(1);
+                                }
+
+                                50% {
+                                    transform: scale(1.1);
+                                }
+                            }
+
+                            .animate-bounce {
+                                animation: bounce 0.2s ease-in-out;
+                            }
+                        </style>
                     </div>
                 </div>
 

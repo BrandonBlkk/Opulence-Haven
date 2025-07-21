@@ -14,53 +14,6 @@ window.addEventListener('scroll', () => {
     }
 });
 
-// Handle all favorite forms
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle all favorite forms
-    const favoriteForms = document.getElementById('favoriteForms');
-
-    if (favoriteForms) {
-        favoriteForms.forEach(form => {
-            form.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const formData = new FormData(this);
-
-            fetch('../User/room_details.php', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.status === 'added') {
-                        heartIcon.classList.remove('text-slate-400', 'hover:text-red-300');
-                        heartIcon.classList.add('text-red-500', 'hover:text-red-600');
-                    } else if (data.status === 'removed') {
-                        heartIcon.classList.remove('text-red-500', 'hover:text-red-600');
-                        heartIcon.classList.add('text-slate-400', 'hover:text-red-300');
-                    } else if (data.status === 'not_logged_in') {
-                        // Redirect to login or show login modal
-                        window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.href);
-                    } else {
-                        console.error('Error:', data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
-            });
-        });
-    }
-});
-
 // Handle remove room
 document.addEventListener('DOMContentLoaded', function() {
     // Handle remove room with AJAX
