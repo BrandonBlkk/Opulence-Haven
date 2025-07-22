@@ -170,32 +170,38 @@ if (mysqli_num_rows($query) > 0) {
         <!-- Profile Menu -->
         <div class="divide-y-2 divide-slate-100">
             <div x-data="{ expanded: false, height: 0 }" class="flex flex-col">
-                <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex justify-between items-center p-1 rounded">
-                    <div class="flex items-center gap-2">
-                        <?php
-                        if ($admin_profile == null) {
-                        ?>
-                            <div class="w-14 h-14 rounded-full my-3 p-1 bg-[<?php echo $profile_color ?>] text-white relative select-none">
-                                <p class="w-full h-full flex items-center justify-center text-lg font-semibold"><?php echo substr($admin_username, 0, 1); ?></p>
-                                <div class="w-3 h-3 bg-green-500 rounded-full absolute bottom-1 right-1"></div>
+                <div class="flex items-start justify-between">
+                    <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex justify-between items-center p-1 rounded flex-1">
+                        <div class="flex items-center gap-2">
+                            <?php
+                            if ($admin_profile == null) {
+                            ?>
+                                <div class="w-14 h-14 rounded-full my-3 p-1 bg-[<?php echo $profile_color ?>] text-white relative select-none">
+                                    <p class="w-full h-full flex items-center justify-center text-lg font-semibold"><?php echo substr($admin_username, 0, 1); ?></p>
+                                    <div class="w-3 h-3 bg-green-500 rounded-full absolute bottom-1 right-1"></div>
+                                </div>
+                            <?php
+                            } else { ?>
+                                <div class="w-14 h-14 rounded-full my-3 p-1 bg-slate-200 relative select-none">
+                                    <img class="w-full h-full object-cover rounded-full" src="<?php echo $adminprofile ?>" alt="Profile">
+                                    <div class="w-3 h-3 bg-green-500 rounded-full absolute bottom-1 right-1"></div>
+                                </div>
+                            <?php
+                            }
+                            ?>
+                            <div class="text-start">
+                                <p class="font-semibold" id="adminUsername"><?php echo $admin_username ?></p>
+                                <p class="text-xs text-gray-400">Welcome</p>
+                                <p class="text-xs text-gray-700">(<?php echo $admin_role ?>)</p>
                             </div>
-                        <?php
-                        } else { ?>
-                            <div class="w-14 h-14 rounded-full my-3 p-1 bg-slate-200 relative select-none">
-                                <img class="w-full h-full object-cover rounded-full" src="<?php echo $adminprofile ?>" alt="Profile">
-                                <div class="w-3 h-3 bg-green-500 rounded-full absolute bottom-1 right-1"></div>
-                            </div>
-                        <?php
-                        }
-                        ?>
-                        <div class="text-start">
-                            <p class="font-semibold" id="adminUsername"><?php echo $admin_username ?></p>
-                            <p class="text-xs text-gray-400">Welcome</p>
-                            <p class="text-xs text-gray-700">(<?php echo $admin_role ?>)</p>
                         </div>
+                        <i :class="expanded ? 'rotate-180' : 'rotate-0'" class="ri-arrow-up-s-line text-xl transition-transform duration-300"></i>
+                    </button>
+                    <div class="relative select-none cursor-pointer">
+                        <i class="ri-notification-3-line text-xl"></i>
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">3</span>
                     </div>
-                    <i :class="expanded ? 'rotate-180' : 'rotate-0'" class="ri-arrow-up-s-line text-xl transition-transform duration-300"></i>
-                </button>
+                </div>
 
                 <div x-ref="dropdown"
                     :style="{ height: expanded ? height + 'px' : '0px' }"

@@ -121,7 +121,7 @@ if (isset($_POST['respondcontact'])) {
                 </form>
 
                 <!-- Contact Table -->
-                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
+                <div class="tableScrollBar overflow-y-auto max-h-[495px]">
                     <div id="contactResults">
                         <?php include '../includes/admin_table_components/contact_results.php'; ?>
                     </div>

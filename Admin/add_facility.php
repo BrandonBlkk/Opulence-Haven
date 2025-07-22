@@ -195,7 +195,7 @@ if (isset($_POST['deletefacility'])) {
                 </form>
 
                 <!-- Facility Table -->
-                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
+                <div class="tableScrollBar overflow-y-auto max-h-[495px]">
                     <div id="facilityResults">
                         <?php include '../includes/admin_table_components/facility_results.php'; ?>
                     </div>

@@ -215,7 +215,7 @@ if (isset($_POST['deletesupplier'])) {
                 </form>
 
                 <!-- Supplier Table -->
-                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
+                <div class="tableScrollBar overflow-y-auto max-h-[495px]">
                     <div id="supplierResults">
                         <?php include '../includes/admin_table_components/supplier_results.php'; ?>
                     </div>
