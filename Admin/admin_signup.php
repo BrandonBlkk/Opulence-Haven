@@ -48,10 +48,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     $count = $connect->query($checkEmailQuery)->num_rows;
 
     if ($count > 0) {
-        $alertMessage = 'Email you signed up with is already taken.';
+        $response['message'] = 'Email you signed up with is already taken.';
     } else if (empty($role)) {
-        $alertMessage = 'Please select a role to create an account.';
+        $response['message'] = "Please select a role to create an account.";
     } else {
+
         // Insert the new user data
         $insertQuery = $connect->prepare("INSERT INTO admintb 
         (AdminID, ProfileBgColor, FirstName, LastName, UserName, AdminEmail, AdminPassword, AdminPhone, RoleID) 
