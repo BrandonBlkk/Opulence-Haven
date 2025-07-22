@@ -14,17 +14,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
     $password = mysqli_real_escape_string($connect, trim($_POST['password']));
 
     // Check if the email exists
-    $checkEmailQuery = "SELECT * FROM admintb 
-    WHERE AdminEmail = '$email'";
-    $emailExist = $connect->query($checkEmailQuery)->num_rows;
+    $checkEmailQuery = "SELECT * FROM admintb WHERE AdminEmail = '$email'";
+    $result = $connect->query($checkEmailQuery);
+    $emailExist = $result->num_rows;
 
     if (!$emailExist) {
         $response['message'] = "No account found with the provided email. Please try again.";
     } else {
-        // Check if the email exists and fetch data
-        $checkAccQuery = "SELECT * FROM admintb 
-        WHERE AdminEmail = '$email' AND AdminPassword = '$password';";
-        $rowCount = $connect->query($checkAccQuery)->num_rows;
+        // Fetch the user data including hashed password
+        $userData = $result->fetch_assoc();
+        $hashedPassword = $userData['AdminPassword'];
 
         // Initialize or reset sign-in attempt counter based on email consistency
         if (!isset($_SESSION['last_email']) || $_SESSION['last_email'] !== $email) {
@@ -32,20 +31,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
             $_SESSION['last_email'] = $email;
         }
 
-        // Check customer account match with signup account
-        if ($rowCount > 0) {
-            $array = $connect->query($checkAccQuery)->fetch_assoc();
-            $admin_id = $array["AdminID"];
-            $admin_username = $array["UserName"];
-            $admin_email = $array["AdminEmail"];
-            $role = $array["RoleID"];
-            $last_signin = $array["LastSignIn"];
+        // Verify the password against the hashed password
+        if (password_verify($password, $hashedPassword)) {
+            $admin_id = $userData["AdminID"];
+            $admin_username = $userData["UserName"];
+            $admin_email = $userData["AdminEmail"];
+            $role = $userData["RoleID"];
+            $last_signin = $userData["LastSignIn"];
 
             $_SESSION["UserName"] = $admin_username;
             $_SESSION["AdminID"] = $admin_id;
-            $_SESSION["UserName"] = $admin_username;
             $_SESSION["AdminEmail"] = $admin_email;
             $_SESSION["RoleID"] = $role;
+
             // Determine welcome message
             if ($last_signin === null) {
                 $_SESSION["welcome_message"] = "Welcome, " . $admin_username . "!";
@@ -53,8 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
                 $_SESSION["welcome_message"] = "Welcome back, " . $admin_username . "!";
             }
 
-            $updateSignInQuery = "UPDATE admintb SET Status = 'active' 
-            WHERE AdminID = '$admin_id'";
+            $updateSignInQuery = "UPDATE admintb SET Status = 'active' WHERE AdminID = '$admin_id'";
             $connect->query($updateSignInQuery);
 
             // Reset sign-in attempts on successful sign-in
@@ -66,9 +63,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
             $_SESSION['signin_attempts']++;
 
             // Check if sign-in attempts exceed limit
-            if ($_SESSION['signin_attempts'] === 3) {
+            if ($_SESSION['signin_attempts'] >= 3) {
                 // Reset sign-in attempts
                 $_SESSION['signin_attempts'] = 0;
+                $response['message'] = 'Multiple failed attempts. Your account has been temporarily locked.';
                 $response['locked'] = true;
             } else if ($_SESSION['signin_attempts'] === 2) {
                 $response['message'] = 'Multiple failed attempts. One more may lock your account temporarily.';

@@ -52,6 +52,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     } else if (empty($role)) {
         $response['message'] = "Please select a role to create an account.";
     } else {
+        // Hash the password
+        $password = password_hash($password, PASSWORD_DEFAULT);
 
         // Insert the new user data
         $insertQuery = $connect->prepare("INSERT INTO admintb 
