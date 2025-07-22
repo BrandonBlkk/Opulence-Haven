@@ -208,7 +208,7 @@ if (isset($_POST['deleteproductsize'])) {
                 </form>
 
                 <!-- Size Table -->
-                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
+                <div class="tableScrollBar overflow-y-auto max-h-[495px]">
                     <div id="productSizeResults">
                         <?php include '../includes/admin_table_components/productsize_results.php'; ?>
                     </div>

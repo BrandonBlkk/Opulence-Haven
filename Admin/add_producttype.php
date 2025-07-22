@@ -155,7 +155,7 @@ if (isset($_POST['deleteproducttype'])) {
                 </form>
 
                 <!-- Product Type Table -->
-                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
+                <div class="tableScrollBar overflow-y-auto max-h-[495px]">
                     <div id="productTypeResults">
                         <?php include '../includes/admin_table_components/producttype_results.php'; ?>
                     </div>

@@ -365,33 +365,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['changePassword'])) {
                                         placeholder="Enter your username">
                                     <small id="usernameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                                 </div>
-                                <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
-                                    <!-- Email Input -->
-                                    <div class="relative flex-1">
-                                        <label for="emailInput" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                        <input
-                                            id="emailInput"
-                                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                            type="email"
-                                            name="email"
-                                            value="<?php echo maskEmail($adminRow['AdminEmail']) ?>"
-                                            placeholder="Enter your email" disabled>
-                                        <small id="emailError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                                    </div>
-                                    <!-- Password Input -->
-                                    <div class="flex-1">
-                                        <div class="flex flex-col relative">
-                                            <label for="passwordInput" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                                            <input id="passwordInput"
-                                                class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                                type="password"
-                                                name="password"
-                                                value="<?php echo $adminRow['AdminPassword'] ?>"
-                                                placeholder="Enter your password"
-                                                disabled>
-                                            <small id="passwordError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                                        </div>
-                                    </div>
+                                <!-- Email Input -->
+                                <div class="relative flex-1">
+                                    <label for="emailInput" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                    <input
+                                        id="emailInput"
+                                        class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                        type="email"
+                                        name="email"
+                                        value="<?php echo maskEmail($adminRow['AdminEmail']) ?>"
+                                        placeholder="Enter your email" disabled>
+                                    <small id="emailError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                                 </div>
                                 <div class="flex justify-start sm:justify-end">
                                     <a id="changePasswordBtn" class="text-sm text-gray-400 hover:text-gray-500" href="#">Change Password</a>

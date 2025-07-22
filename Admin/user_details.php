@@ -30,7 +30,7 @@ if (!$connect) {
             <div>
                 <div>
                     <h2 class="text-xl text-gray-700 font-bold mb-4">User's Lists</h2>
-                    <p>View the list of users and assign roles for efficient role-based access control.</p>
+                    <p>View the list of signed up users for efficient</p>
                 </div>
             </div>
 
@@ -66,7 +66,7 @@ if (!$connect) {
                 </form>
 
                 <!-- User Table -->
-                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
+                <div class="tableScrollBar overflow-y-auto max-h-[495px]">
                     <div id="userResults">
                         <?php include '../includes/admin_table_components/userdetails_results.php'; ?>
                     </div>

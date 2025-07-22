@@ -328,7 +328,7 @@ if (isset($_POST['deleteroomtype'])) {
                 </form>
 
                 <!-- Room Type Table -->
-                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
+                <div class="tableScrollBar overflow-y-auto max-h-[495px]">
                     <div id="roomTypeResults">
                         <?php include '../includes/admin_table_components/roomtype_results.php'; ?>
                     </div>
@@ -509,7 +509,7 @@ if (isset($_POST['deleteroomtype'])) {
 
         <!-- Room Type Delete Modal -->
         <div id="roomTypeConfirmDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
-            <form class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="productTypeDeleteForm">
+            <form class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="roomTypeDeleteForm">
                 <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Room Type Deletion</h2>
                 <p class="text-slate-600 mb-2">You are about to delete the following Room Type: <span id="roomTypeDeleteName" class="font-semibold"></span></p>
                 <p class="text-sm text-gray-500 mb-4">

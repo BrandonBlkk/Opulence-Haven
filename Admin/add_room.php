@@ -193,7 +193,7 @@ if (isset($_POST['deleteroom'])) {
                 </form>
 
                 <!-- Room Table -->
-                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
+                <div class="tableScrollBar overflow-y-auto max-h-[495px]">
                     <div id="roomResults">
                         <?php include '../includes/admin_table_components/room_results.php'; ?>
                     </div>

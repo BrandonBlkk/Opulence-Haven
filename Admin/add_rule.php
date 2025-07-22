@@ -162,7 +162,7 @@ if (isset($_POST['deleterule'])) {
                 </form>
 
                 <!-- Rule Table -->
-                <div class="tableScrollBar overflow-y-auto max-h-[510px]">
+                <div class="tableScrollBar overflow-y-auto max-h-[495px]">
                     <div id="ruleResults">
                         <?php include '../includes/admin_table_components/rule_results.php'; ?>
                     </div>

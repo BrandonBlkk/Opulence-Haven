@@ -23,9 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const formData = new FormData(this);
             
-            // Show loader
-            if (loader) loader.style.display = 'flex';
-            
             fetch('../Admin/admin_signup.php', {
                 method: 'POST',
                 body: formData,
@@ -39,10 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 return response.json();
             })
-            .then(data => {
-                // Hide loader
-                if (loader) loader.style.display = 'none';
-                
+            .then(data => {        
                 if (data.success) {
                     // Successful sign-in
                     if (loader) loader.style.display = 'flex';
@@ -81,9 +75,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const formData = new FormData(this);
             
-            // Show loader
-            if (loader) loader.style.display = 'flex';
-            
             fetch('../Admin/admin_signin.php', {
                 method: 'POST',
                 body: formData,
@@ -97,10 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 return response.json();
             })
-            .then(data => {
-                // Hide loader
-                if (loader) loader.style.display = 'none';
-                
+            .then(data => {           
                 if (data.success) {
                     // Successful sign-in
                     if (loader) loader.style.display = 'flex';
