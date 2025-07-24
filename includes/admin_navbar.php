@@ -255,6 +255,15 @@ if (mysqli_num_rows($query) > 0) {
                                 </div>
                                 <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allSupplierCount ?></p>
                             </a>
+                            <!-- Add this new link for Dining Menu Management -->
+                            <a href="../Admin/add_menu.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
+                                <div class="flex items-center gap-1">
+                                    <i class="ri-restaurant-line text-xl"></i>
+                                    <span class="font-semibold text-sm">Dining Menu</span>
+                                </div>
+                                <!-- You can add a count badge here if needed -->
+                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5">0</p>
+                            </a>
                             <a href="../Admin/add_product.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">
                                     <i class="ri-suitcase-line text-xl"></i>
