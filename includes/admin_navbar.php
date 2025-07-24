@@ -159,49 +159,50 @@ if (mysqli_num_rows($query) > 0) {
 <!-- Sidebar -->
 <nav id="sidebar" class="adminNav overflow-y-auto fixed top-0 left-0 h-full w-full sm:w-64 md:w-[250px] p-4 flex flex-col justify-between bg-white shadow-md transform -translate-x-full md:translate-x-0 transition-all duration-300 z-40">
     <div>
-        <!-- Logo -->
-        <div class="flex items-end gap-1 select-none">
-            <a href="../Admin/admin_dashboard.php">
-                <img src="../UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-28 select-none" alt="Logo">
-            </a>
-            <p class="text-amber-500 text-sm font-semibold">ADMIN</p>
+        <div class="flex items-start justify-between">
+            <!-- Logo -->
+            <div class="flex items-end gap-1 select-none">
+                <a href="../Admin/admin_dashboard.php">
+                    <img src="../UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-28 select-none" alt="Logo">
+                </a>
+                <p class="text-amber-500 text-sm font-semibold">ADMIN</p>
+            </div>
+            <div class="relative select-none cursor-pointer">
+                <i class="ri-notification-3-line text-xl"></i>
+                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">3</span>
+            </div>
+
         </div>
 
         <!-- Profile Menu -->
         <div class="divide-y-2 divide-slate-100">
             <div x-data="{ expanded: false, height: 0 }" class="flex flex-col">
-                <div class="flex items-start justify-between">
-                    <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex justify-between items-center p-1 rounded flex-1">
-                        <div class="flex items-center gap-2">
-                            <?php
-                            if ($admin_profile == null) {
-                            ?>
-                                <div class="w-14 h-14 rounded-full my-3 p-1 bg-[<?php echo $profile_color ?>] text-white relative select-none">
-                                    <p class="w-full h-full flex items-center justify-center text-lg font-semibold"><?php echo substr($admin_username, 0, 1); ?></p>
-                                    <div class="w-3 h-3 bg-green-500 rounded-full absolute bottom-1 right-1"></div>
-                                </div>
-                            <?php
-                            } else { ?>
-                                <div class="w-14 h-14 rounded-full my-3 p-1 bg-slate-200 relative select-none">
-                                    <img class="w-full h-full object-cover rounded-full" src="<?php echo $adminprofile ?>" alt="Profile">
-                                    <div class="w-3 h-3 bg-green-500 rounded-full absolute bottom-1 right-1"></div>
-                                </div>
-                            <?php
-                            }
-                            ?>
-                            <div class="text-start">
-                                <p class="font-semibold" id="adminUsername"><?php echo $admin_username ?></p>
-                                <p class="text-xs text-gray-400">Welcome</p>
-                                <p class="text-xs text-gray-700">(<?php echo $admin_role ?>)</p>
+                <button @click="expanded = !expanded; height = expanded ? $refs.dropdown.scrollHeight : 0" class="flex justify-between items-center p-1 rounded flex-1">
+                    <div class="flex items-center gap-2">
+                        <?php
+                        if ($admin_profile == null) {
+                        ?>
+                            <div class="w-14 h-14 rounded-full my-3 p-1 bg-[<?php echo $profile_color ?>] text-white relative select-none">
+                                <p class="w-full h-full flex items-center justify-center text-lg font-semibold"><?php echo substr($admin_username, 0, 1); ?></p>
+                                <div class="w-3 h-3 bg-green-500 rounded-full absolute bottom-1 right-1"></div>
                             </div>
+                        <?php
+                        } else { ?>
+                            <div class="w-14 h-14 rounded-full my-3 p-1 bg-slate-200 relative select-none">
+                                <img class="w-full h-full object-cover rounded-full" src="<?php echo $adminprofile ?>" alt="Profile">
+                                <div class="w-3 h-3 bg-green-500 rounded-full absolute bottom-1 right-1"></div>
+                            </div>
+                        <?php
+                        }
+                        ?>
+                        <div class="text-start">
+                            <p class="font-semibold" id="adminUsername"><?php echo $admin_username ?></p>
+                            <p class="text-xs text-gray-400">Welcome</p>
+                            <p class="text-xs text-gray-700">(<?php echo $admin_role ?>)</p>
                         </div>
-                        <i :class="expanded ? 'rotate-180' : 'rotate-0'" class="ri-arrow-up-s-line text-xl transition-transform duration-300"></i>
-                    </button>
-                    <div class="relative select-none cursor-pointer">
-                        <i class="ri-notification-3-line text-xl"></i>
-                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">3</span>
                     </div>
-                </div>
+                    <i :class="expanded ? 'rotate-180' : 'rotate-0'" class="ri-arrow-up-s-line text-xl transition-transform duration-300"></i>
+                </button>
 
                 <div x-ref="dropdown"
                     :style="{ height: expanded ? height + 'px' : '0px' }"
@@ -253,6 +254,15 @@ if (mysqli_num_rows($query) > 0) {
                                     <span class="font-semibold text-sm">Add supplier</span>
                                 </div>
                                 <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allSupplierCount ?></p>
+                            </a>
+                            <!-- Add this new link for Dining Menu Management -->
+                            <a href="../Admin/add_menu.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
+                                <div class="flex items-center gap-1">
+                                    <i class="ri-restaurant-line text-xl"></i>
+                                    <span class="font-semibold text-sm">Dining Menu</span>
+                                </div>
+                                <!-- You can add a count badge here if needed -->
+                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5">0</p>
                             </a>
                             <a href="../Admin/add_product.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">
@@ -405,7 +415,7 @@ if (mysqli_num_rows($query) > 0) {
             <i class="ri-logout-circle-line text-xl"></i>
             <p class="font-semibold text-sm">Logout</p>
         </div>
-        <p class="text-xs text-gray-400">© <span id="year"></span> OpulenceHaven.com™. All rights reserved.</p>
+        <p class="text-xs text-gray-400">© 2025 <span id="year"></span> OpulenceHaven.com™. All rights reserved.</p>
     </div>
 </nav>
 
