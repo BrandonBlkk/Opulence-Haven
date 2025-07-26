@@ -1,6 +1,6 @@
 <?php
 // Set the number of rows per page
-$rowsPerPage = 10;
+$rowsPerPage = 1;
 
 // Get the current page number from the URL or default to 1
 $currentPage = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -15,6 +15,7 @@ $roomTypeCurrentPage = isset($_GET['roomtypepage']) && is_numeric($_GET['roomtyp
 $facilityTypeCurrentPage = isset($_GET['facilitytypepage']) && is_numeric($_GET['facilitytypepage']) ? (int)$_GET['facilitytypepage'] : 1;
 // $facilityCurrentPage = isset($_GET['facilitypage']) && is_numeric($_GET['facilitypage']) ? (int)$_GET['facilitypage'] : 1;
 $ruleCurrentPage = isset($_GET['rulepage']) && is_numeric($_GET['rulepage']) ? (int)$_GET['rulepage'] : 1;
+$menuCurrentPage = isset($_GET['menupage']) && is_numeric($_GET['menupage']) ? (int)$_GET['menupage'] : 1;
 $userCurrentPage = isset($_GET['userpage']) && is_numeric($_GET['userpage']) ? (int)$_GET['userpage'] : 1;
 $reservationCurrentPage  = isset($_GET['bookingpage']) && is_numeric($_GET['bookingpage']) ? (int)$_GET['bookingpage'] : 1;
 
@@ -29,9 +30,9 @@ $supplierOffset = ($supplierCurrentPage - 1) * $rowsPerPage;
 $roomOffset = ($roomCurrentPage - 1) * $rowsPerPage;
 $roomTypeOffset = ($roomTypeCurrentPage - 1) * $rowsPerPage;
 $facilityTypeOffset = ($facilityTypeCurrentPage - 1) * $rowsPerPage;
-// $facilityOffset = ($facilityCurrentPage - 1) * $rowsPerPage;
 $facilityOffset = ($currentPage - 1) * $rowsPerPage;
 $ruleOffset = ($ruleCurrentPage - 1) * $rowsPerPage;
+$menuOffset = ($menuCurrentPage - 1) * $rowsPerPage;
 $userOffset = ($userCurrentPage - 1) * $rowsPerPage;
 $reservationOffset = ($reservationCurrentPage  - 1) * $rowsPerPage;
 
@@ -45,6 +46,7 @@ $searchRoomQuery = isset($_GET['room_search']) ? mysqli_real_escape_string($conn
 $searchRuleQuery = isset($_GET['rule_search']) ? mysqli_real_escape_string($connect, $_GET['rule_search']) : '';
 $searchFacilityTypeQuery = isset($_GET['facilitytype_search']) ? mysqli_real_escape_string($connect, $_GET['facilitytype_search']) : '';
 $searchFacilityQuery = isset($_GET['facility_search']) ? mysqli_real_escape_string($connect, $_GET['facility_search']) : '';
+$searchMenuQuery = isset($_GET['menu_search']) ? mysqli_real_escape_string($connect, $_GET['menu_search']) : '';
 $searchBookingQuery = isset($_GET['booking_search']) ? mysqli_real_escape_string($connect, $_GET['booking_search']) : '';
 $searchUserQuery = isset($_GET['user_search']) ? mysqli_real_escape_string($connect, $_GET['user_search']) : '';
 
@@ -322,3 +324,21 @@ $bookingCount = $bookingResult->fetch_assoc()['count'];
 
 // Calculate the total number of pages
 $totalReservationPages = ceil($bookingCount / $rowsPerPage);
+
+// Construct the menu count query based on search
+if ($filterStatus !== 'random' && !empty($searchMenuQuery)) {
+    $menuQuery = "SELECT COUNT(*) as count FROM menutb WHERE Status = '$filterStatus' AND (MenuName LIKE '%$searchMenuQuery%')";
+} elseif ($filterStatus !== 'random') {
+    $menuQuery = "SELECT COUNT(*) as count FROM menutb WHERE Status = '$filterStatus'";
+} elseif (!empty($searchMenuQuery)) {
+    $menuQuery = "SELECT COUNT(*) as count FROM menutb WHERE MenuName LIKE '%$searchMenuQuery%'";
+} else {
+    $menuQuery = "SELECT COUNT(*) as count FROM menutb";
+}
+
+// Execute the count query
+$menuResult = $connect->query($menuQuery);
+$menuCount = $menuResult->fetch_assoc()['count'];
+
+// Calculate the total number of pages
+$totalMenuPages = ceil($menuCount / $rowsPerPage);

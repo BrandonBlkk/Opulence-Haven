@@ -3327,6 +3327,270 @@ document.addEventListener("DOMContentLoaded", () => {
     updateProductNames();
 });
 
+// Menu Form and Modals
+document.addEventListener("DOMContentLoaded", () => {
+    // Add Menu Modal Elements
+    const addMenuModal = document.getElementById('addMenuModal');
+    const menuForm = document.getElementById("menuForm");
+    const addMenuBtn = document.getElementById('addMenuBtn');
+    const addMenuCancelBtn = document.getElementById('addMenuCancelBtn');
+    const darkOverlay2 = document.getElementById('darkOverlay2'); 
+
+    // Update Menu Modal Elements
+    const updateMenuModal = document.getElementById('updateMenuModal');
+    const updateMenuModalCancelBtn = document.getElementById('updateMenuModalCancelBtn');
+    const updateMenuForm = document.getElementById('updateMenuForm');
+
+    // Delete Menu Modal Elements
+    const menuConfirmDeleteModal = document.getElementById('menuConfirmDeleteModal');
+    const menuCancelDeleteBtn = document.getElementById('menuCancelDeleteBtn');
+
+    // Get current pagination and search parameters from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentPage = urlParams.get('menupage') || 1;
+    const currentSearch = urlParams.get('menu_search') || '';
+
+    // Function to close the add modal
+    const closeModal = () => {
+        addMenuModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+        darkOverlay2.classList.add('opacity-0', 'invisible');
+        darkOverlay2.classList.remove('opacity-100');
+        menuForm.reset();
+    };
+
+    // Function to fetch and render menus with current pagination
+    const fetchAndRenderMenu = () => {
+        let fetchUrl = `../Admin/add_menu.php?menupage=${currentPage}`;
+        
+        if (currentSearch) {
+            fetchUrl += `&menu_search=${encodeURIComponent(currentSearch)}`;
+        }
+
+        fetch(fetchUrl)
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTableBody = doc.querySelector('tbody');
+                const newPagination = doc.querySelector('.flex.justify-center.items-center.mt-1');
+                
+                if (newTableBody) {
+                    const currentTableBody = document.querySelector('tbody');
+                    currentTableBody.innerHTML = newTableBody.innerHTML;
+                    initializeExistingRows();
+                }
+
+                if (newPagination) {
+                    const currentPagination = document.querySelector('.flex.justify-center.items-center.mt-1');
+                    if (currentPagination) {
+                        currentPagination.innerHTML = newPagination.innerHTML;
+                    } else {
+                        const tableContainer = document.querySelector('table').parentNode;
+                        tableContainer.appendChild(newPagination);
+                    }
+                }
+            })
+            .catch(error => console.error('Error fetching menus:', error));
+    };
+
+    // Function to attach event listeners to a row
+    const attachEventListenersToRow = (row) => {
+        // Details button
+        const detailsBtn = row.querySelector('.details-btn');
+        if (detailsBtn) {
+            detailsBtn.addEventListener('click', function() {
+                const menuId = this.getAttribute('data-menu-id');
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+
+                fetch(`../Admin/add_menu.php?action=getMenuDetails&id=${menuId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('updateMenuID').value = menuId;
+                            document.getElementById('updateMenuNameInput').value = data.menu.MenuName;
+                            document.getElementById('updateMenuDescriptionInput').value = data.menu.Description;
+                            document.getElementById('updateStartTime').value = data.menu.StartTime;
+                            document.getElementById('updateEndTime').value = data.menu.EndTime;
+                            document.getElementById('updateStatus').value = data.menu.Status;
+                            updateMenuModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        } else {
+                            console.error('Failed to load menu details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+            });
+        }
+
+        // Delete button
+        const deleteBtn = row.querySelector('.delete-btn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function() {
+                const menuId = this.getAttribute('data-menu-id');
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+
+                document.getElementById('deleteMenuID').value = menuId;
+                document.getElementById('menuDeleteName').textContent = this.closest('tr').querySelector('td:nth-child(2)').textContent;
+                menuConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+            });
+        }
+    };
+
+    // Initialize event listeners for existing rows
+    const initializeExistingRows = () => {
+        const rows = document.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            attachEventListenersToRow(row);
+        });
+    };
+
+    // Add Menu Modal
+    if (addMenuModal && addMenuBtn && addMenuCancelBtn) {
+        addMenuBtn.addEventListener('click', () => {
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
+            addMenuModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+        });
+
+        addMenuCancelBtn.addEventListener('click', () => {
+            closeModal();
+        });
+    }
+
+    // Menu Form Submission
+    if (menuForm) {
+        menuForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(menuForm);
+            formData.append('addmenu', true);
+
+            fetch('../Admin/add_menu.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return res.json();
+            })
+            .then(data => {
+                showAlert(data.message, !data.success);
+
+                if (data.success) {
+                    menuForm.reset();
+                    closeModal();
+                    fetchAndRenderMenu();
+                }
+            })
+            .catch(err => {
+                showAlert("Something went wrong. Please try again.", true);
+                console.error(err);
+            });
+        });
+    }
+
+    // Update Menu Modal 
+    if (updateMenuModal && updateMenuModalCancelBtn) {
+        updateMenuModalCancelBtn.addEventListener('click', () => {
+            updateMenuModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+            updateMenuForm.reset();
+        });
+
+        if (updateMenuForm) {
+            updateMenuForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+
+                const formData = new FormData(updateMenuForm);
+                formData.append('editmenu', true);
+
+                fetch('../Admin/add_menu.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    showAlert(data.message, !data.success);
+
+                    if (data.success) {
+                        updateMenuForm.reset();
+                        updateMenuModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                        darkOverlay2.classList.add('opacity-0', 'invisible');
+                        darkOverlay2.classList.remove('opacity-100');
+                        fetchAndRenderMenu();
+                    }
+                })
+                .catch(err => {
+                    showAlert("Something went wrong. Please try again.", true);
+                    console.error(err);
+                });
+            });
+        }
+    }
+
+    // Delete Menu Modal
+    if (menuConfirmDeleteModal && menuCancelDeleteBtn) {
+        menuCancelDeleteBtn.addEventListener('click', () => {
+            menuConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        const menuDeleteForm = document.getElementById('menuDeleteForm');
+        if (menuDeleteForm) {
+            menuDeleteForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(menuDeleteForm);
+                formData.append('deletemenu', true);
+
+                fetch('../Admin/add_menu.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        menuConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                        darkOverlay2.classList.add('opacity-0', 'invisible');
+                        darkOverlay2.classList.remove('opacity-100');
+                        fetchAndRenderMenu();
+                        showAlert('The menu has been successfully deleted.');
+                    } else {
+                        showAlert(data.message || 'Failed to delete menu.', true);
+                    }
+                })
+                .catch((err) => {
+                    console.error('Error:', err);
+                    showAlert('An error occurred. Please try again.', true);
+                });
+            });
+        }
+    }
+
+    // Initialize existing rows on page load
+    initializeExistingRows();
+});
+
 // Admin Delete Modal
 document.addEventListener('DOMContentLoaded', () => {
     const adminConfirmDeleteModal = document.getElementById('adminConfirmDeleteModal');
@@ -4413,6 +4677,13 @@ const validateChangePasswordForm = () => {
     return isCurrentPasswordValid && isNewPasswordValid && isConfirmPasswordValid;
 }
 
+const validateMenuForm = () => {
+    const isMenuNameValid = validateMenuName();
+    const isMenuDescriptionValid = validateMenuDescription();
+
+    return isMenuNameValid && isMenuDescriptionValid;
+}
+
 // Individual validation functions
 const validateProductType = () => {
     return validateField(
@@ -5060,6 +5331,38 @@ passwordInputs.forEach(({ input, toggle }) => {
         });
     }
 });
+
+const validateMenuName = () => {
+    return validateField(
+        "menuNameInput",
+        "menuNameError",
+        (input) => (!input ? "Menu is required." : null)
+    );
+}
+
+const validateUpdateMenuName = () => {
+    return validateField(
+        "updateMenuNameInput",
+        "updateMenuNameError",
+        (input) => (!input ? "Menu is required." : null)
+    );
+}
+
+const validateMenuDescription = () => {
+    return validateField(
+        "menuDescriptionInput",
+        "menuDescriptionError",
+        (input) => (!input ? "Description is required." : null)
+    );
+}
+
+const validateUpdateMenuDescription = () => {
+    return validateField(
+        "updateMenuDescriptionInput",
+        "updateMenuDescriptionError",
+        (input) => (!input ? "Description is required." : null)
+    );
+}
 
 
 
