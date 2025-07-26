@@ -17,33 +17,41 @@ $response = ['success' => false, 'message' => '', 'generatedId' => $menuID];
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addmenu'])) {
     $menuName = mysqli_real_escape_string($connect, $_POST['menuname']);
     $description = mysqli_real_escape_string($connect, $_POST['description']);
-    $guestCapacity = mysqli_real_escape_string($connect, $_POST['guestcapacity']);
     $startTime = mysqli_real_escape_string($connect, $_POST['starttime']);
     $endTime = mysqli_real_escape_string($connect, $_POST['endtime']);
     $status = mysqli_real_escape_string($connect, $_POST['status']);
 
     // Check if the menu already exists using prepared statement
-    $checkQuery = "SELECT MenuName FROM menutb WHERE MenuName = '$producttype'";
-    $count = $connect->query($checkQuery)->num_rows;
+    $checkQuery = "SELECT MenuName FROM menutb WHERE MenuName = ?";
+    $checkStmt = $connect->prepare($checkQuery);
+    $checkStmt->bind_param("s", $menuName);
+    $checkStmt->execute();
+    $checkStmt->store_result();
+    $count = $checkStmt->num_rows;
+    $checkStmt->close();
 
     if ($count > 0) {
         $response['message'] = 'Menu you added is already existed.';
     } else {
-        $addMenuQuery = "INSERT INTO menutb (MenuID, MenuName, Description, GuestCapacity, Status, StartTime, EndTime) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $addMenuQuery = "INSERT INTO menutb (MenuID, MenuName, Description, StartTime, EndTime, Status) 
+                 VALUES (?, ?, ?, ?, ?, ?)";
 
         $stmt = $connect->prepare($addMenuQuery);
-        $stmt->bind_param("sssisss", $menuID, $menuName, $description, $guestCapacity, $status, $startTime, $endTime);
-
-        if ($stmt->execute()) {
-            $response['success'] = true;
-            $response['message'] = 'A new menu has been successfully added.';
-            $response['generatedId'] = $menuID; // Keep the generated ID
+        if ($stmt === false) {
+            $response['message'] = "Prepare failed: " . htmlspecialchars($connect->error);
         } else {
-            $response['message'] = "Failed to add menu. Please try again.";
-        }
+            // Corrected bind_param - removed extra parameter (was 7?, now 6)
+            $stmt->bind_param("ssssss", $menuID, $menuName, $description, $startTime, $endTime, $status);
 
-        $stmt->close();
+            if ($stmt->execute()) {
+                $response['success'] = true;
+                $response['message'] = 'A new menu has been successfully added.';
+                $response['generatedId'] = $menuID;
+            } else {
+                $response['message'] = "Failed to add menu. Please try again. Error: " . htmlspecialchars($stmt->error);
+            }
+            $stmt->close();
+        }
     }
 
     header('Content-Type: application/json');
@@ -86,24 +94,83 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     exit;
 }
 
-// Update Product Type
-if (isset($_POST['editproducttype'])) {
-    $productTypeId = mysqli_real_escape_string($connect, $_POST['producttypeid']);
-    $updatedProductType = mysqli_real_escape_string($connect, $_POST['updateproducttype']);
-    $updatedDescription = mysqli_real_escape_string($connect, $_POST['updatedescription']);
+// // Update Menu
+// if (isset($_POST['editmenu'])) {
+//     $productTypeId = mysqli_real_escape_string($connect, $_POST['producttypeid']);
+//     $updatedProductType = mysqli_real_escape_string($connect, $_POST['updateproducttype']);
+//     $updatedDescription = mysqli_real_escape_string($connect, $_POST['updatedescription']);
 
-    $response = ['success' => false];
+//     $response = ['success' => false];
 
-    $updateQuery = "UPDATE producttypetb SET ProductType = '$updatedProductType', Description = '$updatedDescription' WHERE ProductTypeID = '$productTypeId'";
+//     $updateQuery = "UPDATE producttypetb SET ProductType = '$updatedProductType', Description = '$updatedDescription' WHERE ProductTypeID = '$productTypeId'";
 
-    if ($connect->query($updateQuery)) {
-        $response['success'] = true;
-        $response['message'] = 'The product type has been successfully updated.';
-        $response['generatedId'] = $productTypeId;
-        $response['updatedProductType'] = $updatedProductType;
-        $response['updatedDescription'] = $updatedDescription;
-    } else {
-        $response['message'] = "Failed to update product type. Please try again.";
+//     if ($connect->query($updateQuery)) {
+//         $response['success'] = true;
+//         $response['message'] = 'The product type has been successfully updated.';
+//         $response['generatedId'] = $productTypeId;
+//         $response['updatedProductType'] = $updatedProductType;
+//         $response['updatedDescription'] = $updatedDescription;
+//     } else {
+//         $response['message'] = "Failed to update product type. Please try again.";
+//     }
+
+//     header('Content-Type: application/json');
+//     echo json_encode($response);
+//     exit();
+// }
+
+// Update Menu
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['editmenu'])) {
+    $response = ['success' => false, 'message' => '', 'generatedId' => ''];
+
+    // Get and sanitize input data
+    $menuId = mysqli_real_escape_string($connect, $_POST['menuid']);
+    $menuName = mysqli_real_escape_string($connect, $_POST['updatemenuname']);
+    $description = mysqli_real_escape_string($connect, $_POST['updatedescription']);
+    $startTime = mysqli_real_escape_string($connect, $_POST['updatestarttime']);
+    $endTime = mysqli_real_escape_string($connect, $_POST['updateendtime']);
+    $status = mysqli_real_escape_string($connect, $_POST['status']);
+
+    try {
+        // Prepare update statement
+        $updateQuery = "UPDATE menutb SET 
+                        MenuName = ?,
+                        Description = ?,
+                        StartTime = ?,
+                        EndTime = ?,
+                        Status = ?
+                        WHERE MenuID = ?";
+
+        $stmt = $connect->prepare($updateQuery);
+
+        if ($stmt === false) {
+            throw new Exception('Prepare failed: ' . htmlspecialchars($connect->error));
+        }
+
+        // Bind parameters and execute
+        $stmt->bind_param(
+            "ssssss",
+            $menuName,
+            $description,
+            $startTime,
+            $endTime,
+            $status,
+            $menuId
+        );
+
+        if ($stmt->execute()) {
+            $response['success'] = true;
+            $response['message'] = 'The menu has been successfully updated.';
+            $response['generatedId'] = $menuId;
+            $response['updatedMenuName'] = $menuName;
+            $response['updatedDescription'] = $description;
+        } else {
+            $response['message'] = "Failed to update menu. Please try again.";
+        }
+
+        $stmt->close();
+    } catch (Exception $e) {
+        $response['message'] = "Error: " . $e->getMessage();
     }
 
     header('Content-Type: application/json');
@@ -111,27 +178,31 @@ if (isset($_POST['editproducttype'])) {
     exit();
 }
 
-// Delete Product Type
-if (isset($_POST['deleteproducttype'])) {
-    $menuId = mysqli_real_escape_string($connect, $_POST['producttypeid']);
+// Delete Menu (keeping original parameter name deleteproducttype)
+if (isset($_POST['deletemenu'])) {
+    $menuId = mysqli_real_escape_string($connect, $_POST['menuid']);
 
     // Build query
     $deleteQuery = "DELETE FROM menutb WHERE MenuID = ?";
 
     // Prepare and execute
     $stmt = $connect->prepare($deleteQuery);
-    $stmt->bind_param("s", $menuId);
-    $success = $stmt->execute();
-    $stmt->close();
 
-    // Set response
-    if ($success) {
-        $response['success'] = true;
-        $response['message'] = 'Menu deleted successfully';
-        $response['generatedId'] = $menuId;
+    if ($stmt === false) {
+        $response['message'] = 'Prepare failed: ' . htmlspecialchars($connect->error);
     } else {
-        $response['success'] = false;
-        $response['message'] = 'Failed to delete menu. It may not exist.';
+        $stmt->bind_param("s", $menuId);
+        $success = $stmt->execute();
+        $stmt->close();
+
+        // Set response
+        if ($success) {
+            $response['success'] = true;
+            $response['message'] = 'Menu deleted successfully';
+            $response['generatedId'] = $menuId;
+        } else {
+            $response['message'] = 'Failed to delete menu. It may not exist.';
+        }
     }
 
     header('Content-Type: application/json');
@@ -164,7 +235,7 @@ if (isset($_POST['deleteproducttype'])) {
                     <h2 class="text-xl text-gray-700 font-bold mb-4">Add Dining Menu Overview</h2>
                     <p>Add information about menu to categorize items, track stock levels, and manage product details for efficient organization.</p>
                 </div>
-                <button id="addProductTypeBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
+                <button id="addMenuBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
                     <i class="ri-add-line text-xl"></i>
                 </button>
             </div>
@@ -173,7 +244,7 @@ if (isset($_POST['deleteproducttype'])) {
             <div class="overflow-x-auto">
                 <!-- Product Type Search and Filter -->
                 <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
-                    <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Menus <span class="text-gray-400 text-sm ml-2"><?php echo $productTypeCount ?></span></h1>
+                    <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Menus <span class="text-gray-400 text-sm ml-2"><?php echo $menuCount ?></span></h1>
                     <div class="flex items-center w-full">
                         <input type="text" name="menu_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full outline-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" placeholder="Search for menu..." value="<?php echo isset($_GET['menu_search']) ? htmlspecialchars($_GET['menu_search']) : ''; ?>">
                     </div>
@@ -181,7 +252,7 @@ if (isset($_POST['deleteproducttype'])) {
 
                 <!-- Product Type Table -->
                 <div class="tableScrollBar overflow-y-auto max-h-[495px]">
-                    <div id="productTypeResults">
+                    <div id="menuResults">
                         <?php include '../includes/admin_table_components/menu_results.php'; ?>
                     </div>
                 </div>
@@ -193,41 +264,63 @@ if (isset($_POST['deleteproducttype'])) {
             </div>
         </div>
 
-        <!-- Product Type Details Modal -->
-        <div id="updateProductTypeModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+        <!-- Menu Details Modal -->
+        <div id="updateMenuModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center w-full sm:max-w-[500px]">
                 <h2 class="text-xl text-start text-gray-700 font-bold">Edit Menu</h2>
-                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="updateProductTypeForm">
-                    <input type="hidden" name="producttypeid" id="updateProductTypeID">
-                    <!-- Product Type Input -->
+                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="updateMenuForm">
+                    <input type="hidden" name="menuid" id="updateMenuID">
+                    <!-- Menu Input -->
                     <div class="relative w-full">
-                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">Menu Information</label>
+                        <label class="block text-start text-sm font-medium text-gray-700 mb-1">Menu Information</label>
                         <input
-                            id="updateProductTypeInput"
+                            id="updateMenuNameInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                             type="text"
-                            name="updateproducttype"
-                            placeholder="Enter product type">
-                        <small id="updateProductTypeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            name="updatemenuname"
+                            placeholder="Enter menu">
+                        <small id="updateMenuNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
+
                     <!-- Description Input -->
-                    <div class="relative w-full">
-                        <label class="block text-sm text-start font-medium text-gray-700 mb-1">Description</label>
+                    <div class="relative">
                         <textarea
-                            id="updateProductTypeDescription"
+                            id="updateMenuDescriptionInput"
                             class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            type="text"
                             name="updatedescription"
-                            placeholder="Enter product type description"></textarea>
-                        <small id="updateProductTypeDescriptionError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            placeholder="Enter menu description"></textarea>
+                        <small id="updateMenuDescriptionError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
+                        <div class="flex flex-1 flex-col gap-2">
+                            <label for="time" class="block text-start text-sm font-medium text-gray-700">Start Time</label>
+                            <input type="time" id="updateStartTime" name="updatestarttime" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" required>
+                        </div>
+
+                        <div class="flex flex-1 flex-col gap-2">
+                            <label for="time" class="block text-start text-sm font-medium text-gray-700">End Time</label>
+                            <input type="time" id="updateEndTime" name="updateendtime" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" required>
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="relative">
+                        <select name="status" id="updateStatus" class="p-2 w-full border rounded outline-none" required>
+                            <option value="" disabled selected>Status</option>
+                            <option value="available">Available</option>
+                            <option value="unavailable">Unavailable</option>
+                        </select>
                     </div>
                     <!-- Submit Button -->
                     <div class="flex justify-end gap-4 select-none">
-                        <div id="updateProductTypeModalCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm">
+                        <div id="updateMenuModalCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm">
                             Cancel
                         </div>
                         <button
                             type="submit"
-                            name="editproducttype"
+                            name="editmenu"
                             class="bg-amber-500 text-white px-4 py-2 select-none hover:bg-amber-600 rounded-sm">
                             Save
                         </button>
@@ -237,21 +330,21 @@ if (isset($_POST['deleteproducttype'])) {
         </div>
 
         <!-- Product Type Delete Modal -->
-        <div id="productTypeConfirmDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
-            <form class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="productTypeDeleteForm">
+        <div id="menuConfirmDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+            <form class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="menuDeleteForm">
                 <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Menu Deletion</h2>
-                <p class="text-slate-600 mb-2">You are about to delete the following Menu: <span id="productTypeDeleteName" class="font-semibold"></span></p>
+                <p class="text-slate-600 mb-2">You are about to delete the following Menu: <span id="menuDeleteName" class="font-semibold"></span></p>
                 <p class="text-sm text-gray-500 mb-4">
                     Deleting this Menu will permanently remove it from the system, including all associated data.
                 </p>
-                <input type="hidden" name="producttypeid" id="deleteProductTypeID">
+                <input type="hidden" name="menuid" id="deleteMenuID">
                 <div class="flex justify-end gap-4 select-none">
-                    <div id="productTypeCancelDeleteBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm">
+                    <div id="menuCancelDeleteBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm">
                         Cancel
                     </div>
                     <button
                         type="submit"
-                        name="deleteproducttype"
+                        name="deletemenu"
                         class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-sm">
                         Delete
                     </button>
@@ -260,11 +353,11 @@ if (isset($_POST['deleteproducttype'])) {
         </div>
 
         <!-- Add Menu Form -->
-        <div id="addProductTypeModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+        <div id="addMenuModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white w-full md:w-1/3 p-6 rounded-md shadow-md ">
                 <h2 class="text-xl text-gray-700 font-bold mb-4">Add New Menu</h2>
-                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="productTypeForm">
-                    <!-- Product Type Input -->
+                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="menuForm">
+                    <!-- Menu Input -->
                     <div class="relative w-full">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Menu Information</label>
                         <input
@@ -285,17 +378,6 @@ if (isset($_POST['deleteproducttype'])) {
                             name="description"
                             placeholder="Enter menu description"></textarea>
                         <small id="menuDescriptionError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                    </div>
-
-                    <!-- Description Input -->
-                    <div class="relative">
-                        <input
-                            id="menuGuestCapacityInput"
-                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                            type="number"
-                            name="guestcapacity"
-                            placeholder="Enter menu description"></input>
-                        <small id="menuGuestCapacityError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
@@ -320,9 +402,10 @@ if (isset($_POST['deleteproducttype'])) {
                     </div>
 
                     <div class="flex justify-end gap-4 select-none">
-                        <div id="addProductTypeCancelBtn" class="px-4 py-2 text-amber-500 font-semibold hover:text-amber-600">
+                        <div id="addMenuCancelBtn" class="px-4 py-2 text-amber-500 font-semibold hover:text-amber-600">
                             Cancel
                         </div>
+
                         <!-- Submit Button -->
                         <button
                             type="submit"
