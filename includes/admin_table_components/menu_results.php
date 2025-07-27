@@ -86,10 +86,12 @@ if (mysqli_num_rows($menuSelectQuery) > 0) {
     function loadMenuPage(page) {
         const urlParams = new URLSearchParams(window.location.search);
         const searchQuery = urlParams.get('menu_search') || '';
+        const sortType = urlParams.get('sort') || 'random';
 
         // Update URL parameters
         urlParams.set('menupage', page);
         if (searchQuery) urlParams.set('menu_search', searchQuery);
+        if (sortType !== 'random') urlParams.set('sort', sortType);
 
         const xhr = new XMLHttpRequest();
         xhr.open('GET', `../includes/admin_table_components/menu_results.php?${urlParams.toString()}`, true);
@@ -118,8 +120,9 @@ if (mysqli_num_rows($menuSelectQuery) > 0) {
     }
 
     // Function to handle search
-    function handleSearch() {
+    function handleSearchFilter() {
         const searchInput = document.querySelector('input[name="menu_search"]');
+        const filterSelect = document.querySelector('select[name="sort"]');
 
         // Reset to page 1 when searching
         loadMenuPage(1);
@@ -128,83 +131,96 @@ if (mysqli_num_rows($menuSelectQuery) > 0) {
     // Initialize event listeners for search
     document.addEventListener('DOMContentLoaded', function() {
         const searchInput = document.querySelector('input[name="menu_search"]');
+        const filterSelect = document.querySelector('select[name="sort"]');
 
         if (searchInput) {
             searchInput.addEventListener('input', function() {
                 const urlParams = new URLSearchParams(window.location.search);
                 urlParams.set('menu_search', this.value);
                 window.history.pushState({}, '', `?${urlParams.toString()}`);
-                handleSearch();
+                handleSearchFilter();
+            });
+        }
+
+        if (filterSelect) {
+            filterSelect.addEventListener('change', function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                urlParams.set('sort', this.value);
+                window.history.pushState({}, '', `?${urlParams.toString()}`);
+                handleSearchFilter();
             });
         }
 
         initializeMenuActionButtons();
     });
 
-    // Function to initialize action buttons for facility types
+    // Function to initialize action buttons for menu
     function initializeMenuActionButtons() {
-        // Function to attach event listeners to a row
-        const attachEventListenersToRow = (row) => {
-            // Details button
-            const detailsBtn = row.querySelector('.details-btn');
-            if (detailsBtn) {
-                detailsBtn.addEventListener('click', function() {
-                    const menuId = this.getAttribute('data-menu-id');
-                    darkOverlay2.classList.remove('opacity-0', 'invisible');
-                    darkOverlay2.classList.add('opacity-100');
+        // Details buttons
+        document.querySelectorAll('.details-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const menuId = this.getAttribute('data-menu-id');
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
 
-                    fetch(`../Admin/add_menu.php?action=getMenuDetails&id=${menuId}`)
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            if (data.success) {
-                                document.getElementById('updateMenuID').value = menuId;
-                                document.getElementById('updateMenuNameInput').value = data.menu.MenuName;
-                                document.getElementById('updateMenuDescriptionInput').value = data.menu.Description;
-                                document.getElementById('updateStartTimeInput').value = data.menu.StartTime;
-                                document.getElementById('updateEndTimeInput').value = data.menu.EndTime;
-                                document.getElementById('updateStatusSelect').value = data.menu.Status;
-                                updateMenuModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-                            } else {
-                                console.error('Failed to load menu details');
-                            }
-                        })
-                        .catch(error => console.error('Fetch error:', error));
-                });
-            }
+                fetch(`../Admin/add_menu.php?action=getMenuDetails&id=${menuId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('updateMenuID').value = menuId;
+                            document.getElementById('updateMenuNameInput').value = data.menu.MenuName;
+                            document.getElementById('updateMenuDescriptionInput').value = data.menu.Description;
+                            document.getElementById('updateStartTimeInput').value = data.menu.StartTime;
+                            document.getElementById('updateEndTimeInput').value = data.menu.EndTime;
+                            document.getElementById('updateStatusSelect').value = data.menu.Status;
+                            updateMenuModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        } else {
+                            console.error('Failed to load menu details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+            });
+        });
 
-            // Delete button
-            const deleteBtn = row.querySelector('.delete-btn');
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', function() {
-                    const menuId = this.getAttribute('data-menu-id');
-                    darkOverlay2.classList.remove('opacity-0', 'invisible');
-                    darkOverlay2.classList.add('opacity-100');
+        // Delete buttons
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const menuId = this.getAttribute('data-menu-id');
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
 
-                    document.getElementById('deleteMenuID').value = menuId;
-                    document.getElementById('menuDeleteName').textContent = this.closest('tr').querySelector('td:nth-child(2)').textContent;
-                    menuConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-                });
-            }
-        };
-
-        // Initialize all existing rows
-        document.querySelectorAll('tbody tr').forEach(row => {
-            attachEventListenersToRow(row);
+                fetch(`../Admin/add_menu.php?action=getMenuDetails&id=${menuId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('deleteMenuID').value = menuId;
+                            document.getElementById('menuDeleteName').textContent = data.menu.MenuName;
+                            menuConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        } else {
+                            console.error('Failed to load menu details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+            });
         });
     }
 
     // Handle browser back/forward buttons
     window.addEventListener('popstate', function() {
         const urlParams = new URLSearchParams(window.location.search);
-        const searchInput = document.querySelector('input[name="menu_search"]');
-        if (searchInput) {
-            searchInput.value = urlParams.get('menu_search') || '';
-        }
+        searchInput.value = urlParams.get('menu_search') || '';
+        menuFilter.value = urlParams.get('sort') || 'random';
+
         loadMenuPage(urlParams.get('menupage') || 1);
     });
 </script>

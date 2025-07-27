@@ -3349,13 +3349,30 @@ document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);
     const currentPage = urlParams.get('menupage') || 1;
     const currentSearch = urlParams.get('menu_search') || '';
+    const currentSort = urlParams.get('sort') || 'random';
+
+    // Function to clear errors
+    const clearErrors = () => {
+        const errors = ['menuNameError', 'menuDescriptionError', 'updateMenuNameError', 'updateMenuDescriptionError'];
+        errors.forEach(error => {
+            hideError(document.getElementById(error));
+        });
+    }
 
     // Function to close the add modal
     const closeModal = () => {
-        addMenuModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+        // Hide elements with transitions
+        const modals = (modal) => {
+            modal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+        };
+        
+        [addMenuModal, updateMenuModal].forEach(modals);
+        
+        // Hide overlay
         darkOverlay2.classList.add('opacity-0', 'invisible');
         darkOverlay2.classList.remove('opacity-100');
-        menuForm.reset();
+        
+        clearErrors();
     };
 
     // Function to fetch and render menus with current pagination
@@ -3364,6 +3381,9 @@ document.addEventListener("DOMContentLoaded", () => {
         
         if (currentSearch) {
             fetchUrl += `&menu_search=${encodeURIComponent(currentSearch)}`;
+        }
+        if (currentSort !== 'random') {
+            fetchUrl += `&sort=${currentSort}`;
         }
 
         fetch(fetchUrl)
@@ -3464,9 +3484,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Menu Form Submission
+    document.getElementById("menuNameInput")?.addEventListener("keyup", validateMenuName);
+    document.getElementById("menuDescriptionInput")?.addEventListener("keyup", validateMenuDescription);
+
+    // Menu Form Submission
     if (menuForm) {
         menuForm.addEventListener("submit", (e) => {
             e.preventDefault();
+
+            if (!validateMenuForm()) return;
 
             const formData = new FormData(menuForm);
             formData.append('addmenu', true);
@@ -3497,6 +3523,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Menu Update Form Submission
+    document.getElementById("updateMenuNameInput")?.addEventListener("keyup", validateUpdateMenuName);
+    document.getElementById("updateMenuDescriptionInput")?.addEventListener("keyup", validateUpdateMenuDescription);
+
     // Update Menu Modal 
     if (updateMenuModal && updateMenuModalCancelBtn) {
         updateMenuModalCancelBtn.addEventListener('click', () => {
@@ -3504,11 +3534,15 @@ document.addEventListener("DOMContentLoaded", () => {
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
             updateMenuForm.reset();
+
+            closeModal();
         });
 
         if (updateMenuForm) {
             updateMenuForm.addEventListener("submit", (e) => {
                 e.preventDefault();
+
+            if (!validateUpdateMenuForm()) return;
 
                 const formData = new FormData(updateMenuForm);
                 formData.append('editmenu', true);
@@ -4680,6 +4714,13 @@ const validateChangePasswordForm = () => {
 const validateMenuForm = () => {
     const isMenuNameValid = validateMenuName();
     const isMenuDescriptionValid = validateMenuDescription();
+
+    return isMenuNameValid && isMenuDescriptionValid;
+}
+
+const validateUpdateMenuForm = () => {
+    const isMenuNameValid = validateUpdateMenuName();
+    const isMenuDescriptionValid = validateUpdateMenuDescription();
 
     return isMenuNameValid && isMenuDescriptionValid;
 }
