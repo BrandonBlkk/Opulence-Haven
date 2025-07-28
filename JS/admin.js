@@ -1,4 +1,5 @@
 import { showError, hideError, showAlert, validateField } from './alertFunc.js';
+import { formatTimeForInput } from './timeUtils.js';
 
 const menu_toggle = document.getElementById('menu-toggle');
 if (menu_toggle) {
@@ -3435,8 +3436,8 @@ document.addEventListener("DOMContentLoaded", () => {
                             document.getElementById('updateMenuID').value = menuId;
                             document.getElementById('updateMenuNameInput').value = data.menu.MenuName;
                             document.getElementById('updateMenuDescriptionInput').value = data.menu.Description;
-                            document.getElementById('updateStartTime').value = data.menu.StartTime;
-                            document.getElementById('updateEndTime').value = data.menu.EndTime;
+                            document.getElementById('updateStartTime').value = formatTimeForInput(data.menu.StartTime);
+                            document.getElementById('updateEndTime').value = formatTimeForInput(data.menu.EndTime);
                             document.getElementById('updateStatus').value = data.menu.Status;
                             updateMenuModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
                         } else {

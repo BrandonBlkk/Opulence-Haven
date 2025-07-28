@@ -322,22 +322,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const alertMessage = document.getElementById('alertMessage').value;
     const reservationSuccess = document.getElementById('reservationSuccess').value === 'true';
 
-    if (reservationSuccess) {
-        loader.style.display = 'flex';
-
-        // Show Alert
-        setTimeout(() => {
-            loader.style.display = 'none';
-            showAlert('A dining table has been successfully reserved.');
-            setTimeout(() => {
-                window.location.href = '../User/dining.php';
-            }, 5000);
-        }, 1000);
-    } else if (alertMessage) {
-        // Show Alert
-        showAlert(alertMessage);
-    }
-
     // Add keyup event listeners for real-time validation
     document.getElementById("diningNameInput").addEventListener("keyup", validateDiningName);
     document.getElementById("diningEmailInput").addEventListener("keyup", validateDiningEmail);
@@ -346,11 +330,157 @@ document.addEventListener("DOMContentLoaded", () => {
     const diningForm = document.getElementById("diningForm");
     if (diningForm) {
         diningForm.addEventListener("submit", (e) => {
-            if (!validateDiningForm()) {
-                e.preventDefault();
-            }
+            e.preventDefault();
+
+            if (!validateDiningForm()) return;
+
+            loader.style.display = 'flex';
+
+            const formData = new FormData(diningForm);
+            formData.append('reserve', true);
+
+            fetch('../User/dining.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return res.json();
+            })
+            .then(data => {                    
+                loader.style.display = 'none';
+                if (data.success) {
+                    showAlert("A dining table has been successfully reserved.");
+                    diningForm.reset();
+
+                    // Hide sidebar
+                    diningAside.style.right = '-100%';
+                    darkOverlay.classList.add('hidden');
+                    darkOverlay.classList.remove('flex');
+                } else {
+                    showAlert(data.message || "Failed to reserve the table. Please try again.", true);
+                }
+            })
+            .catch(err => {
+                loader.style.display = 'none';
+                showAlert("Something went wrong. Please try again.", true);
+                console.error(err);
+            });
         });
     }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const dateInput = document.getElementById('date');
+    const timeInput = document.getElementById('time');
+    const menuSelect = document.getElementById('FacilityType');
+
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+    // Set both min and default (value) to tomorrow
+    dateInput.min = tomorrowStr;
+    dateInput.value = tomorrowStr;
+
+    // Function to convert time to minutes since midnight for easier comparison
+    function timeToMinutes(time) {
+        const [hours, minutes] = time.split(':').map(Number);
+        return hours * 60 + minutes;
+    }
+
+    // Function to convert 24-hour time to 12-hour format with AM/PM
+    function convertTo12Hour(time24h) {
+        const [hours, minutes] = time24h.split(':').map(Number);
+        let period = 'AM';
+        let displayHours = hours;
+        
+        if (hours >= 12) {
+            period = 'PM';
+            displayHours = hours === 12 ? 12 : hours - 12;
+        }
+        if (hours === 0) {
+            displayHours = 12;
+        }
+        
+        return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+    }
+
+    // Function to update time constraints based on selected menu
+    function updateTimeConstraints() {
+        const selectedOption = menuSelect.options[menuSelect.selectedIndex];
+        const startTime = selectedOption.dataset.start;
+        const endTime = selectedOption.dataset.end;
+
+        if (startTime && endTime) {
+            // Convert 12-hour format to 24-hour format for time input
+            function convertTo24Hour(time12h) {
+                const [time, modifier] = time12h.split(' ');
+                let [hours, minutes] = time.split(':');
+
+                if (modifier === 'PM' && hours !== '12') {
+                    hours = parseInt(hours, 10) + 12;
+                } else if (modifier === 'AM' && hours === '12') {
+                    hours = '00';
+                }
+
+                return `${hours.toString().padStart(2, '0')}:${minutes}`;
+            }
+
+            // Convert times if they contain AM/PM
+            const start24 = startTime.includes('AM') || startTime.includes('PM') ?
+                convertTo24Hour(startTime) :
+                startTime;
+            const end24 = endTime.includes('AM') || endTime.includes('PM') ?
+                convertTo24Hour(endTime) :
+                endTime;
+
+            // Set min and max attributes
+            timeInput.min = start24;
+            timeInput.max = end24;
+            timeInput.value = start24;
+
+            // Enable the time input
+            timeInput.disabled = false;
+
+            // Validate the time whenever it changes
+            timeInput.addEventListener('change', function() {
+                const selectedTime = this.value;
+                const selectedMinutes = timeToMinutes(selectedTime);
+                const startMinutes = timeToMinutes(start24);
+                const endMinutes = timeToMinutes(end24);
+
+                if (selectedMinutes < startMinutes || selectedMinutes > endMinutes) {
+                    // Close sidebar
+                    diningAside.style.right = '-100%';
+                    darkOverlay.classList.add('hidden');
+                    darkOverlay.classList.remove('flex');
+                    
+                    // Show alert in original format (AM/PM if that's what's in database)
+                    const displayStart = startTime.includes('AM') || startTime.includes('PM') ? 
+                        startTime : 
+                        convertTo12Hour(start24);
+                    const displayEnd = endTime.includes('AM') || endTime.includes('PM') ? 
+                        endTime : 
+                        convertTo12Hour(end24);
+                    
+                    showAlert(`Please select a time between ${displayStart} and ${displayEnd}`, true);
+                    this.value = start24;
+                }
+            });
+        } else {
+            // Disable the time input if no valid menu is selected
+            timeInput.disabled = true;
+        }
+    }
+
+    // Add event listener for menu selection change
+    menuSelect.addEventListener('change', updateTimeConstraints);
+
+    // Initialize time constraints
+    updateTimeConstraints();
 });
 
 // MoveUp Btn

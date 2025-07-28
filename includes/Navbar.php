@@ -53,9 +53,34 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </div>
     <div class="flex flex-col justify-between gap-3 h-full">
         <div>
-            <form action="../User/dining.php" method="post" id="diningForm" class="flex flex-col gap-4">
+            <form action="../User/dining.php" method="post" id="diningForm" class="flex flex-col gap-4 text-sm">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Reservation Details</label>
+                    <!-- Menu -->
+                    <div class="relative">
+                        <select id="FacilityType" name="facilityType" class="p-2 w-full border rounded outline-none" required>
+                            <option value="" disabled selected>Select menu</option>
+                            <?php
+                            $select = "SELECT * FROM menutb";
+                            $query = $connect->query($select);
+                            $count = $query->num_rows;
+
+                            if ($count) {
+                                for ($i = 0; $i < $count; $i++) {
+                                    $row = $query->fetch_assoc();
+                                    $menu_id = $row['MenuID'];
+                                    $menu_name = $row['MenuName'];
+                                    $start_time = date("g:iA", strtotime($row['StartTime']));
+                                    $end_time = date("g:iA", strtotime($row['EndTime']));
+
+                                    echo "<option value='$menu_id' data-start='$row[StartTime]' data-end='$row[EndTime]'>$menu_name ($start_time to $end_time)</option>";
+                                }
+                            } else {
+                                echo "<option value='' disabled>No data yet</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
                     <div class="flex flex-col sm:flex-row sm:gap-2">
                         <!-- Date -->
                         <div class="flex flex-1 flex-col gap-2">
@@ -70,76 +95,63 @@ $current_page = basename($_SERVER['PHP_SELF']);
                                 required>
                         </div>
 
-                        <script>
-                            document.addEventListener('DOMContentLoaded', () => {
-                                const dateInput = document.getElementById('date');
-
-                                const tomorrow = new Date();
-                                tomorrow.setDate(tomorrow.getDate() + 1);
-                                const tomorrowStr = tomorrow.toISOString().split('T')[0];
-
-                                // Set both min and default (value) to tomorrow
-                                dateInput.min = tomorrowStr;
-                                dateInput.value = tomorrowStr;
-                            });
-                        </script>
-
                         <!-- Time -->
                         <div class="flex flex-1 flex-col gap-2">
                             <label for="time" class="font-semibold">Time</label>
-                            <input type="time" id="time" name="time" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" required>
+                            <input type="time" id="time" name="time" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" required disabled>
                         </div>
                     </div>
-                    <!-- Number of Guests -->
-                    <div class="flex flex-col gap-2">
-                        <label for="guests" class="font-semibold">Number of Guests</label>
-                        <?php
-                        $guests = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-                        ?>
-                        <select name="guests" class="p-2 w-full border rounded" required>
-                            <?php foreach ($guests as $guest): ?>
-                                <option value="<?php echo $guest; ?>"><?php echo $guest; ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <!-- Special Requests -->
-                    <div class="flex flex-col gap-2">
-                        <label for="specialrequests" class="font-semibold">Special Requests (Optional)</label>
-                        <textarea id="specialRequests" name="specialrequests" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" placeholder="Enter any special requests" rows="3"></textarea>
-                    </div>
                 </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Contact Details</label>
-                    <!-- Name -->
-                    <div class="relative flex flex-col gap-2">
-                        <label for="name" class="font-semibold">Name</label>
-                        <input type="text" id="diningNameInput" name="name" placeholder="Enter your name" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out">
-                        <small id="diningNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                    </div>
-                    <!-- Email -->
-                    <div class="relative flex flex-col gap-2">
-                        <label for="email" class="font-semibold">Email</label>
-                        <input type="email" id="diningEmailInput" name="email" value="<?php echo $session_userID ? htmlspecialchars($email) : ''; ?>" placeholder="Enter your email" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out">
-                        <small id="diningEmailError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-
-                    </div>
-                    <!-- Phone -->
-                    <div class="relative flex flex-col gap-2">
-                        <label for="phone" class="font-semibold">Phone Number</label>
-                        <input type="tel" id="diningPhoneInput" name="phone" value="<?php echo $session_userID ? htmlspecialchars($phone) : ''; ?>" placeholder="Enter your phone" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out">
-                        <small id="diningPhoneError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                    </div>
+                <!-- Number of Guests -->
+                <div class="flex flex-col gap-2">
+                    <label for="guests" class="font-semibold">Number of Guests</label>
+                    <?php
+                    $guests = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+                    ?>
+                    <select name="guests" class="p-2 w-full border rounded" required>
+                        <?php foreach ($guests as $guest): ?>
+                            <option value="<?php echo $guest; ?>"><?php echo $guest; ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
-                <button type="submit" name="reserve" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold text-center p-2 select-none transition-colors duration-300">Reserve Table</button>
-            </form>
+                <!-- Special Requests -->
+                <div class="flex flex-col gap-2">
+                    <label for="specialrequests" class="font-semibold">Special Requests (Optional)</label>
+                    <textarea id="specialRequests" name="specialrequests" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" placeholder="Enter any special requests" rows="3"></textarea>
+                </div>
         </div>
-        <div class="space-y-4">
-            <p class="text-xs text-slate-600 pb-4">
-                Contact our 24/7 support for any assistance with your bookings or inquiries.
-                <a href="mailto:support@opulenceHaven.com" class="text-amber-600 underline hover:underline-offset-2">support@opulenceHaven.com</a>
-            </p>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Contact Details</label>
+            <!-- Name -->
+            <div class="relative flex flex-col gap-2">
+                <label for="name" class="font-semibold">Name</label>
+                <input type="text" id="diningNameInput" name="name" placeholder="Enter your name" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out">
+                <small id="diningNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+            </div>
+            <!-- Email -->
+            <div class="relative flex flex-col gap-2">
+                <label for="email" class="font-semibold">Email</label>
+                <input type="email" id="diningEmailInput" name="email" value="<?php echo $session_userID ? htmlspecialchars($email) : ''; ?>" placeholder="Enter your email" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out">
+                <small id="diningEmailError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+
+            </div>
+            <!-- Phone -->
+            <div class="relative flex flex-col gap-2">
+                <label for="phone" class="font-semibold">Phone Number</label>
+                <input type="tel" id="diningPhoneInput" name="phone" value="<?php echo $session_userID ? htmlspecialchars($phone) : ''; ?>" placeholder="Enter your phone" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out">
+                <small id="diningPhoneError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+            </div>
         </div>
+        <button type="submit" name="reserve" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold text-center p-2 select-none transition-colors duration-300">Reserve Table</button>
+        </form>
+    </div>
+    <div class="space-y-4">
+        <p class="text-xs text-slate-600 pb-4">
+            Contact our 24/7 support for any assistance with your bookings or inquiries.
+            <a href="mailto:support@opulenceHaven.com" class="text-amber-600 underline hover:underline-offset-2">support@opulenceHaven.com</a>
+        </p>
+    </div>
     </div>
 </aside>
 

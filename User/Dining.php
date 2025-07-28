@@ -24,12 +24,14 @@ if ($session_userID) {
 }
 
 $alertMessage = '';
-$reservationSuccess = false;
+// $reservationSuccess = false;
+$responose = ['success' => false, 'message' => ''];
 
 // Make Dining Reservation
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve'])) {
     $date = mysqli_real_escape_string($connect, $_POST['date']);
     $time = mysqli_real_escape_string($connect, $_POST['time']);
+    $time = date('H:i A', strtotime($time));
     $guests = mysqli_real_escape_string($connect, $_POST['guests']);
     $specialrequests = mysqli_real_escape_string($connect, $_POST['specialrequests']);
     $name = mysqli_real_escape_string($connect, $_POST['name']);
@@ -40,10 +42,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve'])) {
     VALUES ('$date', '$time', '$guests', '$specialrequests', '$name', '$email', '$phone', " . ($session_userID ? "'$session_userID'" : "NULL") . ")";
 
     if ($connect->query($reservationQuery)) {
-        $reservationSuccess = true;
+        $responose['success'] = true;
     } else {
-        $alertMessage = "Failed to reserve the table. Please try again.";
+        $responose['message'] = "Failed to reserve the table. Please try again.";
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($responose);
+    exit();
 }
 ?>
 
@@ -214,6 +220,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve'])) {
             </div>
             <div class="swiper-slide">
                 <img src="../UserImages/photo-1625862577363-1c5e5a0f0e43.avif" class="w-full h-[380px] object-cover" alt="Opulence Store">
+            </div>
+            <div class="swiper-slide">
+                <img src="../UserImages/800x533_ea1e9d427fb5664c32c517a73e421e58_09565bc596efb03a94798568c9071f1320ba34d2.jpg" class="w-full h-[380px] object-cover" alt="Opulence Store">
             </div>
         </div>
         <!-- Navigation Buttons -->
