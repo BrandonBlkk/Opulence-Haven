@@ -18,7 +18,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addmenu'])) {
     $menuName = mysqli_real_escape_string($connect, $_POST['menuname']);
     $description = mysqli_real_escape_string($connect, $_POST['description']);
     $startTime = mysqli_real_escape_string($connect, $_POST['starttime']);
+    $startTime = date("h:i A", strtotime($startTime));
     $endTime = mysqli_real_escape_string($connect, $_POST['endtime']);
+    $endTime = date("h:i A", strtotime($endTime));
     $status = mysqli_real_escape_string($connect, $_POST['status']);
 
     // Check if the menu already exists using prepared statement
@@ -94,31 +96,6 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     exit;
 }
 
-// // Update Menu
-// if (isset($_POST['editmenu'])) {
-//     $productTypeId = mysqli_real_escape_string($connect, $_POST['producttypeid']);
-//     $updatedProductType = mysqli_real_escape_string($connect, $_POST['updateproducttype']);
-//     $updatedDescription = mysqli_real_escape_string($connect, $_POST['updatedescription']);
-
-//     $response = ['success' => false];
-
-//     $updateQuery = "UPDATE producttypetb SET ProductType = '$updatedProductType', Description = '$updatedDescription' WHERE ProductTypeID = '$productTypeId'";
-
-//     if ($connect->query($updateQuery)) {
-//         $response['success'] = true;
-//         $response['message'] = 'The product type has been successfully updated.';
-//         $response['generatedId'] = $productTypeId;
-//         $response['updatedProductType'] = $updatedProductType;
-//         $response['updatedDescription'] = $updatedDescription;
-//     } else {
-//         $response['message'] = "Failed to update product type. Please try again.";
-//     }
-
-//     header('Content-Type: application/json');
-//     echo json_encode($response);
-//     exit();
-// }
-
 // Update Menu
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['editmenu'])) {
     $response = ['success' => false, 'message' => '', 'generatedId' => ''];
@@ -128,7 +105,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['editmenu'])) {
     $menuName = mysqli_real_escape_string($connect, $_POST['updatemenuname']);
     $description = mysqli_real_escape_string($connect, $_POST['updatedescription']);
     $startTime = mysqli_real_escape_string($connect, $_POST['updatestarttime']);
+    $startTime = date("h:i A", strtotime($startTime));
     $endTime = mysqli_real_escape_string($connect, $_POST['updateendtime']);
+    $endTime = date("h:i A", strtotime($endTime));
     $status = mysqli_real_escape_string($connect, $_POST['status']);
 
     try {

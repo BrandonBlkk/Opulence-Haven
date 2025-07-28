@@ -215,6 +215,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve'])) {
             <div class="swiper-slide">
                 <img src="../UserImages/photo-1625862577363-1c5e5a0f0e43.avif" class="w-full h-[380px] object-cover" alt="Opulence Store">
             </div>
+            <div class="swiper-slide">
+                <img src="../UserImages/800x533_ea1e9d427fb5664c32c517a73e421e58_09565bc596efb03a94798568c9071f1320ba34d2.jpg" class="w-full h-[380px] object-cover" alt="Opulence Store">
+            </div>
         </div>
         <!-- Navigation Buttons -->
         <div class="swiper-button-next"></div>
