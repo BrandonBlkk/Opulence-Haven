@@ -44,7 +44,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 </div>
 
 <!-- Dining Reservation Sidebar -->
-<aside id="diningAside" class="fixed top-0 -right-full flex flex-col bg-white w-full md:w-[435px] h-full p-4 z-50 transition-all duration-500 ease-in-out">
+<aside id="diningAside" class="fixed top-0 -right-full flex flex-col bg-white w-full md:w-[435px] h-full p-4 z-40 transition-all duration-500 ease-in-out">
     <div class="flex justify-between pb-3">
         <div class="max-w-[300px]">
             <span class="text-2xl font-semibold">Dining Request</span>
@@ -58,7 +58,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     <label class="block text-sm font-medium text-gray-700 mb-1">Reservation Details</label>
                     <!-- Menu -->
                     <div class="relative">
-                        <select id="FacilityType" name="facilityType" class="p-2 w-full border rounded outline-none" required>
+                        <select id="menu" name="menu" class="p-2 w-full border rounded outline-none" required>
                             <option value="" disabled selected>Select menu</option>
                             <?php
                             $select = "SELECT * FROM menutb";
@@ -121,7 +121,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 </div>
         </div>
 
-        <div>
+        <div class="text-sm">
             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Details</label>
             <!-- Name -->
             <div class="relative flex flex-col gap-2">
