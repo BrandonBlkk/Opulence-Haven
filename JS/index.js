@@ -322,22 +322,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const alertMessage = document.getElementById('alertMessage').value;
     const reservationSuccess = document.getElementById('reservationSuccess').value === 'true';
 
-    if (reservationSuccess) {
-        loader.style.display = 'flex';
-
-        // Show Alert
-        setTimeout(() => {
-            loader.style.display = 'none';
-            showAlert('A dining table has been successfully reserved.');
-            setTimeout(() => {
-                window.location.href = '../User/dining.php';
-            }, 5000);
-        }, 1000);
-    } else if (alertMessage) {
-        // Show Alert
-        showAlert(alertMessage);
-    }
-
     // Add keyup event listeners for real-time validation
     document.getElementById("diningNameInput").addEventListener("keyup", validateDiningName);
     document.getElementById("diningEmailInput").addEventListener("keyup", validateDiningEmail);
@@ -346,9 +330,44 @@ document.addEventListener("DOMContentLoaded", () => {
     const diningForm = document.getElementById("diningForm");
     if (diningForm) {
         diningForm.addEventListener("submit", (e) => {
-            if (!validateDiningForm()) {
-                e.preventDefault();
-            }
+            e.preventDefault();
+
+            if (!validateDiningForm()) return;
+
+            loader.style.display = 'flex';
+
+            const formData = new FormData(diningForm);
+            formData.append('reserve', true);
+
+            fetch('../User/dining.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return res.json();
+            })
+            .then(data => {                    
+                loader.style.display = 'none';
+                if (data.success) {
+                    showAlert("A dining table has been successfully reserved.");
+                    diningForm.reset();
+
+                    // Hide sidebar
+                    diningAside.style.right = '-100%';
+                    darkOverlay.classList.add('hidden');
+                    darkOverlay.classList.remove('flex');
+                } else {
+                    showAlert(data.message || "Failed to reserve the table. Please try again.", true);
+                }
+            })
+            .catch(err => {
+                loader.style.display = 'none';
+                showAlert("Something went wrong. Please try again.", true);
+                console.error(err);
+            });
         });
     }
 });

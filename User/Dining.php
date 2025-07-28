@@ -24,12 +24,14 @@ if ($session_userID) {
 }
 
 $alertMessage = '';
-$reservationSuccess = false;
+// $reservationSuccess = false;
+$responose = ['success' => false, 'message' => ''];
 
 // Make Dining Reservation
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve'])) {
     $date = mysqli_real_escape_string($connect, $_POST['date']);
     $time = mysqli_real_escape_string($connect, $_POST['time']);
+    $time = date('H:i A', strtotime($time));
     $guests = mysqli_real_escape_string($connect, $_POST['guests']);
     $specialrequests = mysqli_real_escape_string($connect, $_POST['specialrequests']);
     $name = mysqli_real_escape_string($connect, $_POST['name']);
@@ -40,10 +42,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve'])) {
     VALUES ('$date', '$time', '$guests', '$specialrequests', '$name', '$email', '$phone', " . ($session_userID ? "'$session_userID'" : "NULL") . ")";
 
     if ($connect->query($reservationQuery)) {
-        $reservationSuccess = true;
+        $responose['success'] = true;
     } else {
-        $alertMessage = "Failed to reserve the table. Please try again.";
+        $responose['message'] = "Failed to reserve the table. Please try again.";
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($responose);
+    exit();
 }
 ?>
 
