@@ -319,8 +319,6 @@ if (diningBtn) {
 // Dining Reservation Form
 document.addEventListener("DOMContentLoaded", () => {
     const loader = document.getElementById('loader');
-    const alertMessage = document.getElementById('alertMessage').value;
-    const reservationSuccess = document.getElementById('reservationSuccess').value === 'true';
 
     // Add keyup event listeners for real-time validation
     document.getElementById("diningNameInput").addEventListener("keyup", validateDiningName);
@@ -375,7 +373,7 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener('DOMContentLoaded', () => {
     const dateInput = document.getElementById('date');
     const timeInput = document.getElementById('time');
-    const menuSelect = document.getElementById('FacilityType');
+    const menuSelect = document.getElementById('menu');
 
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);

@@ -24,11 +24,11 @@ if ($session_userID) {
 }
 
 $alertMessage = '';
-// $reservationSuccess = false;
 $responose = ['success' => false, 'message' => ''];
 
 // Make Dining Reservation
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve'])) {
+    $menu = mysqli_real_escape_string($connect, $_POST['menu']);
     $date = mysqli_real_escape_string($connect, $_POST['date']);
     $time = mysqli_real_escape_string($connect, $_POST['time']);
     $time = date('H:i A', strtotime($time));
@@ -38,8 +38,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve'])) {
     $email = mysqli_real_escape_string($connect, $_POST['email']);
     $phone = mysqli_real_escape_string($connect, $_POST['phone']);
 
-    $reservationQuery = "INSERT INTO diningreservationtb (Date, Time, NumberOfGuests, SpecialRequest, Name, Email, PhoneNumber, UserID)
-    VALUES ('$date', '$time', '$guests', '$specialrequests', '$name', '$email', '$phone', " . ($session_userID ? "'$session_userID'" : "NULL") . ")";
+    $reservationQuery = "INSERT INTO diningreservationtb (Date, Time, NumberOfGuests, SpecialRequest, Name, Email, PhoneNumber, UserID, MenuID)
+    VALUES ('$date', '$time', '$guests', '$specialrequests', '$name', '$email', '$phone', " . ($session_userID ? "'$session_userID'" : "NULL") . ", '$menu')";
 
     if ($connect->query($reservationQuery)) {
         $responose['success'] = true;
