@@ -61,7 +61,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         <select id="menu" name="menu" class="p-2 w-full border rounded outline-none" required>
                             <option value="" disabled selected>Select menu</option>
                             <?php
-                            $select = "SELECT * FROM menutb";
+                            $select = "SELECT * FROM menutb WHERE Status = 'available'";
                             $query = $connect->query($select);
                             $count = $query->num_rows;
 
