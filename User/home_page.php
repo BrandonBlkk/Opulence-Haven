@@ -380,6 +380,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID']) && isset($_
                         <div class="w-full">
                             <label class="font-semibold text-blue-900 block mb-1">Check-In Date</label>
                             <input type="date" id="checkin-date" name="checkin_date"
+                                max="<?php echo date('Y-m-d', strtotime('+1 year')); ?>"
                                 class="w-full p-3 border border-gray-300 rounded-sm outline-none" placeholder="Check-in Date" required>
                         </div>
                         <!-- Check-out Date -->
@@ -443,7 +444,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID']) && isset($_
                     <!-- Check-in Date -->
                     <div>
                         <label class="font-semibold text-blue-900">Check-In Date</label>
-                        <input type="date" id="mobile-checkin-date" name="checkin_date" class="p-2 border border-gray-300 roundedmd w-full" required>
+                        <input type="date" id="mobile-checkin-date" name="checkin_date" max="<?php echo date('Y-m-d', strtotime('+1 year')); ?>" class="p-2 border border-gray-300 roundedmd w-full" required>
                     </div>
                     <!-- Check-out Date -->
                     <div>

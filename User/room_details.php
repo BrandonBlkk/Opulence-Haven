@@ -594,6 +594,7 @@ if (isset($_POST['submitreview'])) {
                                 <label class="font-semibold text-blue-900 block mb-1">Check-In Date</label>
                                 <input type="date" id="checkin-date" name="checkin_date"
                                     class="w-full p-3 border border-gray-300 rounded-sm outline-none"
+                                    max="<?php echo date('Y-m-d', strtotime('+1 year')); ?>"
                                     value="<?php echo isset($_GET['checkin_date']) ? $_GET['checkin_date'] : ''; ?>"
                                     placeholder="Check-in Date">
                             </div>
@@ -666,6 +667,7 @@ if (isset($_POST['submitreview'])) {
                             <label class="font-semibold text-blue-900">Check-In Date</label>
                             <input type="date" id="mobile-checkin-date" name="checkin_date"
                                 class="p-2 border border-gray-300 rounded-sm w-full"
+                                max="<?php echo date('Y-m-d', strtotime('+1 year')); ?>"
                                 value="<?php echo isset($_GET['checkin_date']) ? $_GET['checkin_date'] : ''; ?>" required>
                         </div>
                         <!-- Check-out Date -->
@@ -802,18 +804,6 @@ if (isset($_POST['submitreview'])) {
                             </div>
                             <h1 class="text-xl sm:text-2xl font-bold"><?= htmlspecialchars($roomtype['RoomType']) ?></h1>
                         </div>
-
-                        <!-- Address -->
-                        <p class="text-gray-700 text-sm mb-2">
-                            459 Pyay Road, Kamayut Township, 11041 Yangon, Myanmar –
-                            <a
-                                href="https://www.google.com/maps/place/459+Pyay+Rd,+Yangon"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="text-blue-600 hover:underline cursor-pointer">
-                                show map
-                            </a>
-                        </p>
                     </div>
 
                     <div class="flex items-center gap-3">
@@ -998,6 +988,18 @@ if (isset($_POST['submitreview'])) {
                         </style>
                     </div>
                 </div>
+
+                <!-- Address -->
+                <p class="text-gray-700 text-sm mb-2">
+                    459 Pyay Road, Kamayut Township, 11041 Yangon, Myanmar –
+                    <a
+                        href="https://www.google.com/maps/place/459+Pyay+Rd,+Yangon"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-blue-600 hover:underline cursor-pointer">
+                        show map
+                    </a>
+                </p>
 
                 <div class="flex flex-col lg:flex-row justify-between gap-3">
                     <!-- Swiper.js Styles -->
@@ -1368,7 +1370,7 @@ if (isset($_POST['submitreview'])) {
                                 if ($roomSelectResult->num_rows > 0) {
                                     while ($room = $roomSelectResult->fetch_assoc()) {
                                 ?>
-                                        <tr class="<?= ($room['RoomStatus'] == 'Available' || $room['RoomStatus'] == 'Edit') ? '' : 'opacity-50'; ?>">
+                                        <tr class="<?= ($room['RoomStatus'] == 'Available' || $room['RoomStatus'] == 'Edit') ? '' : 'opacity-50'; ?> text-base sm:text-sm">
                                             <td class="px-3 md:px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($room['RoomName']) ?> (<?= htmlspecialchars($room['RoomType']) ?>)</td>
                                             <td class="px-3 md:px-6 py-4 whitespace-nowrap text-gray-600"><?= htmlspecialchars($room['RoomStatus']) ?></td>
                                             <td class="px-3 md:px-6 py-4 whitespace-nowrap">

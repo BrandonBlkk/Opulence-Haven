@@ -263,6 +263,7 @@ if (isset($_POST['room_favourite'])) {
                             <label class="font-semibold text-blue-900 block mb-1">Check-In Date</label>
                             <input type="date" id="checkin-date" name="checkin_date"
                                 class="w-full p-3 border border-gray-300 rounded-sm outline-none"
+                                max="<?php echo date('Y-m-d', strtotime('+1 year')); ?>"
                                 value="<?php echo isset($_GET['checkin_date']) ? $_GET['checkin_date'] : ''; ?>"
                                 placeholder="Check-in Date">
                             <?php if (isset($_SESSION['alert'])): ?>
@@ -339,6 +340,7 @@ if (isset($_POST['room_favourite'])) {
                         <label class="font-semibold text-blue-900">Check-In Date</label>
                         <input type="date" id="mobile-checkin-date" name="checkin_date"
                             class="p-2 border border-gray-300 rounded-sm w-full"
+                            max="<?php echo date('Y-m-d', strtotime('+1 year')); ?>"
                             value="<?php echo isset($_GET['checkin_date']) ? $_GET['checkin_date'] : ''; ?>" required>
                     </div>
                     <!-- Check-out Date -->
