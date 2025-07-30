@@ -18,14 +18,23 @@ if (isset($_SESSION['welcome_message']) && isset($_SESSION['UserName'])) {
 // Update membership
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID']) && isset($_POST['action']) && $_POST['action'] === 'update_membership') {
     $userID = $_POST['UserID'];
+    $newsletterOptIn = isset($_POST['newsletterOptIn']) ? 1 : 0;
 
     $stmt = $connect->prepare("UPDATE usertb SET Membership = 1, PointsBalance = 500 WHERE UserID = ?");
     $stmt->bind_param("s", $userID);
 
     if ($stmt->execute()) {
-        echo "Membership updated successfully.";
+        // Return both success message and updated points balance
+        echo json_encode([
+            'status' => 'success',
+            'message' => 'Membership updated successfully.',
+            'pointsBalance' => 500
+        ]);
     } else {
-        echo "Failed to update membership.";
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Failed to update membership.'
+        ]);
     }
 
     $stmt->close();
@@ -72,10 +81,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID']) && isset($_
 
     <?php if ($Membership == 0 && $userID): ?>
         <!-- Side Popup Container -->
-        <div id="membershipPopup" class="fixed right-[-320px] top-1/2 -translate-y-1/2 w-80 bg-white shadow-lg rounded-l-sm z-10 transition-all duration-300 ease-out">
+        <div id="membershipPopup" class="fixed right-[-320px] top-1/2 -translate-y-1/2 w-80 bg-white shadow-lg rounded-l-sm z-20 transition-all duration-300 ease-out">
             <!-- Header -->
             <div class="flex justify-between items-center bg-blue-900 text-white p-3 rounded-tl-sm">
-                <h3 class="font-bold text-lg">Unlock Rewards!</h3>
+                <h3 class="font-bold text-base sm:text-lg">Unlock Rewards!</h3>
                 <button id="closePopup" type="button" class="text-xl hover:text-gray-200">×</button>
             </div>
 
@@ -84,35 +93,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID']) && isset($_
                 <input type="hidden" id="userID" name="UserID" value="<?php echo $userID; ?>">
                 <input type="hidden" name="action" value="update_membership">
 
-                <div class="p-6">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Opulence Rewards</h3>
-                    <p class="text-gray-600 mb-6 text-sm">Join our free membership and earn 500 bonus points today.</p>
+                <div class="p-4 sm:p-6">
+                    <p class="text-gray-600 mb-6 text-xs sm:text-sm">Join our free membership and earn 500 bonus points today.</p>
 
-                    <div class="mb-6">
-                        <label for="newsletterOptIn" class="flex items-start">
-                            <div class="flex items-center h-5">
-                                <input type="checkbox" id="newsletterOptIn" name="newsletterOptIn"
-                                    class="focus:ring-amber-500 h-4 w-4 text-amber-600 border-gray-300 rounded">
+                    <!-- Benefits List (replaced checkbox) -->
+                    <div class="mb-6 space-y-3">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 h-5 w-5 text-amber-500 mt-0.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
                             </div>
-                            <div class="ml-3 text-sm">
-                                <span class="text-gray-700">Receive exclusive offers via email</span>
-                                <p class="text-gray-500 text-xs mt-1">Get access to special promotions and personalized experiences</p>
+                            <div class="ml-3 text-xs sm:text-sm">
+                                <span class="text-gray-700">500 welcome points</span>
+                                <p class="text-gray-500 text-xs mt-1">Enough for a complimentary room discount</p>
                             </div>
-                        </label>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 h-5 w-5 text-amber-500 mt-0.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3 text-xs sm:text-sm">
+                                <span class="text-gray-700">Points Redemption</span>
+                                <p class="text-gray-500 text-xs mt-1">Redeem points for up to 20% of your stay (100 points = $1 value)</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 h-5 w-5 text-amber-500 mt-0.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3 text-xs sm:text-sm">
+                                <span class="text-gray-700">Earn Points Faster</span>
+                                <p class="text-gray-500 text-xs mt-1">
+                                    Members earn <span class="font-semibold text-amber-600">3 points per $1</span>
+                                    (<span class="font-medium">3×</span> more than non-members)
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     <button type="submit"
                         class="w-full bg-gradient-to-r bg-amber-500 
-               text-white py-3 px-4 rounded-md transition-all duration-300 shadow-md hover:shadow-lg
-               font-medium text-sm uppercase tracking-wider">
-                        Join Now - Earn 500 Points
+            text-white py-3 px-4 rounded-md transition-all duration-300 shadow-md hover:shadow-lg
+            font-medium text-xs sm:text-sm uppercase tracking-wider">
+                        Join Free Now
                     </button>
                 </div>
 
-                <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
+                <div class="bg-gray-50 px-4 sm:px-6 py-4 border-t border-gray-100">
                     <p class="text-xs text-gray-500 text-center">
                         By joining, you agree to our <a href="#" class="text-amber-600 hover:underline">Terms</a> and
-                        <a href="#" class="text-amber-600 hover:underline">Privacy Policy</a>
+                        <a href="../Policies/privacy_policy.php" class="text-amber-600 hover:underline">Privacy Policy</a>
                     </p>
                 </div>
             </form>
@@ -151,8 +188,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID']) && isset($_
                     </svg>
                 </div>
 
-                <h3 class="mt-4 text-lg font-semibold text-gray-800 relative z-20">Membership Activated!</h3>
-                <p class="mt-2 text-sm text-amber-500 relative z-20">You earned 500 bonus points!</p>
+                <h3 class="mt-4 text-base sm:text-lg font-semibold text-gray-800 relative z-20">Membership Activated!</h3>
+                <p class="mt-2 text-xs sm:text-sm text-amber-500 relative z-20">You earned 500 bonus points!</p>
             </div>
 
             <style>
@@ -206,85 +243,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID']) && isset($_
                 }
             </style>
         </div>
-
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const membershipPopup = document.getElementById('membershipPopup');
-                const membershipForm = document.getElementById('membershipForm');
-                const closeBtn = document.getElementById('closePopup');
-
-                // Auto-show popup after 3 seconds
-                setTimeout(() => {
-                    membershipPopup.classList.replace('right-[-320px]', 'right-0');
-                }, 3000);
-
-                // Close popup
-                closeBtn.addEventListener('click', () => {
-                    membershipPopup.classList.replace('right-0', 'right-[-320px]');
-                });
-
-                // Submit form and update membership using AJAX
-                membershipForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-
-                    const formData = new FormData(membershipForm);
-
-                    // Disable the submit button to prevent multiple submissions
-                    const submitButton = membershipForm.querySelector('button[type="submit"]');
-                    submitButton.disabled = true;
-                    submitButton.innerHTML = 'Processing...';
-
-                    // Create AJAX request
-                    fetch('../User/home_page.php', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.text();
-                        })
-                        .then(data => {
-                            // Success - show animation
-                            membershipForm.classList.add('hidden');
-                            document.getElementById('confettiSuccess').classList.remove('hidden');
-
-                            // Start confetti
-                            createConfetti();
-
-                            // Auto-close popup after 4 seconds
-                            setTimeout(() => {
-                                membershipPopup.classList.replace('right-0', 'right-[-320px]');
-                            }, 4000);
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('Error: ' + error.message);
-                            submitButton.disabled = false;
-                            submitButton.innerHTML = 'Join Now - Earn 500 Points';
-                        });
-                });
-            });
-
-            // Confetti Generator
-            function createConfetti() {
-                const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#4CAF50', '#FF9800', '#FFC107'];
-                for (let i = 0; i < 50; i++) {
-                    const confetti = document.createElement('div');
-                    confetti.className = 'confetti';
-                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                    confetti.style.width = `${Math.random() * 8 + 4}px`;
-                    confetti.style.height = `${Math.random() * 8 + 4}px`;
-                    confetti.style.left = `${Math.random() * 100}%`;
-                    confetti.style.animationDuration = `${Math.random() * 2 + 2}s`;
-                    confetti.style.animationDelay = `${Math.random() * 0.5}s`;
-                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
-                    document.body.appendChild(confetti);
-                    confetti.addEventListener('animationend', () => confetti.remove());
-                }
-            }
-        </script>
     <?php endif; ?>
 
     <!-- Welcome message -->

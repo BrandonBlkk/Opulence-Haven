@@ -13,7 +13,7 @@
                 $pointsBalance = 0;
 
                 // Prepare and execute the query safely
-                $stmt = $connect->prepare("SELECT PointsBalance FROM usertb WHERE UserID = ?");
+                $stmt = $connect->prepare("SELECT PointsBalance, Membership FROM usertb WHERE UserID = ?");
                 if ($stmt) {
                     $stmt->bind_param("s", $_SESSION['UserID']);
                     $stmt->execute();
@@ -31,7 +31,7 @@
                     <div class="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center">
                         <i class="ri-copper-coin-line text-white text-sm"></i>
                     </div>
-                    <span class="text-sm font-semibold text-gray-700">
+                    <span class="text-sm font-semibold text-gray-700 points-balance-display">
                         <?php echo number_format($pointsBalance) ?>
                         <?php echo ($pointsBalance > 1) ? 'Points' : 'Point'; ?>
                         Available to Redeem

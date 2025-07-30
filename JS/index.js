@@ -64,6 +64,112 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Membership Popup
+document.addEventListener('DOMContentLoaded', function() {
+    const membershipPopup = document.getElementById('membershipPopup');
+    const membershipForm = document.getElementById('membershipForm');
+    const closeBtn = document.getElementById('closePopup');
+    const pointsBalanceDisplay = document.querySelector('.points-balance-display');
+
+    // Only proceed if the main elements exist
+    if (!membershipPopup || !membershipForm) {
+        return; // Exit if essential elements don't exist
+    }
+
+    // Auto-show popup after 3 seconds
+    setTimeout(() => {
+        if (membershipPopup) {
+            membershipPopup.classList.replace('right-[-320px]', 'right-0');
+        }
+    }, 3000);
+
+    // Close popup if close button exists
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            membershipPopup.classList.replace('right-0', 'right-[-320px]');
+        });
+    }
+
+    // Submit form and update membership using AJAX
+    membershipForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(membershipForm);
+
+        // Disable the submit button to prevent multiple submissions
+        const submitButton = membershipForm.querySelector('button[type="submit"]');
+        if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.innerHTML = 'Processing...';
+        }
+
+        // Create AJAX request
+        fetch('../User/home_page.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    // Update points balance display in real-time if it exists
+                    if (pointsBalanceDisplay) {
+                        pointsBalanceDisplay.innerHTML = `${data.pointsBalance.toLocaleString()} ${data.pointsBalance > 1 ? 'Points' : 'Point'} Available to Redeem`;
+                    }
+                    
+                    // Success - show animation
+                    membershipForm.classList.add('hidden');
+                    const confettiSuccess = document.getElementById('confettiSuccess');
+                    if (confettiSuccess) {
+                        confettiSuccess.classList.remove('hidden');
+                    }
+
+                    // Start confetti if function exists
+                    if (typeof createConfetti === 'function') {
+                        createConfetti();
+                    }
+
+                    // Auto-close popup after 4 seconds
+                    setTimeout(() => {
+                        membershipPopup.classList.replace('right-0', 'right-[-320px]');
+                    }, 4000);
+                } else {
+                    throw new Error(data.message || 'Failed to update membership');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error: ' + error.message);
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = 'Join Now - Earn 500 Points';
+                }
+            });
+    });
+});
+
+// Confetti Generator
+function createConfetti() {
+    const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#4CAF50', '#FF9800', '#FFC107'];
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.width = `${Math.random() * 8 + 4}px`;
+        confetti.style.height = `${Math.random() * 8 + 4}px`;
+        confetti.style.left = `${Math.random() * 100}%`;
+        confetti.style.animationDuration = `${Math.random() * 2 + 2}s`;
+        confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+        confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+        document.body.appendChild(confetti);
+        confetti.addEventListener('animationend', () => confetti.remove());
+    }
+}
+
 // Checkin Form scroll behavior
 let checkin_form = document.getElementById('checkin-form');
 let mobile_checkin_form = document.getElementById('mobile-checkin-form');
