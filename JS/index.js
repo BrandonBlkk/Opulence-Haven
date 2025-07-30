@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (data.success) {
                         // Remove the room card from the DOM
                         roomCard.remove();
-                       showAlert('The room has been successfully removed from your reservation.');
+                        showAlert('The room has been successfully removed from your reservation.');
 
                         document.getElementById('no-rooms-message').style.display = 'block';
                     } else {
