@@ -16,6 +16,7 @@ date_default_timezone_set('Asia/Yangon');
 
 // Get search parameters from URL with strict validation
 if (isset($_GET["roomTypeID"])) {
+    $reservation_id = isset($_GET['reservation_id']) ? $_GET['reservation_id'] : '';
     $roomtype_id = $_GET["roomTypeID"];
     $room_id = isset($_GET['room_id']) ? $_GET['room_id'] : '';
     $checkin_date = isset($_GET['checkin_date']) ? htmlspecialchars($_GET['checkin_date']) : '';
@@ -322,14 +323,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
     try {
         // First update the reservation details for the specific room
         $update_room = "UPDATE reservationdetailtb SET 
-                        CheckInDate = ?, 
-                        CheckOutDate = ?, 
-                        Adult = ?, 
-                        Children = ? 
-                        WHERE RoomID = ? AND ReservationID = ?";
+                CheckInDate = ?, 
+                CheckOutDate = ?, 
+                Adult = ?, 
+                Children = ? 
+                WHERE RoomID = ? AND ReservationID = ?";
         $stmt = $connect->prepare($update_room);
-        $stmt->bind_param("ssiiii", $checkInDate, $checkOutDate, $adults, $children, $roomID, $reservationID);
-        $stmt->execute();
+        $stmt->bind_param("ssiiss", $checkInDate, $checkOutDate, $adults, $children, $roomID, $reservationID);
+
+        if (!$stmt->execute()) {
+            throw new Exception("Failed to update room reservation details: " . $stmt->error);
+        }
+
+        $affectedRows = $stmt->affected_rows;
+        if ($affectedRows === 0) {
+            throw new Exception("No rows were updated. Check if RoomID and ReservationID combination exists.");
+        }
 
         // Recalculate the total price for the entire reservation
         $getAllRooms = "SELECT rd.RoomID, rt.RoomPrice 
@@ -338,7 +347,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
                        JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
                        WHERE rd.ReservationID = ?";
         $stmtAll = $connect->prepare($getAllRooms);
-        $stmtAll->bind_param("i", $reservationID);
+        $stmtAll->bind_param("s", $reservationID);
         $stmtAll->execute();
         $allRoomsResult = $stmtAll->get_result();
 
@@ -351,7 +360,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
                 // For other rooms, get their existing dates
                 $getRoomDates = "SELECT CheckInDate, CheckOutDate FROM reservationdetailtb WHERE RoomID = ? AND ReservationID = ?";
                 $stmtDates = $connect->prepare($getRoomDates);
-                $stmtDates->bind_param("si", $room['RoomID'], $reservationID);
+                $stmtDates->bind_param("ss", $room['RoomID'], $reservationID);
                 $stmtDates->execute();
                 $datesResult = $stmtDates->get_result();
                 $dates = $datesResult->fetch_assoc();
@@ -372,10 +381,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
                         TotalPrice = ? 
                         WHERE ReservationID = ?";
         $stmtExpiry = $connect->prepare($updateExpiry);
-        $stmtExpiry->bind_param("sdi", $newExpiry, $newTotalPrice, $reservationID);
+        $stmtExpiry->bind_param("sds", $newExpiry, $newTotalPrice, $reservationID);
         $stmtExpiry->execute();
 
-        //Update room status
+        // Update room status
         $updateRoomStatus = "UPDATE roomtb SET RoomStatus = 'Reserved' WHERE RoomID = ?";
         $stmtRoomStatus = $connect->prepare($updateRoomStatus);
         $stmtRoomStatus->bind_param("s", $roomID);

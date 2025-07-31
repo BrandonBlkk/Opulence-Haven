@@ -256,6 +256,8 @@ if (isset($_POST['room_favourite'])) {
             <!-- Desktop Form (shown on lg screens and up) -->
             <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="get"
                 class="hidden lg:flex w-full sm:max-w-[1030px] z-10 p-4 bg-white border-b justify-between items-end space-x-4">
+                <input type="hidden" name="reservation_id" value="<?= $reservation_id ?>">
+
                 <div class="flex items-center space-x-4 w-full">
                     <div class="flex gap-3 w-full">
                         <!-- Check-in Date -->
@@ -335,6 +337,8 @@ if (isset($_POST['room_favourite'])) {
                     <button id="close-mobile-search" class="text-red-500 font-bold text-lg">&times;</button>
                 </div>
                 <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="get" class="flex flex-col space-y-3">
+                    <input type="hidden" name="reservation_id" value="<?= $reservation_id ?>">
+
                     <!-- Check-in Date -->
                     <div>
                         <label class="font-semibold text-blue-900">Check-In Date</label>
