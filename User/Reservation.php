@@ -708,8 +708,8 @@ if (isset($_GET['payment'])) {
                                                 <!-- Points Earned Notification -->
                                                 <?php
                                                 $pointsEarned = floor($subtotal);
-                                                if ($membership == 1) $pointsEarned = floor($subtotal + ($subtotal * 0.1)); // Member
-                                                if ($membership == 0) $pointsEarned = floor($subtotal * 0.5); // Non-member
+                                                if ($membership == 1) $pointsEarned = floor($subtotal * 3);  // 3 pts/$
+                                                else $pointsEarned = floor($subtotal * 1);  // 1 pt/$
                                                 ?>
                                                 <p class="text-xs text-green-600 mt-1">
                                                     ✓ Earn <?= $pointsEarned ?> points after payment
