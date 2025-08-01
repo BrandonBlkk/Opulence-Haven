@@ -658,7 +658,7 @@ if (isset($_POST['submitreview'])) {
             <div class="max-w-[1150px] mx-auto px-4 pb-8">
                 <!-- Desktop Form (shown on lg screens and up) -->
                 <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="get"
-                    class="hidden lg:flex w-full z-10 p-4 bg-white border-b border-gray-100 justify-between items-end space-x-4 relative">
+                    class="availability-form hidden lg:flex w-full z-10 p-4 bg-white border-b border-gray-100 justify-between items-end space-x-4 relative">
                     <input type="hidden" name="roomTypeID" value="<?= $roomtype['RoomTypeID'] ?>">
                     <input type="hidden" name="reservation_id" value="<?= $reservation_id ?>">
 
@@ -711,7 +711,7 @@ if (isset($_POST['submitreview'])) {
                     </button>
 
                     <?php if (isset($_SESSION['alert'])): ?>
-                        <div class="absolute -bottom-2 text-sm text-red-500">
+                        <div class="absolute -bottom-2 text-sm text-red-500 alert-message">
                             <?= $_SESSION['alert'] ?>
                         </div>
                         <?php unset($_SESSION['alert']); ?>
@@ -732,8 +732,9 @@ if (isset($_POST['submitreview'])) {
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-blue-900 font-semibold text-lg">Book a Room</h2>
                         <button id="close-mobile-search" class="text-red-500 font-bold text-lg">&times;</button>
+
                     </div>
-                    <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="get" class="flex flex-col space-y-3">
+                    <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="get" class="availability-form flex flex-col space-y-3">
                         <input type="hidden" name="roomTypeID" value="<?= $roomtype['RoomTypeID'] ?>">
                         <input type="hidden" name="reservation_id" value="<?= $reservation_id ?>">
 
@@ -776,6 +777,144 @@ if (isset($_POST['submitreview'])) {
                         </button>
                     </form>
                 </div>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Handle all availability forms (desktop and mobile)
+                        const availabilityForms = document.querySelectorAll('.availability-form');
+
+                        availabilityForms.forEach(function(form) {
+                            form.addEventListener('submit', function(e) {
+                                e.preventDefault();
+                                checkAvailability(form);
+                            });
+                        });
+
+                        // AJAX function to handle form submission
+                        function checkAvailability(form) {
+                            const formData = new URLSearchParams(new FormData(form));
+                            const alertElements = document.querySelectorAll('.alert-message');
+                            const submitButton = form.querySelector('button[type="submit"]');
+
+                            // Clear all alert messages
+                            alertElements.forEach(alert => {
+                                alert.style.display = 'none';
+                                alert.textContent = '';
+                            });
+
+                            // For GET requests, append parameters to URL
+                            fetch('<?php echo $_SERVER['PHP_SELF']; ?>?' + formData.toString(), {
+                                    method: 'GET',
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Accept': 'text/html'
+                                    }
+                                })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error('Network response was not ok');
+                                    }
+                                    return response.text();
+                                })
+                                .then(data => {
+                                    // Update the URL without reloading
+                                    window.history.pushState({}, '', '<?php echo $_SERVER['PHP_SELF']; ?>?' + formData.toString());
+
+                                    // Create a temporary DOM element to parse the response
+                                    const parser = new DOMParser();
+                                    const doc = parser.parseFromString(data, 'text/html');
+
+                                    // Update the reserve and edit forms with new data from the response
+                                    updateFormsFromResponse(doc);
+
+                                    // Update any alert messages
+                                    const responseAlert = doc.querySelector('.alert-message');
+                                    if (responseAlert && responseAlert.textContent.trim()) {
+                                        alertElements.forEach(alert => {
+                                            alert.textContent = responseAlert.textContent;
+                                            alert.style.display = 'block';
+                                        });
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    alertElements.forEach(alert => {
+                                        alert.textContent = 'An error occurred. Please try again.';
+                                        alert.style.display = 'block';
+                                    });
+                                })
+                                .finally(() => {
+                                    submitButton.textContent = originalButtonText;
+                                    submitButton.disabled = false;
+                                });
+                        }
+
+                        // Update reserve and edit forms with new data from the response
+                        function updateFormsFromResponse(doc) {
+                            // Update reserve forms
+                            const reserveForms = document.querySelectorAll('form[method="POST"]');
+                            const responseReserveForms = doc.querySelectorAll('form[method="POST"]');
+
+                            if (reserveForms.length === responseReserveForms.length) {
+                                reserveForms.forEach((form, index) => {
+                                    const responseForm = responseReserveForms[index];
+                                    const inputs = form.querySelectorAll('input[type="hidden"]');
+
+                                    inputs.forEach(input => {
+                                        const responseInput = responseForm.querySelector(`input[name="${input.name}"]`);
+                                        if (responseInput) {
+                                            input.value = responseInput.value;
+                                        }
+                                    });
+                                });
+                            }
+
+                            // Update room status buttons
+                            const roomStatusContainers = document.querySelectorAll('.room-status-container');
+                            const responseRoomStatusContainers = doc.querySelectorAll('.room-status-container');
+
+                            if (roomStatusContainers.length === responseRoomStatusContainers.length) {
+                                roomStatusContainers.forEach((container, index) => {
+                                    container.innerHTML = responseRoomStatusContainers[index].innerHTML;
+                                });
+                            }
+                        }
+
+                        // Date validation (optional)
+                        const validateDates = function() {
+                            const checkinDate = document.getElementById('checkin-date')?.value;
+                            const checkoutDate = document.getElementById('checkout-date')?.value;
+                            const mobileCheckinDate = document.getElementById('mobile-checkin-date')?.value;
+                            const mobileCheckoutDate = document.getElementById('mobile-checkout-date')?.value;
+
+                            if (checkinDate && checkoutDate && new Date(checkoutDate) <= new Date(checkinDate)) {
+                                const alertElements = document.querySelectorAll('.alert-message');
+                                alertElements.forEach(alert => {
+                                    alert.textContent = 'Check-out date must be after check-in date';
+                                    alert.style.display = 'block';
+                                });
+                                return false;
+                            }
+
+                            if (mobileCheckinDate && mobileCheckoutDate && new Date(mobileCheckoutDate) <= new Date(mobileCheckinDate)) {
+                                const alertElements = document.querySelectorAll('.alert-message');
+                                alertElements.forEach(alert => {
+                                    alert.textContent = 'Check-out date must be after check-in date';
+                                    alert.style.display = 'block';
+                                });
+                                return false;
+                            }
+
+                            return true;
+                        };
+
+                        // Add event listeners for date validation
+                        document.getElementById('checkin-date')?.addEventListener('change', validateDates);
+                        document.getElementById('checkout-date')?.addEventListener('change', validateDates);
+                        document.getElementById('mobile-checkin-date')?.addEventListener('change', validateDates);
+                        document.getElementById('mobile-checkout-date')?.addEventListener('change', validateDates);
+                    });
+                </script>
 
                 <script>
                     // Date validation for both desktop and mobile forms
@@ -1449,40 +1588,42 @@ if (isset($_POST['submitreview'])) {
                                             <td class="px-3 md:px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($room['RoomName']) ?> (<?= htmlspecialchars($room['RoomType']) ?>)</td>
                                             <td class="px-3 md:px-6 py-4 whitespace-nowrap text-gray-600"><?= htmlspecialchars($room['RoomStatus']) ?></td>
                                             <td class="px-3 md:px-6 py-4 whitespace-nowrap">
-                                                <?php if ($room['RoomStatus'] == 'Available') : ?>
-                                                    <form method="POST" style="display:inline;">
-                                                        <input type="hidden" name="reservation_id" value="<?= $reservation_id ?>">
-                                                        <input type="hidden" name="reserve_room_id" value="<?= htmlspecialchars($room['RoomID']) ?>">
-                                                        <input type="hidden" name="checkin_date" value="<?= $checkin_date ?>">
-                                                        <input type="hidden" name="checkout_date" value="<?= $checkout_date ?>">
-                                                        <input type="hidden" name="adults" value="<?= $adults ?>">
-                                                        <input type="hidden" name="children" value="<?= $children ?>">
+                                                <div class="room-status-container">
+                                                    <?php if ($room['RoomStatus'] == 'Available') : ?>
+                                                        <form method="POST" style="display:inline;">
+                                                            <input type="hidden" name="reservation_id" value="<?= $reservation_id ?>">
+                                                            <input type="hidden" name="reserve_room_id" value="<?= htmlspecialchars($room['RoomID']) ?>">
+                                                            <input type="hidden" name="checkin_date" value="<?= $checkin_date ?>">
+                                                            <input type="hidden" name="checkout_date" value="<?= $checkout_date ?>">
+                                                            <input type="hidden" name="adults" value="<?= $adults ?>">
+                                                            <input type="hidden" name="children" value="<?= $children ?>">
+                                                            <button
+                                                                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded text-sm select-none">
+                                                                Reserve
+                                                            </button>
+                                                        </form>
+                                                    <?php elseif ($room['RoomStatus'] == 'Edit') : ?>
+                                                        <form method="POST" style="display:inline;">
+                                                            <input type="hidden" name="edit_room_id" value="<?= htmlspecialchars($room['RoomID']) ?>">
+                                                            <input type="hidden" name="checkin_date" value="<?= $checkin_date ?>">
+                                                            <input type="hidden" name="checkout_date" value="<?= $checkout_date ?>">
+                                                            <input type="hidden" name="adults" value="<?= $adults ?>">
+                                                            <input type="hidden" name="children" value="<?= $children ?>">
+                                                            <!-- You should also include the ReservationID if you have it -->
+                                                            <input type="hidden" name="reservation_id" value="<?= $reservation_id ?>">
+                                                            <input type="hidden" name="roomTypeID" value="<?= $roomtype['RoomTypeID'] ?>">
+                                                            <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded text-sm select-none">
+                                                                Edit
+                                                            </button>
+                                                        </form>
+                                                    <?php else : ?>
                                                         <button
-                                                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded text-sm select-none">
-                                                            Reserve
+                                                            class="bg-gray-400 text-white font-semibold py-1 px-3 rounded text-sm select-none cursor-not-allowed"
+                                                            disabled>
+                                                            Reserved
                                                         </button>
-                                                    </form>
-                                                <?php elseif ($room['RoomStatus'] == 'Edit') : ?>
-                                                    <form method="POST" style="display:inline;">
-                                                        <input type="hidden" name="edit_room_id" value="<?= htmlspecialchars($room['RoomID']) ?>">
-                                                        <input type="hidden" name="checkin_date" value="<?= $checkin_date ?>">
-                                                        <input type="hidden" name="checkout_date" value="<?= $checkout_date ?>">
-                                                        <input type="hidden" name="adults" value="<?= $adults ?>">
-                                                        <input type="hidden" name="children" value="<?= $children ?>">
-                                                        <!-- You should also include the ReservationID if you have it -->
-                                                        <input type="hidden" name="reservation_id" value="<?= $reservation_id ?>">
-                                                        <input type="hidden" name="roomTypeID" value="<?= $roomtype['RoomTypeID'] ?>">
-                                                        <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded text-sm select-none">
-                                                            Edit
-                                                        </button>
-                                                    </form>
-                                                <?php else : ?>
-                                                    <button
-                                                        class="bg-gray-400 text-white font-semibold py-1 px-3 rounded text-sm select-none cursor-not-allowed"
-                                                        disabled>
-                                                        Reserved
-                                                    </button>
-                                                <?php endif; ?>
+                                                    <?php endif; ?>
+                                                </div>
                                             </td>
                                         </tr>
                                 <?php
