@@ -28,6 +28,85 @@ if ($checkin_date == '' || $checkout_date == '') {
 $has_dates = !empty($checkin_date) && !empty($checkout_date);
 $today = date('Y-m-d');
 
+// Initialize variables at the start
+$conditions = [];
+$params = [];
+$types = '';
+$query_parts = [];
+
+// Base query
+$base_query = "SELECT rt.* FROM roomtypetb rt";
+
+// Add guest capacity filter if dates are valid
+if ($has_dates && $checkin_date >= $today && $checkout_date > $checkin_date) {
+    $conditions[] = "rt.RoomCapacity >= ?";
+    $params[] = $totelGuest;
+    $types .= 'i';
+}
+
+// Facilities filter
+if (isset($_GET['facilities']) && is_array($_GET['facilities']) && !empty($_GET['facilities'])) {
+    // Sanitize the facility IDs
+    $facility_ids = array_filter($_GET['facilities'], function ($id) {
+        return is_string($id) && preg_match('/^[a-zA-Z0-9_-]+$/', $id);
+    });
+
+    if (!empty($facility_ids)) {
+        $placeholders = implode(',', array_fill(0, count($facility_ids), '?'));
+        $conditions[] = "rt.RoomTypeID IN (
+            SELECT DISTINCT RoomTypeID 
+            FROM roomtypefacilitytb 
+            WHERE FacilityID IN ($placeholders)
+        )";
+
+        foreach ($facility_ids as $id) {
+            $params[] = $id;
+            $types .= 's';
+        }
+    }
+}
+
+// Rating filters
+if (isset($_GET['ratings']) && is_array($_GET['ratings']) && !empty($_GET['ratings'])) {
+    $max_rating = max(array_map('intval', $_GET['ratings']));
+    $conditions[] = "(SELECT COALESCE(AVG(Rating), 0) FROM roomtypereviewtb WHERE RoomTypeID = rt.RoomTypeID) BETWEEN 1 AND ?";
+    $params[] = $max_rating;
+    $types .= 'i';
+}
+
+// Build WHERE clause
+if (!empty($conditions)) {
+    $base_query .= " WHERE " . implode(' AND ', $conditions);
+}
+
+// Sorting
+$sort = isset($_GET['sort']) ? $_GET['sort'] : 'top_picks';
+switch ($sort) {
+    case 'price_low_high':
+        $base_query .= " ORDER BY rt.RoomPrice ASC";
+        break;
+    case 'price_high_low':
+        $base_query .= " ORDER BY rt.RoomPrice DESC";
+        break;
+    case 'rating':
+        $base_query .= " ORDER BY (SELECT COALESCE(AVG(Rating), 0) FROM roomtypereviewtb WHERE RoomTypeID = rt.RoomTypeID) DESC";
+        break;
+    default:
+        $base_query .= " ORDER BY rt.RoomTypeID DESC";
+}
+
+// Prepare and execute the statement
+$stmt = $connect->prepare($base_query);
+
+if (!empty($params)) {
+    $stmt->bind_param($types, ...$params);
+}
+
+$stmt->execute();
+$result = $stmt->get_result();
+$available_rooms = $result->fetch_all(MYSQLI_ASSOC);
+$foundProperties = count($available_rooms);
+
 // Add room to favorites
 if (isset($_POST['room_favourite'])) {
     if ($userID) {
@@ -319,32 +398,19 @@ if (isset($_POST['room_favourite'])) {
 
         <section class="max-w-[1200px] mx-auto px-4 py-8">
             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-                <!-- <h1 class="text-xl sm:text-2xl font-bold text-gray-800">Rooms: <?= $foundProperties ?> properties found</h1> -->
+                <h1 id="propertiesCount" class="text-xl sm:text-2xl font-bold text-gray-800">Rooms: <?= $foundProperties ?> properties found</h1>
 
                 <div class="flex items-center justify-between sm:justify-start gap-4">
                     <div class="text-sm">
                         <span class="text-gray-600 hidden sm:inline">Sort by:</span>
                         <select id="sortRooms" class="ml-0 sm:ml-2 border-none font-medium focus:ring-0 outline-none bg-gray-100 sm:bg-transparent px-3 py-1 rounded sm:px-0 sm:py-0">
-                            <option value="top_picks">Our top picks</option>
-                            <option value="price_low_high">Price (low to high)</option>
-                            <option value="price_high_low">Price (high to low)</option>
-                            <option value="rating">Star rating</option>
+                            <option value="top_picks" data-clicked="false">Our top picks</option>
+                            <option value="price_low_high" data-clicked="false">Price (low to high)</option>
+                            <option value="price_high_low" data-clicked="false">Price (high to low)</option>
+                            <option value="rating" data-clicked="false">Star rating</option>
                         </select>
                     </div>
                 </div>
-
-                <script>
-                    // Add event listener for sorting
-                    document.getElementById('sortRooms').addEventListener('change', function() {
-                        const url = new URL(window.location.href);
-                        url.searchParams.set('sort', this.value);
-                        window.location.href = url.toString();
-                    });
-
-                    // Set selected option based on current sort
-                    const currentSort = new URLSearchParams(window.location.search).get('sort') || 'top_picks';
-                    document.getElementById('sortRooms').value = currentSort;
-                </script>
             </div>
 
             <div class="mb-4 text-sm text-gray-600 border-b pb-4">
@@ -370,30 +436,6 @@ if (isset($_POST['room_favourite'])) {
 
                         <h3 class="text-lg font-semibold text-gray-700">Filter by:</h3>
 
-                        <h4 class="font-medium text-gray-800 my-4">Popular filters</h4>
-                        <div class="space-y-3">
-                            <label class="flex items-center">
-                                <input type="checkbox" name="sea_view" value="1" class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit" <?= isset($_GET['sea_view']) ? 'checked' : '' ?>>
-                                <span class="text-sm">Sea view</span>
-                            </label>
-                            <label class="flex items-center">
-                                <input type="checkbox" name="restaurant" value="1" class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit" <?= isset($_GET['restaurant']) ? 'checked' : '' ?>>
-                                <span class="text-sm">Restaurant</span>
-                            </label>
-                            <label class="flex items-center">
-                                <input type="checkbox" name="air_conditioning" value="1" class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit" <?= isset($_GET['air_conditioning']) ? 'checked' : '' ?>>
-                                <span class="text-sm">Air conditioning</span>
-                            </label>
-                            <label class="flex items-center">
-                                <input type="checkbox" name="swimming_pool" value="1" class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit" <?= isset($_GET['swimming_pool']) ? 'checked' : '' ?>>
-                                <span class="text-sm">Swimming Pool</span>
-                            </label>
-                            <label class="flex items-center">
-                                <input type="checkbox" name="apartments" value="1" class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit" <?= isset($_GET['apartments']) ? 'checked' : '' ?>>
-                                <span class="text-sm">Apartments</span>
-                            </label>
-                        </div>
-
                         <h4 class="font-medium text-gray-800 my-4">Facilities</h4>
                         <div class="space-y-3">
                             <?php
@@ -408,7 +450,7 @@ if (isset($_POST['room_favourite'])) {
                                     $checked = isset($_GET['facilities']) && in_array($faculty_id, $_GET['facilities']) ? 'checked' : '';
                             ?>
                                     <label class="flex items-center">
-                                        <input type="checkbox" name="facilities[]" value="<?= $faculty_id ?>" class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit" <?= $checked ?>>
+                                        <input type="checkbox" name="facilities[]" value="<?= $faculty_id ?>" class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit" data-clicked="false" <?= $checked ?>>
                                         <span class="text-sm"><?= htmlspecialchars($facility) ?></span>
                                     </label>
                             <?php
@@ -423,7 +465,7 @@ if (isset($_POST['room_favourite'])) {
                         <div class="space-y-3">
                             <?php for ($i = 1; $i <= 5; $i++): ?>
                                 <label class="flex items-center">
-                                    <input type="checkbox" name="ratings[]" value="<?= $i ?>" class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit"
+                                    <input type="checkbox" name="ratings[]" value="<?= $i ?>" class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit" data-clicked="false"
                                         <?= isset($_GET['ratings']) && in_array($i, $_GET['ratings']) ? 'checked' : '' ?>>
                                     <span class="text-sm"><?= $i ?> star<?= $i > 1 ? 's' : '' ?></span>
                                 </label>
@@ -463,30 +505,6 @@ if (isset($_POST['room_favourite'])) {
                                     <input type="hidden" name="guests" value="<?= htmlspecialchars($totelGuest) ?>">
                                 <?php endif; ?>
 
-                                <h4 class="font-medium text-gray-800 my-4">Popular filters</h4>
-                                <div class="space-y-3">
-                                    <label class="flex items-center">
-                                        <input type="checkbox" name="sea_view" value="1" class="mr-2 rounded text-orange-500 w-5 h-4 mobile-auto-submit" <?= isset($_GET['sea_view']) ? 'checked' : '' ?>>
-                                        <span class="text-sm">Sea view</span>
-                                    </label>
-                                    <label class="flex items-center">
-                                        <input type="checkbox" name="restaurant" value="1" class="mr-2 rounded text-orange-500 w-5 h-4 mobile-auto-submit" <?= isset($_GET['restaurant']) ? 'checked' : '' ?>>
-                                        <span class="text-sm">Restaurant</span>
-                                    </label>
-                                    <label class="flex items-center">
-                                        <input type="checkbox" name="air_conditioning" value="1" class="mr-2 rounded text-orange-500 w-5 h-4 mobile-auto-submit" <?= isset($_GET['air_conditioning']) ? 'checked' : '' ?>>
-                                        <span class="text-sm">Air conditioning</span>
-                                    </label>
-                                    <label class="flex items-center">
-                                        <input type="checkbox" name="swimming_pool" value="1" class="mr-2 rounded text-orange-500 w-5 h-4 mobile-auto-submit" <?= isset($_GET['swimming_pool']) ? 'checked' : '' ?>>
-                                        <span class="text-sm">Swimming Pool</span>
-                                    </label>
-                                    <label class="flex items-center">
-                                        <input type="checkbox" name="apartments" value="1" class="mr-2 rounded text-orange-500 w-5 h-4 mobile-auto-submit" <?= isset($_GET['apartments']) ? 'checked' : '' ?>>
-                                        <span class="text-sm">Apartments</span>
-                                    </label>
-                                </div>
-
                                 <h4 class="font-medium text-gray-800 my-4">Facilities</h4>
                                 <div class="space-y-3">
                                     <?php
@@ -501,7 +519,7 @@ if (isset($_POST['room_favourite'])) {
                                             $checked = isset($_GET['facilities']) && in_array($faculty_id, $_GET['facilities']) ? 'checked' : '';
                                     ?>
                                             <label class="flex items-center">
-                                                <input type="checkbox" name="facilities[]" value="<?= $faculty_id ?>" class="mr-2 rounded text-orange-500 w-5 h-4 mobile-auto-submit" <?= $checked ?>>
+                                                <input type="checkbox" name="facilities[]" value="<?= $faculty_id ?>" class="mr-2 rounded text-orange-500 w-5 h-4 mobile-auto-submit" data-clicked="false" <?= $checked ?>>
                                                 <span class="text-sm"><?= htmlspecialchars($facility) ?></span>
                                             </label>
                                     <?php
@@ -516,7 +534,7 @@ if (isset($_POST['room_favourite'])) {
                                 <div class="space-y-3">
                                     <?php for ($i = 1; $i <= 5; $i++): ?>
                                         <label class="flex items-center">
-                                            <input type="checkbox" name="ratings[]" value="<?= $i ?>" class="mr-2 rounded text-orange-500 w-5 h-4 mobile-auto-submit"
+                                            <input type="checkbox" name="ratings[]" value="<?= $i ?>" class="mr-2 rounded text-orange-500 w-5 h-4 mobile-auto-submit" data-clicked="false"
                                                 <?= isset($_GET['ratings']) && in_array($i, $_GET['ratings']) ? 'checked' : '' ?>>
                                             <span class="text-sm"><?= $i ?> star<?= $i > 1 ? 's' : '' ?></span>
                                         </label>
@@ -555,6 +573,212 @@ if (isset($_POST['room_favourite'])) {
 
         <script>
             document.addEventListener('DOMContentLoaded', function() {
+                // Set selected option based on current sort
+                const currentSort = new URLSearchParams(window.location.search).get('sort') || 'top_picks';
+                const sortSelect = document.getElementById('sortRooms');
+                sortSelect.value = currentSort;
+
+                // Track clicked state for sort options
+                const sortOptions = Array.from(sortSelect.options);
+                sortOptions.forEach(option => {
+                    if (option.value === currentSort) {
+                        option.dataset.clicked = "true";
+                    }
+                });
+
+                // Add event listener for sorting
+                sortSelect.addEventListener('change', function() {
+                    const selectedOption = sortSelect.options[sortSelect.selectedIndex];
+                    const showLoading = selectedOption.dataset.clicked === 'false';
+
+                    if (showLoading) {
+                        selectedOption.dataset.clicked = 'true';
+                    }
+
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('sort', this.value);
+
+                    // Show loading state
+                    if (showLoading) {
+                        showLoadingState();
+                    }
+
+                    // Get the current form data
+                    const availabilityForm = document.querySelector('.availability-form');
+                    const formData = new URLSearchParams(new FormData(availabilityForm));
+                    formData.append('sort', this.value);
+                    formData.append('ajax_request', '1');
+
+                    const fetchUrl = availabilityForm.action + '?' + formData.toString();
+
+                    fetchResults(fetchUrl, showLoading);
+                });
+
+                // Auto-submit for desktop filters
+                document.querySelectorAll('.auto-submit').forEach(checkbox => {
+                    checkbox.addEventListener('change', function() {
+                        const form = document.getElementById('filterForm');
+                        const showLoading = this.dataset.clicked === 'false';
+                        if (showLoading) {
+                            this.dataset.clicked = 'true';
+                        }
+                        submitFilterForm(form, showLoading);
+                    });
+                });
+
+                // Auto-submit for mobile filters
+                document.querySelectorAll('.mobile-auto-submit').forEach(checkbox => {
+                    checkbox.addEventListener('change', function() {
+                        const showLoading = this.dataset.clicked === 'false';
+                        if (showLoading) {
+                            this.dataset.clicked = 'true';
+                        }
+                        // Don't submit immediately for mobile, wait for Apply button
+                    });
+                });
+
+                // Submit handler for desktop filter form
+                document.getElementById('filterForm').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    submitFilterForm(this, true);
+                });
+
+                // Submit handler for mobile filter form
+                document.getElementById('mobileFilterForm').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    // For mobile form, always show loading when submitting
+                    submitFilterForm(this, true);
+
+                    // Close mobile sidebar after applying filters
+                    document.getElementById('mobileFilterSidebar').classList.add('-translate-x-full');
+                });
+
+                // Function to submit filter form via AJAX
+                function submitFilterForm(form, showLoading) {
+                    const formData = new URLSearchParams(new FormData(form));
+                    formData.append('ajax_request', '1');
+
+                    // Get the base URL from the availability form
+                    const availabilityForm = document.querySelector('.availability-form');
+                    const baseUrl = availabilityForm.action;
+
+                    // Combine with filter parameters
+                    const fetchUrl = baseUrl + '?' + formData.toString();
+
+                    // Show loading state if requested
+                    if (showLoading) {
+                        showLoadingState();
+                    }
+
+                    // Fetch results - pass whether we should delay or not
+                    fetchResults(fetchUrl, showLoading);
+                }
+
+                // Function to show loading state
+                function showLoadingState() {
+                    document.getElementById('room-results-container').innerHTML = `
+                <div class="w-full space-y-2">
+                    ${Array(3).fill().map(() => `
+                    <div class="bg-white overflow-hidden rounded-md shadow-sm border animate-pulse">
+                        <div class="flex flex-col md:flex-row">
+                            <div class="w-full md:w-[28%] h-48 sm:h-56 md:h-[261px] bg-gray-200"></div>
+                            <div class="w-full md:w-2/3 p-4 space-y-4">
+                                <div class="flex justify-between">
+                                    <div class="space-y-3 w-2/3">
+                                        <div class="h-6 bg-gray-200 rounded w-3/4"></div>
+                                        <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+                                        <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                                    </div>
+                                    <div class="space-y-1 w-1/3 text-right">
+                                        <div class="h-3 bg-gray-200 rounded ml-auto w-2/3"></div>
+                                        <div class="h-5 bg-gray-200 rounded ml-auto w-1/2"></div>
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="h-4 bg-gray-200 rounded w-full"></div>
+                                    <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+                                    <div class="h-4 bg-gray-200 rounded w-4/6"></div>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    ${Array(5).fill().map(() => `<div class="h-6 bg-gray-200 rounded w-16"></div>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    `).join('')}
+                </div>
+            `;
+                }
+
+                // Function to fetch and display results
+                function fetchResults(url, shouldDelay) {
+                    fetch(url, {
+                            method: 'GET',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'text/html'
+                            }
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.text();
+                        })
+                        .then(data => {
+                            const processData = () => {
+                                const tempDiv = document.createElement('div');
+                                tempDiv.innerHTML = data;
+
+                                // Update the room results container
+                                const newContent = tempDiv.querySelector('#room-results-container');
+
+                                // Extract the new count from the response
+                                const countElement = tempDiv.querySelector('#propertiesCount');
+                                const newCount = countElement ? countElement.textContent : '0 properties found';
+
+                                if (newContent) {
+                                    document.getElementById('room-results-container').innerHTML = newContent.innerHTML;
+                                    // Update the properties count
+                                    document.getElementById('propertiesCount').textContent = newCount;
+                                    window.history.pushState({
+                                        path: url.toString()
+                                    }, '', url.toString());
+                                } else {
+                                    throw new Error('Invalid response format');
+                                }
+                            };
+
+                            if (shouldDelay) {
+                                setTimeout(processData, 1000); // Delay for first click
+                            } else {
+                                processData(); // No delay for subsequent clicks
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            document.getElementById('room-results-container').innerHTML = `
+                <div class="max-w-[1200px] mx-auto px-4 py-16 text-center">
+                    <div class="bg-white p-8 rounded-lg shadow-sm border max-w-2xl mx-auto">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h2 class="text-xl font-bold text-gray-800 mt-4">Error Loading Results</h2>
+                        <p class="text-gray-600 mt-2">We couldn't load the search results. Please try again.</p>
+                        <div class="mt-6">
+                            <button onclick="window.location.reload()" class="inline-block bg-orange-500 text-white px-6 py-2 rounded-md hover:bg-orange-600 transition-colors select-none">
+                                Try Again
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+                            // Update count to show error state
+                            document.getElementById('propertiesCount').textContent = 'Rooms: 0 properties found';
+                        });
+                }
+
+                // Handle availability form submissions
                 const availabilityForms = document.querySelectorAll('.availability-form');
 
                 availabilityForms.forEach(function(availabilityForm) {
@@ -564,90 +788,11 @@ if (isset($_POST['room_favourite'])) {
                         const formData = new URLSearchParams(new FormData(availabilityForm));
                         formData.append('ajax_request', '1');
 
-                        document.getElementById('room-results-container').innerHTML = `
-                    <div class="w-full space-y-2">
-                        ${Array(3).fill().map(() => `
-                        <div class="bg-white overflow-hidden rounded-md shadow-sm border animate-pulse">
-                            <div class="flex flex-col md:flex-row">
-                                <div class="w-full md:w-[28%] h-48 sm:h-56 md:h-[261px] bg-gray-200"></div>
-                                <div class="w-full md:w-2/3 p-4 space-y-4">
-                                    <div class="flex justify-between">
-                                        <div class="space-y-3 w-2/3">
-                                            <div class="h-6 bg-gray-200 rounded w-3/4"></div>
-                                            <div class="h-4 bg-gray-200 rounded w-1/2"></div>
-                                             <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-                                        </div>
-                                        <div class="space-y-1 w-1/3 text-right">
-                                            <div class="h-3 bg-gray-200 rounded ml-auto w-2/3"></div>
-                                            <div class="h-5 bg-gray-200 rounded ml-auto w-1/2"></div>
-                                        </div>
-                                    </div>
-                                    <div class="space-y-2">
-                                        <div class="h-4 bg-gray-200 rounded w-full"></div>
-                                        <div class="h-4 bg-gray-200 rounded w-5/6"></div>
-                                        <div class="h-4 bg-gray-200 rounded w-4/6"></div>
-                                    </div>
-                                    <div class="flex flex-wrap gap-2">
-                                        ${Array(5).fill().map(() => `<div class="h-6 bg-gray-200 rounded w-16"></div>`).join('')}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        `).join('')}
-                    </div>
-                `;
+                        showLoadingState();
 
                         const url = availabilityForm.action + '?' + formData.toString();
 
-                        fetch(url, {
-                                method: 'GET',
-                                headers: {
-                                    'X-Requested-With': 'XMLHttpRequest',
-                                    'Accept': 'text/html'
-                                }
-                            })
-                            .then(response => {
-                                if (!response.ok) {
-                                    throw new Error('Network response was not ok');
-                                }
-                                return response.text();
-                            })
-                            .then(data => {
-                                setTimeout(() => {
-                                    const tempDiv = document.createElement('div');
-                                    tempDiv.innerHTML = data;
-
-                                    const newContent = tempDiv.querySelector('#room-results-container');
-
-                                    if (newContent) {
-                                        document.getElementById('room-results-container').innerHTML = newContent.innerHTML;
-                                        window.history.pushState({
-                                            path: url
-                                        }, '', url);
-                                    } else {
-                                        throw new Error('Invalid response format');
-                                    }
-                                }, 1000); // Delay in ms
-                            })
-                            .catch(error => {
-                                console.error('Error:', error);
-                                document.getElementById('room-results-container').innerHTML = `
-                            <div class="max-w-[1200px] mx-auto px-4 py-16 text-center">
-                                <div class="bg-white p-8 rounded-lg shadow-sm border max-w-2xl mx-auto">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <h2 class="text-xl font-bold text-gray-800 mt-4">Error Loading Results</h2>
-                                    <p class="text-gray-600 mt-2">We couldn't load the search results. Please try again.</p>
-                                    <div class="mt-6">
-                                        <button onclick="window.location.reload()" class="inline-block bg-orange-500 text-white px-6 py-2 rounded-md hover:bg-orange-600 transition-colors select-none">
-                                            Try Again
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                            });
+                        fetchResults(url, true); // Always use delay for form submissions
                     });
                 });
             });
