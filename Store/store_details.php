@@ -7,7 +7,7 @@ if (!$connect) {
 }
 
 $alertMessage = "";
-$response = ['success' => false, 'message' => '', 'outofstock' => false, 'stock' => 0];
+$response = ['success' => false, 'message' => '', 'outofstock' => false, 'stock' => 0, 'login_required' => false];
 $session_userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
 
 if (isset($_GET["product_ID"])) {
@@ -115,34 +115,34 @@ if (isset($_POST['addtobag'])) {
     $stock_data = $stock_result->fetch_assoc();
     $stock = isset($stock_data['Stock']) ? (int)$stock_data['Stock'] : 0;
 
-    if ($stock > 0) {
-        // Calculate final price
-        $base_price = (!empty($stock_data['DiscountPrice']) && $stock_data['DiscountPrice'] > 0)
-            ? $stock_data['DiscountPrice']
-            : $stock_data['Price'];
+    // Check if user is logged in 
+    if ($session_userID) {
+        if ($stock > 0) {
+            // Calculate final price
+            $base_price = (!empty($stock_data['DiscountPrice']) && $stock_data['DiscountPrice'] > 0)
+                ? $stock_data['DiscountPrice']
+                : $stock_data['Price'];
 
-        // Get price modifier from size if needed
-        $size_modifier = 0;
-        if (!empty($product_size)) {
-            $size_query = $connect->prepare("SELECT PriceModifier FROM sizetb WHERE SizeID = ? AND ProductID = ?");
-            $size_query->bind_param("is", $product_size, $product_id);
-            $size_query->execute();
-            $size_result = $size_query->get_result();
-            if ($size_result->num_rows > 0) {
-                $size_modifier = $size_result->fetch_assoc()['PriceModifier'] ?? 0;
+            // Get price modifier from size if needed
+            $size_modifier = 0;
+            if (!empty($product_size)) {
+                $size_query = $connect->prepare("SELECT PriceModifier FROM sizetb WHERE SizeID = ? AND ProductID = ?");
+                $size_query->bind_param("is", $product_size, $product_id);
+                $size_query->execute();
+                $size_result = $size_query->get_result();
+                if ($size_result->num_rows > 0) {
+                    $size_modifier = $size_result->fetch_assoc()['PriceModifier'] ?? 0;
+                }
             }
-        }
 
-        $final_price = $base_price + $size_modifier;
+            $final_price = $base_price + $size_modifier;
 
-        // Reduce stock in the database
-        $new_stock = $stock - 1;
-        $update_stock = $connect->prepare("UPDATE producttb SET Stock = ? WHERE ProductID = ?");
-        $update_stock->bind_param("is", $new_stock, $product_id);
-        $update_stock->execute();
+            // Reduce stock in the database
+            $new_stock = $stock - 1;
+            $update_stock = $connect->prepare("UPDATE producttb SET Stock = ? WHERE ProductID = ?");
+            $update_stock->bind_param("is", $new_stock, $product_id);
+            $update_stock->execute();
 
-        // Check if user is logged in 
-        if ($session_userID) {
             // Get or create pending order for this user
             $order_query = $connect->prepare("SELECT OrderID FROM ordertb WHERE UserID = ? AND Status = 'pending' LIMIT 1");
             $order_query->bind_param("s", $session_userID);
@@ -196,11 +196,10 @@ if (isset($_POST['addtobag'])) {
             $response['success'] = true;
             $response['stock'] = $new_stock;
         } else {
-            $response['error'] = 'login_required';
-            $response['message'] = 'Please login to add items to your cart';
+            $response['outofstock'] = true;
         }
     } else {
-        $response['outofstock'] = true;
+        $response['login_required'] = true;
     }
 
     header('Content-Type: application/json');
@@ -242,6 +241,11 @@ if ($productReviewSelectQuery->num_rows > 0) {
 <body>
     <?php
     include('../includes/store_navbar.php');
+    ?>
+
+    <!-- Login Modal -->
+    <?php
+    include('../includes/login_request.php');
     ?>
 
     <main class="max-w-[1310px] mx-auto px-4 py-5 min-w-[380px]">

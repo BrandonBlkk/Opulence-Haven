@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['roomTypeID'])) {
                 <i class="ri-heart-line text-2xl cursor-pointer bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center"></i>
                 <div>
                     <p class="text-lg">Keep track of stays you like</p>
-                    <p class="text-slate-600 text-sm"><a class="underline underline-offset-2" href="user_signin.php">Sign in</a> or <a class="underline underline-offset-2" href="UserSIgnUp.php">create an account</a> to save your favorite stays to your account and create your own lists.</p>
+                    <p class="text-slate-600 text-sm"><a class="underline underline-offset-2" href="user_signin.php">Sign in</a> or <a class="underline underline-offset-2" href="user_signup.php">create an account</a> to save your favorite stays to your account and create your own lists.</p>
                 </div>
             </div>
         </section>

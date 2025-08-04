@@ -2,6 +2,7 @@ import { showError, hideError, showAlert, validateField } from './alertFunc.js';
 
 // Move Right Loader
 let moveRight = document.getElementById("move-right");
+const darkOverlay2 = document.getElementById('darkOverlay2');
 
 window.addEventListener('scroll', () => {
     let scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -151,6 +152,17 @@ document.addEventListener("DOMContentLoaded", () => {
                         stockDisplay.textContent = data.stock;
                     } else if (data.outofstock) {
                         showAlert('Product is out of stock', true);
+                    } else if (data.login_required) {
+                        loginModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        darkOverlay2.classList.remove('opacity-0', 'invisible');
+                        darkOverlay2.classList.add('opacity-100');
+
+                        const closeLoginModal = document.getElementById('closeLoginModal');
+                        closeLoginModal.addEventListener('click', function() {
+                            loginModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                            darkOverlay2.classList.add('opacity-0', 'invisible');
+                            darkOverlay2.classList.remove('opacity-100');
+                        })
                     } else {
                         showAlert(data.message || 'Failed to add product to bag', true);
                     }
