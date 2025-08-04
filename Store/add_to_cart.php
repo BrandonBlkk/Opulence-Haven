@@ -197,7 +197,11 @@ if (!$connect) {
                         </p>
                     </div>
                     <div class="mt-6 select-none">
-                        <a href="../Store/store_checkout.php" class="block w-full text-center font-semibold bg-blue-900 text-white py-2 hover:bg-blue-950 transition duration-300">Proceed to Checkout</a>
+                        <a href="../Store/store_checkout.php"
+                            class="block w-full text-center font-semibold bg-blue-900 text-white py-2 hover:bg-blue-950 transition duration-300 <?php echo $cartCount === 0 ? 'bg-gray-300 pointer-events-none' : ''; ?>"
+                            <?php echo $cartCount === 0 ? 'aria-disabled="true" tabindex="-1"' : ''; ?>>
+                            Proceed to Checkout
+                        </a>
                     </div>
                     <div class="mt-4 select-none">
                         <a href="../Store/store.php" class="block w-full border border-amber-500 p-2 text-center font-semibold text-amber-500 select-none hover:text-amber-600 transition-all duration-300">Continue Shopping</a>

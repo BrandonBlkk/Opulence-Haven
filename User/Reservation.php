@@ -14,7 +14,7 @@ $alertMessage = '';
 $user = "SELECT * FROM usertb WHERE UserID = '$userID'";
 $userData = $connect->query($user)->fetch_assoc();
 
-$nameParts = explode(' ', trim($userData['UserName']));
+$nameParts = explode(' ', trim($userData['UserName'] ?? 'Guest'));
 $initials = substr($nameParts[0], 0, 1);
 if (count($nameParts) > 1) {
     $initials .= substr(end($nameParts), 0, 1);
@@ -111,6 +111,7 @@ if ($userID) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['edit_room'])) {
         // Update the room status to "Edit"
+        $roomtype_id = $_POST['roomTypeID'];
         $roomId = $_POST['room_id'];
         $reservationId = $_POST['reservation_id'];
         $checkin_date = $_POST['checkin_date'];
@@ -125,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
 
         // Then redirect to the room_booking.php page with parameters
-        header("Location: room_booking.php?reservation_id=$reservationId&room_id=$roomId&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children&edit=1");
+        header("Location: room_details.php?reservation_id=$reservationId&roomTypeID=$roomtype_id&room_id=$roomId&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children&edit=1");
         exit();
     }
 }
@@ -222,39 +223,48 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_reservation']))
     $phone = $_POST['phone'] ?? '';
 
     try {
-        // Check if reservation exists
-        $reservationQuery = "SELECT * FROM reservationtb WHERE ReservationID = ? AND Status = 'Pending'";
-        $stmt = $connect->prepare($reservationQuery);
-        $stmt->bind_param("s", $reservationID);
-        $stmt->execute();
-        $reservation = $stmt->get_result()->fetch_assoc();
+        if ($userID !== null) {
+            // Check if reservation exists
+            $reservationQuery = "SELECT * FROM reservationtb WHERE ReservationID = ? AND Status = 'Pending'";
+            $stmt = $connect->prepare($reservationQuery);
+            $stmt->bind_param("s", $reservationID);
+            $stmt->execute();
+            $reservation = $stmt->get_result()->fetch_assoc();
 
-        if (!$reservation) {
-            header('Content-Type: application/json');
-            echo json_encode([
-                'success' => false,
-                'reservation_id' => $reservationID,
-                'message' => 'Your reservation cannot be found. It may have expired or already been confirmed.'
-            ]);
-            exit();
-        }
+            if (!$reservation) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'reservation_id' => $reservationID,
+                    'message' => 'Your reservation cannot be found. It may have expired or already been confirmed.'
+                ]);
+                exit();
+            }
 
-        // Update reservation with personal details
-        $updateQuery = "UPDATE reservationtb SET Travelling = ?, Title = ?, FirstName = ?, LastName = ?, UserPhone = ? WHERE ReservationID = ? AND Status = 'Pending'";
-        $stmt = $connect->prepare($updateQuery);
-        $stmt->bind_param("isssss", $travelling, $title, $firstName, $lastName, $phone, $reservationID);
+            // Update reservation with personal details
+            $updateQuery = "UPDATE reservationtb SET Travelling = ?, Title = ?, FirstName = ?, LastName = ?, UserPhone = ? WHERE ReservationID = ? AND Status = 'Pending'";
+            $stmt = $connect->prepare($updateQuery);
+            $stmt->bind_param("isssss", $travelling, $title, $firstName, $lastName, $phone, $reservationID);
 
-        if ($stmt->execute()) {
-            // Return success response
-            header('Content-Type: application/json');
-            echo json_encode([
-                'success' => true,
-                'reservation_id' => $reservationID,
-                'message' => 'Reservation confirmed successfully'
-            ]);
-            exit();
+            if ($stmt->execute()) {
+                // Return success response
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'reservation_id' => $reservationID,
+                    'message' => 'Reservation confirmed successfully'
+                ]);
+                exit();
+            } else {
+                throw new Exception("Failed to execute query: " . $stmt->error);
+            }
         } else {
-            throw new Exception("Failed to execute query: " . $stmt->error);
+            // User is not logged in
+            header('Content-Type: application/json');
+            echo json_encode([
+                'login_required' => true,
+            ]);
+            exit();
         }
     } catch (Exception $e) {
         header('Content-Type: application/json');
@@ -306,6 +316,11 @@ if (isset($_GET['payment'])) {
     <?php
     include('../includes/navbar.php');
     include('../includes/cookies.php');
+    ?>
+
+    <!-- Login Modal -->
+    <?php
+    include('../includes/login_request.php');
     ?>
 
     <div class="max-w-[1150px] mx-auto px-4 py-8">
@@ -892,6 +907,7 @@ if (isset($_GET['payment'])) {
 
                                             <form class="edit-remove-room-form" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" class="mt-4 flex gap-3">
                                                 <input type="hidden" name="reservation_id" value="<?= $reservationID ?>">
+                                                <input type="hidden" name="roomTypeID" value="<?= $room['RoomTypeID'] ?>">
                                                 <input type="hidden" name="room_id" value="<?= $room['RoomID'] ?>">
                                                 <input type="hidden" name="checkin_date" value="<?= $room['CheckInDate'] ?>">
                                                 <input type="hidden" name="checkout_date" value="<?= $room['CheckOutDate'] ?>">
@@ -933,11 +949,11 @@ if (isset($_GET['payment'])) {
                             <div class="mb-6">
                                 <div class="flex items-center mb-2">
                                     <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
-                                        <span class="w-10 h-10 rounded-full bg-[<?= $userData['ProfileBgColor'] ?>] text-white uppercase font-semibold flex items-center justify-center select-none"><?= $initials ?></span>
+                                        <span class="w-10 h-10 rounded-full bg-[<?= $userData['ProfileBgColor'] ?? 'bg-slate-500' ?>] text-white uppercase font-semibold flex items-center justify-center select-none"><?= $initials ?></span>
                                     </div>
                                     <div>
                                         <div class="flex items-center gap-2">
-                                            <h4 class="text-sm font-medium text-gray-800"><?= $userData['UserName'] ?></h4>
+                                            <h4 class="text-sm font-medium text-gray-800"><?= $userData['UserName'] ?? "Guest" ?></h4>
                                         </div>
                                     </div>
                                 </div>
@@ -968,23 +984,23 @@ if (isset($_GET['payment'])) {
                                 </div>
                                 <div class="relative">
                                     <label class="block text-sm font-medium text-gray-700 mb-1">First name <span class="text-red-500">*</span></label>
-                                    <input type="text" name="first_name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <input type="text" name="first_name" placeholder="Enter your first name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                     <small id="firstNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">First name is required</small>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Last name (Optional)</label>
-                                    <input type="text" name="last_name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <input type="text" name="last_name" placeholder="Enter your last name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                 </div>
                             </div>
 
                             <div class="mb-6">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Email address <span class="text-red-500">*</span></label>
-                                <input type="email" value="<?= maskEmail($userData['UserEmail']) ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" disabled>
+                                <input type="email" value="<?= maskEmail($userData['UserEmail'] ?? '') ?>" placeholder="guest@example" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" disabled>
                             </div>
 
                             <div class="mb-6 relative">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Phone <span class="text-red-500">*</span></label>
-                                <input type="tel" name="phone" value="<?= $userData['UserPhone'] ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <input type="tel" name="phone" value="<?= $userData['UserPhone'] ?? '' ?>" placeholder="xxx-xxx-xxx" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                 <small id="phoneError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">First name is required</small>
                             </div>
 

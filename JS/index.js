@@ -999,11 +999,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!validateForm()) return;
 
-            // Disable button and show spinner
-            submitButton.disabled = true;
-            buttonText.textContent = "Processing...";
-            buttonSpinner.classList.remove("hidden");
-
             const formData = new FormData(reservationForm);
             formData.append("submit_reservation", true);
 
@@ -1019,8 +1014,24 @@ document.addEventListener("DOMContentLoaded", () => {
             })
             .then(data => {
                 if (data.success) {
+                    // Disable button and show spinner
+                    submitButton.disabled = true;
+                    buttonText.textContent = "Processing...";
+                    buttonSpinner.classList.remove("hidden");
+
                     // Redirect to payment page on success
                     window.location.href = `../User/stripe.php?reservation_id=${data.reservation_id}`;
+                } else if (data.login_required) {
+                    loginModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                    darkOverlay2.classList.remove('opacity-0', 'invisible');
+                    darkOverlay2.classList.add('opacity-100');
+
+                    const closeLoginModal = document.getElementById('closeLoginModal');
+                    closeLoginModal.addEventListener('click', function() {
+                        loginModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                        darkOverlay2.classList.add('opacity-0', 'invisible');
+                        darkOverlay2.classList.remove('opacity-100');
+                    })
                 } else {
                     // Re-enable button and hide spinner
                     submitButton.disabled = false;
