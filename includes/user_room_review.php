@@ -80,7 +80,7 @@
                     </label>
                 </div>
 
-                <!-- Room Rating Filter (existing code) -->
+                <!-- Room Rating Filter -->
                 <h4 class="font-medium text-gray-800 my-4">Room rating</h4>
                 <div class="space-y-3">
                     <?php for ($i = 1; $i <= 5; $i++): ?>

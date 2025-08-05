@@ -20,7 +20,10 @@ if ($totalReviews > 0) {
 
     $roomTypeFilter = '';
     if (!empty($selectedRoomTypes)) {
-        $roomTypeFilter = " AND rr.RoomTypeID IN (" . implode(',', array_map('intval', $selectedRoomTypes)) . ")";
+        $escapedRoomTypes = array_map(function ($type) use ($connect) {
+            return "'" . $connect->real_escape_string($type) . "'";
+        }, $selectedRoomTypes);
+        $roomTypeFilter = " AND rr.RoomTypeID IN (" . implode(',', $escapedRoomTypes) . ")";
     }
 ?>
     <div id="review-section" class="space-y-4 mb-8 w-full h-[80vh] overflow-y-auto">
@@ -141,7 +144,7 @@ if ($totalReviews > 0) {
                 </script>
             <?php } else { ?>
                 <div class="flex items-center justify-center h-full w-full py-8">
-                    <p class="mt-10 py-36 flex justify-center text-center text-base text-gray-400">We couldn't find any properties matching your search criteria.</p>
+                    <p class="mt-10 py-36 flex justify-center text-center text-base text-gray-400">We couldn't find any reviews matching your search criteria.</p>
                 </div>
             <?php } ?>
         </div>
