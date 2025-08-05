@@ -389,6 +389,12 @@ if (viewAllReviews) {
 
     reviewCloseBtn.addEventListener('click', () => {
         rooomReview.style.top = '100%';
+
+        // Unset checkbox
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach((checkbox) => {
+            checkbox.checked = false;
+        });
     });
 
     darkOverlay.addEventListener('click', () => {
