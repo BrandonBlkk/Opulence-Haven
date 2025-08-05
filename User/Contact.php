@@ -20,34 +20,43 @@ if ($query->num_rows > 0) {
 }
 
 $alertMessage = '';
-$contactSuccess = false;
+$response = ["success" => false, "message" => ""];
 $contactID = AutoID('contacttb', 'ContactID', 'CT-', 6);
 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['contactSubmit'])) {
     $fullname = mysqli_real_escape_string($connect, $_POST['fullname']);
     $email = mysqli_real_escape_string($connect, $_POST['email']);
     $contactNumber = mysqli_real_escape_string($connect, $_POST['phone']);
     $message = mysqli_real_escape_string($connect, $_POST['contactMessage']);
+    $countryCode = mysqli_real_escape_string($connect, $_POST['country']);
+
+    // Generate contact ID
+    $contactID = AutoID('contacttb', 'ContactID', 'CT-', 6);
 
     // Get country name
-    $countryCode = mysqli_real_escape_string($connect, $_POST['country']);
-    $apiResponse = file_get_contents("https://restcountries.com/v3.1/alpha/$countryCode");
-    $data = json_decode($apiResponse, true);
+    $countryName = $countryCode; // Default to code if API fails
+    $apiResponse = @file_get_contents("https://restcountries.com/v3.1/alpha/$countryCode");
 
-    if (!empty($data[0]['name']['common'])) {
-        $countryName = $data[0]['name']['common'];
-    } else {
-        $countryName = $countryCode;
+    if ($apiResponse !== false) {
+        $data = json_decode($apiResponse, true);
+        if (!empty($data[0]['name']['common'])) {
+            $countryName = $data[0]['name']['common'];
+        }
     }
 
     $addContactQuery = "INSERT INTO contacttb (ContactID, UserID, FullName, UserEmail, UserPhone, Country, ContactMessage)
-    VALUES ('$contactID', '$userID', '$fullname', '$email', '$contactNumber', '$countryName', '$message')";
+                       VALUES ('$contactID', '$userID', '$fullname', '$email', '$contactNumber', '$countryName', '$message')";
 
     if ($connect->query($addContactQuery)) {
-        $contactSuccess = true;
+        $response["success"] = true;
+        $response["message"] = "Message submitted successfully!";
     } else {
-        $alertMessage = "Failed to submit contact. Please try again.";
+        $response["message"] = "Failed to submit contact. Please try again. Error: " . $connect->error;
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 ?>
 
@@ -175,7 +184,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                     <input
                         class=" bg-amber-500 font-semibold text-white px-4 py-2 rounded-md hover:bg-amber-600 cursor-pointer transition-colors duration-200"
                         type="submit"
-                        name="submit"
+                        name="contactSubmit"
                         value="Submit">
                 </form>
 
@@ -334,7 +343,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit'])) {
                         Take your pick of distinctive Opulence experiences and enjoy cherished moments in unforgettable locations.
                         In your own time, make space for the essentials of life at our hotels, resorts, suites, and residences.
                     </p>
-                    <a href="#" class="bg-amber-500 rounded-sm hover:bg-amber-600 text-white font-semibold text-center py-2 px-4 select-none transition-colors duration-300 self-start sm:self-end">
+                    <a href="../User/aboutus.php" class="bg-amber-500 rounded-sm hover:bg-amber-600 text-white font-semibold text-center py-2 px-4 select-none transition-colors duration-300 self-start sm:self-end">
                         Read more
                     </a>
                 </div>
