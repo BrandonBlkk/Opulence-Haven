@@ -14,168 +14,91 @@
         <div class="w-full md:w-[260px]">
             <div class="bg-white p-4 rounded-md shadow-sm border sticky top-4">
                 <h3 class="text-lg font-semibold text-gray-700">Filter by:</h3>
-                <h4 class="font-medium text-gray-800 my-4">Popular filters</h4>
+                <h4 class="font-medium text-gray-800 my-4">Room Types</h4>
+                <div class="space-y-3">
+                    <?php
+                    $select = "SELECT * FROM roomtypetb";
+                    $query = $connect->query($select);
+                    $count = $query->num_rows;
+                    if ($count) {
+                        for ($i = 0; $i < $count; $i++) {
+                            $row = $query->fetch_assoc();
+                            $roomtype_id = $row['RoomTypeID'];
+                            $roomtype_name = $row['RoomType'];
+                            $checked = isset($_GET['roomtypes']) && in_array($roomtype_id, (array)$_GET['roomtypes']) ? 'checked' : '';
+                    ?>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="roomtypes[]" value="<?= $roomtype_id ?>"
+                                    class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit"
+                                    data-clicked="false" <?= $checked ?>>
+                                <span class="text-sm"><?= htmlspecialchars($roomtype_name) ?></span>
+                            </label>
+                    <?php
+                        }
+                    } else {
+                        echo '<span class="text-sm text-gray-500">No room types available</span>';
+                    }
+                    ?>
+                </div>
+                <!-- Traveller Type Filter -->
+                <h4 class="font-medium text-gray-800 my-4">Traveller Type</h4>
                 <div class="space-y-3">
                     <label class="flex items-center">
-                        <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                        <span class="text-sm">Sea view</span>
+                        <input type="checkbox" name="traveller_type[]" value="Family"
+                            class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit"
+                            data-clicked="false"
+                            <?= isset($_GET['traveller_type']) && in_array('Family', (array)$_GET['traveller_type']) ? 'checked' : '' ?>>
+                        <span class="text-sm">Family</span>
                     </label>
                     <label class="flex items-center">
-                        <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                        <span class="text-sm">Restaurant</span>
+                        <input type="checkbox" name="traveller_type[]" value="Couple"
+                            class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit"
+                            data-clicked="false"
+                            <?= isset($_GET['traveller_type']) && in_array('Couple', (array)$_GET['traveller_type']) ? 'checked' : '' ?>>
+                        <span class="text-sm">Couple</span>
                     </label>
                     <label class="flex items-center">
-                        <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                        <span class="text-sm">Air conditioning</span>
+                        <input type="checkbox" name="traveller_type[]" value="Group of friends"
+                            class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit"
+                            data-clicked="false"
+                            <?= isset($_GET['traveller_type']) && in_array('Group of friends', (array)$_GET['traveller_type']) ? 'checked' : '' ?>>
+                        <span class="text-sm">Group of friends</span>
                     </label>
                     <label class="flex items-center">
-                        <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                        <span class="text-sm">Swimming Pool</span>
+                        <input type="checkbox" name="traveller_type[]" value="Solo traveller"
+                            class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit"
+                            data-clicked="false"
+                            <?= isset($_GET['traveller_type']) && in_array('Solo traveller', (array)$_GET['traveller_type']) ? 'checked' : '' ?>>
+                        <span class="text-sm">Solo traveller</span>
                     </label>
                     <label class="flex items-center">
-                        <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                        <span class="text-sm">Apartments</span>
+                        <input type="checkbox" name="traveller_type[]" value="Business traveller"
+                            class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit"
+                            data-clicked="false"
+                            <?= isset($_GET['traveller_type']) && in_array('Business traveller', (array)$_GET['traveller_type']) ? 'checked' : '' ?>>
+                        <span class="text-sm">Business traveller</span>
                     </label>
                 </div>
 
+                <!-- Room Rating Filter (existing code) -->
                 <h4 class="font-medium text-gray-800 my-4">Room rating</h4>
                 <div class="space-y-3">
-                    <label class="flex items-center">
-                        <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                        <span class="text-sm">1 star</span>
-                    </label>
-                    <label class="flex items-center">
-                        <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                        <span class="text-sm">2 stars</span>
-                    </label>
-                    <label class="flex items-center">
-                        <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                        <span class="text-sm">3 stars</span>
-                    </label>
-                    <label class="flex items-center">
-                        <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                        <span class="text-sm">4 stars</span>
-                    </label>
-                    <label class="flex items-center">
-                        <input type="checkbox" class="mr-2 rounded text-orange-500 w-5 h-4">
-                        <span class="text-sm">5 stars</span>
-                    </label>
+                    <?php for ($i = 1; $i <= 5; $i++): ?>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="ratings[]" value="<?= $i ?>"
+                                class="mr-2 rounded text-orange-500 w-5 h-4 auto-submit"
+                                data-clicked="false"
+                                <?= isset($_GET['ratings']) && in_array($i, (array)$_GET['ratings']) ? 'checked' : '' ?>>
+                            <span class="text-sm"><?= $i ?> star<?= $i > 1 ? 's' : '' ?></span>
+                        </label>
+                    <?php endfor; ?>
                 </div>
             </div>
         </div>
-        <!-- User Testimonials -->
-        <?php
-        if ($totalReviews > 0) {
-        ?>
-            <div id="review-section" class="space-y-4 mb-8 h-[80vh] overflow-y-auto">
-                <!-- Grid Layout for Reviews -->
-                <div class=" grid grid-cols-1 gap-4 divide-y-2 divide-slate-100">
-                    <?php
-                    $roomReviewSelect = "SELECT rr.*, u.*, rt.RoomType
-                    FROM roomtypereviewtb rr 
-                    JOIN usertb u ON rr.UserID = u.UserID 
-                    JOIN roomtypetb rt ON rr.RoomTypeID = rt.RoomTypeID
-                    ORDER BY rr.AddedDate DESC";
-                    $roomReviewResult = $connect->query($roomReviewSelect);
-                    $totalReviews = $roomReviewResult->num_rows;
 
-                    while ($roomReview = $roomReviewResult->fetch_assoc()) {
-                        // Extract initials
-                        $nameParts = explode(' ', trim($roomReview['UserName']));
-                        $initials = substr($nameParts[0], 0, 1);
-                        if (count($nameParts) > 1) {
-                            $initials .= substr(end($nameParts), 0, 1);
-                        }
-                        $bgColor = $roomReview['ProfileBgColor'];
-                    ?>
-                        <!-- Review Card -->
-                        <div class=" rounded-lg p-4">
-                            <div class="flex items-center mb-2">
-                                <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
-                                    <span class="w-10 h-10 rounded-full bg-[<?= $bgColor ?>] text-white uppercase font-semibold flex items-center justify-center select-none"><?= $initials ?></span>
-                                </div>
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <h4 class="text-sm font-medium text-gray-800"><?= $roomReview['UserName'] ?></h4>
-                                        <div class="flex items-center gap-2">
-                                            <!-- Country Flag -->
-                                            <span class="text-xs flag-icon flag-icon-<?= strtolower($roomReview['Country']) ?> rounded-sm shadow-sm"></span>
-
-                                            <!-- Country Name (Fetched via API) -->
-                                            <span
-                                                class="text-xs text-gray-600 country-name"
-                                                data-country-code="<?= $roomReview['Country'] ?>">
-                                                Loading...
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <script>
-                                        // Fetch country names from RestCountries API
-                                        document.querySelectorAll('.country-name').forEach(el => {
-                                            const countryCode = el.getAttribute('data-country-code');
-                                            fetch(`https://restcountries.com/v3.1/alpha/${countryCode}`)
-                                                .then(response => response.json())
-                                                .then(data => {
-                                                    el.textContent = data[0]?.name?.common || countryCode;
-                                                })
-                                                .catch(() => {
-                                                    el.textContent = countryCode; // Fallback if API fails
-                                                });
-                                        });
-                                    </script>
-                                    <div class="flex items-center">
-                                        <div class="flex items-center gap-3 mb-4">
-                                            <div class="select-none space-x-1 cursor-pointer text-sm">
-                                                <?php
-                                                $fullStars = floor($roomReview['Rating']);
-                                                $emptyStars = 5 - $fullStars;
-                                                for ($i = 0; $i < $fullStars; $i++) {
-                                                    echo '<i class="ri-star-fill text-amber-500"></i>';
-                                                }
-                                                for ($i = 0; $i < $emptyStars; $i++) {
-                                                    echo '<i class="ri-star-line text-amber-500"></i>';
-                                                }
-                                                ?>
-                                            </div>
-                                            <span class="text-gray-500 text-sm"><?= timeAgo($roomReview['AddedDate']) ?></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <img class="w-5 select-none" src="<?= $roomReview['RoomType'] == 'Single Bed' ? '../UserImages/single-bed.png' : '../UserImages/bed.png' ?>" alt="">
-                                    <p class="text-gray-900 text-xs"><?= $roomReview['RoomType'] ?></p>
-                                </div>
-                                <div class="flex items-center gap-1 mb-2">
-                                    <?php
-                                    $iconPath = '../UserImages/group.png'; // default
-                                    if ($roomReview['TravellerType'] == 'Solo traveller') {
-                                        $iconPath = '../UserImages/man.png';
-                                    } elseif ($roomReview['TravellerType'] == 'Couple') {
-                                        $iconPath = '../UserImages/man (1).png';
-                                    }
-                                    ?>
-                                    <img class="w-5 select-none" src="<?= $iconPath ?>" alt="Traveller type icon">
-                                    <p class="text-gray-900 text-xs"><?php echo $roomReview['TravellerType'] ?? ''; ?></p>
-                                </div>
-                            </div>
-                            <p class="text-gray-700 text-sm">
-                                "<?php echo $roomReview['Comment'] ?? ''; ?>"
-                            </p>
-                        </div>
-                    <?php } ?>
-                </div>
-            </div>
+        <!-- Review Results -->
         <?php
-        } else {
-        ?>
-            <div class="flex items-center justify-center h-full w-full">
-                <p class="text-gray-600 text-center text-sm">No reviews found.</p>
-            </div>
-        <?php
-        }
+        include('review_results.php');
         ?>
     </div>
 </aside>

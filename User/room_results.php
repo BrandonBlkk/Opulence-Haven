@@ -131,17 +131,9 @@
     </div>
 <?php else: ?>
     <div class="max-w-[1200px] mx-auto px-4 py-16 text-center">
-        <div class="bg-white p-8 rounded-lg shadow-sm border max-w-2xl mx-auto">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <h2 class="text-xl font-bold text-gray-800 mt-4">No properties found</h2>
-            <p class="text-gray-600 mt-2">We couldn't find any properties matching your search criteria.</p>
-            <div class="mt-6">
-                <a href="../index.php" class="inline-block bg-orange-500 text-white px-6 py-2 rounded-md hover:bg-orange-600 transition-colors select-none">
-                    Modify search
-                </a>
-            </div>
+        <div class="bg-white p-8 max-w-2xl mx-auto">
+            <h2 class="text-xl font-bold text-gray-600 mt-4">No properties found</h2>
+            <p class="text-gray-400 mt-2">We couldn't find any properties matching your search criteria.</p>
         </div>
     </div>
 <?php endif; ?>
