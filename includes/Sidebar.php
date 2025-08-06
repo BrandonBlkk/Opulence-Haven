@@ -57,11 +57,16 @@
                     x-ref="dropdown"
                     :style="{ height: expanded ? height + 'px' : '0px' }"
                     class="overflow-hidden transition-all duration-300 select-none">
-                    <a href="../User/profile_edit.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
+                    <a href="<?php echo isset($_SESSION['UserID']) ? '../User/profile_edit.php' : '#'; ?>"
+                        class="flex justify-between <?php echo isset($_SESSION['UserID']) ? 'text-slate-600 hover:bg-gray-100' : 'text-gray-400 cursor-not-allowed'; ?> p-2 rounded-sm transition-colors duration-300"
+                        <?php if (!isset($_SESSION['UserID'])); ?>>
                         <div class="flex items-center gap-1">
                             <i class="ri-user-settings-line text-xl"></i>
                             <p class="font-semibold text-sm">Your Profile</p>
                         </div>
+                        <?php if (!isset($_SESSION['UserID'])): ?>
+                            <span class="text-xs text-amber-500">(Sign In Required)</span>
+                        <?php endif; ?>
                     </a>
                     <div class="pl-3">
                         <a href="../User/reservation.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
