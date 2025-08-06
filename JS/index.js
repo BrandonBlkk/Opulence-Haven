@@ -757,38 +757,53 @@ if (profileDeleteBtn && confirmDeleteModal && cancelDeleteBtn && confirmDeleteBt
 
 //Contact Form
 document.addEventListener("DOMContentLoaded", () => {
-    const loader = document.getElementById('loader');
-    const alertMessage = document.getElementById('alertMessage').value;
-    const contactSuccess = document.getElementById('contactSuccess').value === 'true';
-
-    if (contactSuccess) {
-        loader.style.display = 'flex';
-
-        // Show Alert
-        setTimeout(() => {
-            loader.style.display = 'none';
-                showAlert('Your message has been successfully sent.');
-            setTimeout(() => {
-               window.location.href = '../User/contact.php';
-            }, 5000);
-        }, 1000);
-    } else if (alertMessage) {
-        // Show Alert
-        showAlert(alertMessage);
-    }
-
     // Add keyup event listeners for real-time validation
     document.getElementById("contactFullNameInput").addEventListener("keyup", validateFuillName);
     document.getElementById("contactPhoneInput").addEventListener("keyup", validateContactPhone);
-    document.getElementById("countryFlag").addEventListener("keyup", validateCountryFlag);
     document.getElementById("contactMessageInput").addEventListener("keyup", validateContactMessage);
 
     const contactForm = document.getElementById("contactForm");
     if (contactForm) {
         contactForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            
             if (!validateContactForm()) {
-                e.preventDefault();
+                return;
             }
+
+            const formData = new FormData(contactForm);
+            formData.append('contactSubmit', true); 
+            const loader = document.getElementById('loader');
+            
+            // Show loader when request starts
+            if (loader) loader.style.display = 'flex';
+            
+            fetch("../User/contact.php", {
+                method: "POST",
+                body: formData,
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    showAlert('Your message has been successfully sent.');
+                    contactForm.reset(); 
+                } else {
+                    showAlert(data.message || "Failed to submit contact form.");
+                }
+            })
+            .catch((error) => {
+                console.error("Contact form submission failed:", error);
+                showAlert("An error occurred while submitting the form. Please try again.");
+            })
+            .finally(() => {
+                // Hide loader when request completes 
+                if (loader) loader.style.display = 'none';
+            });
         });
     }
 });
@@ -1130,10 +1145,9 @@ const validateDiningForm = () => {
 const validateContactForm = () => {
     const isContactFullNameValid = validateFuillName();
     const isContactPhoneValid = validateContactPhone();
-    const isContactCountryFlagValid = validateCountryFlag();
     const isContactMessageValid = validateContactMessage();
 
-    return isContactFullNameValid && isContactPhoneValid && isContactCountryFlagValid && isContactMessageValid;
+    return isContactFullNameValid && isContactPhoneValid && isContactMessageValid;
 }
 
 // Individual validation functions
@@ -1189,7 +1203,8 @@ const validateFuillName = () => {
 
     const getPhoneError = (contactFullNameInput) => {
         if (!contactFullNameInput) return "Full name is required.";
-        return null; 
+        if (contactFullNameInput.length > 50) return "Full name is too long.";
+        return null;
     };
 
     const errorMessage = getPhoneError(contactFullNameInput);
@@ -1277,6 +1292,8 @@ const validateContactMessage = () => {
 
     const getMessageError = (contactMessageInput) => {
         if (!contactMessageInput) return "Message is required.";
+        if (contactMessageInput.length < 10) return "Message must be at least 10 characters long.";
+        if (contactMessageInput.length > 1000) return "Message cannot exceed 1000 characters.";
         return null; 
     };
 

@@ -124,20 +124,20 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <div class="text-sm">
             <label class="block text-sm font-medium text-gray-700 mb-1">Contact Details</label>
             <!-- Name -->
-            <div class="relative flex flex-col gap-2">
+            <div class="relative flex flex-col gap-2 mb-1">
                 <label for="name" class="font-semibold">Name</label>
                 <input type="text" id="diningNameInput" name="name" placeholder="Enter your name" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out">
                 <small id="diningNameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
             </div>
             <!-- Email -->
-            <div class="relative flex flex-col gap-2">
+            <div class="relative flex flex-col gap-2 mb-1">
                 <label for="email" class="font-semibold">Email</label>
                 <input type="email" id="diningEmailInput" name="email" value="<?php echo $session_userID ? htmlspecialchars($email) : ''; ?>" placeholder="Enter your email" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out">
                 <small id="diningEmailError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
 
             </div>
             <!-- Phone -->
-            <div class="relative flex flex-col gap-2">
+            <div class="relative flex flex-col gap-2 mb-1">
                 <label for="phone" class="font-semibold">Phone Number</label>
                 <input type="tel" id="diningPhoneInput" name="phone" value="<?php echo $session_userID ? htmlspecialchars($phone) : ''; ?>" placeholder="Enter your phone" class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out">
                 <small id="diningPhoneError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>

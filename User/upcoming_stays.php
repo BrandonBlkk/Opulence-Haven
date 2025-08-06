@@ -431,7 +431,7 @@ if ($userID) {
         <?php
         } else {
         ?>
-            <p class="text-center text-gray-400 my-36">You have no favorite products yet.</p>
+            <p class="text-center text-gray-400 my-36">You have no upcoming stays yet.</p>
         <?php } ?>
     </div>
 

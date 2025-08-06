@@ -51,6 +51,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve'])) {
     echo json_encode($responose);
     exit();
 }
+
+// Get dining menu
+$menuQuery = "SELECT * FROM menutb";
+$menuResult = $connect->query($menuQuery);
+
+// Fetch dining menu
+if ($menuResult && $menuResult->num_rows > 0) {
+    $diningMenu = $menuResult->fetch_all(MYSQLI_ASSOC);
+} else {
+    $diningMenu = [];
+}
 ?>
 
 <!DOCTYPE html>
@@ -147,6 +158,126 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve'])) {
         <h1 class="text-2xl mb-5 text-blue-900 font-semibold">Discover the Taste of Tradition</h1>
         <p class="text-2xl sm:text-3xl font-light">Experience the authentic flavors of our region with dishes inspired by local traditions and ingredients. Our chefs bring the essence of the destination to your plate, creating a dining experience that connects you to the culture and heritage of the area. Every bite tells a story, and every meal is a celebration of local cuisine.</p>
     </section>
+
+    <section class="max-w-6xl mx-auto bg-white p-4 md:p-8 flex flex-col md:flex-row">
+        <!-- Left Column (Menu List) -->
+        <div class="w-full md:w-1/3 border-b md:border-b-0 md:border-r pb-4 md:pb-0 md:pr-6 mb-4 md:mb-0">
+            <h2 class="font-bold text-gray-700 mb-4 uppercase">Menu</h2>
+            <ul class="space-y-3">
+                <?php foreach ($diningMenu as $menu): ?>
+                    <li>
+                        <a href="#" class="text-gray-400 font-medium menu-link"
+                            data-id="<?= $menu['MenuID'] ?>">
+                            <?= htmlspecialchars($menu['MenuName']) ?>
+                        </a>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+
+        <!-- Right Column (Menu Details) -->
+        <div class="w-full md:w-2/3 md:pl-6" id="menu-details">
+            <?php if (!empty($diningMenu)): ?>
+                <h2 class="text-xl md:text-2xl font-semibold text-blue-900 mb-4"><?= htmlspecialchars($diningMenu[0]['MenuName']) ?></h2>
+                <p class="text-gray-700 mb-4 text-sm md:text-base"><?= htmlspecialchars($diningMenu[0]['Description']) ?></p>
+
+                <div class="mb-2">
+                    <span class="font-semibold text-gray-800">Operating Hours</span><br>
+                    <span class="text-gray-600 text-sm md:text-base">
+                        <?= htmlspecialchars($diningMenu[0]['StartTime']) ?> – <?= htmlspecialchars($diningMenu[0]['EndTime']) ?>
+                    </span>
+                </div>
+
+                <div class="mb-2">
+                    <span class="font-semibold text-gray-800">Location</span><br>
+                    <span class="text-gray-600 text-sm md:text-base">
+                        <?= htmlspecialchars($diningMenu[0]['Location']) ?>
+                    </span>
+                </div>
+
+                <div class="mb-2">
+                    <span class="font-semibold text-gray-800">Status</span><br>
+                    <span class="<?= $diningMenu[0]['Status'] === 'available' ? 'text-green-600' : 'text-red-600' ?> font-medium text-sm md:text-base">
+                        <?= ucfirst(htmlspecialchars($diningMenu[0]['Status'])) ?>
+                    </span>
+                </div>
+
+                <p class="text-gray-600 text-sm md:text-base">View <a href="#" class="text-gray-400">menu</a></p>
+            <?php else: ?>
+                <p class="text-gray-700 text-sm md:text-base">No menu items found.</p>
+            <?php endif; ?>
+        </div>
+    </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuLinks = document.querySelectorAll('.menu-link');
+            const menuData = <?= json_encode($diningMenu) ?>;
+            let activeLink = null; // Track the currently active link
+
+            menuLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Remove bold from previously active link
+                    if (activeLink) {
+                        activeLink.classList.remove('font-bold');
+                        activeLink.classList.add('font-medium');
+                    }
+
+                    // Make current link bold
+                    this.classList.remove('font-medium');
+                    this.classList.add('font-bold');
+                    activeLink = this;
+
+                    const menuId = this.getAttribute('data-id');
+                    const menu = menuData.find(item => item.MenuID === menuId);
+
+                    if (menu) {
+                        const statusClass = menu.Status === 'available' ? 'text-green-600' : 'text-red-600';
+
+                        document.getElementById('menu-details').innerHTML = `
+                    <h2 class="text-2xl font-semibold text-blue-900 mb-4">${escapeHtml(menu.MenuName)}</h2>
+                    <p class="text-gray-700 mb-4">${escapeHtml(menu.Description)}</p>
+
+                    <div class="mb-2">
+                        <span class="font-semibold text-gray-800">Operating Hours</span><br>
+                        <span class="text-gray-600">
+                            ${escapeHtml(menu.StartTime)} – ${escapeHtml(menu.EndTime)}
+                        </span>
+                    </div>
+
+                    <div class="mb-2">
+                        <span class="font-semibold text-gray-800">Location</span><br>
+                        <span class="text-gray-600">
+                            ${escapeHtml(menu.Location)}
+                        </span>
+                    </div>
+
+                    <div class="mb-2">
+                        <span class="font-semibold text-gray-800">Status</span><br>
+                        <span class="${statusClass} font-medium">
+                            ${escapeHtml(menu.Status.charAt(0).toUpperCase() + menu.Status.slice(1))}
+                        </span>
+                    </div>
+
+                    <p class="text-gray-600 text-sm md:text-base">View <a href="#" class="text-gray-400">menu</a></p>
+                `;
+                    }
+                });
+            });
+
+            // Simple HTML escaping function
+            function escapeHtml(unsafe) {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+        });
+    </script>
 
     <section class="flex flex-col py-0 sm:py-16 px-4 max-w-[1310px] mx-auto" data-aos="fade-up">
         <h1 class="text-slate-600 mb-10">DISCOVER THE ART OF DINING</h1>
