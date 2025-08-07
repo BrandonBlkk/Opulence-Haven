@@ -557,6 +557,62 @@ if (isset($_POST['submitreview'])) {
         }
     }
 }
+
+// Handle reaction submission
+if (isset($_POST['like']) || isset($_POST['dislike'])) {
+    // Check if user is logged in
+    if (!isset($_SESSION['UserID'])) {
+        header("Location: user_signin.php");
+        exit();
+    }
+
+    // Validate and sanitize input
+    $reviewID = filter_input(INPUT_POST, 'review_id', FILTER_VALIDATE_INT);
+    $roomTypeID = $connect->real_escape_string($_POST['roomTypeID']);
+    $checkin_date = isset($_POST['checkin_date']) ? $connect->real_escape_string($_POST['checkin_date']) : '';
+    $checkout_date = isset($_POST['checkout_date']) ? $connect->real_escape_string($_POST['checkout_date']) : '';
+    $adults = isset($_POST['adults']) ? intval($_POST['adults']) : 1;
+    $children = isset($_POST['children']) ? intval($_POST['children']) : 0;
+    $userID = $_SESSION['UserID'];
+    $newReactionType = isset($_POST['like']) ? 'like' : 'dislike';
+
+    // Check if user already reacted to this review
+    $checkStmt = $connect->prepare("SELECT ReactionType FROM roomtypereviewrttb WHERE ReviewID = ? AND UserID = ?");
+    $checkStmt->bind_param("is", $reviewID, $userID);
+    $checkStmt->execute();
+    $result = $checkStmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $existingReaction = $result->fetch_assoc()['ReactionType'];
+
+        if ($existingReaction == $newReactionType) {
+            // User clicked same reaction - remove it
+            $deleteStmt = $connect->prepare("DELETE FROM roomtypereviewrttb WHERE ReviewID = ? AND UserID = ?");
+            $deleteStmt->bind_param("is", $reviewID, $userID);
+            $deleteStmt->execute();
+            $deleteStmt->close();
+        } else {
+            // User changed reaction - update it
+            $updateStmt = $connect->prepare("UPDATE roomtypereviewrttb SET ReactionType = ? WHERE ReviewID = ? AND UserID = ?");
+            $updateStmt->bind_param("sis", $newReactionType, $reviewID, $userID);
+            $updateStmt->execute();
+            $updateStmt->close();
+        }
+    } else {
+        // User hasn't reacted - insert new reaction
+        $insertStmt = $connect->prepare("INSERT INTO roomtypereviewrttb (ReviewID, UserID, ReactionType) VALUES (?, ?, ?)");
+        $insertStmt->bind_param("iss", $reviewID, $userID, $newReactionType);
+        $insertStmt->execute();
+        $insertStmt->close();
+    }
+
+    $checkStmt->close();
+
+    // Refresh the page to show updated reactions
+    $redirect_url = "room_details.php?roomTypeID=$roomTypeID&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children";
+    header("Location: $redirect_url");
+    exit();
+}
 ?>
 
 <!DOCTYPE html>

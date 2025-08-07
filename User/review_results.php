@@ -123,6 +123,69 @@ if ($totalReviews > 0) {
                         <p class="text-gray-700 text-sm">
                             "<?php echo $roomReview['Comment'] ?? ''; ?>"
                         </p>
+
+                        <?php
+                        // Initialize reaction counts and user reaction
+                        $likeCount = 0;
+                        $dislikeCount = 0;
+                        $userReaction = null;
+
+                        if (isset($roomReview['ReviewID'])) {
+                            $reviewID = $roomReview['ReviewID'];
+
+                            // Fetch total likes and dislikes
+                            $countStmt = $connect->prepare("SELECT ReactionType, COUNT(*) as count 
+                          FROM roomtypereviewrttb 
+                          WHERE ReviewID = ? 
+                          GROUP BY ReactionType");
+                            $countStmt->bind_param("i", $reviewID);
+                            $countStmt->execute();
+                            $result = $countStmt->get_result();
+
+                            while ($row = $result->fetch_assoc()) {
+                                if ($row['ReactionType'] == 'like') {
+                                    $likeCount = $row['count'];
+                                } else {
+                                    $dislikeCount = $row['count'];
+                                }
+                            }
+                            $countStmt->close();
+
+                            // Check if current user has reacted
+                            if (isset($_SESSION['UserID'])) {
+                                $userStmt = $connect->prepare("SELECT ReactionType FROM roomtypereviewrttb 
+                             WHERE ReviewID = ? AND UserID = ?");
+                                $userStmt->bind_param("is", $reviewID, $_SESSION['UserID']);
+                                $userStmt->execute();
+                                $userResult = $userStmt->get_result();
+
+                                if ($userResult->num_rows > 0) {
+                                    $userReaction = $userResult->fetch_assoc()['ReactionType'];
+                                }
+                                $userStmt->close();
+                            }
+                        }
+                        ?>
+
+                        <!-- Reactions -->
+                        <form id="roomTypeReactionForm" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" class="mt-3 text-gray-400">
+                            <input type="hidden" name="review_id" value="<?= htmlspecialchars($roomReview['ReviewID']) ?>">
+                            <input type="hidden" name="checkin_date" value="<?= htmlspecialchars($checkin_date) ?>">
+                            <input type="hidden" name="checkout_date" value="<?= htmlspecialchars($checkout_date) ?>">
+                            <input type="hidden" name="adults" value="<?= htmlspecialchars($adults) ?>">
+                            <input type="hidden" name="children" value="<?= htmlspecialchars($children) ?>">
+                            <input type="hidden" name="roomTypeID" value="<?= htmlspecialchars($roomtype['RoomTypeID']) ?>">
+
+                            <button type="submit" name="like" class="text-xs cursor-pointer <?= ($userReaction == 'like') ? 'text-gray-500' : '' ?>">
+                                <i class="ri-thumb-up-<?= ($userReaction == 'like') ? 'fill' : 'line' ?> text-sm"></i>
+                                <span><?= $likeCount ?></span> Like
+                            </button>
+
+                            <button type="submit" name="dislike" class="text-xs cursor-pointer <?= ($userReaction == 'dislike') ? 'text-gray-500' : '' ?>">
+                                <i class="ri-thumb-down-<?= ($userReaction == 'dislike') ? 'fill' : 'line' ?> text-sm"></i>
+                                <span><?= $dislikeCount ?></span> Dislike
+                            </button>
+                        </form>
                     </div>
                 <?php } ?>
                 <script>
