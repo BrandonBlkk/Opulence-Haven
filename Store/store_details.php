@@ -224,6 +224,58 @@ if ($productReviewSelectQuery->num_rows > 0) {
         $productReviews[] = $row;
     }
 }
+
+// Handle reaction submission
+if (isset($_POST['like']) || isset($_POST['dislike'])) {
+    // Check if user is logged in
+    if (!isset($_SESSION['UserID'])) {
+        header("Location: ../User/user_signin.php");
+        exit();
+    }
+
+    // Validate and sanitize input
+    $reviewID = filter_input(INPUT_POST, 'review_id', FILTER_VALIDATE_INT);
+    $product_id = $connect->real_escape_string($_POST['product_id']);
+    $userID = $_SESSION['UserID'];
+    $newReactionType = isset($_POST['like']) ? 'like' : 'dislike';
+
+    // Check if user already reacted to this review
+    $checkStmt = $connect->prepare("SELECT ReactionType FROM productreviewrttb WHERE ReviewID = ? AND UserID = ?");
+    $checkStmt->bind_param("is", $reviewID, $userID);
+    $checkStmt->execute();
+    $result = $checkStmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $existingReaction = $result->fetch_assoc()['ReactionType'];
+
+        if ($existingReaction == $newReactionType) {
+            // User clicked same reaction - remove it
+            $deleteStmt = $connect->prepare("DELETE FROM productreviewrttb WHERE ReviewID = ? AND UserID = ?");
+            $deleteStmt->bind_param("is", $reviewID, $userID);
+            $deleteStmt->execute();
+            $deleteStmt->close();
+        } else {
+            // User changed reaction - update it
+            $updateStmt = $connect->prepare("UPDATE productreviewrttb SET ReactionType = ? WHERE ReviewID = ? AND UserID = ?");
+            $updateStmt->bind_param("sis", $newReactionType, $reviewID, $userID);
+            $updateStmt->execute();
+            $updateStmt->close();
+        }
+    } else {
+        // User hasn't reacted - insert new reaction
+        $insertStmt = $connect->prepare("INSERT INTO productreviewrttb (ReviewID, UserID, ReactionType) VALUES (?, ?, ?)");
+        $insertStmt->bind_param("iss", $reviewID, $userID, $newReactionType);
+        $insertStmt->execute();
+        $insertStmt->close();
+    }
+
+    $checkStmt->close();
+
+    // Refresh the page to show updated reactions
+    $redirect_url = "store_details.php?product_ID=$product_id";
+    header("Location: $redirect_url");
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -556,6 +608,8 @@ if ($productReviewSelectQuery->num_rows > 0) {
                     if ($productReviewSelectQuery->num_rows > 0) {
                         while ($row = $productReviewSelectQuery->fetch_assoc()) {
                             // Fetch each review's data
+                            $reviewID = $row['ReviewID'];
+                            $product_id = $row['ProductID'];
                             $userid = $row['UserID'];
                             $fullname = $row['UserName'];
                             $reviewdate = $row['AddedDate'];
@@ -630,17 +684,64 @@ if ($productReviewSelectQuery->num_rows > 0) {
                                         </p>
                                     <?php endif; ?>
 
-                                    <!-- Reaction -->
-                                    <div class="mt-1 flex gap-2 text-slate-600 select-none">
-                                        <span class="text-xs cursor-pointer">
-                                            <i class="ri-thumb-up-line text-base"></i>
-                                            Like
-                                        </span>
-                                        <span class="text-xs cursor-pointer">
-                                            <i class="ri-thumb-down-line text-base"></i>
-                                            Dislike
-                                        </span>
-                                    </div>
+                                    <?php
+                                    // Initialize reaction counts and user reaction
+                                    $likeCount = 0;
+                                    $dislikeCount = 0;
+                                    $userReaction = null;
+
+                                    if (isset($reviewID)) {
+                                        $reviewID = $reviewID;
+
+                                        // Fetch total likes and dislikes
+                                        $countStmt = $connect->prepare("SELECT ReactionType, COUNT(*) as count 
+                          FROM productreviewrttb 
+                          WHERE ReviewID = ? 
+                          GROUP BY ReactionType");
+                                        $countStmt->bind_param("i", $reviewID);
+                                        $countStmt->execute();
+                                        $result = $countStmt->get_result();
+
+                                        while ($row = $result->fetch_assoc()) {
+                                            if ($row['ReactionType'] == 'like') {
+                                                $likeCount = $row['count'];
+                                            } else {
+                                                $dislikeCount = $row['count'];
+                                            }
+                                        }
+                                        $countStmt->close();
+
+                                        // Check if current user has reacted
+                                        if (isset($_SESSION['UserID'])) {
+                                            $userStmt = $connect->prepare("SELECT ReactionType FROM productreviewrttb 
+                             WHERE ReviewID = ? AND UserID = ?");
+                                            $userStmt->bind_param("is", $reviewID, $_SESSION['UserID']);
+                                            $userStmt->execute();
+                                            $userResult = $userStmt->get_result();
+
+                                            if ($userResult->num_rows > 0) {
+                                                $userReaction = $userResult->fetch_assoc()['ReactionType'];
+                                            }
+                                            $userStmt->close();
+                                        }
+                                    }
+                                    ?>
+
+                                    <!-- Reactions -->
+                                    <form id="roomTypeReactionForm" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" class="mt-3 text-gray-400">
+                                        <input type="hidden" name="review_id" value="<?= htmlspecialchars($reviewID) ?>">
+                                        <input type="hidden" name="product_id" value="<?= htmlspecialchars($product_id) ?>">
+
+                                        <button type="submit" name="like" class="text-xs cursor-pointer <?= ($userReaction == 'like') ? 'text-gray-500' : '' ?>">
+                                            <i class="ri-thumb-up-<?= ($userReaction == 'like') ? 'fill' : 'line' ?> text-sm"></i>
+                                            <span><?= $likeCount ?></span> Like
+                                        </button>
+
+                                        <button type="submit" name="dislike" class="text-xs cursor-pointer <?= ($userReaction == 'dislike') ? 'text-gray-500' : '' ?>">
+                                            <i class="ri-thumb-down-<?= ($userReaction == 'dislike') ? 'fill' : 'line' ?> text-sm"></i>
+                                            <span><?= $dislikeCount ?></span> Dislike
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                     <?php
