@@ -26,7 +26,7 @@ if ($totalReviews > 0) {
         $roomTypeFilter = " AND rr.RoomTypeID IN (" . implode(',', $escapedRoomTypes) . ")";
     }
 ?>
-    <div id="review-section" class="space-y-4 mb-8 w-full h-[80vh] overflow-y-auto">
+    <div id="review-section" class="space-y-4 mb-8 w-full h-[600px] overflow-y-auto">
         <!-- Grid Layout for Reviews -->
         <div id="reviews-container" class="flex flex-col gap-4 divide-y-2 divide-slate-100">
             <?php
@@ -97,7 +97,40 @@ if ($totalReviews > 0) {
                                             }
                                             ?>
                                         </div>
-                                        <span class="text-gray-500 text-sm"><?= timeAgo($roomReview['AddedDate']) ?></span>
+                                        <div class="review-date-container relative">
+                                            <!-- timeAgo span - shown by default -->
+                                            <span class="time-ago text-gray-500 text-xs cursor-pointer hover:text-gray-600">
+                                                <?= timeAgo($roomReview['AddedDate']) ?>
+                                            </span>
+
+                                            <!-- Reviewed on span - hidden by default -->
+                                            <span class="full-date text-xs text-gray-500 hidden">
+                                                Reviewed on <span><?= htmlspecialchars(date('Y-m-d h:i', strtotime($roomReview['AddedDate']))) ?></span>
+                                            </span>
+                                        </div>
+
+                                        <script>
+                                            document.addEventListener('DOMContentLoaded', function() {
+                                                // Get all review date containers
+                                                const dateContainers = document.querySelectorAll('.review-date-container');
+
+                                                dateContainers.forEach(container => {
+                                                    const timeAgo = container.querySelector('.time-ago');
+                                                    const fullDate = container.querySelector('.full-date');
+
+                                                    // Toggle between timeAgo and full date on click
+                                                    container.addEventListener('click', function() {
+                                                        timeAgo.classList.add('hidden');
+                                                        fullDate.classList.remove('hidden');
+
+                                                        setTimeout(() => {
+                                                            timeAgo.classList.remove('hidden');
+                                                            fullDate.classList.add('hidden');
+                                                        }, 2000);
+                                                    });
+                                                });
+                                            });
+                                        </script>
                                     </div>
                                 </div>
                             </div>

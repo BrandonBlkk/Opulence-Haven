@@ -1,6 +1,7 @@
 <?php
 session_start();
 include('../config/db_connection.php');
+include('../includes/timeago_func.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -655,7 +656,40 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                                                 ?>
                                                 <?php echo ($member == 1) ? '• Verified Member <i class="ri-checkbox-circle-line text-green-500"></i>' : ''; ?>
                                             </span>
-                                            <span class="text-xs text-gray-500">Reviewed on <span><?= htmlspecialchars(date('Y-m-d', strtotime($reviewdate))) ?></span></span>
+                                            <div class="review-date-container relative">
+                                                <!-- timeAgo span - shown by default -->
+                                                <span class="time-ago text-gray-500 text-xs cursor-pointer hover:text-gray-600">
+                                                    <?= timeAgo($reviewdate) ?>
+                                                </span>
+
+                                                <!-- Reviewed on span - hidden by default -->
+                                                <span class="full-date text-xs text-gray-500 hidden">
+                                                    Reviewed on <span><?= htmlspecialchars(date('Y-m-d h:i', strtotime($reviewdate))) ?></span>
+                                                </span>
+                                            </div>
+
+                                            <script>
+                                                document.addEventListener('DOMContentLoaded', function() {
+                                                    // Get all review date containers
+                                                    const dateContainers = document.querySelectorAll('.review-date-container');
+
+                                                    dateContainers.forEach(container => {
+                                                        const timeAgo = container.querySelector('.time-ago');
+                                                        const fullDate = container.querySelector('.full-date');
+
+                                                        // Toggle between timeAgo and full date on click
+                                                        container.addEventListener('click', function() {
+                                                            timeAgo.classList.add('hidden');
+                                                            fullDate.classList.remove('hidden');
+
+                                                            setTimeout(() => {
+                                                                timeAgo.classList.remove('hidden');
+                                                                fullDate.classList.add('hidden');
+                                                            }, 2000);
+                                                        });
+                                                    });
+                                                });
+                                            </script>
                                         </div>
                                     </div>
                                     <div class="flex items-center mt-1"><?php echo str_repeat('<i class="ri-star-s-line text-amber-500"></i>', $rating); ?></div>
