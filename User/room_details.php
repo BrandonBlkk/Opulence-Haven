@@ -2,6 +2,7 @@
 session_start();
 include('../config/db_connection.php');
 include('../includes/auto_id_func.php');
+include('../includes/timeago_func.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -502,34 +503,6 @@ $review_count_query = $connect->query($review_count_select);
 $review_count_result = $review_count_query->fetch_assoc();
 $review_count = $review_count_result['count'];
 
-function timeAgo($date)
-{
-    // Set timezone to Myanmar (Yangon)
-    $timezone = new DateTimeZone('Asia/Yangon');
-
-    // Create DateTime objects with Myanmar timezone
-    $now = new DateTime('now', $timezone);
-    $then = new DateTime($date, $timezone);
-    $diff = $now->diff($then);
-
-    if ($diff->y > 0) {
-        return $diff->y == 1 ? '1 year ago' : $diff->y . ' years ago';
-    } elseif ($diff->m > 0) {
-        return $diff->m == 1 ? '1 month ago' : $diff->m . ' months ago';
-    } elseif ($diff->d > 7) {
-        $weeks = floor($diff->d / 7);
-        return $weeks == 1 ? '1 week ago' : $weeks . ' weeks ago';
-    } elseif ($diff->d > 0) {
-        return $diff->d == 1 ? '1 day ago' : $diff->d . ' days ago';
-    } elseif ($diff->h > 0) {
-        return $diff->h == 1 ? '1 hour ago' : $diff->h . ' hours ago';
-    } elseif ($diff->i > 0) {
-        return $diff->i == 1 ? '1 minute ago' : $diff->i . ' minutes ago';
-    } else {
-        return 'Just now';
-    }
-}
-
 // Submit Review
 if (isset($_POST['submitreview'])) {
     if ($userID) {
@@ -556,6 +529,62 @@ if (isset($_POST['submitreview'])) {
             }
         }
     }
+}
+
+// Handle reaction submission
+if (isset($_POST['like']) || isset($_POST['dislike'])) {
+    // Check if user is logged in
+    if (!isset($_SESSION['UserID'])) {
+        header("Location: user_signin.php");
+        exit();
+    }
+
+    // Validate and sanitize input
+    $reviewID = filter_input(INPUT_POST, 'review_id', FILTER_VALIDATE_INT);
+    $roomTypeID = $connect->real_escape_string($_POST['roomTypeID']);
+    $checkin_date = isset($_POST['checkin_date']) ? $connect->real_escape_string($_POST['checkin_date']) : '';
+    $checkout_date = isset($_POST['checkout_date']) ? $connect->real_escape_string($_POST['checkout_date']) : '';
+    $adults = isset($_POST['adults']) ? intval($_POST['adults']) : 1;
+    $children = isset($_POST['children']) ? intval($_POST['children']) : 0;
+    $userID = $_SESSION['UserID'];
+    $newReactionType = isset($_POST['like']) ? 'like' : 'dislike';
+
+    // Check if user already reacted to this review
+    $checkStmt = $connect->prepare("SELECT ReactionType FROM roomtypereviewrttb WHERE ReviewID = ? AND UserID = ?");
+    $checkStmt->bind_param("is", $reviewID, $userID);
+    $checkStmt->execute();
+    $result = $checkStmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $existingReaction = $result->fetch_assoc()['ReactionType'];
+
+        if ($existingReaction == $newReactionType) {
+            // User clicked same reaction - remove it
+            $deleteStmt = $connect->prepare("DELETE FROM roomtypereviewrttb WHERE ReviewID = ? AND UserID = ?");
+            $deleteStmt->bind_param("is", $reviewID, $userID);
+            $deleteStmt->execute();
+            $deleteStmt->close();
+        } else {
+            // User changed reaction - update it
+            $updateStmt = $connect->prepare("UPDATE roomtypereviewrttb SET ReactionType = ? WHERE ReviewID = ? AND UserID = ?");
+            $updateStmt->bind_param("sis", $newReactionType, $reviewID, $userID);
+            $updateStmt->execute();
+            $updateStmt->close();
+        }
+    } else {
+        // User hasn't reacted - insert new reaction
+        $insertStmt = $connect->prepare("INSERT INTO roomtypereviewrttb (ReviewID, UserID, ReactionType) VALUES (?, ?, ?)");
+        $insertStmt->bind_param("iss", $reviewID, $userID, $newReactionType);
+        $insertStmt->execute();
+        $insertStmt->close();
+    }
+
+    $checkStmt->close();
+
+    // Refresh the page to show updated reactions
+    $redirect_url = "room_details.php?roomTypeID=$roomTypeID&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children";
+    header("Location: $redirect_url");
+    exit();
 }
 ?>
 

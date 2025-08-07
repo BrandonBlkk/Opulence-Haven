@@ -419,6 +419,12 @@ if (diningBtn) {
         diningAside.style.right = '-100%';
         darkOverlay.classList.add('hidden');
         darkOverlay.classList.remove('flex');
+
+        // Hide all error messages
+        const errors = ['diningNameError', 'diningEmailError', 'diningPhoneError'];
+        errors.forEach(error => {
+            hideError(document.getElementById(error));
+        });
     });
 
     darkOverlay.addEventListener('click', () => {
