@@ -18,6 +18,7 @@ $ruleCurrentPage = isset($_GET['rulepage']) && is_numeric($_GET['rulepage']) ? (
 $menuCurrentPage = isset($_GET['menupage']) && is_numeric($_GET['menupage']) ? (int)$_GET['menupage'] : 1;
 $userCurrentPage = isset($_GET['userpage']) && is_numeric($_GET['userpage']) ? (int)$_GET['userpage'] : 1;
 $reservationCurrentPage  = isset($_GET['bookingpage']) && is_numeric($_GET['bookingpage']) ? (int)$_GET['bookingpage'] : 1;
+$purchaseCurrentPage = isset($_GET['purchasepage']) && is_numeric($_GET['purchasepage']) ? (int)$_GET['purchasepage'] : 1;
 
 // Calculate the offset for the query
 $offset = ($currentPage - 1) * $rowsPerPage;
@@ -35,6 +36,7 @@ $ruleOffset = ($ruleCurrentPage - 1) * $rowsPerPage;
 $menuOffset = ($menuCurrentPage - 1) * $rowsPerPage;
 $userOffset = ($userCurrentPage - 1) * $rowsPerPage;
 $reservationOffset = ($reservationCurrentPage  - 1) * $rowsPerPage;
+$purchaseOffset = ($purchaseCurrentPage - 1) * $rowsPerPage;
 
 // Initialize search and filter variables
 $searchSupplierQuery = isset($_GET['supplier_search']) ? mysqli_real_escape_string($connect, $_GET['supplier_search']) : '';
@@ -49,6 +51,7 @@ $searchFacilityQuery = isset($_GET['facility_search']) ? mysqli_real_escape_stri
 $searchMenuQuery = isset($_GET['menu_search']) ? mysqli_real_escape_string($connect, $_GET['menu_search']) : '';
 $searchBookingQuery = isset($_GET['booking_search']) ? mysqli_real_escape_string($connect, $_GET['booking_search']) : '';
 $searchUserQuery = isset($_GET['user_search']) ? mysqli_real_escape_string($connect, $_GET['user_search']) : '';
+$searchPurchaseQuery = isset($_GET['purchase_search']) ? mysqli_real_escape_string($connect, $_GET['purchase_search']) : '';
 
 $filterRoleID = isset($_GET['sort']) ? $_GET['sort'] : 'random';
 $filterStatus = isset($_GET['sort']) ? $_GET['sort'] : 'random';
@@ -342,3 +345,17 @@ $menuCount = $menuResult->fetch_assoc()['count'];
 
 // Calculate the total number of pages
 $totalMenuPages = ceil($menuCount / $rowsPerPage);
+
+// Construct the purchase count query based on search
+if (!empty($searchPurchaseQuery)) {
+    $purchaseQuery = "SELECT COUNT(*) as count FROM purchasetb WHERE ProductType LIKE '%$searchPurchaseQuery%' OR Description LIKE '%$searchProductTypeQuery%'";
+} else {
+    $purchaseQuery = "SELECT COUNT(*) as count FROM purchasetb";
+}
+
+// Execute the count query
+$purchaseResult = $connect->query($purchaseQuery);
+$purchaseCount = $purchaseResult->fetch_assoc()['count'];
+
+// Calculate the total number of pages
+$totalPurchasePages = ceil($purchaseCount / $rowsPerPage);

@@ -359,7 +359,7 @@ if (mysqli_num_rows($query) > 0) {
                                     <span class="font-semibold text-sm">Purchase Product</span>
                                 </div>
                             </a>
-                            <a href="../Admin/add_product.php" class="text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
+                            <a href="../Admin/purchase_history.php" class="text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '3') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">
                                     <i class="ri-history-line purchase-history-icon text-xl"></i>
                                     <span class="font-semibold text-sm">Purchase History</span>
