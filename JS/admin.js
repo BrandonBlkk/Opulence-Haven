@@ -4207,25 +4207,66 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Product Purchase 
+// document.addEventListener("DOMContentLoaded", () => {
+//     const loader = document.getElementById('loader');
+//     const alertMessage = document.getElementById('alertMessage').value;
+//     const purchaseSuccess = document.getElementById('purchaseSuccess').value === 'true';
+
+//     if (purchaseSuccess) {
+//         loader.style.display = 'flex';
+
+//         // Show Alert
+//         setTimeout(() => {
+//             loader.style.display = 'none';
+//             showAlert('Purchase completed successfully! Stock increased.');
+//             setTimeout(() => {
+//                 window.location.href = '../Admin/product_purchase.php';
+//             }, 5000);
+//         }, 1000);
+//     } else if (alertMessage) {
+//         // Show Alert
+//         showAlert(alertMessage);
+//     }
+// });
 document.addEventListener("DOMContentLoaded", () => {
+    const purchaseForm = document.getElementById("purchaseForm");
     const loader = document.getElementById('loader');
-    const alertMessage = document.getElementById('alertMessage').value;
-    const purchaseSuccess = document.getElementById('purchaseSuccess').value === 'true';
 
-    if (purchaseSuccess) {
-        loader.style.display = 'flex';
-
-        // Show Alert
-        setTimeout(() => {
-            loader.style.display = 'none';
-            showAlert('Purchase completed successfully! Stock increased.');
-            setTimeout(() => {
-                window.location.href = '../Admin/product_purchase.php';
-            }, 5000);
-        }, 1000);
-    } else if (alertMessage) {
-        // Show Alert
-        showAlert(alertMessage);
+    if (purchaseForm) {
+        purchaseForm.addEventListener("submit", function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            formData.append('completePurchase', 'true');
+            
+            fetch('../Admin/product_purchase.php', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {                
+                if (data.success) {
+                    showAlert(data.message);
+                } else if (data.message) {
+                    showAlert(data.message, true);
+                } else {
+                    // Show error message
+                    showAlert(data.message || 'Sign-in failed. Please try again.', true);
+                }
+            })
+            .catch(error => {
+                showAlert('An error occurred. Please try again.', true);
+                console.error('Error:', error);
+            });
+        });
     }
 });
 
@@ -4516,6 +4557,62 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Call this function after loading new content via AJAX
     initializeReservationActionButtons();
+});
+
+// Purchase History
+document.addEventListener('DOMContentLoaded', function() {
+    const darkOverlay2 = document.getElementById('darkOverlay2');
+    const purchaseDetailsModal = document.getElementById('purchaseDetailsModal');
+    const closePurchaseDetailsBtn = document.getElementById('closePurchaseDetailsBtn');
+    
+    const closeModal = () => {
+        purchaseDetailsModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+        darkOverlay2.classList.add('opacity-0', 'invisible');
+        darkOverlay2.classList.remove('opacity-100');
+    };
+
+    // Function to attach event listeners to a row
+    const attachEventListenersToRow = (row) => {
+        // Details button
+        const detailsBtn = row.querySelector('.details-btn');
+        if (detailsBtn) {
+            detailsBtn.addEventListener('click', function() {
+                const purchaseId = this.getAttribute('data-purchase-id');
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+
+                fetch(`../Admin/purchase_history.php?action=getPurchaseDetails&id=${purchaseId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('detailPurchaseID').value = purchaseId;
+                            // document.querySelector('[name="updatesize"]').value = data.productsize.Size;
+                            // document.querySelector('[name="updateprice"]').value = data.productsize.PriceModifier;
+                            // document.querySelector('[name="updateproduct"]').value = data.productsize.ProductID;
+                            purchaseDetailsModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        } else {
+                            console.error('Failed to load product size details');
+                        }
+                    })
+                    .catch(error => console.error('Fetch error:', error));
+            });
+        }
+    };
+
+    closePurchaseDetailsBtn.addEventListener('click', function() {
+        closeModal();
+    })
+
+        // Initialize event listeners for existing rows
+    const initializeExistingRows = () => {
+        const rows = document.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            attachEventListenersToRow(row);
+        });
+    };
+    
+    // Initialize buttons on page load
+    initializeExistingRows();
 });
 
 // Full form validation function

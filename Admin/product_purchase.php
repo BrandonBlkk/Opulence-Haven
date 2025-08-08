@@ -9,6 +9,7 @@ if (!$connect) {
 
 $alertMessage = '';
 $purchaseSuccess = false;
+$response = ['success' => false, 'message' => ''];
 $purchaseID = AutoID('purchasetb', 'PurchaseID', 'PUR-', 6);
 
 // Initialize session variable if not set
@@ -32,8 +33,10 @@ if (isset($_GET["ProductID"])) {
 
 // Purchase product
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["completePurchase"])) {
-    if (!isset($_POST["supplierID"]) || empty($_POST["supplierID"])) {
-        $alertMessage = "Please select a supplier.";
+    if (!isset($_POST["productID"]) || empty($_POST["productID"])) {
+        $response['message'] = "Please select a product to purchase.";
+    } else if (!isset($_POST["supplierID"]) || empty($_POST["supplierID"])) {
+        $response['message'] = "Please select a supplier.";
     } else {
         $supplierID = $_POST["supplierID"];
 
@@ -49,7 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["completePurchase"])) {
                 // update stock 
                 $updateQuantity = "UPDATE producttb SET Stock = Stock + $quantity WHERE ProductID = '$productID'";
                 if (!$connect->query($updateQuantity)) {
-                    $alertMessage = "Error updating stock for product: " . $item['productTitle'];
+                    $response['message'] = "Error updating stock for product: " . $item['productTitle'];
                     $success = false;
                     break;
                 }
@@ -92,7 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["completePurchase"])) {
                         VALUES ('$purchaseID', '$productID', '$quantity', '$unitPrice')";
 
                         if (!$connect->query($purchaseItemQuery)) {
-                            $alertMessage = "Error saving purchase item: " . $item['productTitle'];
+                            $response['message'] = "Error saving purchase item: " . $item['productTitle'];
                             $success = false;
                             break;
                         }
@@ -100,13 +103,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["completePurchase"])) {
                 }
 
                 if ($success) {
-                    $purchaseSuccess = true;
+                    $response['success'] = true;
                 }
             }
         } else {
-            $alertMessage = "Your cart is empty.";
+            $response['message'] = "Your cart is empty.";
         }
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Add product to session cart (original code remains exactly the same)
@@ -178,7 +185,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["removeItem"])) {
     <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px] min-w-[380px]">
         <div class="w-full bg-white p-2">
             <h2 class="text-xl text-gray-700 font-bold mb-4">Purchase Product</h2>
-            <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="ruleForm">
+            <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="purchaseForm">
                 <div>
                     <label for="productID" class="block text-sm font-medium text-gray-700">Select Product</label>
                     <?php
@@ -235,21 +242,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["removeItem"])) {
 
                 <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
                     <!-- Title -->
-                    <div class="relative">
+                    <div class="relative flex-1">
                         <label for="producttitle" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                        <input class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" type="text" name="producttitle" id="producttitle" placeholder="Choose product to get title">
+                        <input class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" type="text" name="producttitle" id="producttitle" disabled placeholder="Choose product to get title">
                     </div>
                     <!-- Brand -->
                     <div class="relative flex-1">
                         <label for="productbrand" class="block text-sm font-medium text-gray-700 mb-1">Brand</label>
                         <input class="p-2 w-full border rounded" type="text" name="productbrand" id="productbrand" disabled placeholder="Choose product to get brand">
                     </div>
-                </div>
-
-                <!-- Price -->
-                <div class="relative">
-                    <label for="productprice" class="block text-sm font-medium text-gray-700 mb-1">Price</label>
-                    <input class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" type="number" name="productprice" id="productprice" min="1" placeholder="Choose product to get price">
+                    <!-- Price -->
+                    <div class="relative flex-1">
+                        <label for="productprice" class="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                        <input class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" type="number" name="productprice" id="productprice" min="1" disabled placeholder="Choose product to get price">
+                    </div>
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
@@ -311,7 +317,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["removeItem"])) {
                 <?php endif; ?>
             </table>
 
-            <form method="post" action="<?php echo $_SERVER["PHP_SELF"]; ?>">
+            <form id="purchaseForm" method="post" action="<?php echo $_SERVER["PHP_SELF"]; ?>">
                 <!-- Supplier -->
                 <div class="mt-4">
                     <label for="supplierID" class="block text-sm font-medium text-gray-700">Select Supplier</label>
@@ -331,6 +337,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["removeItem"])) {
                     </select>
                 </div>
 
+                <input type="hidden" name="completePurchase" value="1">
                 <button type="submit" name="completePurchase" class="bg-green-500 text-white px-4 py-2 mt-4 rounded w-full">
                     Complete Purchase
                 </button>
