@@ -15,20 +15,33 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     $id = mysqli_real_escape_string($connect, $_GET['id']);
     $action = $_GET['action'];
 
-    $query = match ($action) {
-        'getPurchaseDetails' => "SELECT * FROM purchasetb WHERE PurchaseID = '$id'",
-        default => null
-    };
-
-    if ($query) {
+    if ($action == 'getPurchaseDetails') {
+        $query = "SELECT p.*, a.FirstName, a.LastName, a.AdminEmail, s.SupplierName, s.SupplierEmail FROM purchasetb p
+        JOIN admintb a ON p.AdminID = a.AdminID
+        JOIN suppliertb s ON p.SupplierID = s.SupplierID WHERE PurchaseID = '$id'";
         $purchase = $connect->query($query)->fetch_assoc();
 
         if ($purchase) {
             $response['success'] = true;
             $response['purchase'] = $purchase;
         } else {
-            $response['success'] = true;
+            $response['success'] = false;
+            $response['message'] = 'Purchase not found';
         }
+    } elseif ($action == 'getPurchaseItems') {
+        $query = "SELECT pd.*, p.ProductName 
+                  FROM purchasedetailtb pd 
+                  JOIN producttb p ON pd.ProductID = p.ProductID 
+                  WHERE pd.PurchaseID = '$id'";
+        $result = $connect->query($query);
+
+        $items = [];
+        while ($row = $result->fetch_assoc()) {
+            $items[] = $row;
+        }
+
+        $response['success'] = true;
+        $response['items'] = $items;
     }
 
     header('Content-Type: application/json');
@@ -103,10 +116,12 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
                     <div>
                         <p class="text-sm text-gray-500">Admin</p>
                         <p class="font-medium" id="detailAdmin"></p>
+                        <p class="text-sm text-gray-500" id="detailAdminEmail"></p>
                     </div>
                     <div>
                         <p class="text-sm text-gray-500">Supplier</p>
                         <p class="font-medium" id="detailSupplier"></p>
+                        <p class="text-sm text-gray-500" id="detailSupplierEmail"></p>
                     </div>
                     <div>
                         <p class="text-sm text-gray-500">Total Amount</p>

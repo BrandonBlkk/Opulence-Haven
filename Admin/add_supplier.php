@@ -464,7 +464,7 @@ if (isset($_POST['deletesupplier'])) {
                     </div>
                     <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
                         <!-- City Input -->
-                        <div class="relative">
+                        <div class="relative flex-1">
                             <input
                                 id="cityInput"
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
@@ -474,7 +474,7 @@ if (isset($_POST['deletesupplier'])) {
                             <small id="cityError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                         </div>
                         <!-- State Input -->
-                        <div class="relative">
+                        <div class="relative flex-1">
                             <input
                                 id="stateInput"
                                 class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
