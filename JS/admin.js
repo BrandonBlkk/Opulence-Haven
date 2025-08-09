@@ -4584,20 +4584,72 @@ document.addEventListener('DOMContentLoaded', function() {
                 fetch(`../Admin/purchase_history.php?action=getPurchaseDetails&id=${purchaseId}`)
                     .then(response => response.json())
                     .then(data => {
-                        if (data.success) {
-                            document.getElementById('detailPurchaseID').value = purchaseId;
-                            // document.querySelector('[name="updatesize"]').value = data.productsize.Size;
-                            // document.querySelector('[name="updateprice"]').value = data.productsize.PriceModifier;
-                            // document.querySelector('[name="updateproduct"]').value = data.productsize.ProductID;
+                        if (data.success && data.purchase) {
+                            // Set basic purchase info
+                            document.getElementById('detailPurchaseID').textContent = data.purchase.PurchaseID;
+                            document.getElementById('detailPurchaseDate').textContent = formatDate(data.purchase.PurchaseDate);
+                            document.getElementById('detailAdmin').textContent = data.purchase.FirstName + ' ' + data.purchase.LastName;
+                            document.getElementById('detailAdminEmail').textContent = data.purchase.AdminEmail;
+                            document.getElementById('detailSupplier').textContent = data.purchase.SupplierName;
+                            document.getElementById('detailSupplierEmail').textContent = data.purchase.SupplierEmail;
+                            document.getElementById('detailTotalAmount').textContent = '$' + parseFloat(data.purchase.TotalAmount).toFixed(2);
+                            document.getElementById('detailTax').textContent = '$' + parseFloat(data.purchase.PurchaseTax).toFixed(2);
+                            document.getElementById('detailStatus').textContent = data.purchase.Status;
+                            
+                            // Fetch purchase items
+                            fetchPurchaseItems(purchaseId);
+                            
+                            // Show modal
                             purchaseDetailsModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                            purchaseDetailsModal.classList.add('opacity-100', 'visible', 'translate-y-0');
                         } else {
-                            console.error('Failed to load product size details');
+                            console.error('Failed to load purchase details');
+                            showNotification('error', 'Failed to load purchase details');
                         }
                     })
-                    .catch(error => console.error('Fetch error:', error));
+                    .catch(error => {
+                        console.error('Fetch error:', error);
+                        showNotification('error', 'Error loading purchase details');
+                    });
             });
         }
     };
+
+    // Function to fetch purchase items
+    function fetchPurchaseItems(purchaseId) {
+        fetch(`../Admin/purchase_history.php?action=getPurchaseItems&id=${purchaseId}`)
+            .then(response => response.json())
+            .then(data => {
+                const itemsContainer = document.getElementById('purchaseItems');
+                itemsContainer.innerHTML = '';
+                
+                if (data.success && data.items && data.items.length > 0) {
+                    data.items.forEach(item => {
+                        const row = document.createElement('tr');
+                        row.className = 'border-b border-gray-200 hover:bg-gray-50';
+                        row.innerHTML = `
+                            <td class="p-3">${item.ProductName}</td>
+                            <td class="p-3">${item.Quantity}</td>
+                            <td class="p-3">₱${parseFloat(item.UnitPrice).toFixed(2)}</td>
+                            <td class="p-3">₱${parseFloat(item.Quantity * item.UnitPrice).toFixed(2)}</td>
+                        `;
+                        itemsContainer.appendChild(row);
+                    });
+                } else {
+                    itemsContainer.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-gray-500">No items found</td></tr>';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching purchase items:', error);
+                document.getElementById('purchaseItems').innerHTML = '<tr><td colspan="4" class="p-3 text-center text-red-500">Error loading items</td></tr>';
+            });
+    }
+
+    // Helper function to format date
+    function formatDate(dateString) {
+        const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+        return new Date(dateString).toLocaleDateString('en-US', options);
+    }
 
     closePurchaseDetailsBtn.addEventListener('click', function() {
         closeModal();
@@ -4828,7 +4880,15 @@ const validateProductType = () => {
     return validateField(
         "productTypeInput",
         "productTypeError",
-        (input) => (!input ? "Type is required." : null)
+        (input) => {
+            if (!input) {
+                return "Type is required.";
+            }
+            if (input.length > 30) {
+                return "Type is too long.";
+            }
+            return null; 
+        }
     );
 };
 
@@ -4836,7 +4896,15 @@ const validateUpdateProductType = () => {
     return validateField(
         "updateProductTypeInput",
         "updateProductTypeError",
-        (input) => (!input ? "Type is required." : null)
+        (input) => {
+            if (!input) {
+                return "Type is required.";
+            }
+            if (input.length > 30) {
+                return "Type is too long.";
+            }
+            return null; 
+        }
     );
 };
 
@@ -4884,7 +4952,15 @@ const validateProductBrand = () => {
     return validateField(
         "brandInput",
         "brandError",
-        (input) => (!input ? "Brand is required." : null)
+        (input) => {
+            if (!input) {
+                return "Brand is required.";
+            }
+            if (input.length > 30) {
+                return "Brand is too long.";
+            }
+            return null;
+        }
     );
 }
 
@@ -4892,7 +4968,15 @@ const validateUpdateBrand = () => {
     return validateField(
         "updateBrandInput",
         "updateBrandError",
-        (input) => (!input ? "Brand is required." : null)
+        (input) => {
+            if (!input) {
+                return "Brand is required.";
+            }
+            if (input.length > 30) {
+                return "Brand is too long.";
+            }
+            return null;
+        }
     );
 }
 
@@ -4980,7 +5064,15 @@ const validateProductSize = () => {
     return validateField(
         "sizeInput",
         "sizeError",
-        (input) => (!input ? "Size is required." : null)
+        (input) => {
+            if (!input) {
+                return "Size is required.";
+            }
+            if (input.length > 30) {
+                return "Size is too long.";
+            }
+            return null;
+        }
     );
 }
 
@@ -4988,7 +5080,15 @@ const validateUpdateProductSize = () => {
     return validateField(
         "updateSizeInput",
         "updateSizeError",
-        (input) => (!input ? "Size is required." : null)
+        (input) => {
+            if (!input) {
+                return "Size is required.";
+            }
+            if (input.length > 30) {
+                return "Size is too long.";
+            }
+            return null;
+        }
     );
 }
 
@@ -5036,15 +5136,31 @@ const validateSupplierName = () => {
     return validateField(
         "supplierNameInput",
         "supplierNameError",
-        (input) => (!input ? "Supplier name is required." : null)
+        (input) => {
+            if (!input) {
+                return "Supplier name is required.";
+            }
+            if (input.length > 30) {
+                return "Supplier name is too long.";
+            }
+            return null; 
+        }
     );
-}
+};
 
 const validateUpdateSupplierName = () => {
     return validateField(
         "updateSupplierNameInput",
         "updateSupplierNameError",
-        (input) => (!input ? "Supplier name is required." : null)
+        (input) => {
+            if (!input) {
+                return "Supplier name is required.";
+            }
+            if (input.length > 30) {
+                return "Supplier name is too long.";
+            }
+            return null; 
+        }
     );
 }
 
@@ -5052,7 +5168,15 @@ const validateCompanyName = () => {
     return validateField(
         "companyNameInput",
         "companyNameError",
-        (input) => (!input ? "Company name is required." : null)
+        (input) => {
+            if (!input) {
+                return "Company name is required.";
+            }
+            if (input.length > 30) {
+                return "Company name is too long.";
+            }
+            return null;
+        }
     );
 }
 
@@ -5060,7 +5184,15 @@ const validateUpdateCompanyName = () => {
     return validateField(
         "updateCompanyNameInput",
         "updateCompanyNameError",
-        (input) => (!input ? "Company name is required." : null)
+        (input) => {
+            if (!input) {
+                return "Company name is required.";
+            }
+            if (input.length > 30) {
+                return "Company name is too long.";
+            }
+            return null;
+        }
     );
 }
 
@@ -5092,7 +5224,15 @@ const validateEmail = () => {
     return validateField(
         "emailInput",
         "emailError",
-        (input) => (!input ? "Email is required." : null)
+        (input) => {
+            if (!input) {
+                return "Email is required.";
+            }
+            if (input.length > 30) {
+                return "Email is too long.";
+            }
+            return null;
+        }
     )
 }
 
@@ -5100,7 +5240,15 @@ const validateUpdateEmail = () => {
     return validateField(
         "updateEmailInput",
         "updateEmailError",
-        (input) => (!input ? "Email is required." : null)
+        (input) => {
+            if (!input) {
+                return "Email is required.";
+            }
+            if (input.length > 30) {
+                return "Email is too long.";
+            }
+            return null;
+        }
     );
 }
 
@@ -5108,7 +5256,18 @@ const validatePhone = () => {
     return validateField(
         "phoneInput",
         "phoneError",
-        (input) => (!input ? "Phone number is required." : null)
+        (input) => {
+            if (!input) {
+                return "Phone is required.";
+            }
+            if (!input.match(/^\d+$/)) {
+                return "Phone number is invalid. Only digits are allowed.";
+            }
+            if (input.length < 9 || input.length > 11) {
+                return "Phone number must be between 9 and 11 digits.";
+            }
+            return null;
+        }
     )
 }
 
@@ -5116,7 +5275,18 @@ const validateContactNumber = () => {
     return validateField(
         "contactNumberInput",
         "contactNumberError",
-        (input) => (!input ? "Contact number is required." : null)
+        (input) => {
+            if (!input) {
+                return "Phone is required.";
+            }
+            if (!input.match(/^\d+$/)) {
+                return "Phone number is invalid. Only digits are allowed.";
+            }
+            if (input.length < 9 || input.length > 11) {
+                return "Phone number must be between 9 and 11 digits.";
+            }
+            return null;
+        }
     )
 }
 
@@ -5124,7 +5294,18 @@ const validateUpdateContactNumber = () => {
     return validateField(
         "updateContactNumberInput",
         "updateContactNumberError",
-        (input) => (!input ? "Contact number is required." : null)
+        (input) => {
+            if (!input) {
+                return "Phone is required.";
+            }
+            if (!input.match(/^\d+$/)) {
+                return "Phone number is invalid. Only digits are allowed.";
+            }
+            if (input.length < 9 || input.length > 11) {
+                return "Phone number must be between 9 and 11 digits.";
+            }
+            return null;
+        }
     );
 }
 
@@ -5132,7 +5313,15 @@ const validateAddress = () => {
     return validateField(
         "addressInput",
         "addressError",
-        (input) => (!input ? "Address is required." : null)
+        (input) => {
+            if (!input) {
+                return "Address is required.";
+            }
+            if (input.length > 50) {
+                return "Address is too long.";
+            }
+            return null;
+        }
     )
 }
 
@@ -5140,7 +5329,15 @@ const validateUpdateAddress = () => {
     return validateField(
         "updateAddressInput",
         "updateAddressError",
-        (input) => (!input ? "Address is required." : null)
+        (input) => {
+            if (!input) {
+                return "Address is required.";
+            }
+            if (input.length > 50) {
+                return "Address is too long.";
+            }
+            return null;
+        }
     );
 }
 
@@ -5148,7 +5345,15 @@ const validateCity = () => {
     return validateField(
         "cityInput",
         "cityError",
-        (input) => (!input ? "City is required." : null)
+        (input) => {
+            if (!input) {
+                return "City is required.";
+            }
+            if (input.length > 30) {
+                return "City is too long.";
+            }
+            return null;
+        }
     )
 }
 
@@ -5156,7 +5361,15 @@ const validateUpdateCity = () => {
     return validateField(
         "updateCityInput",
         "updateCityError",
-        (input) => (!input ? "City is required." : null)
+        (input) => {
+            if (!input) {
+                return "City is required.";
+            }
+            if (input.length > 30) {
+                return "City is too long.";
+            }
+            return null;
+        }
     );
 }
 
@@ -5164,7 +5377,15 @@ const validateState = () => {
     return validateField(
         "stateInput",
         "stateError",
-        (input) => (!input ? "State is required." : null)
+        (input) => {
+            if (!input) {
+                return "State is required.";
+            }
+            if (input.length > 30) {
+                return "State is too long.";
+            }
+            return null;
+        }
     )
 }
 
@@ -5172,7 +5393,15 @@ const validateUpdateState = () => {
     return validateField(
         "updateStateInput",
         "updateStateError",
-        (input) => (!input ? "State is required." : null)
+        (input) => {
+            if (!input) {
+                return "State is required.";
+            }
+            if (input.length > 30) {
+                return "State is too long.";
+            }
+            return null;
+        }
     );
 }
 
@@ -5180,7 +5409,18 @@ const validatePostalCode = () => {
     return validateField(
         "postalCodeInput",
         "postalCodeError",
-        (input) => (!input ? "Postal code is required." : null)
+        (input) => {
+            if (!input) {
+                return "Postal code is required.";
+            }
+            if (input.length > 15) {
+                return "Postal code is too long.";
+            }
+            if (!input.match(/^\d+$/)) {
+                return "Postal code is invalid. Only digits are allowed.";
+            }
+            return null;
+        }
     )
 }
 
@@ -5188,7 +5428,18 @@ const validateUpdatePostalCode = () => {
     return validateField(
         "updatePostalCodeInput",
         "updatePostalCodeError",
-        (input) => (!input ? "Postal code is required." : null)
+        (input) => {
+            if (!input) {
+                return "Postal code is required.";
+            }
+            if (input.length > 15) {
+                return "Postal code is too long.";
+            }
+             if (!input.match(/^\d+$/)) {
+                return "Postal code is invalid. Only digits are allowed.";
+            }
+            return null;
+        }
     );
 }
 
@@ -5196,7 +5447,15 @@ const validateCountry = () => {
     return validateField(
         "countryInput",
         "countryError",
-        (input) => (!input ? "Country is required." : null)
+        (input) => {
+            if (!input) {
+                return "Country is required.";
+            }
+            if (input.length > 30) {
+                return "Country is too long.";
+            }
+            return null;
+        }
     )
 }
 
@@ -5204,7 +5463,15 @@ const validateUpdateCountry = () => {
     return validateField(
         "updateCountryInput",
         "updateCountryError",
-        (input) => (!input ? "Country is required." : null)
+        (input) => {
+            if (!input) {
+                return "Country is required.";
+            }
+            if (input.length > 30) {
+                return "Country is too long.";
+            }
+            return null;
+        }
     );
 }
 

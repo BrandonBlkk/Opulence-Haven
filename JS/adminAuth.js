@@ -190,7 +190,7 @@ const validateFirstname = () => {
 
     const getUserNameError = (firstname) => {
         if (!firstname) return "Firstname is required.";
-        if (firstname.length > 14) return "Username should not exceed 14 characters.";
+        if (firstname.length > 14) return "Firstname should not exceed 14 characters.";
         return null; 
     };
 
@@ -316,7 +316,7 @@ const validatePhone = () => {
     const getPhoneError = (phone) => {
         if (!phone) return "Phone is required.";
         if (!phone.match(/^\d+$/)) return "Phone number is invalid. Only digits are allowed.";
-        if (phone.length < 8 || phone.length > 11) return "Phone number must be between 8 and 11 digits.";
+        if (phone.length < 9 || phone.length > 11) return "Phone number must be between 9 and 11 digits.";
         return null; 
     };
 
