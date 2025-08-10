@@ -1001,12 +1001,12 @@ if (isset($_GET['payment'])) {
                             <div class="mb-6 relative">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Phone <span class="text-red-500">*</span></label>
                                 <input type="tel" name="phone" value="<?= $userData['UserPhone'] ?? '' ?>" placeholder="xxx-xxx-xxx" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                <small id="phoneError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">First name is required</small>
+                                <small id="phoneError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none">Phone is required</small>
                             </div>
 
                             <div class="flex justify-between items-center">
                                 <a href="../User/room_booking.php?checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="text-blue-600 hover:text-blue-800 font-medium">Back</a>
-                                <button type="submit" id="submitButton" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md flex items-center justify-center select-none">
+                                <button type="submit" id="submitButton" name="submit_reservation" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md flex items-center justify-center select-none">
                                     <span id="buttonText">Continue to payment</span>
                                     <svg id="buttonSpinner" class="hidden w-5 h-5 ml-2 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

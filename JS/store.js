@@ -275,7 +275,15 @@ const validateFirstname = () => {
     return validateField(
         "firstnameInput",
         "firstnameError",
-        (input) => (!input ? "Firstname is required." : null)
+        (input) => {
+            if (!input) {
+                return "Firstname is required.";
+            }
+            if (input.length > 15) {
+                return "Firstname is too long.";
+            }
+            return null;
+        }
     );
 }
 
@@ -283,7 +291,15 @@ const validateLastname = () => {
     return validateField(
         "lastnameInput",
         "lastnameError",
-        (input) => (!input ? "Lastname is required." : null)
+        (input) => {
+            if (!input) {
+                return "Lastname is required.";
+            }
+            if (input.length > 15) {
+                return "Lastname is too long.";
+            }
+            return null;
+        }
     );
 }
 
@@ -291,7 +307,15 @@ const validateAddress = () => {
     return validateField(
         "addressInput",
         "addressError",
-        (input) => (!input ? "Address is required." : null)
+        (input) => {
+            if (!input) {
+                return "Address is required.";
+            }
+            if (input.length > 100) {
+                return "Address is too long.";
+            }
+            return null;
+        }
     );
 }
 
@@ -299,7 +323,18 @@ const validatePhone = () => {
     return validateField(
         "phoneInput",
         "phoneError",
-        (input) => (!input ? "Phone number is required." : null)
+        (input) => {
+            if (!input) {
+                return "Phone is required.";
+            }
+            if (!input.match(/^\d+$/)) {
+                return "Phone number is invalid. Only digits are allowed.";
+            }
+            if (input.length < 9 || input.length > 11) {
+                return "Phone number must be between 9 and 11 digits.";
+            }
+            return null;
+        }
     );
 }
 
@@ -307,7 +342,15 @@ const validateCity = () => {
     return validateField(
         "cityInput",
         "cityError",
-        (input) => (!input ? "City is required." : null)
+        (input) => {
+            if (!input) {
+                return "City is required.";
+            }
+            if (input.length > 30) {
+                return "City is too long.";
+            }
+            return null;
+        }
     );
 }
 
@@ -315,7 +358,15 @@ const validateState = () => {
     return validateField(
         "stateInput",
         "stateError",
-        (input) => (!input ? "State is required." : null)
+        (input) => {
+            if (!input) {
+                return "State is required.";
+            }
+            if (input.length > 30) {
+                return "State is too long.";
+            }
+            return null;
+        }
     );
 }
 
@@ -323,6 +374,17 @@ const validateZip = () => {
     return validateField(
         "zipInput",
         "zipError",
-        (input) => (!input ? "Zip code is required." : null)
+        (input) => {
+            if (!input) {
+                return "Zip is required.";
+            }
+            if (input.length > 10) {
+                return "Zip is too long.";
+            }
+            if (!input.match(/^\d+$/)) {
+                return "Zip code is invalid. Only digits are allowed.";
+            }
+            return null;
+        }
     );
 }
