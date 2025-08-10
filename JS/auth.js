@@ -246,6 +246,7 @@ const validateEmail = () => {
 
     const getEmailError = (email) => {
         if (!email) return "Email is required.";
+        if (email.length > 30) return "Email is too long..";
         return null; 
     };
 
@@ -307,7 +308,7 @@ const validatePhone = () => {
     const getPhoneError = (phone) => {
         if (!phone) return "Phone is required.";
         if (!phone.match(/^\d+$/)) return "Phone number is invalid. Only digits are allowed.";
-        if (phone.length < 8 || phone.length > 11) return "Phone number must be between 8 and 11 digits.";
+        if (phone.length < 9 || phone.length > 11) return "Phone number must be between 9 and 11 digits.";
         return null; 
     };
 

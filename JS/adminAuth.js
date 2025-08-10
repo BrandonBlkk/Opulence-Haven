@@ -255,6 +255,7 @@ const validateEmail = () => {
 
     const getEmailError = (emailInput) => {
         if (!emailInput) return "Email is required.";
+        if (emailInput.length > 30) return "Email is too long.";
         return null; 
     };
 

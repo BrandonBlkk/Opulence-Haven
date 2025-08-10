@@ -1162,7 +1162,15 @@ const validateDiningName = () => {
     return validateField(
         "diningNameInput",
         "diningNameError",
-        (input) => (!input ? "Name is required." : null)
+        (input) => {
+            if (!input) {
+                return "Name is required.";
+            }
+            if (input.length > 50) {
+                return "Name is too long.";
+            }
+            return null;
+        }
     );
 }
 
@@ -1178,7 +1186,18 @@ const validateDiningPhone = () => {
     return validateField(
         "diningPhoneInput",
         "diningPhoneError",
-        (input) => (!input ? "Phone is required." : null)
+        (input) => {
+            if (!input) {
+                return "Phone is required.";
+            }
+            if (!input.match(/^\d+$/)) {
+                return "Phone number is invalid. Only digits are allowed.";
+            }
+            if (input.length < 9 || input.length > 11) {
+                return "Phone number must be between 9 and 11 digits.";
+            }
+            return null;
+        }
     );
 }
 const validateUsername = () => {
