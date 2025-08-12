@@ -505,6 +505,8 @@ $review_count = $review_count_result['count'];
 
 // Submit Review
 if (isset($_POST['submitreview'])) {
+    $response = ['status' => false, 'message' => ''];
+
     if ($userID) {
         // Get values from POST
         $roomTypeID = $_POST['roomTypeID'];
@@ -513,22 +515,32 @@ if (isset($_POST['submitreview'])) {
         $country = mysqli_real_escape_string($connect, $_POST['country']);
         $review = mysqli_real_escape_string($connect, $_POST['reviewtext']);
 
-        // Validate inputs
-        if (empty($travellerType) || empty($rating) || empty($country) || empty($review)) {
-            $alertMessage = "All fields are required!";
-        } else {
-            // Insert into database
-            $insert = "INSERT INTO roomtypereviewtb (Rating, Country, Comment, TravellerType, UserID, RoomTypeID) 
-                      VALUES ('$rating', '$country', '$review', '$travellerType', '$userID', '$roomTypeID')";
+        // Insert into database
+        $insert = "INSERT INTO roomtypereviewtb (Rating, Country, Comment, TravellerType, UserID, RoomTypeID) 
+                  VALUES ('$rating', '$country', '$review', '$travellerType', '$userID', '$roomTypeID')";
 
-            if ($connect->query($insert)) {
-                // Redirect back with the same search parameters
-                $redirect_url = "room_details.php?roomTypeID=$roomTypeID&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children";
-                header("Location: $redirect_url");
-                exit();
-            }
+        if ($connect->query($insert)) {
+            $response['status'] = true;
+            $response['message'] = 'Review submitted successfully!';
+
+            // If you want to return the new review data for dynamic display:
+            $newReviewId = $connect->insert_id;
+            $response['review'] = [
+                'id' => $newReviewId,
+                'rating' => $rating,
+                'comment' => $review,
+                // Add other fields as needed
+            ];
+        } else {
+            $response['message'] = 'Database error: ' . $connect->error;
         }
+    } else {
+        $response['message'] = 'User not logged in';
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Handle reaction submission
