@@ -402,6 +402,81 @@ if (viewAllReviews) {
     });
 }
 
+// Room Type Review
+document.addEventListener("DOMContentLoaded", () => {
+    // Add keyup event listeners for real-time validation
+    const travellerTypeSelect = document.getElementById("travellerTypeSelect");
+    const reviewInput = document.getElementById("reviewInput");
+
+    if (reviewInput) reviewInput.addEventListener("keyup", validateRoomTypeReview);
+    if (travellerTypeSelect) travellerTypeSelect.addEventListener("change", validateTravellerType);
+    
+    document.querySelectorAll('.star-rating').forEach(star => {
+        star.addEventListener('click', () => {
+            hideError(document.getElementById('ratingError'));
+        });
+    });
+
+    const writeReviewModal = document.getElementById("writeReviewModal");
+    const reviewForm = document.getElementById("reviewForm"); // Add this form element in your HTML
+
+    if (reviewForm) {
+        reviewForm.addEventListener("submit", async function(e) {
+            e.preventDefault();
+            
+            if (!validateRoomTypeReviewForm()) {
+                return;
+            }
+            
+            try {
+                const formData = new FormData(this);
+                // Add any additional fields that might be outside the form but in the modal
+                const ratingValue = document.getElementById('ratingValue').value;
+                formData.append('rating', ratingValue);
+                
+                const response = await fetch('../User/room_details.php', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                
+                if (data.status) {
+                    // Success - update UI without reload
+                    showAlert('Review submitted successfully!', false);
+                    
+                    // Reset form
+                    this.reset();
+                    
+                    // Reset stars
+                    document.querySelectorAll('.star-rating span').forEach(star => {
+                        star.className = 'text-gray-300 hover:text-amber-400';
+                    });
+                    document.getElementById('ratingValue').value = '0';
+                    
+                    // Hide modal if exists
+                    if (writeReviewModal) {
+                        const modal = bootstrap.Modal.getInstance(writeReviewModal);
+                        if (modal) modal.hide();
+                    }
+                } else {
+                    showAlert(data.message || 'Failed to submit review', true);
+                }
+            } catch (error) {
+                showAlert('An error occurred. Please try again.', true);
+                console.error('Error:', error);
+            }
+        });
+    }
+});
+
 // Dining Reservation Modal
 const diningBtn = document.getElementById('diningBtn');
 if (diningBtn) {
@@ -1156,6 +1231,14 @@ const validateContactForm = () => {
     return isContactFullNameValid && isContactPhoneValid && isContactMessageValid;
 }
 
+const validateRoomTypeReviewForm = () => {
+    const isTravellerTypeValid = validateTravellerType();
+    const isRatingValid = validateRating();
+    const isRoomTypeReviewValid = validateRoomTypeReview();
+
+    return isTravellerTypeValid && isRatingValid && isRoomTypeReviewValid;
+}
+
 // Individual validation functions
 
 const validateDiningName = () => {
@@ -1330,6 +1413,72 @@ const validateContactMessage = () => {
             return false;
         default:
             hideError(contactMessageError);
+            return true;
+    }
+}
+
+const validateTravellerType = () => {
+    const travellerTypeSelect = document.getElementById("travellerTypeSelect").value.trim();
+    const travellerTypeError = document.getElementById("travellerTypeError");
+
+    const getMessageError = (travellerTypeSelect) => {
+        if (!travellerTypeSelect) return "Traveller type is required.";
+        return null; 
+    };
+
+    const errorMessage = getMessageError(travellerTypeSelect);
+
+    switch (true) {
+        case errorMessage !== null:
+            showError(travellerTypeError, errorMessage);
+            return false;
+        default:
+            hideError(travellerTypeError);
+            return true;
+    }
+}
+
+const validateRating = () => {
+    const ratingValue = document.getElementById('ratingValue').value;
+    const ratingErrorElement = document.getElementById('ratingError'); 
+    
+    const getMessageError = (ratingValue) => {
+        if (ratingValue === '0' || ratingValue === '') {
+            return "Rating is required.";
+        }
+        return null; 
+    };
+
+    const errorMessage = getMessageError(ratingValue);
+
+    if (errorMessage) {
+        showError(ratingErrorElement, errorMessage);
+        return false;
+    } else {
+        hideError(ratingErrorElement);
+        return true;
+    }
+}
+
+const validateRoomTypeReview = () => {
+    const reviewInput = document.getElementById("reviewInput").value.trim();
+    const reviewError = document.getElementById("reviewError");
+
+    const getMessageError = (reviewInput) => {
+        if (!reviewInput) return "Review is required.";
+        if (reviewInput.length < 10) return "Message must be at least 10 characters long.";
+        if (reviewInput.length > 1000) return "Message cannot exceed 1000 characters.";
+        return null; 
+    };
+
+    const errorMessage = getMessageError(reviewInput);
+
+    switch (true) {
+        case errorMessage !== null:
+            showError(reviewError, errorMessage);
+            return false;
+        default:
+            hideError(reviewError);
             return true;
     }
 }

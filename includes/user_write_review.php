@@ -9,7 +9,7 @@
             <div class="relative">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Traveller Type</label>
                 <select
-                    id="travellerType"
+                    id="travellerTypeSelect"
                     class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
                     name="travellertype">
                     <option value="">Select Traveller Type</option>
@@ -19,6 +19,7 @@
                     <option value="Solo traveller">Solo traveller</option>
                     <option value="Business traveller">Business traveller</option>
                 </select>
+                <small id="travellerTypeError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
             </div>
 
             <!-- Star Rating -->
@@ -32,6 +33,7 @@
                     <?php endfor; ?>
                 </div>
                 <input type="hidden" id="ratingValue" name="rating" value="0">
+                <small id="ratingError" class="absolute left-2 -bottom-3 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
             </div>
 
             <!-- Country Select with Flags -->
@@ -51,11 +53,14 @@
             <div class="relative">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Your Review</label>
                 <textarea
-                    id="reviewText"
+                    id="reviewInput"
                     class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out min-h-[150px]"
                     name="reviewtext"
                     placeholder="Share your experience..."></textarea>
+                <small id="reviewError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
             </div>
+
+            <input type="hidden" name="submitreview" value="1">
 
             <!-- Form Actions -->
             <div class="flex justify-end gap-4 select-none pt-4">
