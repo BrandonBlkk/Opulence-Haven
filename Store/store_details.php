@@ -226,6 +226,86 @@ if ($productReviewSelectQuery->num_rows > 0) {
     }
 }
 
+ob_start(); // buffer any accidental output so AJAX returns clean JSON
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_edit'])) {
+
+    $response = ['success' => false, 'message' => 'Failed to update review'];
+
+    // Validate inputs
+    $review_id = isset($_POST['review_id']) ? (int) $_POST['review_id'] : 0;
+    $updated_comment = isset($_POST['updated_comment']) ? trim($_POST['updated_comment']) : '';
+
+    if ($review_id > 0 && $updated_comment !== '') {
+        // Use prepared statement (no need for real_escape_string)
+        $stmt = $connect->prepare("UPDATE productreviewtb SET Comment = ? WHERE ReviewID = ?");
+        if ($stmt) {
+            $stmt->bind_param("si", $updated_comment, $review_id);
+            if ($stmt->execute()) {
+                $response['success'] = true;
+                $response['message'] = 'Review updated successfully';
+            } else {
+                $response['message'] = 'Database execute failed';
+            }
+            $stmt->close();
+        } else {
+            $response['message'] = 'Database prepare failed';
+        }
+    } else {
+        $response['message'] = 'Invalid data';
+    }
+
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($response);
+    exit;
+}
+
+// Review delete
+if (isset($_POST['delete'])) {
+    $review_id = isset($_POST['review_id']) ? (int) $_POST['review_id'] : 0;
+
+    header('Content-Type: application/json; charset=utf-8');
+
+    if ($review_id > 0) {
+        $delete_query = $connect->prepare("DELETE FROM productreviewtb WHERE ReviewID = ?");
+        if ($delete_query) {
+            $delete_query->bind_param("i", $review_id);
+            if ($delete_query->execute()) {
+                $response = [
+                    'success' => true,
+                    'message' => 'Review deleted successfully'
+                ];
+            } else {
+                $response = [
+                    'success' => false,
+                    'message' => 'Database delete failed'
+                ];
+            }
+            $delete_query->close();
+        } else {
+            $response = [
+                'success' => false,
+                'message' => 'Database prepare failed'
+            ];
+        }
+    } else {
+        $response = [
+            'success' => false,
+            'message' => 'Missing required fields'
+        ];
+    }
+
+    // Clean any accidental output and return pure JSON
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    echo json_encode($response);
+    exit();
+}
+
 // Handle reaction submission
 if (isset($_POST['like']) || isset($_POST['dislike'])) {
     // Check if user is logged in
@@ -287,6 +367,7 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Opulence Haven</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="../CSS/output.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
 </head>
@@ -574,10 +655,7 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                 <!-- Review -->
                 <div id="review" class="tab-content hidden">
                     <form class="w-24" method="get">
-                        <!-- Hidden input to preserve the product_ID -->
                         <input type="hidden" name="product_ID" value="<?= htmlspecialchars($_GET['product_ID'] ?? '') ?>">
-
-                        <!-- Sorting dropdown -->
                         <select id="options" name="sort" class="block w-full py-1 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none" onchange="this.form.submit()">
                             <option value="oldest" <?= (isset($_GET['sort']) && $_GET['sort'] === 'oldest') ? 'selected' : '' ?>>Oldest</option>
                             <option value="newest" <?= (isset($_GET['sort']) && $_GET['sort'] === 'newest') ? 'selected' : '' ?>>Newest</option>
@@ -585,40 +663,33 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                     </form>
 
                     <?php
-                    // Determine the sorting order based on the selected option
                     $sortOrder = 'ASC';
                     if (isset($_GET['sort']) && $_GET['sort'] === 'newest') {
                         $sortOrder = 'DESC';
                     }
 
-                    // Fetch the product_ID from the URL
                     $product_id = $_GET['product_ID'] ?? '';
-
-                    // SQL query to fetch reviews for the product with sorting
                     $productReviewSelect = "SELECT productreviewtb.*, usertb.*
-                             FROM productreviewtb
-                             JOIN usertb 
-                             ON productreviewtb.UserID = usertb.UserID 
-                             WHERE productreviewtb.ProductID = '$product_id'
-                             ORDER BY productreviewtb.AddedDate $sortOrder";
+        FROM productreviewtb
+        JOIN usertb 
+        ON productreviewtb.UserID = usertb.UserID 
+        WHERE productreviewtb.ProductID = '$product_id'
+        ORDER BY productreviewtb.AddedDate $sortOrder";
 
-                    // Execute the query
                     $productReviewSelectQuery = $connect->query($productReviewSelect);
 
-                    // Check if reviews exist
                     if ($productReviewSelectQuery->num_rows > 0) {
                         while ($row = $productReviewSelectQuery->fetch_assoc()) {
-                            // Fetch each review's data
                             $reviewID = $row['ReviewID'];
                             $product_id = $row['ProductID'];
                             $userid = $row['UserID'];
                             $fullname = $row['UserName'];
                             $reviewdate = $row['AddedDate'];
+                            $reviewupdate = $row['LastUpdate'];
                             $rating = $row['Rating'];
                             $comment = $row['Comment'];
                             $member = $row['Membership'];
 
-                            // Logic to handle truncated comments
                             $comment_words = explode(' ', $comment);
                             if (count($comment_words) > 100) {
                                 $truncated_comment = implode(' ', array_slice($comment_words, 0, 100)) . '...';
@@ -628,16 +699,13 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                                 $full_comment = '';
                             }
                     ?>
-                            <!-- Output the review and customer details -->
                             <div class="bg-white py-3 flex items-start border-b-2 border-slate-100 space-x-4">
                                 <?php
-                                // Extract initials from the UserName
-                                $nameParts = explode(' ', trim($row['UserName'])); // Split the name by spaces
-                                $initials = substr($nameParts[0], 0, 1); // First letter of the first name
+                                $nameParts = explode(' ', trim($row['UserName']));
+                                $initials = substr($nameParts[0], 0, 1);
                                 if (count($nameParts) > 1) {
-                                    $initials .= substr(end($nameParts), 0, 1); // First letter of the last name
+                                    $initials .= substr(end($nameParts), 0, 1);
                                 }
-
                                 $bgColor = $row['ProfileBgColor'];
                                 ?>
                                 <div>
@@ -649,7 +717,6 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                                             <p class="text-sm font-semibold text-gray-800"><?php echo $fullname; ?></p>
                                             <span class="text-xs text-gray-500">
                                                 <?php
-                                                // Check if the admin ID matches the logged-in admin's ID
                                                 if ($session_userID == $userid) {
                                                     echo "<span class='text-sm text-green-500 font-semibold'> (You)</span>";
                                                 }
@@ -657,39 +724,43 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                                                 <?php echo ($member == 1) ? '• Verified Member <i class="ri-checkbox-circle-line text-green-500"></i>' : ''; ?>
                                             </span>
                                             <div class="review-date-container relative">
-                                                <!-- timeAgo span - shown by default -->
                                                 <span class="time-ago text-gray-500 text-xs cursor-pointer hover:text-gray-600">
                                                     <?= timeAgo($reviewdate) ?>
+                                                    <?php
+                                                    // Add this condition to show "Edited" if the review was modified
+                                                    if (isset($reviewupdate) && $reviewupdate != $reviewdate): ?>
+                                                        <span class="text-gray-400"> • Edited</span>
+                                                    <?php endif; ?>
                                                 </span>
-
-                                                <!-- Reviewed on span - hidden by default -->
                                                 <span class="full-date text-xs text-gray-500 hidden">
                                                     Reviewed on <span><?= htmlspecialchars(date('Y-m-d h:i', strtotime($reviewdate))) ?></span>
+                                                    <?php if (isset($reviewupdate) && $reviewupdate != $reviewdate): ?>
+                                                        <br>Edited on <span><?= htmlspecialchars(date('Y-m-d h:i', strtotime($reviewupdate))) ?></span>
+                                                    <?php endif; ?>
                                                 </span>
                                             </div>
-
-                                            <script>
-                                                document.addEventListener('DOMContentLoaded', function() {
-                                                    // Get all review date containers
-                                                    const dateContainers = document.querySelectorAll('.review-date-container');
-
-                                                    dateContainers.forEach(container => {
-                                                        const timeAgo = container.querySelector('.time-ago');
-                                                        const fullDate = container.querySelector('.full-date');
-
-                                                        // Toggle between timeAgo and full date on click
-                                                        container.addEventListener('click', function() {
-                                                            timeAgo.classList.add('hidden');
-                                                            fullDate.classList.remove('hidden');
-
-                                                            setTimeout(() => {
-                                                                timeAgo.classList.remove('hidden');
-                                                                fullDate.classList.add('hidden');
-                                                            }, 2000);
-                                                        });
-                                                    });
-                                                });
-                                            </script>
+                                            <div x-data="{ open: false }" class="relative inline-block <?= ($session_userID === $userid) ? '' : 'hidden' ?>">
+                                                <button @click="open = !open" type="button" class="text-gray-500 hover:text-gray-600 focus:outline-none">
+                                                    <i class="ri-more-line text-xl"></i>
+                                                </button>
+                                                <div
+                                                    x-show="open"
+                                                    @click.away="open = false"
+                                                    class="absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                                                    role="menu"
+                                                    style="display: none;">
+                                                    <form method="post" class="delete-form py-1 select-none" role="none">
+                                                        <input type="hidden" name="review_id" value="<?= $reviewID ?>">
+                                                        <input type="hidden" name="delete" value="1">
+                                                        <button type="button" class="edit-btn block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" data-review-id="<?= $reviewID ?>" data-comment="<?= htmlspecialchars($comment) ?>">
+                                                            <i class="ri-edit-line mr-2"></i> Edit
+                                                        </button>
+                                                        <button type="submit" name="delete" class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                                                            <i class="ri-delete-bin-line mr-2"></i> Delete
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="flex items-center mt-1"><?php echo str_repeat('<i class="ri-star-s-line text-amber-500"></i>', $rating); ?></div>
@@ -698,44 +769,38 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                                         <p class="text-gray-700 text-xs font-semibold px-1">Pattern: <span class="font-normal"><?php echo $product_type; ?></span></p>
                                     </div>
 
-                                    <!-- Truncated Comment -->
-                                    <p class="text-gray-700 mt-2 text-sm leading-relaxed truncated-comment">
-                                        <?php echo $truncated_comment; ?>
-                                    </p>
-                                    <?php if ($full_comment): ?>
-                                        <p class="text-indigo-600 text-sm cursor-pointer mt-1 read-more">
-                                            <i class="ri-arrow-down-s-line"></i> Read More
-                                        </p>
-                                    <?php endif; ?>
+                                    <div class="review-container">
+                                        <div class="review">
+                                            <p class="text-gray-700 mt-2 text-sm leading-relaxed truncated-comment"><?php echo $truncated_comment; ?></p>
+                                            <?php if ($full_comment): ?>
+                                                <p class="text-indigo-600 text-sm cursor-pointer mt-1 read-more"><i class="ri-arrow-down-s-line"></i> Read More</p>
+                                            <?php endif; ?>
 
-                                    <!-- Full Comment -->
-                                    <p class="text-gray-700 mt-2 text-sm leading-relaxed full-comment hidden">
-                                        <?php echo $full_comment; ?>
-                                    </p>
-                                    <?php if ($full_comment): ?>
-                                        <p class="text-indigo-600 text-sm cursor-pointer mt-1 read-less hidden">
-                                            <i class="ri-arrow-up-s-line"></i> Read Less
-                                        </p>
-                                    <?php endif; ?>
+                                            <p class="text-gray-700 mt-2 text-sm leading-relaxed full-comment hidden"><?php echo $full_comment; ?></p>
+                                            <?php if ($full_comment): ?>
+                                                <p class="text-indigo-600 text-sm cursor-pointer mt-1 read-less hidden"><i class="ri-arrow-up-s-line"></i> Read Less</p>
+                                            <?php endif; ?>
+                                        </div>
+
+                                        <!-- Hidden edit form -->
+                                        <form method="post" class="edit-form hidden mt-2" data-review-id="<?= $reviewID ?>">
+                                            <input type="hidden" name="review_id" value="<?= $reviewID ?>">
+                                            <input type="hidden" name="save_edit" value="1">
+                                            <textarea name="updated_comment" class="w-full border rounded p-2 text-sm outline-none"><?php echo htmlspecialchars($full_comment); ?></textarea>
+                                            <button type="submit" name="save_edit" class="mt-2 text-gray-600 bg-gray-200 hover:bg-gray-300 py-1 px-3 rounded text-sm outline-none select-none">Save</button>
+                                            <button type="button" class="cancel-edit text-sm text-gray-500 ml-2 select-none">Cancel</button>
+                                        </form>
+                                    </div>
 
                                     <?php
-                                    // Initialize reaction counts and user reaction
                                     $likeCount = 0;
                                     $dislikeCount = 0;
                                     $userReaction = null;
-
                                     if (isset($reviewID)) {
-                                        $reviewID = $reviewID;
-
-                                        // Fetch total likes and dislikes
-                                        $countStmt = $connect->prepare("SELECT ReactionType, COUNT(*) as count 
-                          FROM productreviewrttb 
-                          WHERE ReviewID = ? 
-                          GROUP BY ReactionType");
+                                        $countStmt = $connect->prepare("SELECT ReactionType, COUNT(*) as count FROM productreviewrttb WHERE ReviewID = ? GROUP BY ReactionType");
                                         $countStmt->bind_param("i", $reviewID);
                                         $countStmt->execute();
                                         $result = $countStmt->get_result();
-
                                         while ($row = $result->fetch_assoc()) {
                                             if ($row['ReactionType'] == 'like') {
                                                 $likeCount = $row['count'];
@@ -744,15 +809,11 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                                             }
                                         }
                                         $countStmt->close();
-
-                                        // Check if current user has reacted
                                         if (isset($_SESSION['UserID'])) {
-                                            $userStmt = $connect->prepare("SELECT ReactionType FROM productreviewrttb 
-                             WHERE ReviewID = ? AND UserID = ?");
+                                            $userStmt = $connect->prepare("SELECT ReactionType FROM productreviewrttb WHERE ReviewID = ? AND UserID = ?");
                                             $userStmt->bind_param("is", $reviewID, $_SESSION['UserID']);
                                             $userStmt->execute();
                                             $userResult = $userStmt->get_result();
-
                                             if ($userResult->num_rows > 0) {
                                                 $userReaction = $userResult->fetch_assoc()['ReactionType'];
                                             }
@@ -761,16 +822,13 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                                     }
                                     ?>
 
-                                    <!-- Reactions -->
-                                    <form id="roomTypeReactionForm" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" class="mt-3 text-gray-400">
+                                    <form method="post" class="mt-3 text-gray-400">
                                         <input type="hidden" name="review_id" value="<?= htmlspecialchars($reviewID) ?>">
                                         <input type="hidden" name="product_id" value="<?= htmlspecialchars($product_id) ?>">
-
                                         <button type="submit" name="like" class="text-xs cursor-pointer <?= ($userReaction == 'like') ? 'text-gray-500' : '' ?>">
                                             <i class="ri-thumb-up-<?= ($userReaction == 'like') ? 'fill' : 'line' ?> text-sm"></i>
                                             <span><?= $likeCount ?></span> Like
                                         </button>
-
                                         <button type="submit" name="dislike" class="text-xs cursor-pointer <?= ($userReaction == 'dislike') ? 'text-gray-500' : '' ?>">
                                             <i class="ri-thumb-down-<?= ($userReaction == 'dislike') ? 'fill' : 'line' ?> text-sm"></i>
                                             <span><?= $dislikeCount ?></span> Dislike
@@ -823,6 +881,29 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
 
                 // Show the tab
                 showTab(initialTab);
+            });
+
+            // Review edit
+            document.addEventListener('DOMContentLoaded', function() {
+                // Toggle edit form
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        let reviewId = this.getAttribute('data-review-id');
+                        let comment = this.getAttribute('data-comment');
+                        let form = document.querySelector(`.edit-form[data-review-id="${reviewId}"]`);
+                        form.querySelector('textarea').value = comment;
+                        form.classList.remove('hidden');
+                        document.querySelector('.review').classList.add('hidden');
+                    });
+                });
+
+                // Cancel edit
+                document.querySelectorAll('.cancel-edit').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        this.closest('.edit-form').classList.add('hidden');
+                        document.querySelector('.review').classList.remove('hidden');
+                    });
+                });
             });
         </script>
 
