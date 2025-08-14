@@ -258,6 +258,108 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// Review edit and delete
+document.addEventListener("DOMContentLoaded", () => {
+    const reviewEditForm = document.querySelectorAll('.edit-form');
+    const reviewDeleteForm = document.querySelectorAll('.delete-form');
+
+    if (reviewEditForm) {
+        reviewEditForm.forEach(editForm => {
+            editForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(editForm);
+                formData.append("save_edit", true);
+                const reviewId = editForm.dataset.reviewId;
+                const reviewContainer = editForm.closest('.review-container'); 
+
+                fetch('../Store/store_details.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Update the review text in the UI
+                        const truncatedComment = reviewContainer.querySelector('.truncated-comment');
+                        const fullComment = reviewContainer.querySelector('.full-comment');
+                        const updatedText = formData.get('updated_comment');
+                        
+                        // Update both truncated and full comment elements
+                        if (truncatedComment) truncatedComment.textContent = updatedText;
+                        if (fullComment) fullComment.textContent = updatedText;
+                        
+                        // Hide the edit form and show the regular review text
+                        editForm.classList.add('hidden');
+                        reviewContainer.querySelector('.review').classList.remove('hidden');
+                        
+                        showAlert(data.message);
+                    } else {
+                        showAlert(data.message, true);
+                    }
+                })
+                .catch(error => {
+                    console.log("Error:", error);
+                    showAlert("An error occurred. Please try again.", true);
+                });
+            });
+
+            // Add cancel button functionality
+            const cancelButton = editForm.querySelector('.cancel-edit');
+            if (cancelButton) {
+                cancelButton.addEventListener('click', function() {
+                    const reviewContainer = editForm.closest('.review-container');
+                    editForm.classList.add('hidden');
+                    reviewContainer.querySelector('.review').classList.remove('hidden');
+                });
+            }
+        });
+    }
+
+    if (reviewDeleteForm) {
+        reviewDeleteForm.forEach(deleteForm => {
+            deleteForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(deleteForm);
+                formData.append("delete", true);
+                const reviewContainer = deleteForm.closest('.review-container')?.parentElement;
+
+                fetch('../Store/store_details.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Remove the review from the DOM
+                        if (reviewContainer) {
+                            reviewContainer.remove();
+                        }
+                        showAlert(data.message);
+                    } else {
+                        showAlert(data.message, true);
+                    }
+                })
+                .catch(error => {
+                    console.log("Error:", error);
+                    showAlert("An error occurred. Please try again.", true);
+                });
+            });
+        });
+    }
+})
+
 const validateOrderForm = () => {
     const isFirstnameValid = validateFirstname();
     const isLastnameValid = validateLastname();
