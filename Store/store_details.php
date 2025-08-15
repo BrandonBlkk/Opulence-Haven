@@ -1,5 +1,6 @@
 <?php
 session_start();
+ob_start();
 include('../config/db_connection.php');
 include('../includes/timeago_func.php');
 
@@ -226,8 +227,7 @@ if ($productReviewSelectQuery->num_rows > 0) {
     }
 }
 
-ob_start(); // buffer any accidental output so AJAX returns clean JSON
-
+//Review Edit
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_edit'])) {
 
     $response = ['success' => false, 'message' => 'Failed to update review'];
@@ -298,7 +298,6 @@ if (isset($_POST['delete'])) {
         ];
     }
 
-    // Clean any accidental output and return pure JSON
     while (ob_get_level() > 0) {
         ob_end_clean();
     }
@@ -652,260 +651,84 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                     </div>
                 </div>
 
-                <!-- Review -->
                 <div id="review" class="tab-content hidden">
-                    <form class="w-24" method="get">
+                    <form id="reviewFilterForm" class="w-24" method="get">
                         <input type="hidden" name="product_ID" value="<?= htmlspecialchars($_GET['product_ID'] ?? '') ?>">
-                        <select id="options" name="sort" class="block w-full py-1 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none" onchange="this.form.submit()">
+                        <select id="sortReviews" name="sort" class="block w-full py-1 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none">
                             <option value="oldest" <?= (isset($_GET['sort']) && $_GET['sort'] === 'oldest') ? 'selected' : '' ?>>Oldest</option>
                             <option value="newest" <?= (isset($_GET['sort']) && $_GET['sort'] === 'newest') ? 'selected' : '' ?>>Newest</option>
                         </select>
                     </form>
 
-                    <?php
-                    $sortOrder = 'ASC';
-                    if (isset($_GET['sort']) && $_GET['sort'] === 'newest') {
-                        $sortOrder = 'DESC';
-                    }
+                    <div id="review-results-container">
+                        <?php include('../Store/review_results.php'); ?>
+                    </div>
 
-                    $product_id = $_GET['product_ID'] ?? '';
-                    $productReviewSelect = "SELECT productreviewtb.*, usertb.*
-        FROM productreviewtb
-        JOIN usertb 
-        ON productreviewtb.UserID = usertb.UserID 
-        WHERE productreviewtb.ProductID = '$product_id'
-        ORDER BY productreviewtb.AddedDate $sortOrder";
-
-                    $productReviewSelectQuery = $connect->query($productReviewSelect);
-
-                    if ($productReviewSelectQuery->num_rows > 0) {
-                        while ($row = $productReviewSelectQuery->fetch_assoc()) {
-                            $reviewID = $row['ReviewID'];
-                            $product_id = $row['ProductID'];
-                            $userid = $row['UserID'];
-                            $fullname = $row['UserName'];
-                            $reviewdate = $row['AddedDate'];
-                            $reviewupdate = $row['LastUpdate'];
-                            $rating = $row['Rating'];
-                            $comment = $row['Comment'];
-                            $member = $row['Membership'];
-
-                            $comment_words = explode(' ', $comment);
-                            if (count($comment_words) > 100) {
-                                $truncated_comment = implode(' ', array_slice($comment_words, 0, 100)) . '...';
-                                $full_comment = $comment;
-                            } else {
-                                $truncated_comment = $comment;
-                                $full_comment = '';
-                            }
-                    ?>
-                            <div class="bg-white py-3 flex items-start border-b-2 border-slate-100 space-x-4">
-                                <?php
-                                $nameParts = explode(' ', trim($row['UserName']));
-                                $initials = substr($nameParts[0], 0, 1);
-                                if (count($nameParts) > 1) {
-                                    $initials .= substr(end($nameParts), 0, 1);
-                                }
-                                $bgColor = $row['ProfileBgColor'];
-                                ?>
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <p class="w-10 h-10 rounded-full bg-[<?= $bgColor ?>] text-white uppercase font-semibold flex items-center justify-center select-none">
-                                            <?= $initials ?>
-                                        </p>
-                                        <div class="flex items-center flex-wrap space-x-2">
-                                            <p class="text-sm font-semibold text-gray-800"><?php echo $fullname; ?></p>
-                                            <span class="text-xs text-gray-500">
-                                                <?php
-                                                if ($session_userID == $userid) {
-                                                    echo "<span class='text-sm text-green-500 font-semibold'> (You)</span>";
-                                                }
-                                                ?>
-                                                <?php echo ($member == 1) ? '• Verified Member <i class="ri-checkbox-circle-line text-green-500"></i>' : ''; ?>
-                                            </span>
-                                            <div class="review-date-container relative">
-                                                <span class="time-ago text-gray-500 text-xs cursor-pointer hover:text-gray-600">
-                                                    <?= timeAgo($reviewdate) ?>
-                                                    <?php
-                                                    // Add this condition to show "Edited" if the review was modified
-                                                    if (isset($reviewupdate) && $reviewupdate != $reviewdate): ?>
-                                                        <span class="text-gray-400"> • Edited</span>
-                                                    <?php endif; ?>
-                                                </span>
-                                                <span class="full-date text-xs text-gray-500 hidden">
-                                                    Reviewed on <span><?= htmlspecialchars(date('Y-m-d h:i', strtotime($reviewdate))) ?></span>
-                                                    <?php if (isset($reviewupdate) && $reviewupdate != $reviewdate): ?>
-                                                        <br>Edited on <span><?= htmlspecialchars(date('Y-m-d h:i', strtotime($reviewupdate))) ?></span>
-                                                    <?php endif; ?>
-                                                </span>
-                                            </div>
-                                            <div x-data="{ open: false }" class="relative inline-block <?= ($session_userID === $userid) ? '' : 'hidden' ?>">
-                                                <button @click="open = !open" type="button" class="text-gray-500 hover:text-gray-600 focus:outline-none">
-                                                    <i class="ri-more-line text-xl"></i>
-                                                </button>
-                                                <div
-                                                    x-show="open"
-                                                    @click.away="open = false"
-                                                    class="absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
-                                                    role="menu"
-                                                    style="display: none;">
-                                                    <form method="post" class="delete-form py-1 select-none" role="none">
-                                                        <input type="hidden" name="review_id" value="<?= $reviewID ?>">
-                                                        <input type="hidden" name="delete" value="1">
-                                                        <button type="button" class="edit-btn block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" data-review-id="<?= $reviewID ?>" data-comment="<?= htmlspecialchars($comment) ?>">
-                                                            <i class="ri-edit-line mr-2"></i> Edit
-                                                        </button>
-                                                        <button type="submit" name="delete" class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
-                                                            <i class="ri-delete-bin-line mr-2"></i> Delete
-                                                        </button>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center mt-1"><?php echo str_repeat('<i class="ri-star-s-line text-amber-500"></i>', $rating); ?></div>
-                                    <div class="flex gap-1 divide-x-2 mt-1">
-                                        <p class="text-gray-700 text-xs font-semibold px-1">Brand: <span class="font-normal"><?php echo $brand; ?></span></p>
-                                        <p class="text-gray-700 text-xs font-semibold px-1">Pattern: <span class="font-normal"><?php echo $product_type; ?></span></p>
-                                    </div>
-
-                                    <div class="review-container">
-                                        <div class="review">
-                                            <p class="text-gray-700 mt-2 text-sm leading-relaxed truncated-comment"><?php echo $truncated_comment; ?></p>
-                                            <?php if ($full_comment): ?>
-                                                <p class="text-indigo-600 text-sm cursor-pointer mt-1 read-more"><i class="ri-arrow-down-s-line"></i> Read More</p>
-                                            <?php endif; ?>
-
-                                            <p class="text-gray-700 mt-2 text-sm leading-relaxed full-comment hidden"><?php echo $full_comment; ?></p>
-                                            <?php if ($full_comment): ?>
-                                                <p class="text-indigo-600 text-sm cursor-pointer mt-1 read-less hidden"><i class="ri-arrow-up-s-line"></i> Read Less</p>
-                                            <?php endif; ?>
-                                        </div>
-
-                                        <!-- Hidden edit form -->
-                                        <form method="post" class="edit-form hidden mt-2" data-review-id="<?= $reviewID ?>">
-                                            <input type="hidden" name="review_id" value="<?= $reviewID ?>">
-                                            <input type="hidden" name="save_edit" value="1">
-                                            <textarea name="updated_comment" class="w-full border rounded p-2 text-sm outline-none"><?php echo htmlspecialchars($full_comment); ?></textarea>
-                                            <button type="submit" name="save_edit" class="mt-2 text-gray-600 bg-gray-200 hover:bg-gray-300 py-1 px-3 rounded text-sm outline-none select-none">Save</button>
-                                            <button type="button" class="cancel-edit text-sm text-gray-500 ml-2 select-none">Cancel</button>
-                                        </form>
-                                    </div>
-
-                                    <?php
-                                    $likeCount = 0;
-                                    $dislikeCount = 0;
-                                    $userReaction = null;
-                                    if (isset($reviewID)) {
-                                        $countStmt = $connect->prepare("SELECT ReactionType, COUNT(*) as count FROM productreviewrttb WHERE ReviewID = ? GROUP BY ReactionType");
-                                        $countStmt->bind_param("i", $reviewID);
-                                        $countStmt->execute();
-                                        $result = $countStmt->get_result();
-                                        while ($row = $result->fetch_assoc()) {
-                                            if ($row['ReactionType'] == 'like') {
-                                                $likeCount = $row['count'];
-                                            } else {
-                                                $dislikeCount = $row['count'];
-                                            }
-                                        }
-                                        $countStmt->close();
-                                        if (isset($_SESSION['UserID'])) {
-                                            $userStmt = $connect->prepare("SELECT ReactionType FROM productreviewrttb WHERE ReviewID = ? AND UserID = ?");
-                                            $userStmt->bind_param("is", $reviewID, $_SESSION['UserID']);
-                                            $userStmt->execute();
-                                            $userResult = $userStmt->get_result();
-                                            if ($userResult->num_rows > 0) {
-                                                $userReaction = $userResult->fetch_assoc()['ReactionType'];
-                                            }
-                                            $userStmt->close();
-                                        }
-                                    }
-                                    ?>
-
-                                    <form method="post" class="mt-3 text-gray-400">
-                                        <input type="hidden" name="review_id" value="<?= htmlspecialchars($reviewID) ?>">
-                                        <input type="hidden" name="product_id" value="<?= htmlspecialchars($product_id) ?>">
-                                        <button type="submit" name="like" class="text-xs cursor-pointer <?= ($userReaction == 'like') ? 'text-gray-500' : '' ?>">
-                                            <i class="ri-thumb-up-<?= ($userReaction == 'like') ? 'fill' : 'line' ?> text-sm"></i>
-                                            <span><?= $likeCount ?></span> Like
-                                        </button>
-                                        <button type="submit" name="dislike" class="text-xs cursor-pointer <?= ($userReaction == 'dislike') ? 'text-gray-500' : '' ?>">
-                                            <i class="ri-thumb-down-<?= ($userReaction == 'dislike') ? 'fill' : 'line' ?> text-sm"></i>
-                                            <span><?= $dislikeCount ?></span> Dislike
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                    <?php
-                        }
-                    } else {
-                        echo "<p class='text-center text-gray-500 my-20'>No reviews available for this product.</p>";
-                    }
-                    ?>
+                    <div id="review-pagination-container" class="flex justify-between items-center mt-3">
+                        <?php include('../Store/review_pagination.php'); ?>
+                    </div>
                 </div>
+
+                <script>
+                    // Function to show the selected tab and move the active bar
+                    const showTab = (tabId) => {
+                        // Hide all tab contents
+                        const tabs = document.querySelectorAll('.tab-content');
+                        tabs.forEach(tab => tab.classList.add('hidden'));
+
+                        // Show the selected tab content
+                        const activeTab = document.getElementById(tabId);
+                        if (activeTab) {
+                            activeTab.classList.remove('hidden');
+                        }
+
+                        // Update the active bar position
+                        const clickedTab = document.getElementById(`tab-${tabId}`);
+                        const activeBar = document.getElementById('active-bar');
+                        if (clickedTab && activeBar) {
+                            const tabRect = clickedTab.getBoundingClientRect();
+                            const parentRect = clickedTab.parentElement.getBoundingClientRect();
+                            activeBar.style.width = `${tabRect.width}px`;
+                            activeBar.style.left = `${tabRect.left - parentRect.left}px`;
+                        }
+
+                        // Store the active tab in localStorage
+                        localStorage.setItem('activeTab', tabId);
+                    };
+
+                    // Set the active tab on page load
+                    document.addEventListener('DOMContentLoaded', () => {
+                        // Get the stored tab or use default if none exists
+                        const savedTab = localStorage.getItem('activeTab');
+                        const initialTab = savedTab || 'description';
+
+                        // Show the tab
+                        showTab(initialTab);
+                    });
+
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Get all review date containers
+                        const dateContainers = document.querySelectorAll('.review-date-container');
+
+                        dateContainers.forEach(container => {
+                            const timeAgo = container.querySelector('.time-ago');
+                            const fullDate = container.querySelector('.full-date');
+
+                            // Toggle between timeAgo and full date on click
+                            container.addEventListener('click', function() {
+                                timeAgo.classList.add('hidden');
+                                fullDate.classList.remove('hidden');
+
+                                setTimeout(() => {
+                                    timeAgo.classList.remove('hidden');
+                                    fullDate.classList.add('hidden');
+                                }, 2000);
+                            });
+                        });
+                    });
+                </script>
             </div>
         </section>
-
-        <script>
-            // Function to show the selected tab and move the active bar
-            const showTab = (tabId) => {
-                // Hide all tab contents
-                const tabs = document.querySelectorAll('.tab-content');
-                tabs.forEach(tab => tab.classList.add('hidden'));
-
-                // Show the selected tab content
-                const activeTab = document.getElementById(tabId);
-                if (activeTab) {
-                    activeTab.classList.remove('hidden');
-                }
-
-                // Update the active bar position
-                const clickedTab = document.getElementById(`tab-${tabId}`);
-                const activeBar = document.getElementById('active-bar');
-                if (clickedTab && activeBar) {
-                    const tabRect = clickedTab.getBoundingClientRect();
-                    const parentRect = clickedTab.parentElement.getBoundingClientRect();
-                    activeBar.style.width = `${tabRect.width}px`;
-                    activeBar.style.left = `${tabRect.left - parentRect.left}px`;
-                }
-
-                // Store the active tab in localStorage
-                localStorage.setItem('activeTab', tabId);
-            };
-
-            // Set the active tab on page load
-            document.addEventListener('DOMContentLoaded', () => {
-                // Get the stored tab or use default if none exists
-                const savedTab = localStorage.getItem('activeTab');
-                const initialTab = savedTab || 'description';
-
-                // Show the tab
-                showTab(initialTab);
-            });
-
-            // Review edit
-            document.addEventListener('DOMContentLoaded', function() {
-                // Toggle edit form
-                document.querySelectorAll('.edit-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        let reviewId = this.getAttribute('data-review-id');
-                        let comment = this.getAttribute('data-comment');
-                        let form = document.querySelector(`.edit-form[data-review-id="${reviewId}"]`);
-                        form.querySelector('textarea').value = comment;
-                        form.classList.remove('hidden');
-                        document.querySelector('.review').classList.add('hidden');
-                    });
-                });
-
-                // Cancel edit
-                document.querySelectorAll('.cancel-edit').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        this.closest('.edit-form').classList.add('hidden');
-                        document.querySelector('.review').classList.remove('hidden');
-                    });
-                });
-            });
-        </script>
 
         <!-- Recommended section -->
         <div class="py-10 px-3 text-center">
