@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../config/db_connection.php');
+require_once('../config/db_connection.php');
 include('../includes/auto_id_func.php');
 
 if (!$connect) {

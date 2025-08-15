@@ -1,7 +1,7 @@
 <?php
 session_start();
 ob_start();
-include('../config/db_connection.php');
+require_once('../config/db_connection.php');
 include('../includes/timeago_func.php');
 
 if (!$connect) {

@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../config/db_connection.php');
+require_once('../config/db_connection.php');
 
 ob_start();
 include('../Store/cart.php'); // Render dropdown HTML as in your main code
