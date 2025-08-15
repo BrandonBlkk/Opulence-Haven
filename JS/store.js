@@ -106,50 +106,57 @@ darkOverlay.addEventListener('click', () => {
     storeMenubar.classList.remove('-rotate-90');
 });
 
-// Product Size Select
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById('addToBagForm');
     const sizeDropdown = document.getElementById('size');
     const sizeError = document.getElementById('sizeError');
 
+    // Function to update cart count & dropdown UI
+    function updateCartUI() {
+        fetch('../Store/cart_fragment.php', {
+            method: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('cartCount').textContent = data.countText;
+            document.getElementById('cartDropdown').innerHTML = data.dropdownHTML;
+        })
+        .catch(err => console.error('Cart update error:', err));
+    }
+
     if (form && sizeDropdown && sizeError) {
         form.addEventListener('submit', function(e) {
-            // Check if the submit button pressed was 'addtobag'
             const submitter = e.submitter;
             if (submitter && submitter.name === 'addtobag') {
-                e.preventDefault(); // Prevent default form submission
+                e.preventDefault();
                 
                 if (sizeDropdown.value === '') {
                     sizeError.classList.remove('hidden');
                     sizeDropdown.classList.add('border-red-500');
-                    return; // Exit if no size selected
+                    return;
                 }
                 
                 sizeError.classList.add('hidden');
                 sizeDropdown.classList.remove('border-red-500');
                 
-                // Prepare form data
                 const formData = new FormData(form);
                 const stockDisplay = document.getElementById('stockDisplay');
                 
-                // AJAX request
                 fetch('../Store/store_details.php', {
                     method: 'POST',
                     body: formData,
-                    headers: {
-                        'Accept': 'application/json'
-                    }
+                    headers: { 'Accept': 'application/json' }
                 })
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
+                    if (!response.ok) throw new Error('Network response was not ok');
                     return response.json();
                 })
                 .then(data => {                    
                     if (data.success) {
                         showAlert('Product added to bag successfully!');
                         stockDisplay.textContent = data.stock;
+                        updateCartUI(); // 🔹 Refresh cart in real-time
                     } else if (data.outofstock) {
                         showAlert('Product is out of stock', true);
                     } else if (data.login_required) {
@@ -157,8 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         darkOverlay2.classList.remove('opacity-0', 'invisible');
                         darkOverlay2.classList.add('opacity-100');
 
-                        const closeLoginModal = document.getElementById('closeLoginModal');
-                        closeLoginModal.addEventListener('click', function() {
+                        document.getElementById('closeLoginModal').addEventListener('click', function() {
                             loginModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
                             darkOverlay2.classList.add('opacity-0', 'invisible');
                             darkOverlay2.classList.remove('opacity-100');
@@ -167,8 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         showAlert(data.message || 'Failed to add product to bag', true);
                     }
                 })
-                .catch(error => {
-                    if (loader) loader.style.display = 'none';
+                .catch(() => {
                     showAlert('An error occurred. Please try again.', true);
                 });
             }
