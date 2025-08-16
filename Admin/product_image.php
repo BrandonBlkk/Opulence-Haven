@@ -1,7 +1,7 @@
 <?php
 session_start();
-include('../config/db_connection.php');
-include('../includes/auto_id_func.php');
+require_once('../config/db_connection.php');
+include_once('../includes/auto_id_func.php');
 include('../includes/update_image_func.php');
 
 if (!$connect) {

@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../config/db_connection.php');
+require_once('../config/db_connection.php');
 include('../includes/update_image_func.php');
 include('../includes/mask_email.php');
 

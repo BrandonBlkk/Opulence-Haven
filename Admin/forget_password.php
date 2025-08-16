@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../config/db_connection.php');
+require_once('../config/db_connection.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());

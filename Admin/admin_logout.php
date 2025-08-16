@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../config/db_connection.php');
+require_once('../config/db_connection.php');
 
 if (isset($_SESSION['AdminID'])) {
     $admin_id = $_SESSION['AdminID'];

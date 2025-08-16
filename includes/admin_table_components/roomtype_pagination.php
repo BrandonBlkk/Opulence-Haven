@@ -1,5 +1,5 @@
 <?php
-include(__DIR__ . '/../../config/db_connection.php');
+require_once(__DIR__ . '/../../config/db_connection.php');
 include(__DIR__ . '/../admin_pagination.php');
 ?>
 
