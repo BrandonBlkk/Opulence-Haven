@@ -156,7 +156,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (data.success) {
                         showAlert('Product added to bag successfully!');
                         stockDisplay.textContent = data.stock;
-                        updateCartUI(); // 🔹 Refresh cart in real-time
+
+                        // Update cart UI
+                        updateCartUI();
                     } else if (data.outofstock) {
                         showAlert('Product is out of stock', true);
                     } else if (data.login_required) {

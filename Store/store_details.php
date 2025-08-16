@@ -2,7 +2,7 @@
 session_start();
 ob_start();
 require_once('../config/db_connection.php');
-include('../includes/timeago_func.php');
+include_once('../includes/timeago_func.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());

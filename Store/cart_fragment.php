@@ -3,7 +3,7 @@ session_start();
 require_once('../config/db_connection.php');
 
 ob_start();
-include('../Store/cart.php'); // Render dropdown HTML as in your main code
+include('../Store/cart.php');
 $dropdownHTML = ob_get_clean();
 
 $cartCount = 0;
