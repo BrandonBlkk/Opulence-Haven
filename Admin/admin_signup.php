@@ -43,6 +43,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     // Randomly pick one color from the array
     $profileBgColor = $googleColors[array_rand($googleColors)];
 
+    $plain_token = bin2hex(random_bytes(16));
+    $hashed_token = password_hash($plain_token, PASSWORD_DEFAULT);
+    $expiry = date("Y-m-d H:i:s", strtotime("+1 day"));
+
     // Check if the email already exists
     $checkEmailQuery = "SELECT AdminEmail FROM admintb WHERE AdminEmail = '$email'";
     $count = $connect->query($checkEmailQuery)->num_rows;
@@ -57,18 +61,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
 
         // Insert the new user data
         $insertQuery = $connect->prepare("INSERT INTO admintb 
-        (AdminID, ProfileBgColor, FirstName, LastName, UserName, AdminEmail, AdminPassword, AdminPhone, RoleID) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        (AdminID, ProfileBgColor, FirstName, LastName, UserName, AdminEmail, Token, TokenExpiry, AdminPassword, AdminPhone, RoleID) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         // Bind parameters
         $insertQuery->bind_param(
-            "sssssssss",
+            "sssssssssss",
             $adminID,
             $profileBgColor,
             $firstname,
             $lastname,
             $username,
             $email,
+            $hashed_token,
+            $expiry,
             $password,
             $phone,
             $role
@@ -86,6 +92,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
             $_SESSION["UserName"] = $username;
             $_SESSION["AdminEmail"] = $email;
             $response['success'] = true;
+
+            // Get role name
+            $roleQuery = "SELECT Role FROM roletb WHERE RoleID = '$role'";
+            $roleResult = $connect->query($roleQuery);
+            $roleRow = $roleResult->fetch_assoc();
+            $roleName = $roleRow['Role'];
+
+            // Store email data in session to send after page reload
+            $_SESSION['email_data'] = [
+                'email' => $email,
+                'username' => $username,
+                'plain_token' => $plain_token,
+                'role' => $roleName
+            ];
         }
 
         // Close the statement

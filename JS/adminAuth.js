@@ -40,7 +40,35 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (data.success) {
                     // Successful sign-in
                     if (loader) loader.style.display = 'flex';
-                    window.location.href = '../Admin/admin_dashboard.php';
+                    
+                    // Send email
+                    fetch('../Mail/confirm_admin.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            if (loader) loader.style.display = 'none';
+                            showAlert('Account created successfully. Please check your email for confirmation.');
+                        } else {
+                            // Handle email sending error
+                            if (loader) loader.style.display = 'none';
+                            showAlert('Account created but failed to send confirmation email. Please contact support.' , true);
+                        }
+                    })
+                    .catch(error => {
+                        // Hide loader on error
+                        if (loader) loader.style.display = 'none';
+                        console.error('Error:', error);
+                    })
                 } else {
                     // Show error message
                     showAlert(data.message || 'Sign-up failed. Please try again.', true);
