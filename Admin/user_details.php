@@ -1,7 +1,8 @@
 <?php
 session_start();
 require_once('../config/db_connection.php');
-include('../includes/admin_pagination.php');
+include_once('../includes/admin_pagination.php');
+require_once('../includes/auth_check.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());

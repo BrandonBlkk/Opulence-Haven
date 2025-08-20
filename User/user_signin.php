@@ -2,8 +2,8 @@
 session_start();
 require_once('../config/db_connection.php');
 include_once('../includes/auto_id_func.php');
-require '../vendor/autoload.php';
-$googleConfig = require __DIR__ . '/../config/google.php';
+require_once '../vendor/autoload.php';
+$googleConfig = require_once __DIR__ . '/../config/google.php';
 
 $alertMessage = '';
 $response = ['success' => false, 'message' => '', 'locked' => false, 'attemptsLeft' => null];

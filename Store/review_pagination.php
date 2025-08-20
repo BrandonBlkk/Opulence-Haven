@@ -1,6 +1,6 @@
 <?php
-include(__DIR__ . '/../config/db_connection.php');
-include(__DIR__ . '/../includes/user_pagination.php');
+require_once(__DIR__ . '/../config/db_connection.php');
+include_once(__DIR__ . '/../includes/user_pagination.php');
 ?>
 
 <div class="text-gray-500 text-sm" id="paginationInfo">

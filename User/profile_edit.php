@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once('../config/db_connection.php');
-include('../includes/mask_email.php');
+include_once('../includes/mask_email.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());

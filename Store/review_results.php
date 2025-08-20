@@ -1,5 +1,5 @@
 <?php
-include(__DIR__ . '/../includes/user_pagination.php');
+require_once(__DIR__ . '/../includes/user_pagination.php');
 
 $sortOrder = 'ASC';
 if (isset($_GET['sort']) && $_GET['sort'] === 'newest') {
