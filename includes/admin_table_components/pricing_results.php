@@ -21,15 +21,48 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
         $products[] = $row;
     }
 }
+
+// Update product
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product_id'])) {
+    $productID = mysqli_real_escape_string($connect, $_POST['product_id']);
+    $isActive = isset($_POST['is_active']) ? 1 : 0;
+    $markupPercentage = isset($_POST['markup_percentage']) && $_POST['markup_percentage'] !== ''
+        ? (float) $_POST['markup_percentage']
+        : 0.00;
+    $saleQuantity = isset($_POST['sale_quantity']) && $_POST['sale_quantity'] !== ''
+        ? (int) $_POST['sale_quantity']
+        : 0;
+
+    // Make sure sale quantity does not exceed stock
+    $queryStock = "SELECT Stock FROM producttb WHERE ProductID = '$productID'";
+    $resultStock = $connect->query($queryStock);
+    $rowStock = $resultStock->fetch_assoc();
+    $stock = (int) $rowStock['Stock'];
+    if ($saleQuantity > $stock) {
+        $saleQuantity = $stock;
+    }
+
+    // Update product table
+    $query = "UPDATE producttb 
+              SET IsActive = '$isActive', 
+                  MarkupPercentage = '$markupPercentage', 
+                  SaleQuantity = '$saleQuantity'
+              WHERE ProductID = '$productID'";
+    mysqli_query($connect, $query);
+}
+
 ?>
 
 <table class="min-w-full bg-white rounded-lg">
     <thead>
         <tr class="bg-gray-100 text-gray-600 text-sm">
             <th class="p-3 text-start">ID</th>
-            <th class="p-3 text-start">Title</th>
-            <th class="p-3 text-start hidden sm:table-cell">Price</th>
+            <th class="p-3 text-start">Product</th>
+            <th class="p-3 text-start hidden sm:table-cell">Supplier Price</th>
+            <th class="p-3 text-start">Selling Price</th>
+            <th class="p-3 text-start">Profit/Unit</th>
             <th class="p-3 text-start">Stock</th>
+            <th class="p-3 text-start">Status</th>
             <th class="p-3 text-start hidden lg:table-cell">Added Date</th>
             <th class="p-3 text-start">Actions</th>
         </tr>
@@ -42,11 +75,10 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
                 $isCriticalStock = $product['Stock'] < 3;
                 $isOutOfStock = $product['Stock'] == 0;
                 ?>
-                <tr class="hover:bg-gray-50 transition-colors 
-                                   <?= $isCriticalStock ? 'bg-red-50' : ($isLowStock ? 'bg-yellow-50' : '') ?>">
+                <tr class="hover:bg-gray-50 transition-colors">
                     <td class="p-3 text-start whitespace-nowrap">
                         <div class="flex items-center gap-2 font-medium text-gray-500">
-                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                            #
                             <span><?= htmlspecialchars($product['ProductID']) ?></span>
                         </div>
                     </td>
@@ -56,52 +88,91 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
                     <td class="p-3 text-start hidden sm:table-cell">
                         $<?= htmlspecialchars(number_format($product['Price'], 2)) ?>
                     </td>
-                    <td class="p-4 text-start">
-                        <div class="flex items-center gap-2">
-                            <?php if ($isOutOfStock): ?>
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 border-red-200 text-red-800">
-                                    Out of Stock
-                                </span>
-                            <?php elseif ($isCriticalStock): ?>
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 border-red-200 text-red-800">
-                                    Critical (<?= $product['Stock'] ?> left)
-                                </span>
-                            <?php elseif ($isLowStock): ?>
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 border-yellow-200 text-yellow-800">
-                                    Low (<?= $product['Stock'] ?> left)
-                                </span>
-                            <?php else: ?>
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 border-green-200 text-green-800">
-                                    In Stock (<?= $product['Stock'] ?>)
-                                </span>
-                            <?php endif; ?>
+                    <td class="p-3 text-start hidden sm:table-cell">
+                        <?php
+                        $basePrice = $product['Price'];
+                        $markup = $product['MarkupPercentage'];
+                        $finalPrice = $basePrice + ($basePrice * ($markup / 100));
+                        echo '$' . htmlspecialchars(number_format($finalPrice, 2));
+                        ?>
+                    </td>
+                    <td class="p-3 text-start hidden sm:table-cell">
+                        <?php
+                        $profit = $basePrice * ($markup / 100);
+                        echo '$' . htmlspecialchars(number_format($profit, 2));
+                        ?>
+                        (<?php
+                            $markup = $product['MarkupPercentage'];
+                            echo htmlspecialchars((floor($markup) == $markup) ? (int)$markup : number_format($markup, 2)) . '%';
+                            ?>)
+                    </td>
+                    <!-- Stock Column -->
+                    <td class="p-3 text-start">
+                        <div class="flex flex-col gap-1">
+                            <!-- Main Stock -->
+                            <?php
+                            // Determine stock badge classes
+                            if ($isOutOfStock) {
+                                $stockClass = 'bg-red-100 border border-red-200 text-red-800';
+                            } elseif ($isCriticalStock) {
+                                $stockClass = 'bg-yellow-100 border border-yellow-200 text-yellow-800';
+                            } else {
+                                $stockClass = 'bg-green-100 border border-green-200 text-green-800';
+                            }
+                            ?>
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full <?= $stockClass ?>">
+                                Stock (<?= htmlspecialchars($product['Stock']) ?>)
+                            </span>
 
-                            <?php if ($isLowStock): ?>
-                                <a href="product_purchase.php?ProductID=<?= $product['ProductID'] ?>" class="text-xs text-blue-600 hover:text-blue-800 hover:underline">
-                                    Reorder
-                                </a>
+                            <!-- Sale Stock (only show if > 0) -->
+                            <?php if (!empty($product['SaleQuantity']) && $product['SaleQuantity'] > 0): ?>
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 border border-blue-200 text-blue-800">
+                                    Sale (<?= htmlspecialchars($product['SaleQuantity']) ?>)
+                                </span>
                             <?php endif; ?>
                         </div>
+                    </td>
+                    <td class="p-3 text-start">
+                        <span class="text-xs px-2 py-1 rounded-full select-none border
+        <?= $product['IsActive']
+                    ? 'bg-green-100 text-green-800 border-green-200'
+                    : 'bg-red-100 text-red-800 border-red-200' ?>">
+                            <?= htmlspecialchars($product['IsActive'] ? 'On Sale' : 'Not On Sale') ?>
+                        </span>
                     </td>
                     <td class="p-3 text-start hidden lg:table-cell">
                         <?= htmlspecialchars(date('d M Y', strtotime($product['AddedDate']))) ?>
                     </td>
                     <td class="p-3 text-start space-x-1 select-none">
-                        <a href="product_purchase.php?ProductID=<?= $product['ProductID'] ?>" class="text-xs text-amber-600">
-                            <i class="ri-store-line text-lg cursor-pointer"></i>
-                        </a>
-                        <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                            data-product-id="<?= htmlspecialchars($product['ProductID']) ?>"></i>
-                        <button class="text-red-500">
-                            <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                data-product-id="<?= htmlspecialchars($product['ProductID']) ?>"></i>
-                        </button>
+                        <form method="POST" action="<?= $_SERVER['PHP_SELF']; ?>" class="inline-flex items-center gap-2">
+                            <input type="hidden" name="product_id" value="<?= htmlspecialchars($product['ProductID']) ?>">
+
+                            <!-- Sale Quantity Input -->
+                            <input type="number" step="1" min="0" max="<?= $product['Stock'] ?>" name="sale_quantity"
+                                value="<?= htmlspecialchars($product['SaleQuantity'] ?? 0) ?>"
+                                class="w-20 border rounded p-1 text-xs text-gray-700"
+                                placeholder="Sale Qty">
+
+                            <!-- Markup Percentage Input -->
+                            <input type="number" step="0.01" min="0" name="markup_percentage"
+                                value="<?= htmlspecialchars($product['MarkupPercentage']) ?>"
+                                class="w-16 border rounded p-1 text-xs text-gray-700"
+                                placeholder="%">
+
+                            <!-- IsActive Checkbox -->
+                            <label class="switch">
+                                <input type="checkbox" name="is_active" value="1"
+                                    <?= $product['IsActive'] ? 'checked' : '' ?>
+                                    onchange="this.form.submit()">
+                                <span class="slider"></span>
+                            </label>
+                        </form>
                     </td>
                 </tr>
             <?php endforeach; ?>
         <?php else: ?>
             <tr>
-                <td colspan="7" class="p-3 text-center text-gray-500 py-52">
+                <td colspan="10" class="p-3 text-center text-gray-500 py-52">
                     No products available.
                 </td>
             </tr>
