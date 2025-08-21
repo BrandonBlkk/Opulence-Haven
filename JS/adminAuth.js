@@ -218,7 +218,7 @@ const validateFirstname = () => {
 
     const getUserNameError = (firstname) => {
         if (!firstname) return "Firstname is required.";
-        if (firstname.length > 14) return "Firstname should not exceed 14 characters.";
+        if (firstname.length > 14) return "Firstname is too long.";
         return null; 
     };
 
@@ -240,7 +240,7 @@ const validateLastname = () => {
 
     const getUserNameError = (lastname) => {
         if (!lastname) return "Lastname is required.";
-        if (lastname.length > 14) return "Lastname should not exceed 14 characters.";
+        if (lastname.length > 14) return "Lastname is too long.";
         return null; 
     };
 
@@ -261,7 +261,7 @@ const validateUsername = () => {
 
     const getUserNameError = (username) => {
         if (!username) return "Username is required.";
-        if (username.length > 14) return "Username should not exceed 14 characters.";
+        if (username.length > 14) return "Username is too long.";
         return null; 
     };
 
