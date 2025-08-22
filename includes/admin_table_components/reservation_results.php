@@ -98,22 +98,22 @@ if (mysqli_num_rows($bookingSelectQuery) > 0) {
                         $statusClass = '';
                         switch ($booking['Status']) {
                             case 'Confirmed':
-                                $statusClass = 'bg-green-100 text-green-800';
+                                $statusClass = 'bg-green-100 border-green-200 text-green-800';
                                 break;
                             case 'Pending':
-                                $statusClass = 'bg-yellow-100 text-yellow-800';
+                                $statusClass = 'bg-yellow-100 border-yellow-200 text-yellow-800';
                                 break;
                             case 'Cancelled':
-                                $statusClass = 'bg-red-100 text-red-800';
+                                $statusClass = 'bg-red-100 border-red-200 text-red-800';
                                 break;
                             case 'Completed':
-                                $statusClass = 'bg-blue-100 text-blue-800';
+                                $statusClass = 'bg-blue-100 border-blue-200 text-blue-800';
                                 break;
                             default:
-                                $statusClass = 'bg-gray-100 text-gray-800';
+                                $statusClass = 'bg-gray-100 border-gray-200 text-gray-800';
                         }
                         ?>
-                        <span class="px-2 py-1 rounded-full text-xs <?= $statusClass ?>">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full border <?= $statusClass ?>">
                             <?= htmlspecialchars($booking['Status']) ?>
                         </span>
                     </td>
