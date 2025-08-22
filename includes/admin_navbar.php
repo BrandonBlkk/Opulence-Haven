@@ -31,6 +31,11 @@ $productCountQuery = "SELECT COUNT(*) as count FROM producttb";
 $productCountResult = $connect->query($productCountQuery);
 $allProductCount = $productCountResult->fetch_assoc()['count'];
 
+// Fetch all products
+$productCountQuery = "SELECT COUNT(*) as count FROM producttb WHERE isActive = 1";
+$productCountResult = $connect->query($productCountQuery);
+$markupProductCount = $productCountResult->fetch_assoc()['count'];
+
 // Construct the roomtype count query based on search
 if (!empty($searchRoomTypeQuery)) {
     $roomTypeQuery = "SELECT COUNT(*) as count FROM roomtypetb WHERE RoomType LIKE '%$searchRoomTypeQuery%' OR RoomDescription LIKE '%$searchRoomTypeQuery%'";
@@ -275,6 +280,12 @@ if (mysqli_num_rows($query) > 0) {
                                     <span class="font-semibold text-sm">Add product</span>
                                 </div>
                                 <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allProductCount ?></p>
+                            </a>
+                            <a href="../Admin/pricing_markup.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
+                                <div class="flex items-center gap-1">
+                                    <i class="ri-price-tag-3-line text-xl"></i>
+                                    <span class="font-semibold text-sm">Pricing & Markup</span>
+                                </div>
                             </a>
                             <a href="../Admin/add_producttype.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">

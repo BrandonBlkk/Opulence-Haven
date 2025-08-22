@@ -1210,10 +1210,10 @@ $availablePercentage = ($allAvailableRooms / $totalRooms) * 100;
 
                         // Set status color based on reservation status
                         $statusColor = match ($status) {
-                            'Confirmed' => 'bg-green-100 text-green-800',
-                            'Pending' => 'bg-yellow-100 text-yellow-800',
-                            'Cancelled' => 'bg-red-100 text-red-800',
-                            default => 'bg-gray-100 text-gray-800'
+                            'Confirmed' => 'bg-green-100 text-green-800 border-green-200',
+                            'Pending' => 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                            'Cancelled' => 'bg-red-100 text-red-800 border-red-200',
+                            default => 'bg-gray-100 text-gray-800 border-gray-200'
                         };
 
                         $noti = match ($status) {
@@ -1260,7 +1260,7 @@ $availablePercentage = ($allAvailableRooms / $totalRooms) * 100;
                                 <div class="text-gray-600 text-sm flex-1">
                                     <div class="flex justify-between items-start">
                                         <h1 class="font-semibold"><?= htmlspecialchars($row['FirstName'] ?? $nameParts[0]) ?> <?= $noti ?></h1>
-                                        <span class="text-xs px-2 py-1 rounded-full select-none <?= $statusColor ?>">
+                                        <span class="text-xs px-2 py-1 rounded-full select-none border <?= $statusColor ?>">
                                             <?= htmlspecialchars($status) ?>
                                         </span>
                                     </div>

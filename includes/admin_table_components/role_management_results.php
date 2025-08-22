@@ -94,8 +94,8 @@ if (mysqli_num_rows($adminSelectQuery) > 0) {
                         </select>
                     </td>
                     <td class="p-3 text-start space-x-1 select-none hidden lg:table-cell">
-                        <span class="p-1 rounded-md <?= $admin['Status'] === 'active' ? 'bg-green-100' : 'bg-red-100' ?>">
-                            <?= htmlspecialchars($admin['Status']) ?>
+                        <span class="text-xs px-2 py-1 rounded-full select-none border <?= $admin['Status'] === 'active' ? 'bg-green-100 border-green-200' : 'bg-red-100 border-red-200' ?>">
+                            <?= htmlspecialchars($admin['Status']) ? 'Active' : 'Inactive' ?>
                         </span>
                     </td>
                     <td class="reset-btn p-3 text-start space-x-1 hidden xl:table-cell">

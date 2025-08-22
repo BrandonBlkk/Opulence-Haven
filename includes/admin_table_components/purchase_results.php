@@ -98,19 +98,19 @@ while ($row = $supplierSelectQuery->fetch_assoc()) {
                         $statusClass = '';
                         switch ($purchase['Status']) {
                             case 'Pending':
-                                $statusClass = 'bg-yellow-100 text-yellow-800';
+                                $statusClass = 'bg-yellow-100 border-yellow-200 text-yellow-800';
                                 break;
                             case 'Completed':
-                                $statusClass = 'bg-green-100 text-green-800';
+                                $statusClass = 'bg-green-100 border-green-200 text-green-800';
                                 break;
                             case 'Cancelled':
-                                $statusClass = 'bg-red-100 text-red-800';
+                                $statusClass = 'bg-red-100 border-red-200 text-red-800';
                                 break;
                             default:
-                                $statusClass = 'bg-gray-100 text-gray-800';
+                                $statusClass = 'bg-blue-100 border-blue-200 text-blue-800';
                         }
                         ?>
-                        <span class="px-2 py-1 rounded-full text-xs font-medium <?= $statusClass ?>">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full border <?= $statusClass ?>">
                             <?= htmlspecialchars($purchase['Status']) ?>
                         </span>
                     </td>

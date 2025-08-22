@@ -98,8 +98,8 @@ if (mysqli_num_rows($contactSelectQuery) > 0) {
                         <p><?= htmlspecialchars(mb_strimwidth($contact['ContactMessage'], 0, 50, '...')) ?></p>
                     </td>
                     <td class="p-3 text-start space-x-1 select-none hidden md:table-cell">
-                        <span class="p-1 rounded-md <?= $contact['Status'] === 'responded' ? 'bg-green-100' : 'bg-red-100' ?>">
-                            <?= htmlspecialchars($contact['Status']) ?>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full border <?= $contact['Status'] === 'responded' ? 'bg-green-100 border-green-200 text-green-800' : 'bg-red-100 border-red-200 text-red-800' ?>">
+                            <?= htmlspecialchars($contact['Status']) === 'responded' ? 'Responded' : 'Pending' ?>
                         </span>
                     </td>
                     <td class="p-3 text-start space-x-1 hidden xl:table-cell">
