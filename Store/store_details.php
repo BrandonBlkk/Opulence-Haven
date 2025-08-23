@@ -39,7 +39,7 @@ if (isset($_GET["product_ID"])) {
     $product_delivery = $product['DeliveryInfo'];
     $brand = $product['Brand'];
     $selling_fast = $product['SellingFast'];
-    $stock = $product['Stock'];
+    $stock = $product['SaleQuantity'];
 
     // Fetch product image paths
     $main_product_image = $product['ImageUserPath'];
@@ -110,12 +110,12 @@ if (isset($_POST['addtobag'])) {
     $response = [];
 
     // Get stock from database for this product
-    $stock_query = $connect->prepare("SELECT Stock, Price, DiscountPrice FROM producttb WHERE ProductID = ?");
+    $stock_query = $connect->prepare("SELECT SaleQuantity, Price, DiscountPrice FROM producttb WHERE ProductID = ?");
     $stock_query->bind_param("s", $product_id);
     $stock_query->execute();
     $stock_result = $stock_query->get_result();
     $stock_data = $stock_result->fetch_assoc();
-    $stock = isset($stock_data['Stock']) ? (int)$stock_data['Stock'] : 0;
+    $stock = isset($stock_data['SaleQuantity']) ? (int)$stock_data['SaleQuantity'] : 0;
 
     // Check if user is logged in 
     if ($session_userID) {
@@ -141,7 +141,7 @@ if (isset($_POST['addtobag'])) {
 
             // Reduce stock in the database
             $new_stock = $stock - 1;
-            $update_stock = $connect->prepare("UPDATE producttb SET Stock = ? WHERE ProductID = ?");
+            $update_stock = $connect->prepare("UPDATE producttb SET SaleQuantity = ? WHERE ProductID = ?");
             $update_stock->bind_param("is", $new_stock, $product_id);
             $update_stock->execute();
 
@@ -403,9 +403,7 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                             <img
                                 class="w-full h-full rounded object-cover hover:border-2 hover:border-amber-300"
                                 src="<?= htmlspecialchars($side_image) ?>"
-                                alt="Image"
-                                onmouseover="changeMainImage(this)"
-                                onmouseout="resetMainImage()">
+                                alt="Image">
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -423,17 +421,6 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
 
             <script>
                 let originalImage = document.getElementById('mainImage').src;
-
-                function changeMainImage(element) {
-                    const mainImage = document.getElementById('mainImage');
-                    mainImage.src = element.src;
-                }
-
-                function resetMainImage() {
-                    const mainImage = document.getElementById('mainImage');
-                    mainImage.src = originalImage;
-                }
-
                 // Update the original image when clicked
                 function changeImage(newImage) {
                     const mainImage = document.getElementById('mainImage');

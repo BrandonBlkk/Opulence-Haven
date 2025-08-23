@@ -35,7 +35,7 @@
                     p.Title,
                     p.Price,
                     p.DiscountPrice,
-                    p.Stock,
+                    p.SaleQuantity,
                     pi.ImageUserPath,
                     s.Size,
                     s.PriceModifier,
@@ -100,7 +100,7 @@
                         <span>$<?= number_format($total, 2) ?></span>
                     </div>
                     <a href="../Store/add_to_cart.php"
-                        class="block mt-3 bg-blue-900 text-white text-center py-2 text-sm rounded hover:bg-blue-800 transition-colors">
+                        class="block mt-3 bg-blue-900 text-white text-center py-2 text-sm rounded-sm hover:bg-blue-950 transition-colors">
                         Checkout
                     </a>
                 </div>
