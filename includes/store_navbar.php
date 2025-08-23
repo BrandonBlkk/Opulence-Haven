@@ -1,5 +1,8 @@
 <?php
 include('../User/cleanup_reservations.php');
+
+// Get current page
+$current_page = basename($_SERVER['PHP_SELF']);
 ?>
 <section class="bg-gray-100 px-3 min-w-[380px]">
     <div class="flex items-center justify-end max-w-[1050px] mx-auto gap-5 select-none">
@@ -50,7 +53,7 @@ include('../User/cleanup_reservations.php');
                         $quantity = $detail_result->fetch_assoc()['OrderUnitQuantity'];
 
                         // Restore stock
-                        $update_stock = $connect->prepare("UPDATE producttb SET Stock = Stock + ? WHERE ProductID = ?");
+                        $update_stock = $connect->prepare("UPDATE producttb SET SaleQuantity = SaleQuantity + ? WHERE ProductID = ?");
                         $update_stock->bind_param("is", $quantity, $product_id);
                         $update_stock->execute();
 
@@ -100,7 +103,7 @@ include('../User/cleanup_reservations.php');
 
                     // Get current quantity and product stock
                     $detail_query = $connect->prepare("
-                SELECT od.OrderUnitQuantity, p.Stock 
+                SELECT od.OrderUnitQuantity, p.SaleQuantity 
                 FROM orderdetailtb od
                 JOIN producttb p ON od.ProductID = p.ProductID
                 WHERE od.OrderID = ? AND od.ProductID = ? AND od.SizeID = ?
@@ -112,7 +115,7 @@ include('../User/cleanup_reservations.php');
                     if ($detail_result->num_rows > 0) {
                         $row = $detail_result->fetch_assoc();
                         $current_quantity = $row['OrderUnitQuantity'];
-                        $current_stock = $row['Stock'];
+                        $current_stock = $row['SaleQuantity'];
 
                         if ($action === 'increase' && $current_stock > 0) {
                             // Increase quantity in order details
@@ -125,7 +128,7 @@ include('../User/cleanup_reservations.php');
                             $update_detail->execute();
 
                             // Reduce stock
-                            $update_stock = $connect->prepare("UPDATE producttb SET Stock = Stock - 1 WHERE ProductID = ?");
+                            $update_stock = $connect->prepare("UPDATE producttb SET SaleQuantity = SaleQuantity - 1 WHERE ProductID = ?");
                             $update_stock->bind_param("s", $product_id);
                             $update_stock->execute();
                         } elseif ($action === 'decrease') {
@@ -140,7 +143,7 @@ include('../User/cleanup_reservations.php');
                                 $update_detail->execute();
 
                                 // Restore stock
-                                $update_stock = $connect->prepare("UPDATE producttb SET Stock = Stock + 1 WHERE ProductID = ?");
+                                $update_stock = $connect->prepare("UPDATE producttb SET SaleQuantity = SaleQuantity + 1 WHERE ProductID = ?");
                                 $update_stock->bind_param("s", $product_id);
                                 $update_stock->execute();
                             } else {
@@ -153,7 +156,7 @@ include('../User/cleanup_reservations.php');
                                 $delete_item->execute();
 
                                 // Restore stock
-                                $update_stock = $connect->prepare("UPDATE producttb SET Stock = Stock + 1 WHERE ProductID = ?");
+                                $update_stock = $connect->prepare("UPDATE producttb SET SaleQuantity = SaleQuantity + 1 WHERE ProductID = ?");
                                 $update_stock->bind_param("s", $product_id);
                                 $update_stock->execute();
 

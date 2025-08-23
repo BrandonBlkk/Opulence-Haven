@@ -19,6 +19,7 @@ $productSelect = "SELECT p.*,
     LEFT JOIN productimagetb pi_secondary
         ON p.ProductID = pi_secondary.ProductID AND pi_secondary.SecondaryImage = 1
     WHERE pt.ProductType = 'Pillow'
+    AND p.isActive = 1
     GROUP BY p.ProductID";
 
 $productSelectQuery = $connect->query($productSelect);
@@ -42,7 +43,9 @@ INNER JOIN productimagetb pi_primary
 ON p.ProductID = pi_primary.ProductID AND pi_primary.PrimaryImage = 1
 LEFT JOIN productimagetb pi_secondary
 ON p.ProductID = pi_secondary.ProductID AND pi_secondary.SecondaryImage = 1
-WHERE pt.ProductType = 'Linen'";
+WHERE pt.ProductType = 'Linen'
+AND p.isActive = 1
+GROUP BY p.ProductID";
 
 $productSelectQuery = $connect->query($productSelect);
 $linenProducts = [];
@@ -65,7 +68,10 @@ INNER JOIN productimagetb pi_primary
 ON p.ProductID = pi_primary.ProductID AND pi_primary.PrimaryImage = 1
 LEFT JOIN productimagetb pi_secondary
 ON p.ProductID = pi_secondary.ProductID AND pi_secondary.SecondaryImage = 1
-WHERE pt.ProductType = 'Duvet'";
+WHERE pt.ProductType = 'Duvet'
+AND p.isActive = 1
+GROUP BY p.ProductID";
+
 $productSelectQuery = $connect->query($productSelect);
 $duvetProducts = [];
 
