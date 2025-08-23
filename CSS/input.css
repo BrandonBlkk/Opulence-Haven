@@ -62,6 +62,14 @@
   background-color: #dcdcdc;
 }
 
+.reservationScrollBar::-webkit-scrollbar-thumb {
+  background-color: #dadada;
+}
+
+.reservationScrollBar::-webkit-scrollbar-track {
+  background-color: #e7e7e7;
+}
+
 .adminNav::-webkit-scrollbar {
   width: 0px;
 }
