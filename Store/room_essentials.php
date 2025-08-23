@@ -6,80 +6,43 @@ if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-// Pillows
-$productSelect = "SELECT p.*, 
-        pt.ProductType, 
-        pi_primary.ImageUserPath AS PrimaryImagePath, 
-        pi_secondary.ImageUserPath AS SecondaryImagePath
-    FROM producttb p
-    INNER JOIN producttypetb pt 
-        ON p.ProductTypeID = pt.ProductTypeID
-    LEFT JOIN productimagetb pi_primary
-        ON p.ProductID = pi_primary.ProductID AND pi_primary.PrimaryImage = 1
-    LEFT JOIN productimagetb pi_secondary
-        ON p.ProductID = pi_secondary.ProductID AND pi_secondary.SecondaryImage = 1
-    WHERE pt.ProductType = 'Pillow'
-    AND p.isActive = 1
-    GROUP BY p.ProductID";
+// Function to get products by type
+function getProductsByType($connect, $type)
+{
+    $query = "SELECT p.*, 
+                pt.ProductType, 
+                pi_primary.ImageUserPath AS PrimaryImagePath, 
+                pi_secondary.ImageUserPath AS SecondaryImagePath
+            FROM producttb p
+            INNER JOIN producttypetb pt 
+                ON p.ProductTypeID = pt.ProductTypeID
+            LEFT JOIN productimagetb pi_primary
+                ON p.ProductID = pi_primary.ProductID AND pi_primary.PrimaryImage = 1
+            LEFT JOIN productimagetb pi_secondary
+                ON p.ProductID = pi_secondary.ProductID AND pi_secondary.SecondaryImage = 1
+            WHERE pt.ProductType = ?
+            AND p.isActive = 1
+            GROUP BY p.ProductID";
 
-$productSelectQuery = $connect->query($productSelect);
-$pillowProducts = [];
+    $stmt = $connect->prepare($query);
+    $stmt->bind_param("s", $type);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-if ($productSelectQuery->num_rows > 0) {
-    while ($row = $productSelectQuery->fetch_assoc()) {
-        $pillowProducts[] = $row;
+    $products = [];
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $products[] = $row;
+        }
     }
+    $stmt->close();
+    return $products;
 }
 
-// Linens
-$productSelect = "SELECT p.*, 
-pt.ProductType, 
-pi_primary.ImageUserPath AS PrimaryImagePath, 
-pi_secondary.ImageUserPath AS SecondaryImagePath
-FROM producttb p
-INNER JOIN producttypetb pt 
-ON p.ProductTypeID = pt.ProductTypeID
-INNER JOIN productimagetb pi_primary
-ON p.ProductID = pi_primary.ProductID AND pi_primary.PrimaryImage = 1
-LEFT JOIN productimagetb pi_secondary
-ON p.ProductID = pi_secondary.ProductID AND pi_secondary.SecondaryImage = 1
-WHERE pt.ProductType = 'Linen'
-AND p.isActive = 1
-GROUP BY p.ProductID";
-
-$productSelectQuery = $connect->query($productSelect);
-$linenProducts = [];
-
-if ($productSelectQuery->num_rows > 0) {
-    while ($row = $productSelectQuery->fetch_assoc()) {
-        $linenProducts[] = $row;
-    }
-}
-
-// Duvets
-$productSelect = "SELECT p.*, 
-pt.ProductType, 
-pi_primary.ImageUserPath AS PrimaryImagePath, 
-pi_secondary.ImageUserPath AS SecondaryImagePath
-FROM producttb p
-INNER JOIN producttypetb pt 
-ON p.ProductTypeID = pt.ProductTypeID
-INNER JOIN productimagetb pi_primary
-ON p.ProductID = pi_primary.ProductID AND pi_primary.PrimaryImage = 1
-LEFT JOIN productimagetb pi_secondary
-ON p.ProductID = pi_secondary.ProductID AND pi_secondary.SecondaryImage = 1
-WHERE pt.ProductType = 'Duvet'
-AND p.isActive = 1
-GROUP BY p.ProductID";
-
-$productSelectQuery = $connect->query($productSelect);
-$duvetProducts = [];
-
-if ($productSelectQuery->num_rows > 0) {
-    while ($row = $productSelectQuery->fetch_assoc()) {
-        $duvetProducts[] = $row;
-    }
-}
+// Fetch each category
+$pillowProducts = getProductsByType($connect, 'Pillow');
+$linenProducts = getProductsByType($connect, 'Linen');
+$duvetProducts = getProductsByType($connect, 'Duvet');
 ?>
 
 <!DOCTYPE html>
