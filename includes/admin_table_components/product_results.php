@@ -56,7 +56,7 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
                     <td class="p-3 text-start hidden sm:table-cell">
                         $<?= htmlspecialchars(number_format($product['Price'], 2)) ?>
                     </td>
-                    <td class="p-4 text-start">
+                    <td class="p-4 text-start select-none">
                         <div class="flex items-center gap-2">
                             <?php if ($isOutOfStock): ?>
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 border-red-200 text-red-800">
