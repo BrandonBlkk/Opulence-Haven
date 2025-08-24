@@ -93,7 +93,7 @@ while ($row = $supplierSelectQuery->fetch_assoc()) {
                     <td class="p-3 text-start">
                         $<?= ($purchase['PurchaseTax']) ?>
                     </td>
-                    <td class="p-3 text-start">
+                    <td class="p-3 text-start select-none">
                         <?php
                         $statusClass = '';
                         switch ($purchase['Status']) {

@@ -10,145 +10,14 @@ if (!$connect) {
 }
 
 $alertMessage = '';
-$productID = AutoID('producttb', 'ProductID', 'PD-', 6);
-$response = ['success' => false, 'message' => '', 'generatedId' => $productID];
-
-// Add Product
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproduct'])) {
-    $productTitle = mysqli_real_escape_string($connect, $_POST['productTitle']);
-    $description = mysqli_real_escape_string($connect, $_POST['description']);
-    $specification = mysqli_real_escape_string($connect, $_POST['specification']);
-    $information = mysqli_real_escape_string($connect, $_POST['information']);
-    $delivery = mysqli_real_escape_string($connect, $_POST['delivery']);
-    $brand = mysqli_real_escape_string($connect, $_POST['brand']);
-    $price = mysqli_real_escape_string($connect, $_POST['price']);
-    $discountPrice = mysqli_real_escape_string($connect, $_POST['discountPrice']);
-    $sellingFast = mysqli_real_escape_string($connect, $_POST['sellingfast']);
-    $stock = 0;
-    $productType = mysqli_real_escape_string($connect, $_POST['productType']);
-
-    // Check if the product already exists using prepared statement
-    $checkQuery = "SELECT Title FROM producttb WHERE Title = '$productTitle'";
-    $count = $connect->query($checkQuery)->num_rows;
-
-    if ($count > 0) {
-        $response['message'] = 'Product you added is already existed.';
-    } else {
-        $addProductQuery = "INSERT INTO producttb (ProductID, Title, Price, DiscountPrice, Description, Specification, Information, DeliveryInfo, Brand, SellingFast, Stock, ProductTypeID)
-        VALUES ('$productID', '$productTitle', '$price', '$discountPrice', '$description', '$specification', '$information', '$delivery', '$brand', '$sellingFast', '$stock', '$productType')";
-
-        if ($connect->query($addProductQuery)) {
-            $response['success'] = true;
-            $response['message'] = 'A new product has been successfully added.';
-            // Keep the generated ID in the response
-            $response['generatedId'] = $productID;
-        } else {
-            $response['message'] = "Failed to add product. Please try again.";
-        }
-    }
-
-    header('Content-Type: application/json');
-    echo json_encode($response);
-    exit();
-}
-
-// Get Product Details
-if (isset($_GET['action']) && isset($_GET['id'])) {
-    $id = mysqli_real_escape_string($connect, $_GET['id']);
-    $action = $_GET['action'];
-
-    // Build query based on action
-    $query = match ($action) {
-        'getProductDetails' => "SELECT * FROM producttb WHERE ProductID = '$id'",
-        default => null
-    };
-    if ($query) {
-        $product = $connect->query($query)->fetch_assoc();
-
-        if ($product) {
-            $response['success'] = true;
-            $response['product'] = $product;
-        } else {
-            $response['success'] = true;
-        }
-    }
-
-    header('Content-Type: application/json');
-    echo json_encode($response);
-    exit();
-}
-
-// Update Product
-if (isset($_POST['editproduct'])) {
-    $productId = mysqli_real_escape_string($connect, $_POST['productid']);
-    $productTitle = mysqli_real_escape_string($connect, $_POST['updateproductTitle']);
-    $brand = mysqli_real_escape_string($connect, $_POST['updatebrand']);
-    $description = mysqli_real_escape_string($connect, $_POST['updatedescription']);
-    $specification = mysqli_real_escape_string($connect, $_POST['updatespecification']);
-    $information = mysqli_real_escape_string($connect, $_POST['updateinformation']);
-    $delivery = mysqli_real_escape_string($connect, $_POST['updatedelivery']);
-    $price = mysqli_real_escape_string($connect, $_POST['updateprice']);
-    $discountPrice = mysqli_real_escape_string($connect, $_POST['updatediscountPrice']);
-    $sellingFast = mysqli_real_escape_string($connect, $_POST['updatesellingfast']);
-    $productType = mysqli_real_escape_string($connect, $_POST['updateproductType']);
-
-    // Update query
-    $updateQuery = "UPDATE producttb SET Title = '$productTitle', Brand = '$brand', Description = '$description', Specification = '$specification', Information = '$information', DeliveryInfo = '$delivery', 
-    Price = '$price', DiscountPrice = '$discountPrice', SellingFast = '$sellingFast', ProductTypeID = '$productType' WHERE ProductID = '$productId'";
-
-    if ($connect->query($updateQuery)) {
-        $response['success'] = true;
-        $response['message'] = 'The product has been successfully updated.';
-        $response['generatedId'] = $productId;
-        $response['productTitle'] = $productTitle;
-        $response['brand'] = $brand;
-        $response['description'] = $description;
-        $response['specification'] = $specification;
-        $response['information'] = $information;
-        $response['delivery'] = $delivery;
-        $response['price'] = $price;
-        $response['discountPrice'] = $discountPrice;
-        $response['sellingFast'] = $sellingFast;
-        $response['productType'] = $productType;
-    } else {
-        $response['message'] = "Failed to update product. Please try again.";
-    }
-
-    header('Content-Type: application/json');
-    echo json_encode($response);
-    exit();
-}
-
-// Delete Product
-if (isset($_POST['deleteproduct'])) {
-    $productId = mysqli_real_escape_string($connect, $_POST['productid']);
-
-    // Build query based on action
-    $deleteQuery = "DELETE FROM producttb WHERE ProductID = '$productId'";
-
-    if ($connect->query($deleteQuery)) {
-        $response['success'] = true;
-        $response['generatedId'] = $productId;
-    } else {
-        $response['success'] = false;
-        $response['message'] = 'Failed to delete product. Please try again.';
-    }
-
-    header('Content-Type: application/json');
-    echo json_encode($response);
-    exit();
-}
-
-// Set the month for which to calculate profit
-$month = '2025-07'; // YYYY-MM
+$response = ['success' => false, 'message' => ''];
 
 // Get all orders in the month
 $orderQuery = "SELECT o.OrderID, od.ProductID, od.OrderUnitQuantity, od.OrderUnitPrice, p.MarkupPercentage
                FROM ordertb o
                JOIN orderdetailtb od ON o.OrderID = od.OrderID
                JOIN producttb p ON od.ProductID = p.ProductID
-               WHERE DATE_FORMAT(o.OrderDate, '%Y-%m') = '$month'
-                 AND o.Status = 'Confirmed'"; // Only confirmed orders
+               WHERE o.Status = 'Confirmed'"; // Only confirmed orders
 
 $orderResult = $connect->query($orderQuery);
 
