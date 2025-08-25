@@ -9,7 +9,7 @@
                     SELECT SUM(OrderUnitQuantity) as total 
                     FROM orderdetailtb od
                     JOIN ordertb o ON od.OrderID = o.OrderID
-                    WHERE o.UserID = ? AND o.Status = 'pending'
+                    WHERE o.UserID = ? AND o.Status = 'Pending'
                 ");
                 $count_query->bind_param("s", $_SESSION['UserID']);
                 $count_query->execute();
@@ -45,7 +45,7 @@
                 JOIN producttb p ON od.ProductID = p.ProductID
                 LEFT JOIN productimagetb pi ON p.ProductID = pi.ProductID AND pi.PrimaryImage = 1
                 LEFT JOIN sizetb s ON od.SizeID = s.SizeID AND od.ProductID = s.ProductID
-                WHERE o.UserID = ? AND o.Status = 'pending'
+                WHERE o.UserID = ? AND o.Status = 'Pending'
             ");
             $cart_query->bind_param("s", $_SESSION['UserID']);
             $cart_query->execute();

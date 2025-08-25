@@ -100,7 +100,15 @@
                         $stmt->bind_param("s", $_SESSION['UserID']);
                         $stmt->execute();
                         $result = $stmt->get_result();
-                        $count = $result->fetch_assoc()['count'];
+                        $stay_count = $result->fetch_assoc()['count'];
+
+                        // order list
+                        $order = "SELECT COUNT(*) as count FROM ordertb WHERE UserID = ? AND Status = 'Pending'";
+                        $stmt = $connect->prepare($order);
+                        $stmt->bind_param("s", $_SESSION['UserID']);
+                        $stmt->execute();
+                        $result = $stmt->get_result();
+                        $order_count = $result->fetch_assoc()['count'];
                         $stmt->close();
                         ?>
                         <a href="../User/upcoming_stays.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
@@ -109,19 +117,19 @@
                                 <p class="font-semibold text-sm">Upcoming Stays</p>
                             </div>
                             <?php
-                            if ($count) {
+                            if ($stay_count) {
                             ?>
-                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= $count ?></p>
+                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= $stay_count ?></p>
                             <?php
                             }
                             ?>
                         </a>
-                        <a href="#" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
+                        <a href="../User/order_history.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
                             <div class="flex items-center gap-1">
                                 <i class="ri-file-list-3-line text-xl"></i>
                                 <p class="font-semibold text-sm">Purchase List</p>
                             </div>
-                            <p class="px-2 text-white bg-blue-950 rounded-sm ml-5">3</p>
+                            <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= $order_count ?></p>
                         </a>
                     </div>
                 </div>

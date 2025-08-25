@@ -12,7 +12,7 @@ if (isset($_SESSION['UserID'])) {
         SELECT SUM(OrderUnitQuantity) as total 
         FROM orderdetailtb od
         JOIN ordertb o ON od.OrderID = o.OrderID
-        WHERE o.UserID = ? AND o.Status = 'pending'
+        WHERE o.UserID = ? AND o.Status = 'Pending'
     ");
     $stmt->bind_param("s", $_SESSION['UserID']);
     $stmt->execute();

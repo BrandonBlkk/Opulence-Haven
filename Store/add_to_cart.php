@@ -89,7 +89,7 @@ if (!$connect) {
             JOIN producttb p ON od.ProductID = p.ProductID
             JOIN sizetb s ON od.SizeID = s.SizeID AND od.ProductID = s.ProductID
             LEFT JOIN productimagetb pi ON pi.ProductID = p.ProductID AND pi.PrimaryImage = 1
-            WHERE o.UserID = ? AND o.Status = 'pending'
+            WHERE o.UserID = ? AND o.Status = 'Pending'
         ");
                     $cart_query->bind_param("s", $_SESSION['UserID']);
                     $cart_query->execute();

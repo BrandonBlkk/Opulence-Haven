@@ -11,17 +11,95 @@ $userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
 $alertMessage = '';
 $response  = ['success' => false, 'message' => ''];
 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order'])) {
-    // Check cart
-    $cart = "SELECT * FROM ordertb WHERE UserID = '$userID'";
-    $cartData = $connect->query($cart);
+// if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order'])) {
+//     // Check cart
+//     $cart = "SELECT * FROM ordertb WHERE UserID = '$userID'";
+//     $cartData = $connect->query($cart);
 
-    if ($cartData->num_rows > 0) {
-        $response = ['success' => true];
-    } else {
-        $response = ['success' => false, 'message' => 'Your cart is empty. Please add products to your cart before payment.'];
+//     if ($cartData->num_rows > 0) {
+//         $response = ['success' => true];
+//     } else {
+//         $response = ['success' => false, 'message' => 'Your cart is empty. Please add products to your cart before payment.'];
+//     }
+
+//     header('Content-Type: application/json');
+//     echo json_encode($response);
+//     exit();
+// }
+
+// Turn off error reporting to prevent HTML output before JSON
+error_reporting(0);
+ini_set('display_errors', 0);
+
+// Ensure no output has been sent before headers
+if (ob_get_length()) ob_clean();
+
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order'])) {
+    // Initialize response array first
+    $response = [];
+
+    // Check if database connection is available
+    if (!isset($connect) || !$connect) {
+        $response = ['success' => false, 'message' => 'Database connection failed'];
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
     }
 
+    // Check if userID is set
+    if (!isset($userID)) {
+        $response = ['success' => false, 'message' => 'User not authenticated'];
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+
+    $firstname = mysqli_real_escape_string($connect, $_POST['firstname']);
+    $lastname = mysqli_real_escape_string($connect, $_POST['lastname']);
+    $address = mysqli_real_escape_string($connect, $_POST['address']);
+    $contact = mysqli_real_escape_string($connect, $_POST['phone']);
+    $email = mysqli_real_escape_string($connect, $_POST['email']);
+    $city = mysqli_real_escape_string($connect, $_POST['city']);
+    $state = mysqli_real_escape_string($connect, $_POST['state']);
+    $zip = mysqli_real_escape_string($connect, $_POST['zip']);
+    $remarks = mysqli_real_escape_string($connect, $_POST['remarks']);
+
+    $fullname = $firstname . ' ' . $lastname;
+
+    // Check if user has a pending order
+    $cart_query = "SELECT OrderID FROM ordertb WHERE UserID = '$userID' AND Status = 'Pending'";
+    $cart_result = $connect->query($cart_query);
+
+    if ($cart_result && $cart_result->num_rows > 0) {
+        // Get the order ID
+        $order_data = $cart_result->fetch_assoc();
+        $order_id = $order_data['OrderID'];
+
+        // Update the existing pending order with customer information
+        $update_order = $connect->prepare("
+            UPDATE ordertb 
+            SET FullName = ?, ShippingAddress = ?, PhoneNumber = ?, City = ?, State = ?, ZipCode = ?, Remarks = ? 
+            WHERE OrderID = ?
+        ");
+
+        if ($update_order) {
+            $update_order->bind_param("ssssssss", $fullname, $address, $contact, $city, $state, $zip, $remarks, $order_id);
+
+            if ($update_order->execute()) {
+                $response = ['success' => true, 'message' => 'Order information updated successfully.'];
+            } else {
+                // Use a generic error message to avoid exposing database errors
+                $response = ['success' => false, 'message' => 'Failed to update order information.'];
+            }
+            $update_order->close();
+        } else {
+            $response = ['success' => false, 'message' => 'Failed to prepare update statement.'];
+        }
+    } else {
+        $response = ['success' => false, 'message' => 'No pending order found. Please add products to your cart before payment.'];
+    }
+
+    // Ensure proper JSON encoding
     header('Content-Type: application/json');
     echo json_encode($response);
     exit();
@@ -117,7 +195,7 @@ $userData = $connect->query($user)->fetch_assoc();
             JOIN producttb p ON od.ProductID = p.ProductID
             JOIN sizetb s ON od.SizeID = s.SizeID AND od.ProductID = s.ProductID
             LEFT JOIN productimagetb pi ON pi.ProductID = p.ProductID AND pi.PrimaryImage = 1
-            WHERE o.UserID = ? AND o.Status = 'pending'
+            WHERE o.UserID = ? AND o.Status = 'Pending'
         ");
                     $cart_query->bind_param("s", $_SESSION['UserID']);
                     $cart_query->execute();
