@@ -146,7 +146,7 @@ if (isset($_POST['addtobag'])) {
             $update_stock->execute();
 
             // Get or create pending order for this user
-            $order_query = $connect->prepare("SELECT OrderID FROM ordertb WHERE UserID = ? AND Status = 'pending' LIMIT 1");
+            $order_query = $connect->prepare("SELECT OrderID FROM ordertb WHERE UserID = ? AND Status = 'Pending' LIMIT 1");
             $order_query->bind_param("s", $session_userID);
             $order_query->execute();
             $order_result = $order_query->get_result();
@@ -159,7 +159,7 @@ if (isset($_POST['addtobag'])) {
                 $insert_order = $connect->prepare("
                     INSERT INTO ordertb 
                     (OrderID, UserID, Status, OrderDate) 
-                    VALUES (?, ?, 'pending', NOW())
+                    VALUES (?, ?, 'Pending', NOW())
                 ");
                 $insert_order->bind_param("ss", $order_id, $session_userID);
                 $insert_order->execute();

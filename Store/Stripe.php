@@ -27,7 +27,7 @@ $cartQuery = "SELECT
               FROM ordertb o
               JOIN orderdetailtb od ON o.OrderID = od.OrderID
               JOIN producttb p ON od.ProductID = p.ProductID
-              WHERE o.UserID = ? AND o.Status = 'pending'";
+              WHERE o.UserID = ? AND o.Status = 'Pending'";
 $stmt = $connect->prepare($cartQuery);
 $stmt->bind_param("s", $userID);
 $stmt->execute();
@@ -135,7 +135,7 @@ if (empty($line_items)) {
 }
 
 // Get the pending order ID (if exists)
-$pendingOrderQuery = "SELECT OrderID FROM ordertb WHERE UserID = ? AND Status = 'pending' LIMIT 1";
+$pendingOrderQuery = "SELECT OrderID FROM ordertb WHERE UserID = ? AND Status = 'Pending' LIMIT 1";
 $stmt = $connect->prepare($pendingOrderQuery);
 $stmt->bind_param("s", $userID);
 $stmt->execute();
@@ -146,7 +146,7 @@ $orderID = $pendingOrder['OrderID'] ?? null;
 try {
     $checkout_session = \Stripe\Checkout\Session::create([
         "mode" => "payment",
-        "success_url" => "http://localhost/OpulenceHaven/Store/store_checkout.php?payment=success",
+        "success_url" => "http://localhost/OpulenceHaven/Store/payment_success.php?payment=success&order_id=" . $orderID,
         "cancel_url" => "http://localhost/OpulenceHaven/Store/store_checkout.php?payment=cancel",
         "locale" => "auto",
         "customer_email" => $_SESSION['UserEmail'] ?? null,
