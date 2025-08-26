@@ -103,7 +103,7 @@
                         $stay_count = $result->fetch_assoc()['count'];
 
                         // order list
-                        $order = "SELECT COUNT(*) as count FROM ordertb WHERE UserID = ? AND Status = 'Pending'";
+                        $order = "SELECT COUNT(*) as count FROM ordertb WHERE UserID = ? AND Status = 'Order Placed'";
                         $stmt = $connect->prepare($order);
                         $stmt->bind_param("s", $_SESSION['UserID']);
                         $stmt->execute();
