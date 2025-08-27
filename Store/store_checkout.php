@@ -200,7 +200,7 @@ $userData = $connect->query($user)->fetch_assoc();
 
                             $originalPrice = $basePrice + $modifier;
                 ?>
-                            <div class="flex flex-col md:flex-row justify-between mb-4">
+                            <div class="flex flex-col md:flex-row justify-between">
                                 <form action="#" method="post" class="px-4 py-2 rounded-md flex flex-col md:flex-row justify-between cursor-pointer">
                                     <input type="hidden" name="order_id" value="<?= $order_id ?>">
                                     <input type="hidden" name="product_id" value="<?= $item['ProductID'] ?>">

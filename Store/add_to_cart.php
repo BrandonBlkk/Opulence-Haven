@@ -69,28 +69,30 @@ if (!$connect) {
         <div class="flex flex-col md:flex-row justify-between">
             <div class="md:w-2/3 overflow-y-scroll h-[500px]">
                 <?php
+                $subtotal = 0; // Initialize subtotal
+
                 if (isset($_SESSION['UserID'])) {
                     // Get pending order (cart) items from database
                     $cart_query = $connect->prepare("
-            SELECT 
-                o.OrderID,
-                od.OrderUnitQuantity AS Quantity,
-                od.ProductID,
-                p.Title AS ProductName,
-                od.OrderUnitPrice AS FinalPrice,
-                p.Price * (1 + p.MarkupPercentage / 100) AS BasePrice,
-                p.DiscountPrice,
-                s.Size,
-                s.SizeID,
-                s.PriceModifier,
-                pi.ImageUserPath AS ProductImage
-            FROM ordertb o
-            JOIN orderdetailtb od ON o.OrderID = od.OrderID
-            JOIN producttb p ON od.ProductID = p.ProductID
-            JOIN sizetb s ON od.SizeID = s.SizeID AND od.ProductID = s.ProductID
-            LEFT JOIN productimagetb pi ON pi.ProductID = p.ProductID AND pi.PrimaryImage = 1
-            WHERE o.UserID = ? AND o.Status = 'Pending'
-        ");
+                    SELECT 
+                        o.OrderID,
+                        od.OrderUnitQuantity AS Quantity,
+                        od.ProductID,
+                        p.Title AS ProductName,
+                        od.OrderUnitPrice AS FinalPrice,
+                        p.Price * (1 + p.MarkupPercentage / 100) AS BasePrice,
+                        p.DiscountPrice,
+                        s.Size,
+                        s.SizeID,
+                        s.PriceModifier,
+                        pi.ImageUserPath AS ProductImage
+                    FROM ordertb o
+                    JOIN orderdetailtb od ON o.OrderID = od.OrderID
+                    JOIN producttb p ON od.ProductID = p.ProductID
+                    JOIN sizetb s ON od.SizeID = s.SizeID AND od.ProductID = s.ProductID
+                    LEFT JOIN productimagetb pi ON pi.ProductID = p.ProductID AND pi.PrimaryImage = 1
+                    WHERE o.UserID = ? AND o.Status = 'Pending'
+                ");
                     $cart_query->bind_param("s", $_SESSION['UserID']);
                     $cart_query->execute();
                     $cart_result = $cart_query->get_result();
@@ -109,6 +111,9 @@ if (!$connect) {
                             $finalPrice = $item['FinalPrice'];
 
                             $originalPrice = $basePrice + $modifier;
+
+                            // Add to subtotal: FinalPrice × Quantity
+                            $subtotal += $finalPrice * $quantity;
                 ?>
                             <div class="flex flex-col md:flex-row justify-between">
                                 <form action="#" method="post" class="px-4 py-2 rounded-md flex flex-col md:flex-row justify-between cursor-pointer">
