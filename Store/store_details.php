@@ -31,6 +31,7 @@ if (isset($_GET["product_ID"])) {
     $product_type = $product['ProductType'];
     $title = $product['Title'];
     $price = $product['Price'];
+    $markup = $product['MarkupPercentage'];
     $price_modifier = $product['PriceModifier'];
     $discount_price = $product['DiscountPrice'];
     $description = $product['Description'];
@@ -40,6 +41,9 @@ if (isset($_GET["product_ID"])) {
     $brand = $product['Brand'];
     $selling_fast = $product['SellingFast'];
     $stock = $product['SaleQuantity'];
+
+    // Final price
+    $final_price = $price * (1 + $markup / 100);
 
     // Fetch product image paths
     $main_product_image = $product['ImageUserPath'];
@@ -449,7 +453,7 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
             <div class="w-full md:max-w-[290px] py-3 sm:py-0">
                 <div class="mb-4">
                     <div class="flex justify-between items-center">
-                        <p class="text-base sm:text-lg font-bold mb-2" id="priceDisplay">$ <?= $price; ?></p>
+                        <p class="text-base sm:text-lg font-bold mb-2" id="priceDisplay">$ <?= $final_price; ?></p>
 
                         <?php
                         $check = "SELECT * FROM productfavoritetb 
@@ -570,7 +574,9 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                     // Dynamically update price
                     document.getElementById("size").addEventListener("change", function() {
                         // Get the base price from PHP
-                        const basePrice = <?= $price; ?>;
+                        // $price * (1 + $markup / 100);
+
+                        const basePrice = <?= $price * (1 + $markup / 100); ?>;
                         const selectedOption = this.options[this.selectedIndex];
                         const priceModifier = parseFloat(selectedOption.getAttribute("data-modifier"));
 

@@ -78,7 +78,7 @@ if (!$connect) {
                 od.ProductID,
                 p.Title AS ProductName,
                 od.OrderUnitPrice AS FinalPrice,
-                p.Price AS BasePrice,
+                p.Price * (1 + p.MarkupPercentage / 100) AS BasePrice,
                 p.DiscountPrice,
                 s.Size,
                 s.SizeID,
