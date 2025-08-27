@@ -15,7 +15,7 @@ if (isset($_GET['payment']) && $_GET['payment'] == 'success' && isset($_GET['ord
 
     if ($order_result->num_rows > 0) {
         // Update order status to Confirmed
-        $update_status = $connect->prepare("UPDATE ordertb SET Status = 'Confirmed' WHERE OrderID = ?");
+        $update_status = $connect->prepare("UPDATE ordertb SET Status = 'Processing' WHERE OrderID = ?");
         $update_status->bind_param("s", $order_id);
 
         if ($update_status->execute()) {
