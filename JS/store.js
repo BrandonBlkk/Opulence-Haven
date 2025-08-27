@@ -61,50 +61,50 @@ function closeAlert() {
 // Search Bar
 const storeMenubar = document.getElementById('storeMenubar');
 const storeDarkOverlay = document.getElementById('storeDarkOverlay');
-
-document.getElementById('search-icon').addEventListener('click', () => {
-    const searchBar = document.getElementById('search-bar');
-    searchBar.classList.toggle('top-0');
-    storeDarkOverlay.classList.toggle('hidden');
-});
-
-storeDarkOverlay.addEventListener('click', () => {
-    const searchBar = document.getElementById('search-bar');
-    searchBar.classList.toggle('top-0');
-    storeDarkOverlay.classList.toggle('hidden');
-});
-
-searchCloseBtn.addEventListener('click', () => {
-    const searchBar = document.getElementById('search-bar');
-    searchBar.classList.toggle('top-0');
-    storeDarkOverlay.classList.toggle('hidden');
-});
-
-// Search Bar Close Btn
 const closeBtn = document.getElementById('closeBtn');
 const aside = document.getElementById('aside');
 const darkOverlay = document.getElementById('darkOverlay');
 
-storeMenubar.addEventListener('click', () => {
-    aside.style.right = '0%';
-    darkOverlay.classList.remove('hidden');
-    darkOverlay.classList.add('flex');
-    storeMenubar.classList.add('-rotate-90');
-})
+if (storeMenubar && storeDarkOverlay && closeBtn && aside && darkOverlay) {
+    document.getElementById('search-icon').addEventListener('click', () => {
+    const searchBar = document.getElementById('search-bar');
+    searchBar.classList.toggle('top-0');
+    storeDarkOverlay.classList.toggle('hidden');
+    });
 
-closeBtn.addEventListener('click', () => {
-    aside.style.right = '-100%';
-    darkOverlay.classList.add('hidden');
-    darkOverlay.classList.remove('flex');
-    storeMenubar.classList.remove('-rotate-90');
-})
+    storeDarkOverlay.addEventListener('click', () => {
+        const searchBar = document.getElementById('search-bar');
+        searchBar.classList.toggle('top-0');
+        storeDarkOverlay.classList.toggle('hidden');
+    });
 
-darkOverlay.addEventListener('click', () => {
-    aside.style.right = '-100%';
-    darkOverlay.classList.add('hidden');
-    darkOverlay.classList.remove('flex');
-    storeMenubar.classList.remove('-rotate-90');
-});
+    searchCloseBtn.addEventListener('click', () => {
+        const searchBar = document.getElementById('search-bar');
+        searchBar.classList.toggle('top-0');
+        storeDarkOverlay.classList.toggle('hidden');
+    });
+
+    storeMenubar.addEventListener('click', () => {
+        aside.style.right = '0%';
+        darkOverlay.classList.remove('hidden');
+        darkOverlay.classList.add('flex');
+        storeMenubar.classList.add('-rotate-90');
+    })
+
+    closeBtn.addEventListener('click', () => {
+        aside.style.right = '-100%';
+        darkOverlay.classList.add('hidden');
+        darkOverlay.classList.remove('flex');
+        storeMenubar.classList.remove('-rotate-90');
+    })
+
+    darkOverlay.addEventListener('click', () => {
+        aside.style.right = '-100%';
+        darkOverlay.classList.add('hidden');
+        darkOverlay.classList.remove('flex');
+        storeMenubar.classList.remove('-rotate-90');
+    });
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById('addToBagForm');
@@ -262,6 +262,255 @@ document.addEventListener("DOMContentLoaded", () => {
                 showAlert("An error occurred. Please try again.", true);
             });
         });
+    }
+});
+
+// Return item
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("orderIDInput").addEventListener("keyup", validateOrderID);
+    document.getElementById("emailInput").addEventListener("keyup", validateEmail);
+
+    const returnItemForm = document.getElementById("returnItemForm");
+    const returnFormSection = document.getElementById("returnForm");
+    const orderedProductsSection = document.getElementById("orderedProducts");
+    const actionSection = document.getElementById("actionSection");
+    const selectedProductContainer = document.getElementById("selectedProductContainer");
+    const actionOptions = document.getElementById("actionOptions");
+    const refundReasonSection = document.getElementById("refundReasonSection");
+    let selectedProductID = null;
+    let selectedProduct = null;
+    let selectedQuantity = 1;
+    let selectedActionType = null;
+
+    // Restore step
+    const savedStep = localStorage.getItem("returnStep");
+    const savedProduct = localStorage.getItem("selectedProduct");
+    const savedProducts = localStorage.getItem("orderedProducts");
+
+    if (savedStep) {
+        returnFormSection.classList.add("hidden");
+        if (savedStep === "products" && savedProducts) {
+            orderedProductsSection.classList.remove("hidden");
+            orderedProductsSection.classList.add("flex");
+            displayOrderedProducts(JSON.parse(savedProducts));
+        } else if (savedStep === "action" && savedProduct) {
+            selectedProduct = JSON.parse(savedProduct);
+            selectedProductID = selectedProduct.ProductID;
+            showSelectedProduct(selectedProduct);
+            actionSection.classList.remove("hidden");
+            actionSection.classList.add("flex");
+        }
+    }
+
+    if (returnItemForm) {
+        returnItemForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+            if (!validateReturnItemForm()) return;
+
+            const formData = new FormData(this);
+            formData.append("find_item", true);
+
+            fetch('../Store/return_item.php', {
+                method: 'POST',
+                body: formData,
+                headers: { 'Accept': 'application/json' }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.products) {
+                        returnFormSection.classList.add("hidden");
+                        orderedProductsSection.classList.remove("hidden");
+                        orderedProductsSection.classList.add("flex");
+                        localStorage.setItem("returnStep", "products");
+                        localStorage.setItem("orderedProducts", JSON.stringify(data.products));
+                        displayOrderedProducts(data.products);
+                    }
+                })
+                .catch(error => {
+                    showAlert('An error occurred. Please try again.', true);
+                    console.error('Error:', error);
+                });
+        });
+    }
+
+    document.getElementById("backToFormButton").addEventListener("click", () => {
+        orderedProductsSection.classList.add("hidden");
+        returnFormSection.classList.remove("hidden");
+        returnFormSection.classList.add("flex");
+        localStorage.clear();
+    });
+
+    document.getElementById("nextButton").addEventListener("click", () => {
+        if (!selectedProductID || !selectedProduct) {
+            showAlert("Please select a product to continue.", true);
+            return;
+        }
+        orderedProductsSection.classList.add("hidden");
+        showSelectedProduct(selectedProduct);
+        actionSection.classList.remove("hidden");
+        actionSection.classList.add("flex");
+        localStorage.setItem("returnStep", "action");
+        localStorage.setItem("selectedProduct", JSON.stringify(selectedProduct));
+    });
+
+    document.getElementById("backButton").addEventListener("click", () => {
+        actionSection.classList.add("hidden");
+        orderedProductsSection.classList.remove("hidden");
+        orderedProductsSection.classList.add("flex");
+        localStorage.setItem("returnStep", "products");
+    });
+
+    // Action selection
+    document.getElementById("actionForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const selectedAction = document.querySelector('input[name="return_action"]:checked');
+        if (!selectedAction) {
+            showAlert('Please select an action (Exchange or Refund).', true);
+            return;
+        }
+
+        selectedActionType = selectedAction.value;
+
+        if (selectedAction.value === "refund") {
+            actionOptions.classList.add("hidden");
+            refundReasonSection.classList.remove("hidden");
+            showRefundQuantity(selectedProduct);
+            return;
+        }
+
+        if (selectedAction.value === "exchange") {
+            // NEW: Send exchange request
+            fetch('../Store/process_return.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    product_id: selectedProductID,
+                    order_id: selectedProduct.OrderID,
+                    quantity: selectedQuantity,
+                    remarks: "Customer requested exchange",
+                    action_type: "exchange"
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(`Exchange request submitted for Product ID: ${selectedProductID}, Quantity: ${selectedQuantity}`, false);
+                } else {
+                    showAlert(`${data.message}`, true);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('An error occurred while submitting the exchange.', true);
+            });
+        }
+    });
+
+    document.getElementById("refundReasonForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const selectedReason = document.querySelector('input[name="refund_reason"]:checked');
+        if (!selectedReason) {
+            showAlert('Please select a reason for your refund.', true);
+            return;
+        }
+
+        fetch('../Store/process_return.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                product_id: selectedProductID,
+                order_id: selectedProduct.OrderID,
+                quantity: selectedQuantity,
+                remarks: selectedReason.value,
+                action_type: selectedActionType
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(`Request submitted: ${selectedActionType} for Product ID: ${selectedProductID}, Quantity: ${selectedQuantity}`, false);
+                } else {
+                    showAlert(`${data.message}`, true);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('An error occurred while submitting the request.', true);
+            });
+    });
+
+    document.getElementById("backToAction").addEventListener("click", () => {
+        refundReasonSection.classList.add("hidden");
+        actionOptions.classList.remove("hidden");
+    });
+
+    function displayOrderedProducts(products) {
+        const container = document.getElementById("productsContainer");
+        container.innerHTML = "";
+        if (products.length === 0) {
+            container.innerHTML = `<p class="text-gray-600 text-sm">No products found for this order.</p>`;
+            return;
+        }
+        products.forEach(product => {
+            const item = document.createElement("div");
+            item.className = "flex items-center space-x-4 p-4 border rounded-md bg-white shadow-sm cursor-pointer hover:border-amber-400 transition";
+            item.innerHTML = `
+                <input type="radio" name="selectedProduct" value="${product.ProductID}" class="outline-none">
+                <img src="${product.ImageUserPath || '../images/no-image.png'}" 
+                     alt="${product.Title}" 
+                     class="w-20 h-20 object-cover rounded-md select-none">
+                <div class="flex-1">
+                    <h3 class="text-lg font-medium text-gray-800">${product.Title}</h3>
+                    <p class="text-sm text-gray-600">Size: ${product.Size}</p>
+                    <p class="text-sm font-semibold text-amber-600">$${product.OrderUnitPrice}</p>
+                </div>
+            `;
+            item.addEventListener("click", () => {
+                selectedProductID = product.ProductID;
+                selectedProduct = product;
+                item.querySelector('input[type="radio"]').checked = true;
+            });
+            container.appendChild(item);
+        });
+    }
+
+    function showSelectedProduct(product) {
+        selectedProductContainer.innerHTML = `
+            <div class="flex items-center space-x-4 p-4 border rounded-md bg-gray-50 shadow-sm mb-4">
+                <img src="${product.ImageUserPath || '../images/no-image.png'}" 
+                    alt="${product.Title}" 
+                    class="w-20 h-20 object-cover rounded-md select-none">
+                <div class="flex-1">
+                    <h3 class="text-lg font-medium text-gray-800">${product.Title}</h3>
+                    <p class="text-sm text-gray-600">Size: ${product.Size}</p>
+                    <p class="text-sm font-semibold text-amber-600">$${product.OrderUnitPrice}</p>
+                </div>
+            </div>
+        `;
+    }
+
+    function showRefundQuantity(product) {
+        const existingSelector = document.getElementById("refundQuantitySelector");
+        if (existingSelector) {
+            existingSelector.parentElement.remove();
+        }
+
+        const container = document.createElement("div");
+        container.className = "mb-3";
+        container.innerHTML = `
+            <label class="block mb-2 text-sm text-gray-700">Select quantity to refund</label>
+            <select id="refundQuantitySelector" class="p-1 border rounded w-full max-w-xs outline-none">
+                ${Array.from({ length: product.OrderUnitQuantity || 1 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}
+            </select>
+        `;
+        refundReasonSection.insertBefore(container, refundReasonSection.querySelector("form"));
+
+        const qtySelector = document.getElementById("refundQuantitySelector");
+        qtySelector.addEventListener("change", (e) => {
+            selectedQuantity = parseInt(e.target.value);
+        });
+
+        selectedQuantity = parseInt(qtySelector.value);
     }
 });
 
@@ -543,7 +792,31 @@ const validateOrderForm = () => {
     return isFirstnameValid && isLastnameValid && isAddressValid && isPhoneValid && isCityValid && isStateValid && isZipValid;
 }
 
+const validateReturnItemForm = () => {
+    const isOrderIDValid = validateOrderID();
+    const isEmailValid = validateEmail();
+
+    return isOrderIDValid && isEmailValid;
+};
+
 // Individual validation functions
+
+const validateOrderID = () => {
+    return validateField(
+        "orderIDInput",
+        "orderIDError",
+        (input) => {
+            if (!input) {
+                return "Order ID is required.";
+            }
+            if (input.length > 20) {
+                return "Order ID is too long.";
+            }
+            return null;
+        }
+    );
+}
+
 const validateFirstname = () => {
     return validateField(
         "firstnameInput",
@@ -570,6 +843,22 @@ const validateLastname = () => {
             }
             if (input.length > 15) {
                 return "Lastname is too long.";
+            }
+            return null;
+        }
+    );
+}
+
+const validateEmail = () => {
+    return validateField(
+        "emailInput",
+        "emailError",
+        (input) => {
+            if (!input) {
+                return "Email is required.";
+            }
+            if (input.length > 30) {
+                return "Email is too long.";
             }
             return null;
         }

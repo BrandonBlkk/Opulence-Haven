@@ -11,22 +11,6 @@ $userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
 $alertMessage = '';
 $response  = ['success' => false, 'message' => ''];
 
-// if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['order'])) {
-//     // Check cart
-//     $cart = "SELECT * FROM ordertb WHERE UserID = '$userID'";
-//     $cartData = $connect->query($cart);
-
-//     if ($cartData->num_rows > 0) {
-//         $response = ['success' => true];
-//     } else {
-//         $response = ['success' => false, 'message' => 'Your cart is empty. Please add products to your cart before payment.'];
-//     }
-
-//     header('Content-Type: application/json');
-//     echo json_encode($response);
-//     exit();
-// }
-
 // Turn off error reporting to prevent HTML output before JSON
 error_reporting(0);
 ini_set('display_errors', 0);
@@ -290,19 +274,19 @@ $userData = $connect->query($user)->fetch_assoc();
                                 <input
                                     id="firstnameInput"
                                     class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                    type="firstname"
+                                    type="text"
                                     name="firstname"
                                     placeholder="Enter your firstname">
-                                <small id="firstnameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                                <small id="firstnameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                             </div>
                             <div class="relative w-full">
                                 <input
                                     id="lastnameInput"
                                     class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                                    type="lastname"
+                                    type="text"
                                     name="lastname"
                                     placeholder="Enter your lastname">
-                                <small id="lastnameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                                <small id="lastnameError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                             </div>
                         </div>
                         <!-- Shipping Address -->
@@ -313,7 +297,7 @@ $userData = $connect->query($user)->fetch_assoc();
                                 name="address"
                                 placeholder="Enter your full shipping address"
                                 rows="3"></textarea>
-                            <small id="addressError" class="absolute left-2 -bottom-0 bg-white text-red-500 text-xs opacity-100 transition-all duration-200 select-none"></small>
+                            <small id="addressError" class="absolute left-2 -bottom-0 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                         </div>
                     </div>
 

@@ -124,7 +124,7 @@
                             }
                             ?>
                         </a>
-                        <a href="../User/order_history.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
+                        <a href="../Store/order_history.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300">
                             <div class="flex items-center gap-1">
                                 <i class="ri-file-list-3-line text-xl"></i>
                                 <p class="font-semibold text-sm">Purchase List</p>

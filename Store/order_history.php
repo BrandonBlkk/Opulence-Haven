@@ -106,7 +106,7 @@ $session_userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
                                     $imagePath = !empty($detail['ImageUserPath']) ? $detail['ImageUserPath'] : '../images/placeholder.png';
                                 ?>
                                     <div class="flex items-center gap-5 bg-gray-50 p-5 border border-gray-100">
-                                        <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="Product Image" class="w-20 h-20 object-cover">
+                                        <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="Product Image" class="w-20 h-20 object-cover select-none">
                                         <div class="flex-1">
                                             <p class="font-light text-gray-700"><?php echo htmlspecialchars($detail['Title'] ?? 'Product ' . $detail['ProductID']); ?></p>
                                             <p class="text-sm text-gray-500 mt-1">Size: <?php echo $detail['SizeID']; ?></p>
@@ -144,19 +144,24 @@ $session_userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
                         <div class="p-6 bg-gray-50 border-t border-gray-100">
                             <h2 class="text-lg font-light text-gray-700 tracking-wide mb-4">Order Actions</h2>
                             <div class="flex flex-wrap gap-3 select-none">
-                                <button class="px-4 py-2 bg-blue-900 text-white text-sm hover:bg-blue-950 transition-colors">
-                                    <i class="ri-edit-box-line mr-2"></i>Modify Order
-                                </button>
+                                <?php if ($order['Status'] != 'Delivered'): ?>
+                                    <a href="../Store/return_item.php"
+                                        class="px-4 py-2 bg-blue-900 text-white text-sm hover:bg-blue-950 transition-colors">
+                                        <i class="ri-edit-box-line mr-2"></i>Modify Order
+                                    </a>
+                                    <a href="../Store/return_item.php"
+                                        class="px-4 py-2 bg-red-700 text-white text-sm hover:bg-red-800 transition-colors">
+                                        <i class="ri-close-circle-line mr-2"></i>Cancel Order
+                                    </a>
+                                <?php endif; ?>
 
-                                <button class="px-4 py-2 bg-red-700 text-white text-sm hover:bg-red-800 transition-colors">
-                                    <i class="ri-close-circle-line mr-2"></i>Cancel Order
-                                </button>
-
-                                <a href="../User/return_item.php" class="px-4 py-2 bg-orange-700 text-white text-sm hover:bg-orange-800 transition-colors">
+                                <a href="<?= $order['Status'] != 'Delivered' ? '#' : '../Store/return_item.php' ?>"
+                                    class="px-4 py-2 bg-orange-700 text-white text-sm hover:bg-orange-800 transition-colors <?= $order['Status'] != 'Delivered' ? 'opacity-50 pointer-events-none cursor-not-allowed' : '' ?>">
                                     <i class="ri-arrow-left-right-line mr-2"></i>Return Item
                                 </a>
                             </div>
                         </div>
+
 
                         <!-- Shipping Info -->
                         <div class="p-6 bg-gray-50 border-t border-gray-100">
