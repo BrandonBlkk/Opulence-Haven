@@ -4,6 +4,11 @@ require_once('../config/db_connection.php');
 include_once('../includes/auto_id_func.php');
 include('../includes/mask_email.php');
 
+require '../vendor/autoload.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
@@ -279,18 +284,164 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_reservation']))
 
 // Handle payment callback
 if (isset($_GET['payment'])) {
+
     if ($_GET['payment'] === 'success') {
+
         $_SESSION['success'] = "Payment successful! Your reservation is confirmed.";
 
-        // Update reservation status to confirmed
-        if (isset($reservationID)) {
-            $update = "UPDATE reservationtb SET Status = 'Confirmed' WHERE ReservationID = ?";
-            $stmt = $connect->prepare($update);
-            $stmt->bind_param("s", $reservationID);
-            $stmt->execute();
+        // Fetch the latest reservation for the logged-in user
+        $userID = $_SESSION['UserID'] ?? null;
+        if ($userID) {
+            $reservationQuery = $connect->prepare("
+                SELECT * FROM reservationtb 
+                WHERE UserID = ? AND Status = 'Pending' 
+                ORDER BY ReservationDate DESC LIMIT 1
+            ");
+            $reservationQuery->bind_param("s", $userID);
+            $reservationQuery->execute();
+            $reservationResult = $reservationQuery->get_result();
+            $reservation = $reservationResult->fetch_assoc();
+
+            if ($reservation) {
+                $reservationID = $reservation['ReservationID'];
+
+                // Update reservation status to confirmed
+                $update = "UPDATE reservationtb SET Status = 'Confirmed' WHERE ReservationID = ?";
+                $stmt = $connect->prepare($update);
+                $stmt->bind_param("s", $reservationID);
+                $stmt->execute();
+
+                // Send payment confirmation email
+                if (isset($_SESSION['UserEmail'])) {
+                    $email = $_SESSION['UserEmail'];
+                    $username = $_SESSION['UserName'] ?? 'Guest';
+
+                    // Fetch reservation details for email
+                    $itemsQuery = $connect->prepare("
+                        SELECT rd.*, rt.RoomType, rt.RoomPrice, rd.CheckInDate, rd.CheckOutDate
+                        FROM reservationdetailtb rd
+                        JOIN roomtb r ON rd.RoomID = r.RoomID
+                        JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
+                        WHERE rd.ReservationID = ?
+                    ");
+                    $itemsQuery->bind_param("s", $reservationID);
+                    $itemsQuery->execute();
+                    $items = $itemsQuery->get_result()->fetch_all(MYSQLI_ASSOC);
+
+                    $subtotal = 0;
+                    $items_html = '';
+                    foreach ($items as $item) {
+                        $checkIn = new DateTime($item['CheckInDate']);
+                        $checkOut = new DateTime($item['CheckOutDate']);
+                        $nights = $checkOut->diff($checkIn)->days;
+                        $nights = max($nights, 1);
+                        $line_total = $item['RoomPrice'] * $nights;
+                        $subtotal += $line_total;
+                        $items_html .= "
+                            <tr>
+                                <td style='padding: 12px; border: 1px solid #ddd;'>{$item['RoomType']}</td>
+                                <td style='padding: 12px; border: 1px solid #ddd;'>{$item['CheckInDate']}</td>
+                                <td style='padding: 12px; border: 1px solid #ddd;'>{$item['CheckOutDate']}</td>
+                                <td style='padding: 12px; border: 1px solid #ddd;'>{$nights} night(s)</td>
+                                <td style='padding: 12px; border: 1px solid #ddd;'>$" . number_format($line_total, 2) . "</td>
+                            </tr>
+                        ";
+                    }
+
+                    $tax = $subtotal * 0.10;
+                    $total_price = $subtotal + $tax;
+
+                    // Define check-in instructions and cancellation policy
+                    $checkin_time = '2:00 PM';
+                    $checkout_time = '12:00 PM';
+                    $cancellation_policy = "Cancellations made within 24 hours of check-in will incur a fee of \$50. Free cancellation is available until August 28, 2025.";
+
+                    try {
+                        $mail = new PHPMailer(true);
+
+                        // Load SMTP configuration
+                        $mailConfig = require __DIR__ . '/../config/mail.php';
+
+                        $mail->isSMTP();
+                        $mail->Host       = $mailConfig['host'];
+                        $mail->SMTPAuth   = true;
+                        $mail->Username   = $mailConfig['username'];
+                        $mail->Password   = $mailConfig['password'];
+                        $mail->SMTPSecure = $mailConfig['encryption'];
+                        $mail->Port       = $mailConfig['port'];
+
+                        // Recipients
+                        $mail->setFrom('opulencehaven25@gmail.com', 'Opulence Haven');
+                        $mail->addAddress($email);
+
+                        // Content
+                        $mail->isHTML(true);
+                        $mail->Subject = "Reservation Confirmation - #{$reservationID}";
+                        $mail->Body = "
+                        <html>
+                        <head>
+                            <style>
+                                body { font-family: Arial, sans-serif; line-height: 1.6; background-color: #f9f9f9; color: #333; }
+                                .content { background: #ffffff; padding: 20px; border-radius: 8px; max-width: 600px; margin: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+                                .footer { padding-top: 20px; border-top: 1px solid #eee; font-size: 0.9em; color: #777; text-align: center; }
+                                h2 { color: #444; }
+                                table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+                                th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+                                th { background-color: #f4f4f4; font-weight: bold; color: #444; }
+                            </style>
+                        </head>
+                        <body>
+                            <div class='content'>
+                                <h2>Reservation Confirmation</h2>
+                                <p>Hello {$username},</p>
+                                <p>Your payment was successful! Your reservation <strong>#{$reservationID}</strong> has been confirmed.</p>
+
+                                <h3>Reservation Details</h3>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Room Type</th>
+                                            <th>Check-In</th>
+                                            <th>Check-Out</th>
+                                            <th>Duration</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {$items_html}
+                                    </tbody>
+                                </table>
+
+                                <p style='margin-top: 20px;'>
+                                    <strong>Subtotal:</strong> $" . number_format($subtotal, 2) . "<br>
+                                    <strong>Tax (10%):</strong> $" . number_format($tax, 2) . "<br>
+                                    <strong>Total:</strong> $" . number_format($total_price, 2) . "
+                                </p>
+
+                                <h3>Check-in Instructions</h3>
+                                <p>Please check in on <strong>" . $items[0]['CheckInDate'] . " at {$checkin_time}</strong> and check out by <strong>" . $items[0]['CheckOutDate'] . " at {$checkout_time}</strong>.</p>
+
+                                <h3>Cancellation Policy</h3>
+                                <p>{$cancellation_policy}</p>
+
+                                <p>We look forward to hosting you! Please keep this email as your confirmation.</p>
+                            </div>
+                            <div class='footer'>
+                                <p>&copy; " . date('Y') . " Opulence Haven. All rights reserved.</p>
+                            </div>
+                        </body>
+                        </html>
+                        ";
+
+                        $mail->AltBody = "Hello {$username},\n\nYour payment was successful! Your reservation #{$reservationID} has been confirmed.\n\nSubtotal: $" . number_format($subtotal, 2) . "\nTax: $" . number_format($tax, 2) . "\nTotal: $" . number_format($total_price, 2) . "\n\nCheck-in Instructions:\nPlease check in on " . $items[0]['CheckInDate'] . " at {$checkin_time} and check out by " . $items[0]['CheckOutDate'] . " at {$checkout_time}.\n\nCancellation Policy:\n{$cancellation_policy}\n\nThank you for choosing Opulence Haven!";
+
+                        $mail->send();
+                    } catch (Exception $e) {
+                        error_log("Reservation confirmation email failed: {$mail->ErrorInfo}");
+                    }
+                }
+            }
         }
-    } elseif ($_GET['payment'] === 'cancel') {
-        $_SESSION['alert'] = "Payment was cancelled. Your reservation is still pending.";
     }
 
     // Remove payment parameter from URL
