@@ -113,23 +113,27 @@ if (isset($_POST['addtobag'])) {
     $product_size = isset($_POST['size']) ? $_POST['size'] : '';
     $response = [];
 
-    // Get stock from database for this product
-    $stock_query = $connect->prepare("SELECT SaleQuantity, Price, DiscountPrice FROM producttb WHERE ProductID = ?");
+    // Get stock and product price data
+    $stock_query = $connect->prepare("SELECT SaleQuantity, Price, DiscountPrice, MarkupPercentage FROM producttb WHERE ProductID = ?");
     $stock_query->bind_param("s", $product_id);
     $stock_query->execute();
     $stock_result = $stock_query->get_result();
     $stock_data = $stock_result->fetch_assoc();
     $stock = isset($stock_data['SaleQuantity']) ? (int)$stock_data['SaleQuantity'] : 0;
 
-    // Check if user is logged in 
+    // Check if user is logged in
     if ($session_userID) {
         if ($stock > 0) {
-            // Calculate final price
+            // Base price considering discount
             $base_price = (!empty($stock_data['DiscountPrice']) && $stock_data['DiscountPrice'] > 0)
                 ? $stock_data['DiscountPrice']
                 : $stock_data['Price'];
 
-            // Get price modifier from size if needed
+            // Add product markup
+            $markup_percentage = isset($stock_data['MarkupPercentage']) ? (float)$stock_data['MarkupPercentage'] : 0;
+            $price_with_markup = $base_price * (1 + $markup_percentage / 100);
+
+            // Add size modifier if applicable
             $size_modifier = 0;
             if (!empty($product_size)) {
                 $size_query = $connect->prepare("SELECT PriceModifier FROM sizetb WHERE SizeID = ? AND ProductID = ?");
@@ -141,7 +145,7 @@ if (isset($_POST['addtobag'])) {
                 }
             }
 
-            $final_price = $base_price + $size_modifier;
+            $final_price = $price_with_markup + $size_modifier;
 
             // Reduce stock in the database
             $new_stock = $stock - 1;
@@ -149,7 +153,7 @@ if (isset($_POST['addtobag'])) {
             $update_stock->bind_param("is", $new_stock, $product_id);
             $update_stock->execute();
 
-            // Get or create pending order for this user
+            // Get or create pending order
             $order_query = $connect->prepare("SELECT OrderID FROM ordertb WHERE UserID = ? AND Status = 'Pending' LIMIT 1");
             $order_query->bind_param("s", $session_userID);
             $order_query->execute();
@@ -158,11 +162,9 @@ if (isset($_POST['addtobag'])) {
             if ($order_result->num_rows > 0) {
                 $order_id = $order_result->fetch_assoc()['OrderID'];
             } else {
-                // Create new pending order
                 $order_id = uniqid('ORD_');
                 $insert_order = $connect->prepare("
-                    INSERT INTO ordertb 
-                    (OrderID, UserID, Status, OrderDate) 
+                    INSERT INTO ordertb (OrderID, UserID, Status, OrderDate) 
                     VALUES (?, ?, 'Pending', NOW())
                 ");
                 $insert_order->bind_param("ss", $order_id, $session_userID);
@@ -183,10 +185,11 @@ if (isset($_POST['addtobag'])) {
                 // Update existing item quantity
                 $update_item = $connect->prepare("
                     UPDATE orderdetailtb 
-                    SET OrderUnitQuantity = OrderUnitQuantity + 1 
+                    SET OrderUnitQuantity = OrderUnitQuantity + 1, 
+                        OrderUnitPrice = ?
                     WHERE OrderID = ? AND ProductID = ? AND SizeID = ?
                 ");
-                $update_item->bind_param("sss", $order_id, $product_id, $product_size);
+                $update_item->bind_param("dsss", $final_price, $order_id, $product_id, $product_size);
                 $update_item->execute();
             } else {
                 // Add new item to order details
@@ -195,7 +198,7 @@ if (isset($_POST['addtobag'])) {
                     (OrderID, ProductID, SizeID, OrderUnitQuantity, OrderUnitPrice) 
                     VALUES (?, ?, ?, 1, ?)
                 ");
-                $insert_item->bind_param("ssid", $order_id, $product_id, $product_size, $final_price);
+                $insert_item->bind_param("sssd", $order_id, $product_id, $product_size, $final_price);
                 $insert_item->execute();
             }
 
