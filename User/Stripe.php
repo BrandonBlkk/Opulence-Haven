@@ -23,6 +23,10 @@ if (!$reservation) {
     die(json_encode(['error' => 'No active reservation found']));
 }
 
+// Fetch applied points discount (if any)
+$pointsDiscount = $reservation['PointsDiscount'] ?? 0; // Discount in dollars
+$pointsRedeemed = $reservation['PointsRedeemed'] ?? 0;
+
 // Get reservation items with dates and images
 $itemsQuery = "SELECT rd.*, rt.RoomType, rt.RoomPrice, rt.RoomCoverImage AS ImagePath, rd.CheckInDate, rd.CheckOutDate
                FROM reservationdetailtb rd
@@ -55,14 +59,34 @@ foreach ($items as $item) {
     $totalPrice += $item['RoomPrice'] * $nights;
 }
 
-// Calculate tax (10% of total price)
+// Apply points discount BEFORE tax
+if ($pointsDiscount > 0) {
+    $totalPrice -= $pointsDiscount;
+    if ($totalPrice < 0) {
+        $totalPrice = 0; // Prevent negative total
+    }
+}
+
+// Calculate tax (10% of final price after discount)
 $tax = $totalPrice * 0.1;
 
 // Prepare line items for Stripe
 $line_items = [];
-foreach ($items as $item) {
+$discountRemaining = $pointsDiscount;
+
+foreach ($items as $index => $item) {
     $checkInTime = '14:00';
     $checkOutTime = '12:00';
+
+    $roomPrice = $item['RoomPrice'] * $nights;
+
+    // ✅ Apply discount to the first item only
+    if ($index === 0 && $discountRemaining > 0) {
+        $roomPrice -= $discountRemaining;
+        if ($roomPrice < 0) {
+            $roomPrice = 0;
+        }
+    }
 
     $description = "Check-in: " . $item['CheckInDate'] . " at " . $checkInTime . "\n";
     $description .= "Check-out: " . $item['CheckOutDate'] . " at " . $checkOutTime . "\n";
@@ -72,7 +96,7 @@ foreach ($items as $item) {
         'quantity' => 1,
         'price_data' => [
             'currency' => 'usd',
-            'unit_amount' => ($item['RoomPrice'] * $nights) * 100,
+            'unit_amount' => max(0, $roomPrice) * 100,
             'product_data' => [
                 'name' => $item['RoomType'],
                 'description' => $description,
@@ -88,7 +112,7 @@ foreach ($items as $item) {
     ];
 }
 
-// Add taxes as a separate line item (now calculated on total price)
+// Add taxes as a separate line item (calculated on discounted total)
 $line_items[] = [
     'quantity' => 1,
     'price_data' => [
@@ -100,6 +124,9 @@ $line_items[] = [
     ]
 ];
 
+// Calculate final total for Stripe (for metadata)
+$finalTotal = $totalPrice + $tax;
+
 // Create Stripe checkout session
 $checkout_session = \Stripe\Checkout\Session::create([
     "mode" => "payment",
@@ -109,7 +136,9 @@ $checkout_session = \Stripe\Checkout\Session::create([
     "customer_email" => $_SESSION['UserEmail'] ?? null,
     "metadata" => [
         "reservation_id" => $reservation['ReservationID'],
-        "user_id" => $userID
+        "user_id" => $userID,
+        "points_discount" => $pointsDiscount,
+        "final_total" => $finalTotal
     ],
     "line_items" => $line_items,
     "payment_intent_data" => [

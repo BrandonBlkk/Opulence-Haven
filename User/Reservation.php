@@ -311,7 +311,7 @@ if (isset($_GET['payment'])) {
                 $stmt->bind_param("s", $reservationID);
                 $stmt->execute();
 
-                // Send payment confirmation email
+                // Send payment confirmation email (existing code unchanged)
                 if (isset($_SESSION['UserEmail'])) {
                     $email = $_SESSION['UserEmail'];
                     $username = $_SESSION['UserName'] ?? 'Guest';
@@ -358,8 +358,6 @@ if (isset($_GET['payment'])) {
 
                     try {
                         $mail = new PHPMailer(true);
-
-                        // Load SMTP configuration
                         $mailConfig = require __DIR__ . '/../config/mail.php';
 
                         $mail->isSMTP();
@@ -370,11 +368,9 @@ if (isset($_GET['payment'])) {
                         $mail->SMTPSecure = $mailConfig['encryption'];
                         $mail->Port       = $mailConfig['port'];
 
-                        // Recipients
                         $mail->setFrom('opulencehaven25@gmail.com', 'Opulence Haven');
                         $mail->addAddress($email);
 
-                        // Content
                         $mail->isHTML(true);
                         $mail->Subject = "Reservation Confirmation - #{$reservationID}";
                         $mail->Body = "
@@ -442,6 +438,36 @@ if (isset($_GET['payment'])) {
                 }
             }
         }
+    }
+
+    // ✅ NEW: Handle payment cancellation
+    if ($_GET['payment'] === 'cancel') {
+        $userID = $_SESSION['UserID'] ?? null;
+        if ($userID) {
+            $reservationQuery = $connect->prepare("
+                SELECT * FROM reservationtb 
+                WHERE UserID = ? AND Status = 'Pending' 
+                ORDER BY ReservationDate DESC LIMIT 1
+            ");
+            $reservationQuery->bind_param("s", $userID);
+            $reservationQuery->execute();
+            $reservation = $reservationQuery->get_result()->fetch_assoc();
+
+            if ($reservation && $reservation['PointsRedeemed'] > 0) {
+                $pointsToReturn = $reservation['PointsRedeemed'];
+
+                // Return points to user balance
+                $updatePoints = $connect->prepare("UPDATE usertb SET PointsBalance = PointsBalance + ? WHERE UserID = ?");
+                $updatePoints->bind_param("is", $pointsToReturn, $userID);
+                $updatePoints->execute();
+
+                // Reset points in reservation
+                $resetPoints = $connect->prepare("UPDATE reservationtb SET PointsDiscount = 0, PointsRedeemed = 0 WHERE ReservationID = ?");
+                $resetPoints->bind_param("s", $reservation['ReservationID']);
+                $resetPoints->execute();
+            }
+        }
+        $_SESSION['error'] = "Payment was cancelled. Your redeemed points have been restored.";
     }
 
     // Remove payment parameter from URL
@@ -840,9 +866,10 @@ if (isset($_GET['payment'])) {
 
                                                 <!-- Points Earned Notification -->
                                                 <?php
-                                                $pointsEarned = floor($subtotal);
-                                                if ($membership == 1) $pointsEarned = floor($subtotal * 3);  // 3 pts/$
-                                                else $pointsEarned = floor($subtotal * 1);  // 1 pt/$
+                                                // Calculate points earned based on actual amount paid (after points discount)
+                                                $paidAmount = $grandTotal * 1.1; // includes taxes
+                                                if ($membership == 1) $pointsEarned = floor($paidAmount * 3);  // 3 pts/$
+                                                else $pointsEarned = floor($paidAmount * 1);  // 1 pt/$
                                                 ?>
                                                 <p class="text-xs text-green-600 mt-1">
                                                     ✓ Earn <?= $pointsEarned ?> points after payment
