@@ -265,6 +265,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// Modify order
+document.getElementById('modifyForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '../Store/modify_order_save.php', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            try {
+                const res = JSON.parse(xhr.responseText || '{}');
+                if (xhr.status === 200 && res.success) {
+                    showAlert('Order updated successfully.');
+                } else {
+                    showAlert('Failed to update: ' + (res.message || 'Unknown error'), true);
+                }
+            } catch (err) {
+                showAlert('Unexpected response from server.', true);
+            }
+        }
+    };
+
+    const data = new URLSearchParams(new FormData(form)).toString();
+    xhr.send(data);
+});
+
 // Return item
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("orderIDInput").addEventListener("keyup", validateOrderID);
