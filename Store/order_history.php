@@ -7,6 +7,13 @@ if (!$connect) {
 }
 
 $session_userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
+
+// Cancel Order
+if (isset($_POST['cancel_order'])) {
+    $orderID = $_POST['order_id'];
+    $cancelQuery = "UPDATE ordertb SET Status = 'Cancelled' WHERE OrderID = '$orderID'";
+    $connect->query($cancelQuery);
+}
 ?>
 
 <!DOCTYPE html>
@@ -83,7 +90,7 @@ $session_userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
                         </div>
                         <div class="flex items-center gap-3">
                             <span class="font-light text-sm">Status:</span>
-                            <span class="text-xs px-2 py-1 rounded-full select-none border <?php echo $statusColor; ?>">
+                            <span id="status-<?php echo $order['OrderID']; ?>" class="order-status text-xs px-2 py-1 rounded-full select-none border <?php echo $statusColor; ?>">
                                 <?php echo $order['Status']; ?>
                             </span>
                             <button onclick="toggleDetails('<?php echo $order['OrderID']; ?>')" class="ml-4 px-4 py-2 bg-gray-700 text-white text-sm hover:bg-gray-800 transition-colors select-none">
@@ -144,21 +151,149 @@ $session_userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
                         <div class="p-6 bg-gray-50 border-t border-gray-100">
                             <h2 class="text-lg font-light text-gray-700 tracking-wide mb-4">Order Actions</h2>
                             <div class="flex flex-wrap gap-3 select-none">
-                                <?php if ($order['Status'] != 'Delivered'): ?>
-                                    <a href="../Store/return_item.php"
-                                        class="px-4 py-2 bg-blue-900 text-white text-sm hover:bg-blue-950 transition-colors">
+                                <?php
+                                // Status color badge logic
+                                if ($order['Status'] === 'Order Placed') $statusColor = 'bg-blue-100 border border-blue-200 text-blue-800';
+                                if ($order['Status'] === 'Processing') $statusColor = 'bg-indigo-100 border border-indigo-200 text-indigo-800';
+                                if ($order['Status'] === 'Shipped') $statusColor = 'bg-purple-100 border border-purple-200 text-purple-800';
+                                if ($order['Status'] === 'Delivered') $statusColor = 'bg-green-100 border border-green-200 text-green-800';
+                                if ($order['Status'] === 'Cancelled') $statusColor = 'bg-red-100 border border-red-200 text-red-800';
+                                ?>
+
+                                <?php if (in_array($order['Status'], ['Order Placed', 'Processing'])): ?>
+                                    <a href="modify_order.php?order_id=<?php echo $order['OrderID']; ?>"
+                                        class="px-4 py-2 bg-blue-900 text-white text-sm hover:bg-blue-950 transition-colors <?= $disabledClass ?>">
                                         <i class="ri-edit-box-line mr-2"></i>Modify Order
                                     </a>
-                                    <a href="../Store/return_item.php"
-                                        class="px-4 py-2 bg-red-700 text-white text-sm hover:bg-red-800 transition-colors">
+                                    <button
+                                        class="px-4 py-2 bg-red-700 text-white text-sm hover:bg-red-800 transition-colors"
+                                        onclick="openCancelOrderModal('<?php echo $order['OrderID']; ?>')">
                                         <i class="ri-close-circle-line mr-2"></i>Cancel Order
-                                    </a>
+                                    </button>
+
+                                    <!-- Dark Overlay -->
+                                    <div id="darkOverlay2" class="fixed inset-0 bg-black bg-opacity-50 opacity-0 invisible z-40 transition-opacity duration-300"></div>
+
+                                    <!-- Order Cancellation Confirmation Modal -->
+                                    <div id="cancelOrderModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+                                        <div class="bg-white p-6 rounded-sm shadow-lg w-96">
+                                            <h3 class="text-lg font-bold text-gray-800">Cancel Order</h3>
+                                            <p class="text-sm text-gray-600 mb-6">Are you sure you want to cancel this order?</p>
+                                            <div class="text-xs text-gray-500 mb-5">
+                                                <p class="flex items-start gap-1">
+                                                    <i class="ri-error-warning-line mt-0.5 text-red-500"></i>
+                                                    <span>Cancelling this order will reverse any applied discounts or points. This action cannot be undone.</span>
+                                                </p>
+                                            </div>
+                                            <div class="flex justify-end gap-4 select-none">
+                                                <button
+                                                    onclick="closeCancelOrderModal()"
+                                                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded-sm hover:bg-gray-300">
+                                                    Keep Order
+                                                </button>
+                                                <button
+                                                    onclick="confirmOrderCancellation()"
+                                                    class="px-4 py-2 bg-red-500 text-white rounded-sm hover:bg-red-600">
+                                                    Yes, Cancel It
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <script>
+                                        let cancelOrderUrl = ''; // Stores OrderID
+                                        let statusSpan = null; // Stores the <span> for status badge
+
+                                        // Open modal and pass OrderID
+                                        function openCancelOrderModal(orderId) {
+                                            cancelOrderUrl = orderId;
+                                            statusSpan = document.getElementById('status-' + orderId);
+                                            const modal = document.getElementById('cancelOrderModal');
+                                            const overlay = document.getElementById('darkOverlay2');
+
+                                            modal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                                            overlay.classList.remove('opacity-0', 'invisible');
+                                        }
+
+                                        // Close modal
+                                        function closeCancelOrderModal() {
+                                            const modal = document.getElementById('cancelOrderModal');
+                                            const overlay = document.getElementById('darkOverlay2');
+
+                                            modal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                                            overlay.classList.add('opacity-0', 'invisible');
+                                        }
+
+                                        // Confirm and update order status to Cancelled
+                                        function confirmOrderCancellation() {
+                                            if (!cancelOrderUrl) return;
+
+                                            const xhr = new XMLHttpRequest();
+                                            xhr.open('POST', 'cancel_order.php', true);
+                                            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                                            xhr.onreadystatechange = function() {
+                                                if (xhr.readyState === 4 && xhr.status === 200) {
+                                                    const response = JSON.parse(xhr.responseText);
+                                                    if (response.success) {
+                                                        closeCancelOrderModal();
+
+                                                        if (statusSpan) {
+                                                            // Update badge text
+                                                            statusSpan.textContent = 'Cancelled';
+
+                                                            // Update badge Tailwind classes for Cancelled
+                                                            statusSpan.className = 'text-xs px-2 py-1 rounded-full select-none border bg-red-100 border-red-200 text-red-800';
+                                                        }
+                                                    } else {
+                                                        alert('Failed to cancel order: ' + response.message);
+                                                    }
+                                                }
+                                            };
+                                            xhr.send('order_id=' + encodeURIComponent(cancelOrderUrl));
+                                        }
+                                    </script>
                                 <?php endif; ?>
 
-                                <a href="<?= $order['Status'] != 'Delivered' ? '#' : '../Store/return_item.php' ?>"
-                                    class="px-4 py-2 bg-orange-700 text-white text-sm hover:bg-orange-800 transition-colors <?= $order['Status'] != 'Delivered' ? 'opacity-50 pointer-events-none cursor-not-allowed' : '' ?>">
-                                    <i class="ri-arrow-left-right-line mr-2"></i>Return Item
+                                <?php
+                                // Set return gap days
+                                $returnGapDays = 7;
+                                $canReturn = false;
+
+                                // Set timezone
+                                date_default_timezone_set('Asia/Yangon');
+
+                                $returnGapDays = 7;
+                                $canReturn = false;
+                                $buttonText = 'Return Item';
+
+
+                                if (isset($order['Status']) && $order['Status'] === 'Delivered' && !empty($order['DeliveredDate'])) {
+                                    $deliveredDate = new DateTime($order['DeliveredDate']);
+                                    $currentDate = new DateTime();
+                                    $interval = $deliveredDate->diff($currentDate)->days;
+
+                                    if ($interval <= $returnGapDays) {
+                                        $canReturn = true;
+                                        $buttonText = 'Return Item';
+                                    } else {
+                                        $canReturn = false;
+                                        $buttonText = 'Return Expired';
+                                    }
+                                } else {
+                                    $canReturn = false;
+                                    $buttonText = 'Return Item';
+                                }
+                                ?>
+
+                                <a href="<?= $canReturn ? '../Store/return_item.php' : '#' ?>"
+                                    class="px-4 py-2 bg-orange-700 text-white text-sm hover:bg-orange-800 transition-colors <?= !$canReturn ? 'opacity-50 pointer-events-none cursor-not-allowed' : '' ?>">
+                                    <i class="ri-arrow-left-right-line mr-2"></i><?= $buttonText ?>
                                 </a>
+
+                                <?php if (!$canReturn && !empty($tooltip)) : ?>
+                                    <p class="text-xs text-red-600 mt-1"><?= $tooltip ?></p>
+                                <?php endif; ?>
+
                             </div>
                         </div>
 

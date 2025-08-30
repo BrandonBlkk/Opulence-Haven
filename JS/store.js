@@ -222,7 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Disable button and show spinner
             submitButton.disabled = true;
-            buttonText.textContent = "Processing...";
+            buttonText.textContent = "Processing";
             buttonSpinner.classList.remove("hidden");
 
             const formData = new FormData(paymentForm);
@@ -264,6 +264,103 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+// Modify order
+document.getElementById('modifyForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
+
+    let shippingChanged = false;
+    let quantityChanged = false;
+
+    // --- Detect shipping field changes ---
+    const shippingFields = ['FullName','PhoneNumber','ShippingAddress','City','State','ZipCode'];
+    for (let field of shippingFields) {
+        const input = form.querySelector(`[name="${field}"]`);
+        if (!input) continue;
+        const originalValue = input.getAttribute('value'); // PHP loaded value
+        if (input.value !== originalValue) {
+            shippingChanged = true;
+            break;
+        }
+    }
+
+    // --- Detect quantity changes ---
+    const qtyInputs = form.querySelectorAll('input[name^="qty"]');
+    qtyInputs.forEach(input => {
+        const originalQty = input.getAttribute('value');
+        if (input.value !== originalQty) {
+            quantityChanged = true;
+        }
+    });
+
+    // If no changes at all
+    if (!shippingChanged && !quantityChanged) {
+        showAlert('No changes detected, nothing to save.');
+        return;
+    }
+
+    // --- Show loading on button ---
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `
+        <span class="flex items-center justify-center gap-2">
+            <svg class="w-5 h-5 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Saving Changes
+        </span>
+    `;
+
+    // --- Proceed with AJAX ---
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '../Store/modify_order_save.php', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            try {
+                const res = JSON.parse(xhr.responseText || '{}');
+                if (xhr.status === 200 && res.success) {
+                    showAlert('Your order has been updated successfully.');
+
+                    // Redirect to Stripe only if additional amount is due AND quantity was changed
+                    if (quantityChanged && res.additional_due > 0) {
+                        window.location.href = '../Store/stripe_modified_order.php?order_id=' + encodeURIComponent(form.querySelector('input[name="order_id"]').value);
+                    } else {
+                        // Update saved state
+                        shippingFields.forEach(f => {
+                            const input = form.querySelector(`[name="${f}"]`);
+                            if (input) input.setAttribute('value', input.value);
+                        });
+                        qtyInputs.forEach(input => input.setAttribute('value', input.value));
+
+                        // Restore button
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+                    }
+                } else {
+                    showAlert('Failed to update: ' + (res.message || 'Unknown error'), true);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                }
+            } catch (err) {
+                showAlert('Unexpected response from server.', true);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        }
+    };
+
+    const data = new URLSearchParams(new FormData(form)).toString();
+    xhr.send(data);
+});
+
+
+
+
 
 // Return item
 document.addEventListener("DOMContentLoaded", () => {
