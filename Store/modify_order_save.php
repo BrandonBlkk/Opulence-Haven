@@ -1,6 +1,4 @@
 <?php
-// File: ../Store/modify_order_save.php
-// Returns JSON
 ob_start();
 session_start();
 require_once('../config/db_connection.php');
@@ -36,6 +34,9 @@ try {
         throw new Exception('Order cannot be modified at its current status');
     }
 
+    // Store original order in session for rollback
+    $_SESSION['original_order_' . $orderId] = $order;
+
     // Start transaction
     mysqli_begin_transaction($connect);
 
@@ -51,7 +52,7 @@ try {
     UPDATE ordertb
     SET FullName=?, PhoneNumber=?, ShippingAddress=?, City=?, State=?, ZipCode=?
     WHERE OrderID=? AND UserID=?
-  ";
+    ";
     $stmt1 = mysqli_prepare($connect, $qUpdateOrder);
     mysqli_stmt_bind_param($stmt1, 'ssssssss', $FullName, $PhoneNumber, $ShippingAddress, $City, $State, $ZipCode, $orderId, $userId);
     if (!mysqli_stmt_execute($stmt1)) throw new Exception('Failed to update shipping info');
@@ -61,7 +62,7 @@ try {
     $qty = $_POST['qty'] ?? [];
 
     // Get all current lines for the order
-    $qLines = "SELECT ProductID, SizeID, OrderUnitPrice FROM orderdetailtb WHERE OrderID=?";
+    $qLines = "SELECT ProductID, SizeID, OrderUnitPrice, OrderUnitQuantity FROM orderdetailtb WHERE OrderID=?";
     $stmt2 = mysqli_prepare($connect, $qLines);
     mysqli_stmt_bind_param($stmt2, 's', $orderId);
     mysqli_stmt_execute($stmt2);
@@ -72,6 +73,9 @@ try {
         $lines[$key] = $row;
     }
     mysqli_stmt_close($stmt2);
+
+    // Store original line items in session
+    $_SESSION['original_lines_' . $orderId] = $lines;
 
     // Update each line that exists
     foreach ($lines as $key => $line) {
@@ -86,7 +90,7 @@ try {
         mysqli_stmt_close($stmtU);
     }
 
-    // 3) Recalculate totals (itemsTotal + existing OrderTax)
+    // 3) Recalculate totals
     $qSum = "SELECT SUM(OrderUnitQuantity * OrderUnitPrice) AS items_total FROM orderdetailtb WHERE OrderID=?";
     $stmt3 = mysqli_prepare($connect, $qSum);
     mysqli_stmt_bind_param($stmt3, 's', $orderId);
@@ -96,20 +100,22 @@ try {
 
     $itemsTotal = (float)($sumRow['items_total'] ?? 0);
     $orderTax = (float)$order['OrderTax']; // keep existing tax
-    // Delivery fee is 5% of items total
-    $deliveryFee = 5.00;
+    $deliveryFee = 5.00; // Fixed delivery fee
 
-    $grandTotal = $itemsTotal + $orderTax + $deliveryFee;
+    $newGrandTotal = $itemsTotal + $orderTax + $deliveryFee;
 
-    $qTotals = "UPDATE ordertb SET TotalPrice=?, Remarks=Remarks WHERE OrderID=?";
+    $previousTotal = (float)($order['TotalPrice'] ?? 0);
+    $additionalAmount = max(0, $newGrandTotal - $previousTotal);
+
+    $qTotals = "UPDATE ordertb SET TotalPrice=?, AdditionalAmount=? WHERE OrderID=?";
     $stmt4 = mysqli_prepare($connect, $qTotals);
-    mysqli_stmt_bind_param($stmt4, 'ds', $grandTotal, $orderId);
+    mysqli_stmt_bind_param($stmt4, 'dds', $newGrandTotal, $additionalAmount, $orderId);
     if (!mysqli_stmt_execute($stmt4)) throw new Exception('Failed to update totals');
     mysqli_stmt_close($stmt4);
 
     mysqli_commit($connect);
 
-    $res = ['success' => true];
+    $res = ['success' => true, 'additional_due' => $additionalAmount];
 } catch (Exception $e) {
     if (isset($connect) && $connect) {
         mysqli_rollback($connect);

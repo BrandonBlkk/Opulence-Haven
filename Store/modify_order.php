@@ -1,5 +1,4 @@
 <?php
-// File: ../Store/modify_order.php
 session_start();
 require_once('../config/db_connection.php');
 
@@ -16,12 +15,66 @@ if (empty($_GET['order_id'])) {
 }
 $orderId = $_GET['order_id'];
 
+// Handle Stripe payment cancel first
+if (isset($_GET['payment'], $_GET['order_id']) && $_GET['payment'] === 'cancel') {
+    $cancelOrderId = $_GET['order_id'];
+
+    // Retrieve original order
+    $originalOrder = $_SESSION['original_order_' . $cancelOrderId] ?? null;
+    $originalLines = $_SESSION['original_lines_' . $cancelOrderId] ?? [];
+
+    if ($originalOrder) {
+        mysqli_begin_transaction($connect);
+
+        // Restore order totals and shipping info
+        $qRestoreOrder = "
+            UPDATE ordertb
+            SET FullName=?, PhoneNumber=?, ShippingAddress=?, City=?, State=?, ZipCode=?, TotalPrice=?, AdditionalAmount=0
+            WHERE OrderID=? AND UserID=?
+        ";
+        $stmtR = mysqli_prepare($connect, $qRestoreOrder);
+        mysqli_stmt_bind_param(
+            $stmtR,
+            'ssssssdss',
+            $originalOrder['FullName'],
+            $originalOrder['PhoneNumber'],
+            $originalOrder['ShippingAddress'],
+            $originalOrder['City'],
+            $originalOrder['State'],
+            $originalOrder['ZipCode'],
+            $originalOrder['TotalPrice'],
+            $cancelOrderId,
+            $userId
+        );
+        mysqli_stmt_execute($stmtR);
+        mysqli_stmt_close($stmtR);
+
+        // Restore line quantities
+        foreach ($originalLines as $key => $line) {
+            list($pid, $sizeId) = explode('|', $key);
+            $origQty = $line['OrderUnitQuantity'];
+            $qRestoreLine = "UPDATE orderdetailtb SET OrderUnitQuantity=? WHERE OrderID=? AND ProductID=? AND SizeID=?";
+            $stmtL = mysqli_prepare($connect, $qRestoreLine);
+            mysqli_stmt_bind_param($stmtL, 'isss', $origQty, $cancelOrderId, $pid, $sizeId);
+            mysqli_stmt_execute($stmtL);
+            mysqli_stmt_close($stmtL);
+        }
+
+        mysqli_commit($connect);
+
+        // Clear session stored originals
+        unset($_SESSION['original_order_' . $cancelOrderId]);
+        unset($_SESSION['original_lines_' . $cancelOrderId]);
+    }
+}
+
 // Fetch order (ensure ownership)
 $qOrder = "SELECT * FROM ordertb WHERE OrderID = ? AND UserID = ?";
 $stmt = mysqli_prepare($connect, $qOrder);
 mysqli_stmt_bind_param($stmt, 'ss', $orderId, $userId);
 mysqli_stmt_execute($stmt);
 $order = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+mysqli_stmt_close($stmt);
 
 if (!$order) {
     http_response_code(404);
@@ -38,8 +91,6 @@ $zipCode = htmlspecialchars($order['ZipCode'] ?? '');
 $orderStatus = htmlspecialchars($order['Status'] ?? '');
 $orderTax = number_format((float)($order['OrderTax'] ?? 0), 2);
 $totalPrice = number_format((float)($order['TotalPrice'] ?? 0), 2);
-
-mysqli_stmt_close($stmt);
 
 // Only allow modify if Order Placed or Processing
 $canModify = in_array($orderStatus, ['Order Placed', 'Processing']);
@@ -72,7 +123,7 @@ $csrf = $_SESSION['csrf_token'];
 
 <head>
     <meta charset="utf-8" />
-    <title>Modify Order</title>
+    <title>Modify Order | Opulence Haven</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -152,7 +203,18 @@ $csrf = $_SESSION['csrf_token'];
             <!-- Order Items -->
             <div class="border-b border-gray-200 pb-6">
                 <h2 class="text-lg font-light text-gray-700 tracking-wide mb-4">Order Items</h2>
-                <div class="space-y-2">
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="text-sm text-gray-500">Order ID:</span>
+                    <span class="text-gray-700 font-light text-sm" id="order-<?php echo $orderId; ?>">
+                        <?php echo $orderId; ?>
+                    </span>
+                    <a id="copy-btn-<?php echo $orderId; ?>"
+                        onclick="copyOrderId('<?php echo $orderId; ?>')"
+                        class="text-gray-400 hover:text-gray-600 flex text-sm items-center gap-1">
+                        <i class="far fa-copy text-sm"></i>
+                    </a>
+                </div>
+                <div class="space-y-2" id="orderItemsContainer">
                     <?php foreach ($orderItems as $item): ?>
                         <div class="flex items-center gap-5 bg-gray-50 p-5 border border-gray-100 rounded">
                             <img src="<?= htmlspecialchars($item['ImageUserPath']) ?>" alt="Product Image" class="w-20 h-20 object-cover select-none">
@@ -172,7 +234,7 @@ $csrf = $_SESSION['csrf_token'];
                         </div>
                     <?php endforeach; ?>
                 </div>
-                <div class="mt-6 text-right text-sm text-gray-600">
+                <div class="mt-6 text-right text-sm text-gray-600" id="orderTotals">
                     <p>Tax: <span class="font-semibold">$<?= $orderTax ?></span></p>
                     <p>Grand Total: <span class="font-semibold">$<?= $totalPrice ?></span></p>
                 </div>
@@ -199,6 +261,39 @@ $csrf = $_SESSION['csrf_token'];
     ?>
 
     <script type="module" src="../JS/store.js"></script>
+
+    <script>
+        function copyOrderId(orderId) {
+            const text = document.getElementById('order-' + orderId).textContent;
+            const button = document.getElementById('copy-btn-' + orderId);
+
+            navigator.clipboard.writeText(text).then(() => {
+                // Change icon & text to "Copied" with checkmark
+                button.innerHTML = '<i class="fas fa-check text-xs"></i> <span class="text-xs">Copied</span>';
+
+                // Revert back after 2 seconds
+                setTimeout(() => {
+                    button.innerHTML = '<i class="far fa-copy text-sm"></i>';
+                }, 2000);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            <?php if (isset($_GET['payment'], $_GET['order_id']) && $_GET['payment'] === 'cancel'): ?>
+                // Update totals
+                const taxElem = document.querySelector('#orderTotals p:nth-child(1) span');
+                const totalElem = document.querySelector('#orderTotals p:nth-child(2) span');
+                if (taxElem) taxElem.textContent = '$<?= $orderTax ?>';
+                if (totalElem) totalElem.textContent = '$<?= $totalPrice ?>';
+
+                // Update all quantity inputs dynamically
+                <?php foreach ($orderItems as $item): ?>
+                    const inputElem = document.querySelector('input[name="qty[<?= $item['ProductID'] ?>][<?= $item['SizeID'] ?>]"]');
+                    if (inputElem) inputElem.value = <?= (int)$item['OrderUnitQuantity'] ?>;
+                <?php endforeach; ?>
+            <?php endif; ?>
+        });
+    </script>
 </body>
 
 </html>
