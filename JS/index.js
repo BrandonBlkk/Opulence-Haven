@@ -822,17 +822,26 @@ if (profileDeleteBtn && confirmDeleteModal && cancelDeleteBtn && confirmDeleteBt
         confirmDeleteModal.classList.remove("opacity-100", "translate-y-0");
         darkOverlay2.classList.add("opacity-0", "invisible");
         darkOverlay2.classList.remove("opacity-100");
+        const loader = document.getElementById('loader');
         loader.style.display = "flex";
 
-        // Notify the server to delete the account
         fetch("user_account_delete.php", {
             method: "POST",
         }) 
-            .then(() => {
-                // Redirect after account deletion
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
                 window.location.href = "home_page.php";
-            })
-            .catch((error) => console.error("Account deletion failed:", error));
+            } else {
+                loader.style.display = "none";
+                alert(data.message || "Account deletion failed. Please try again.");
+            }
+        })
+        .catch(error => {
+            console.error("Account deletion failed:", error);
+            loader.style.display = "none";
+            alert("Account deletion failed. Please try again.");
+        });
     });
 }
 
