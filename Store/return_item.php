@@ -142,7 +142,7 @@ if (isset($_POST['find_item'])) {
                 </div>
             </div>
 
-            <form id="returnItemForm" action="<?php $_SERVER["PHP_SELF"]; ?>" method="POST" class="space-y-4">
+            <form id="returnItemForm" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="POST" class="space-y-4">
                 <div class="relative">
                     <label for="order_id" class="block text-sm font-medium text-gray-700 mb-1">Order ID</label>
                     <input

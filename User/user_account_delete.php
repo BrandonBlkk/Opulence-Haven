@@ -137,7 +137,7 @@ if (isset($_SESSION['UserID'])) {
                             
                             <p>If this was a mistake or if you need assistance, please contact our support team immediately.</p>
                             
-                            <p>Cheers,<br>The Opulence Haven Team</p>
+                            <p>Thanks,<br>The Opulence Haven Team</p>
                         </div>
                         
                         <div class='footer'>

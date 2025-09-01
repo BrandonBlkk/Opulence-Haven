@@ -358,10 +358,6 @@ document.getElementById('modifyForm')?.addEventListener('submit', function(e) {
     xhr.send(data);
 });
 
-
-
-
-
 // Return item
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("orderIDInput").addEventListener("keyup", validateOrderID);
@@ -405,7 +401,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!validateReturnItemForm()) return;
 
             const formData = new FormData(this);
-            formData.append("find_item", true);
 
             fetch('../Store/return_item.php', {
                 method: 'POST',
@@ -421,6 +416,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         localStorage.setItem("returnStep", "products");
                         localStorage.setItem("orderedProducts", JSON.stringify(data.products));
                         displayOrderedProducts(data.products);
+                    } else {
+                        showAlert(data.message || 'No products found for this order.', true);
                     }
                 })
                 .catch(error => {

@@ -38,101 +38,100 @@ try {
     $mail->isHTML(true);
     $mail->Subject = 'Welcome to Opulence Haven!';
     $mail->Body    = "
-<html>
-<head>
-    <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            line-height: 1.6; 
-            color: #172B4D;
-            margin: 0;
-            padding: 0;
-            background-color: #F4F5F7;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #FFFFFF;
-        }
-        .header {
-            padding: 20px;
-            border-bottom: 1px solid #DFE1E6;
-        }
-        .logo {
-            color: #FBA311;
-            font-weight: bold;
-            font-size: 20px;
-        }
-        .content {
-            padding: 20px;
-        }
-        h1 {
-            color: #172B4D;
-            font-size: 24px;
-            margin-top: 0;
-        }
-        p {
-            margin-bottom: 16px;
-        }
-        .footer {
-            padding: 20px;
-            text-align: center;
-            font-size: 12px;
-            color: #5E6C84;
-            border-top: 1px solid #DFE1E6;
-        }
-        .account-details {
-            background-color: #F4F5F7;
-            border-radius: 3px;
-            padding: 12px;
-            margin: 16px 0;
-        }
-    </style>
-</head>
-<body>
-    <div class='container'>
-        <div class='header'>
-            <div class='logo'>OPULENCE HAVEN</div>
-        </div>
-        
-        <div class='content'>
-            <h1>Welcome to Opulence Haven, $username!</h1>
+    <html>
+    <head>
+        <style>
+            body { 
+                font-family: Arial, sans-serif; 
+                line-height: 1.6; 
+                color: #172B4D;
+                margin: 0;
+                padding: 0;
+                background-color: #F4F5F7;
+            }
+            .container {
+                max-width: 600px;
+                margin: 0 auto;
+                background-color: #FFFFFF;
+            }
+            .header {
+                padding: 20px;
+                border-bottom: 1px solid #DFE1E6;
+            }
+            .logo {
+                color: #FBA311;
+                font-weight: bold;
+                font-size: 20px;
+            }
+            .content {
+                padding: 20px;
+            }
+            h1 {
+                color: #172B4D;
+                font-size: 24px;
+                margin-top: 0;
+            }
+            p {
+                margin-bottom: 16px;
+            }
+            .footer {
+                padding: 20px;
+                text-align: center;
+                font-size: 12px;
+                color: #5E6C84;
+                border-top: 1px solid #DFE1E6;
+            }
+            .account-details {
+                background-color: #F4F5F7;
+                border-radius: 3px;
+                padding: 12px;
+                margin: 16px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class='container'>
+            <div class='header'>
+                <div class='logo'>OPULENCE HAVEN</div>
+            </div>
             
-            <p>Thank you for creating an account with us. We're excited to have you as part of our community.</p>
-            
-            <div>
-                <strong>Here are your account details:</strong>
-                <div class='account-details'>
+            <div class='content'>
+                <h1>Welcome to Opulence Haven, $username!</h1>
+                
+                <p>Thank you for creating an account with us. We're excited to have you as part of our community.</p>
+                
+                <div>
+                    <strong>Here are your account details:</strong>
+                    <div class='account-details'>
+                        <ul>
+                            <li><strong>Username:</strong> $username</li>
+                            <li><strong>Email:</strong> $email</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <p>You can now enjoy all the benefits of being a member, including:</p>
+                <div>
                     <ul>
-                        <li><strong>Username:</strong> $username</li>
-                        <li><strong>Email:</strong> $email</li>
+                        <li>Exclusive room booking offers</li>
+                        <li>Access to your bookings from any device</li>
+                        <li>Special member discounts</li>
                     </ul>
                 </div>
+                
+                <p>If you have any questions, please don't hesitate to contact our support team.</p>
+                
+                <p>Thanks,<br>The Opulence Haven Team</p>
             </div>
             
-            <p>You can now enjoy all the benefits of being a member, including:</p>
-            <div>
-                <ul>
-                    <li>Exclusive room booking offers</li>
-                    <li>Access to your bookings from any device</li>
-                    <li>Special member discounts</li>
-                </ul>
+            <div class='footer'>
+                <p>You are receiving this email because you created an account with Opulence Haven.</p>
+                <p>Copyright © " . date('Y') . " Opulence Haven. All rights reserved.</p>
             </div>
-            
-            <p>If you have any questions, please don't hesitate to contact our support team.</p>
-            
-            <p>Cheers,<br>The Opulence Haven Team</p>
         </div>
-        
-        <div class='footer'>
-            <p>You are receiving this email because you created an account with Opulence Haven.</p>
-            <p>Copyright © " . date('Y') . " Opulence Haven. All rights reserved.</p>
-        </div>
-    </div>
-</body>
-</html>
-";
-
+    </body>
+    </html>
+    ";
 
     $mail->AltBody = "Welcome to Opulence Haven, $username!\n\nThank you for creating an account with us. We're excited to have you as part of our community.\n\nAccount details:\nUsername: $username\nEmail: $email\n\nYou can now enjoy all the benefits of being a member. If you have any questions, please contact our support team.\n\n© " . date('Y') . " Opulence Haven. All rights reserved.";
 
