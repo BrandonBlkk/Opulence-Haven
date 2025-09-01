@@ -118,17 +118,23 @@ if (empty($_SESSION['csrf_token'])) {
 }
 $csrf = $_SESSION['csrf_token'];
 ?>
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <meta charset="utf-8" />
-    <title>Modify Order | Opulence Haven</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders | Opulence Haven</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="../CSS/output.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
+    <!-- Swiper JS -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <!-- AOS CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body class="min-w-[350px]">
@@ -147,7 +153,7 @@ $csrf = $_SESSION['csrf_token'];
             </div>
         <?php endif; ?>
 
-        <form id="modifyForm" class="space-y-6 bg-white p-6">
+        <form id="modifyForm" method="POST" class="space-y-6 bg-white p-6">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
             <input type="hidden" name="order_id" value="<?= htmlspecialchars($orderId) ?>">
 
@@ -259,9 +265,6 @@ $csrf = $_SESSION['csrf_token'];
     include('../includes/alert.php');
     include('../includes/footer.php');
     ?>
-
-    <script type="module" src="../JS/store.js"></script>
-
     <script>
         function copyOrderId(orderId) {
             const text = document.getElementById('order-' + orderId).textContent;
@@ -294,6 +297,9 @@ $csrf = $_SESSION['csrf_token'];
             <?php endif; ?>
         });
     </script>
+
+    <script type="module" src="../JS/store.js"></script>
+    <script type="module" src="../JS/index.js"></script>
 </body>
 
 </html>
