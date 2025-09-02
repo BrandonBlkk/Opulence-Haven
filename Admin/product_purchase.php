@@ -11,7 +11,7 @@ if (!$connect) {
 $alertMessage = '';
 $purchaseSuccess = false;
 $response = ['success' => false, 'message' => ''];
-$purchaseID = AutoID('purchasetb', 'PurchaseID', 'PUR-', 6);
+$purchaseID = uniqid("PUR_");
 
 // Initialize session variable if not set
 if (!isset($_SESSION['cart'])) {
@@ -32,137 +32,234 @@ if (isset($_GET["ProductID"])) {
     $product_id = $_GET["ProductID"];
 }
 
-// Purchase product
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["completePurchase"])) {
-    if (!isset($_POST["productID"]) || empty($_POST["productID"])) {
-        $response['message'] = "Please select a product to purchase.";
-    } else if (!isset($_POST["supplierID"]) || empty($_POST["supplierID"])) {
-        $response['message'] = "Please select a supplier.";
-    } else {
-        $supplierID = $_POST["supplierID"];
+// Handle AJAX requests
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['ajax'])) {
+    $action = $_POST['action'] ?? '';
 
-        // Check if cart exists and has items
-        if (!empty($_SESSION['cart'])) {
-            $success = true;
+    if ($action === 'add_to_cart') {
+        // Add product to session cart via AJAX
+        $productID = $_POST["productID"];
+        $productTitle = $_POST["producttitle"];
+        $quantity = (int)$_POST["quantity"];
+        $productPrice = (float)$_POST["productprice"];
 
-            // Process each item in cart
-            foreach ($_SESSION['cart'] as $item) {
-                $productID = $item['productID'];
-                $quantity = $item['quantity'];
+        if (empty($productID)) {
+            $response['message'] = "Please select a product to purchase.";
+        } elseif ($quantity <= 0) {
+            $response['message'] = "Choose a quantity greater than 0.";
+        } else {
+            $productExists = false;
 
-                // update stock 
-                $updateQuantity = "UPDATE producttb SET Stock = Stock + $quantity WHERE ProductID = '$productID'";
-                if (!$connect->query($updateQuantity)) {
-                    $response['message'] = "Error updating stock for product: " . $item['productTitle'];
-                    $success = false;
+            // Check if product already exists in the cart
+            foreach ($_SESSION['cart'] as &$existingProduct) {
+                if ($existingProduct["productID"] === $productID) {
+                    $existingProduct["quantity"] += $quantity;
+                    // Keep productPrice as unit price (not multiplied)
+                    $existingProduct["totalPrice"] = $existingProduct["quantity"] * $existingProduct["unitPrice"];
+                    $productExists = true;
                     break;
                 }
             }
 
-            if ($success) {
-                $adminID = $_SESSION["AdminID"];
-                $supplierID = $_POST["supplierID"];
-                $purchaseTax = 0.10; // 10% tax
-                $status = 'Pending';
+            // If product does not exist, add to cart
+            if (!$productExists) {
+                $_SESSION['cart'][] = [
+                    "productID" => $productID,
+                    "productTitle" => $productTitle,
+                    "quantity" => $quantity,
+                    "unitPrice" => $productPrice, // store unit price separately
+                    "totalPrice" => $productPrice * $quantity
+                ];
+            }
 
-                // Calculate subtotal (sum of all unit prices)
-                $subtotal = 0;
+            $response['success'] = true;
+            $response['message'] = "Product added to list successfully!";
+            $response['cart_count'] = count($_SESSION['cart']);
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    } elseif ($action === 'update_quantity') {
+        $index = $_POST['index'];
+        $quantity = (int)$_POST['quantity'];
+
+        if (isset($_SESSION['cart'][$index])) {
+            $_SESSION['cart'][$index]['quantity'] = $quantity;
+            $_SESSION['cart'][$index]['totalPrice'] = $_SESSION['cart'][$index]['unitPrice'] * $quantity;
+
+            $response['success'] = true;
+            $response['message'] = "Quantity updated successfully.";
+            $response['cart_count'] = count($_SESSION['cart']);
+        } else {
+            $response['success'] = false;
+            $response['message'] = "Item not found in cart.";
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    } elseif ($action === 'remove_item') {
+        // Remove product from session cart via AJAX
+        $removeIndex = $_POST["removeIndex"];
+
+        if (isset($_SESSION['cart'][$removeIndex])) {
+            array_splice($_SESSION['cart'], $removeIndex, 1);
+            $response['success'] = true;
+            $response['message'] = "Product removed from list.";
+            $response['cart_count'] = count($_SESSION['cart']);
+        } else {
+            $response['message'] = "Item not found in cart.";
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    } elseif ($action === 'complete_purchase') {
+        // Purchase product via AJAX
+        if (!isset($_POST["supplierID"]) || empty($_POST["supplierID"])) {
+            $response['message'] = "Please select a supplier.";
+        } else {
+            $supplierID = $_POST["supplierID"];
+
+            // Check if cart exists and has items
+            if (!empty($_SESSION['cart'])) {
+                $success = true;
+
+                // Process each item in cart
                 foreach ($_SESSION['cart'] as $item) {
-                    $productPrice = $item['productPrice'];
+                    $productID = $item['productID'];
                     $quantity = $item['quantity'];
-                    $subtotal += ($productPrice * $quantity);
-                }
 
-                // Calculate total amount with tax
-                $totalAmount = $subtotal * (1 + $purchaseTax); // Subtotal + 10% tax
-
-                $purchaseQuery = "INSERT INTO purchasetb (PurchaseID, AdminID, SupplierID, TotalAmount, PurchaseTax, Status)
-                VALUES ('$purchaseID', '$adminID', '$supplierID', '$totalAmount', '$purchaseTax', '$status')";
-
-                if ($connect->query($purchaseQuery)) {
-                    // Save cart items before clearing the cart
-                    $cartItems = $_SESSION['cart'];
-
-                    // Clear cart after saving items to variable
-                    unset($_SESSION['cart']);
-
-                    foreach ($cartItems as $item) {
-                        $productID = $item['productID'];
-                        $quantity = $item['quantity'];
-                        $productPrice = $item['productPrice'];
-                        $unitPrice = $productPrice * $quantity;
-
-                        $purchaseItemQuery = "INSERT INTO purchasedetailtb (PurchaseID, ProductID, PurchaseUnitQuantity, PurchaseUnitPrice)
-                        VALUES ('$purchaseID', '$productID', '$quantity', '$unitPrice')";
-
-                        if (!$connect->query($purchaseItemQuery)) {
-                            $response['message'] = "Error saving purchase item: " . $item['productTitle'];
-                            $success = false;
-                            break;
-                        }
+                    // update stock 
+                    $updateQuantity = "UPDATE producttb SET Stock = Stock + $quantity WHERE ProductID = '$productID'";
+                    if (!$connect->query($updateQuantity)) {
+                        $response['message'] = "Error updating stock for product: " . $item['productTitle'];
+                        $success = false;
+                        break;
                     }
                 }
 
                 if ($success) {
-                    $response['success'] = true;
-                }
-            }
-        } else {
-            $response['message'] = "Your cart is empty.";
-        }
-    }
+                    $adminID = $_SESSION["AdminID"];
+                    $supplierID = $_POST["supplierID"];
+                    $purchaseTax = 0.10; // 10% tax
+                    $status = 'Pending';
 
-    header('Content-Type: application/json');
-    echo json_encode($response);
+                    // Calculate subtotal (sum of all unit prices)
+                    $subtotal = 0;
+                    foreach ($_SESSION['cart'] as $item) {
+                        $subtotal += $item['unitPrice'] * $item['quantity']; // correct
+                    }
+
+                    // Calculate tax amount separately
+                    $taxAmount = $subtotal * $purchaseTax;
+
+                    // Total amount = subtotal + tax
+                    $totalAmount = $subtotal + $taxAmount;
+
+                    $purchaseQuery = "INSERT INTO purchasetb (PurchaseID, AdminID, SupplierID, TotalAmount, PurchaseTax, Status)
+                VALUES ('$purchaseID', '$adminID', '$supplierID', '$totalAmount', '$purchaseTax', '$status')";
+
+                    if ($connect->query($purchaseQuery)) {
+                        // Save cart items before clearing the cart
+                        $cartItems = $_SESSION['cart'];
+
+                        // Clear cart after saving items to variable
+                        unset($_SESSION['cart']);
+
+                        foreach ($cartItems as $item) {
+                            $productID = $item['productID'];
+                            $quantity = $item['quantity'];
+                            $unitPrice = $item['unitPrice']; // store actual unit price
+
+                            $purchaseItemQuery = "INSERT INTO purchasedetailtb (PurchaseID, ProductID, PurchaseUnitQuantity, PurchaseUnitPrice)
+VALUES ('$purchaseID', '$productID', '$quantity', '$unitPrice')";
+
+                            if (!$connect->query($purchaseItemQuery)) {
+                                $response['message'] = "Error saving purchase item: " . $item['productTitle'];
+                                $success = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if ($success) {
+                        $response['success'] = true;
+                        $response['message'] = "Purchase completed successfully!";
+                    }
+                }
+            } else {
+                $response['message'] = "Your cart is empty.";
+            }
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+}
+
+// Handle cart table request
+if (isset($_GET['get_cart_table'])) {
+    ob_start();
+    include("../includes/admin_table_components/cart_table.php");
+    $cartTable = ob_get_clean();
+    echo $cartTable;
     exit();
 }
 
-// Add product to session cart (original code remains exactly the same)
+// Regular form submission handling (for non-JS fallback)
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["addToList"])) {
     $productID = $_POST["productID"];
     $productTitle = $_POST["producttitle"];
-    $quantity = $_POST["quantity"];
-    $productPrice = $_POST["productprice"];
+    $quantity = (int)$_POST["quantity"];
+    $productPrice = (float)$_POST["productprice"];
 
-    $productExists = false;
+    if (empty($productID)) {
+        $alertMessage = "Please select a product to purchase.";
+    } elseif ($quantity <= 0) {
+        $alertMessage = "Choose a quantity greater than 0.";
+    } else {
+        $productExists = false;
 
-    // Check if product already exists in the cart
-    foreach ($_SESSION['cart'] as &$existingProduct) {
-        if ($existingProduct["productID"] === $productID) {
-            $existingProduct["quantity"] += $quantity;
-            $existingProduct["productPrice"] = $existingProduct["quantity"] * $productPrice;
-            $productExists = true;
-            break;
+        // Check if product already exists in the cart
+        foreach ($_SESSION['cart'] as &$existingProduct) {
+            if ($existingProduct["productID"] === $productID) {
+                $existingProduct["quantity"] += $quantity;
+                // Keep productPrice as unit price (not multiplied)
+                $existingProduct["totalPrice"] = $existingProduct["quantity"] * $existingProduct["unitPrice"];
+                $productExists = true;
+                break;
+            }
         }
-    }
 
-    // If product does not exist, validate and add to cart
-    if (!isset($_POST["productID"]) || empty($_POST["productID"])) { {
-            $alertMessage = "Please select a product to purchase.";
-        }
-    } elseif (!$productExists) {
-        if ($quantity > 0) {
+        // If product does not exist, add to cart
+        if (!$productExists) {
             $_SESSION['cart'][] = [
                 "productID" => $productID,
                 "productTitle" => $productTitle,
                 "quantity" => $quantity,
-                "productPrice" => $productPrice * $quantity,
+                "unitPrice" => $productPrice, // store unit price separately
+                "totalPrice" => $productPrice * $quantity
             ];
-        } else {
-            $alertMessage = "Choose a quantity greater than 0.";
         }
+
+        // Set success message
+        $alertMessage = "Product added to list successfully!";
     }
 }
 
-// Remove product from session cart
+// Remove product from session cart (non-JS fallback)
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["removeItem"])) {
     $removeIndex = $_POST["removeIndex"];
 
     if (isset($_SESSION['cart'][$removeIndex])) {
         array_splice($_SESSION['cart'], $removeIndex, 1);
+        $alertMessage = "Product removed from list.";
     }
 
-    // Optional: Redirect to prevent form resubmission
+    // Redirect to prevent form resubmission
     header("Location: " . $_SERVER['PHP_SELF']);
     exit();
 }
@@ -186,7 +283,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["removeItem"])) {
     <div class="flex flex-col md:flex-row md:space-x-3 p-3 ml-0 md:ml-[250px] min-w-[380px]">
         <div class="w-full bg-white p-2">
             <h2 class="text-xl text-gray-700 font-bold mb-4">Purchase Product</h2>
-            <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="purchaseForm">
+            <form class="flex flex-col space-y-4" id="addToListForm">
                 <div>
                     <label for="productID" class="block text-sm font-medium text-gray-700">Select Product</label>
                     <?php
@@ -214,48 +311,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["removeItem"])) {
                             </option>
                         <?php endforeach; ?>
                     </select>
-
-                    <script>
-                        document.addEventListener('DOMContentLoaded', function() {
-                            var productSelect = document.getElementById('productID');
-
-                            // Function to update form fields
-                            function updateFormFields(selectedOption) {
-                                document.getElementById('producttitle').value = selectedOption.getAttribute('data-title') || '';
-                                document.getElementById('productbrand').value = selectedOption.getAttribute('data-brand') || '';
-                                document.getElementById('productprice').value = selectedOption.getAttribute('data-price') || '';
-                                document.getElementById('productstock').value = selectedOption.getAttribute('data-stock') || '';
-                                document.getElementById('producttype').value = selectedOption.getAttribute('data-type') || '';
-                            }
-
-                            // Event listener for change
-                            productSelect.addEventListener('change', function() {
-                                updateFormFields(this.options[this.selectedIndex]);
-                            });
-
-                            // If a product is preselected from URL, update the form fields
-                            if (productSelect.value) {
-                                updateFormFields(productSelect.options[productSelect.selectedIndex]);
-                            }
-                        });
-                    </script>
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
                     <!-- Title -->
                     <div class="relative flex-1">
                         <label for="producttitle" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                        <input class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" type="text" name="producttitle" id="producttitle" disabled placeholder="Choose product to get title">
+                        <input class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            type="text" name="producttitle_display" id="producttitle" disabled placeholder="Choose product to get title">
+                        <input type="hidden" name="producttitle" id="hidden_producttitle">
                     </div>
+
                     <!-- Brand -->
                     <div class="relative flex-1">
                         <label for="productbrand" class="block text-sm font-medium text-gray-700 mb-1">Brand</label>
-                        <input class="p-2 w-full border rounded" type="text" name="productbrand" id="productbrand" disabled placeholder="Choose product to get brand">
+                        <input class="p-2 w-full border rounded" type="text" name="productbrand_display" id="productbrand" disabled placeholder="Choose product to get brand">
                     </div>
+
                     <!-- Price -->
                     <div class="relative flex-1">
                         <label for="productprice" class="block text-sm font-medium text-gray-700 mb-1">Price</label>
-                        <input class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" type="number" name="productprice" id="productprice" min="1" disabled placeholder="Choose product to get price">
+                        <input class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            type="number" name="productprice_display" id="productprice" min="1" disabled placeholder="Choose product to get price">
+                        <input type="hidden" name="productprice" id="hidden_productprice">
                     </div>
                 </div>
 
@@ -279,55 +357,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["removeItem"])) {
                 </div>
 
                 <div class="flex flex-col sm:flex-row justify-end gap-4 sm:gap-2">
-                    <button type="submit" name="addToList" class="bg-blue-500 text-white px-4 py-2 hover:bg-blue-600 rounded-sm">
+                    <button type="button" id="addToListBtn" class="bg-blue-800 text-white px-4 py-2 hover:bg-blue-900 rounded-sm">
                         Add to List
                     </button>
                 </div>
             </form>
 
-            <!-- Display Product List Before Purchase Button -->
-            <table class="w-full mt-4 border-collapse border border-gray-200">
-                <tr class="bg-gray-100 text-gray-600 text-sm">
-                    <th class="border p-2 text-start">No</th>
-                    <th class="border p-2 text-start">Product</th>
-                    <th class="border p-2 text-start">Quantity</th>
-                    <th class="border p-2 text-start">Price</th>
-                    <th class="border p-2 text-start">Action</th>
-                </tr>
-                <?php if (!empty($_SESSION['cart'])): ?>
-                    <?php $count = 1; ?>
-                    <?php foreach ($_SESSION['cart'] as $index => $item): ?>
-                        <tr>
-                            <td class="border p-2"><?= $count ?></td>
-                            <td class="border p-2"><?= htmlspecialchars($item['productTitle']) ?></td>
-                            <td class="border p-2"><?= htmlspecialchars($item['quantity']) ?></td>
-                            <td class="border p-2">$<?= number_format($item['productPrice'], 2) ?></td>
-                            <td class="border p-2 text-center">
-                                <form method="post" action="<?php echo $_SERVER["PHP_SELF"]; ?>">
-                                    <input type="hidden" name="removeIndex" value="<?= $index ?>">
-                                    <button type="submit" name="removeItem" class="text-red-500">Remove</button>
-                                </form>
-                            </td>
-                        </tr>
-                        <?php $count++; ?>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="5" class="text-center p-2">No products added.</td>
-                    </tr>
-                <?php endif; ?>
-            </table>
+            <!-- Cart Table Container -->
+            <div id="cartTableContainer">
+                <?php include("../includes/admin_table_components/cart_table.php"); ?>
+            </div>
 
-            <form id="purchaseForm" method="post" action="<?php echo $_SERVER["PHP_SELF"]; ?>">
+            <form id="purchaseForm">
                 <!-- Supplier -->
                 <div class="mt-4">
                     <label for="supplierID" class="block text-sm font-medium text-gray-700">Select Supplier</label>
-                    <select name="supplierID" id="supplierID" class="w-full p-2 border rounded mt-1 outline-none">
+                    <select name="supplierID" id="supplierID" class="w-full p-2 border rounded mt-1 outline-none" required>
                         <option value="" disabled selected>Select a supplier</option>
                         <?php
                         $supplierQuery = "SELECT s.SupplierID, s.SupplierName, p.ProductType 
-                        FROM suppliertb s
-                        INNER JOIN producttypetb p ON s.ProductTypeID = p.ProductTypeID";
+                            FROM suppliertb s
+                            INNER JOIN producttypetb p ON s.ProductTypeID = p.ProductTypeID";
 
                         $result = $connect->query($supplierQuery);
 
@@ -338,8 +388,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["removeItem"])) {
                     </select>
                 </div>
 
-                <input type="hidden" name="completePurchase" value="1">
-                <button type="submit" name="completePurchase" class="bg-green-500 text-white px-4 py-2 mt-4 rounded w-full">
+                <button type="button" id="completePurchaseBtn" class="bg-amber-500 text-white font-semibold w-full px-4 py-2 mt-4 rounded-sm select-none hover:bg-amber-600 transition-colors">
                     Complete Purchase
                 </button>
             </form>

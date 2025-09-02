@@ -4207,66 +4207,225 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Product Purchase 
-// document.addEventListener("DOMContentLoaded", () => {
-//     const loader = document.getElementById('loader');
-//     const alertMessage = document.getElementById('alertMessage').value;
-//     const purchaseSuccess = document.getElementById('purchaseSuccess').value === 'true';
+document.addEventListener('DOMContentLoaded', function() {
+    var productSelect = document.getElementById('productID');
+    var addToListBtn = document.getElementById('addToListBtn');
+    var completePurchaseBtn = document.getElementById('completePurchaseBtn');
 
-//     if (purchaseSuccess) {
-//         loader.style.display = 'flex';
+    // Function to update form fields
+    function updateFormFields(selectedOption) {
+        document.getElementById('producttitle').value = selectedOption.getAttribute('data-title') || '';
+        document.getElementById('hidden_producttitle').value = selectedOption.getAttribute('data-title') || '';
+        document.getElementById('productbrand').value = selectedOption.getAttribute('data-brand') || '';
+        document.getElementById('productprice').value = selectedOption.getAttribute('data-price') || '';
+        document.getElementById('hidden_productprice').value = selectedOption.getAttribute('data-price') || '';
+        document.getElementById('productstock').value = selectedOption.getAttribute('data-stock') || '';
+        document.getElementById('producttype').value = selectedOption.getAttribute('data-type') || '';
+    }
 
-//         // Show Alert
-//         setTimeout(() => {
-//             loader.style.display = 'none';
-//             showAlert('Purchase completed successfully! Stock increased.');
-//             setTimeout(() => {
-//                 window.location.href = '../Admin/product_purchase.php';
-//             }, 5000);
-//         }, 1000);
-//     } else if (alertMessage) {
-//         // Show Alert
-//         showAlert(alertMessage);
-//     }
-// });
-document.addEventListener("DOMContentLoaded", () => {
-    const purchaseForm = document.getElementById("purchaseForm");
-    const loader = document.getElementById('loader');
+    // Event listener for product selection change
+    productSelect.addEventListener('change', function() {
+        updateFormFields(this.options[this.selectedIndex]);
+    });
 
-    if (purchaseForm) {
-        purchaseForm.addEventListener("submit", function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            formData.append('completePurchase', 'true');
-            
-            fetch('../Admin/product_purchase.php', {
+    // If a product is preselected from URL, update the form fields
+    if (productSelect.value) {
+        updateFormFields(productSelect.options[productSelect.selectedIndex]);
+    }
+
+    // Add to list button click handler
+    addToListBtn.addEventListener('click', function() {
+        const productID = document.getElementById('productID').value;
+        const productTitle = document.getElementById('hidden_producttitle').value;
+        const quantity = document.getElementById('quantity').value;
+        const productPrice = document.getElementById('hidden_productprice').value;
+
+        if (!productID) {
+            showAlert('Please select a product to purchase.', true);
+            return;
+        }
+
+        if (!quantity || quantity <= 0) {
+            showAlert('Choose a quantity greater than 0.', true);
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('ajax', 'true');
+        formData.append('action', 'add_to_cart');
+        formData.append('productID', productID);
+        formData.append('producttitle', productTitle);
+        formData.append('quantity', quantity);
+        formData.append('productprice', productPrice);
+
+        fetch('../Admin/product_purchase.php', {
                 method: 'POST',
                 body: formData,
                 headers: {
                     'Accept': 'application/json'
                 }
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {                
+            .then(response => response.json())
+            .then(data => {
                 if (data.success) {
-                    showAlert(data.message);
-                } else if (data.message) {
-                    showAlert(data.message, true);
+                    showAlert(data.message, false);
+                    // Update cart table
+                    updateCartTable();
+                    // Reset form
+                    document.getElementById('quantity').value = '';
                 } else {
-                    // Show error message
-                    showAlert(data.message || 'Sign-in failed. Please try again.', true);
+                    showAlert(data.message, true);
                 }
             })
             .catch(error => {
                 showAlert('An error occurred. Please try again.', true);
                 console.error('Error:', error);
             });
+    });
+
+    // Remove item button handlers
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-item')) {
+            const index = e.target.getAttribute('data-index');
+            removeCartItem(index);
+        }
+    });
+
+    // Handle quantity changes dynamically
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('cart-quantity')) {
+            const index = e.target.getAttribute('data-index');
+            let newQuantity = parseInt(e.target.value);
+
+            if (isNaN(newQuantity) || newQuantity <= 0) {
+                showAlert('Quantity must be at least 1.', true);
+                e.target.value = 1;
+                newQuantity = 1;
+            }
+
+            const formData = new FormData();
+            formData.append('ajax', 'true');
+            formData.append('action', 'update_quantity');
+            formData.append('index', index);
+            formData.append('quantity', newQuantity);
+
+            fetch('../Admin/product_purchase.php', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update cart table and show message
+                        updateCartTable();
+                        showAlert(data.message, false);
+                    } else {
+                        showAlert(data.message, true);
+                    }
+                })
+                .catch(error => {
+                    showAlert('An error occurred. Please try again.', true);
+                    console.error('Error:', error);
+                });
+        }
+    });
+
+    // Complete purchase button click handler
+    if (completePurchaseBtn) {
+        completePurchaseBtn.addEventListener('click', function() {
+            const supplierID = document.getElementById('supplierID').value;
+
+            if (!supplierID) {
+                showAlert('Please select a supplier.', true);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('ajax', 'true');
+            formData.append('action', 'complete_purchase');
+            formData.append('supplierID', supplierID);
+
+            fetch('../Admin/product_purchase.php', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert(data.message, false);
+                        // Update cart table and hide purchase form
+                        updateCartTable();
+                        productSelect.value = "";
+                        document.getElementById('supplierID').value = "";
+                    } else {
+                        showAlert(data.message, true);
+                    }
+                })
+                .catch(error => {
+                    showAlert('An error occurred. Please try again.', true);
+                    console.error('Error:', error);
+                });
         });
+    }
+
+    // Function to update cart table via AJAX
+    function updateCartTable() {
+        fetch('../Admin/product_purchase.php?get_cart_table=true')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('cartTableContainer').innerHTML = html;
+                // Show/hide purchase form based on cart content
+                if (document.querySelectorAll('#cartTableContainer tr').length > 1) {
+                    if (!document.getElementById('purchaseForm')) {
+                        // Reload page to show purchase form
+                    } else {
+                        document.getElementById('purchaseForm').style.display = 'block';
+                    }
+                } else {
+                    if (document.getElementById('purchaseForm')) {
+                        document.getElementById('purchaseForm').style.display = 'none';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error updating cart:', error);
+            });
+    }
+
+    // Function to remove cart item
+    function removeCartItem(index) {
+        const formData = new FormData();
+        formData.append('ajax', 'true');
+        formData.append('action', 'remove_item');
+        formData.append('removeIndex', index);
+
+        fetch('../Admin/product_purchase.php', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(data.message, false);
+                    // Update cart table
+                    updateCartTable();
+                } else {
+                    showAlert(data.message, true);
+                }
+            })
+            .catch(error => {
+                showAlert('An error occurred. Please try again.', true);
+                console.error('Error:', error);
+            });
     }
 });
 
