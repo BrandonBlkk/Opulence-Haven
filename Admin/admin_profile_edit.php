@@ -222,7 +222,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['changePassword'])) {
                                 <h1 class="text-xl sm:text-2xl text-blue-900 font-semibold mb-1">Edit Profile</h1>
                                 <div class="text-sm text-gray-500">
                                     <p>Here you can eidt public information about yourself.</p>
-                                    <p>The changes will be displayed for other users within 5 minutes.</p>
+                                    <p>The changes will be displayed for other users within a second.</p>
                                 </div>
                             </div>
                         </div>
