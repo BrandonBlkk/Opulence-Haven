@@ -14,16 +14,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $mail = new PHPMailer(true);
 
         try {
-            $mailConfig = require __DIR__ . '/../config/mail.php';
+            $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../config');
+            $dotenv->load();
 
             $mail->isSMTP();
-            $mail->Host       = $mailConfig['host'];
+            $mail->Host       = $_ENV['MAIL_HOST'];
             $mail->SMTPAuth   = true;
-            $mail->Username   = $mailConfig['username'];
-            $mail->Password   = $mailConfig['password'];
-            $mail->SMTPSecure = $mailConfig['encryption'];
-            $mail->Port       = $mailConfig['port'];
-
+            $mail->Username   = $_ENV['MAIL_USERNAME'];
+            $mail->Password   = $_ENV['MAIL_PASSWORD'];
+            $mail->SMTPSecure = $_ENV['MAIL_ENCRYPTION'];
+            $mail->Port       = $_ENV['MAIL_PORT'];
 
             // Recipients
             $mail->setFrom('opulencehaven25@gmail.com', 'Opulence Haven'); // Sender

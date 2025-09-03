@@ -1,4 +1,5 @@
 node_modules/
+.env
 /vendor/
 /config/google.php
 /config/mail.php

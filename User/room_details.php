@@ -165,7 +165,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
                 $stmtExpiry->execute();
             } else {
                 // Create new reservation
-                $reservationID = uniqid('RSV');
+                $reservationID = uniqid('RSV_');
                 $expiryDate = date('Y-m-d H:i:s', strtotime('+30 minutes'));
 
                 // Insert into reservationtb

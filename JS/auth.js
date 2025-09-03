@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const emailInput = document.getElementById("emailInput");
     const passwordInput = document.getElementById("passwordInput");
     const phoneInput = document.getElementById("phone");
+    const recaptchaContainer = document.getElementById("recaptcha-container");
 
     if (usernameInput) usernameInput.addEventListener("keyup", validateUsername);
     if (emailInput) emailInput.addEventListener("keyup", validateEmail);
@@ -17,15 +18,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const loader = document.getElementById('loader');
 
     if (signupForm) {
-        signupForm.addEventListener("submit", function(e) {
+        signupForm.addEventListener("submit", function (e) {
             e.preventDefault();
-            
+
+            // Check reCAPTCHA
+            const recaptchaResponse = grecaptcha.getResponse();
+            if (!recaptchaResponse || recaptchaResponse.length === 0) {
+                showAlert("Please complete the reCAPTCHA.", true);
+                return;
+            }
+
             if (!validateSignUpForm()) {
                 return;
             }
 
             const formData = new FormData(this);
-            
+
             fetch('../User/user_signup.php', {
                 method: 'POST',
                 body: formData,
@@ -33,59 +41,53 @@ document.addEventListener("DOMContentLoaded", () => {
                     'Accept': 'application/json'
                 }
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {    
-                if (data.success) {
-                    // Successful sign-up
-                    if (loader) loader.style.display = 'flex';
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        if (loader) loader.style.display = 'flex';
 
-                    // Send email
-                    fetch('../Mail/send_welcome_email.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Redirect after email is sent
-                            setTimeout(() => {
+                        fetch('../Mail/send_welcome_email.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    setTimeout(() => {
+                                        if (loader) loader.style.display = 'none';
+                                        window.location.href = '../User/home_page.php';
+                                    }, 1000);
+                                } else {
+                                    if (loader) loader.style.display = 'none';
+                                    showAlert('Account created but failed to send welcome email. Please contact support.', true);
+                                    setTimeout(() => {
+                                        window.location.href = '../User/home_page.php';
+                                    }, 3000);
+                                }
+                            })
+                            .catch(error => {
                                 if (loader) loader.style.display = 'none';
-                                window.location.href = '../User/home_page.php';
-                            }, 1000);
-                        } else {
-                            // Handle email sending error
-                            if (loader) loader.style.display = 'none';
-                            showAlert('Account created but failed to send welcome email. Please contact support.' , true);
-                            setTimeout(() => {
-                                window.location.href = '../User/home_page.php';
-                            }, 3000);
-                        }
-                    })
-                    .catch(error => {
-                        if (loader) loader.style.display = 'none';
-                        showAlert('Account created but failed to send welcome email. Please contact support.', true);
-                        setTimeout(() => {
-                            window.location.href = '../User/home_page.php';
-                        }, 3000);
-                    });
-                } else {
-                    // Show error message
-                    showAlert(data.message || 'Sign-up failed. Please try again.', true);
-                }
-            })
-            .catch(error => {
-                // Hide loader on error
-                if (loader) loader.style.display = 'none';
-                showAlert('An error occurred. Please try again.', true);
-                console.error('Error:', error);
-            });
+                                showAlert('Account created but failed to send welcome email. Please contact support.', true);
+                                setTimeout(() => {
+                                    window.location.href = '../User/home_page.php';
+                                }, 3000);
+                            });
+                    } else {
+                        showAlert(data.message || 'Sign-up failed. Please try again.', true);
+                    }
+                })
+                .catch(error => {
+                    if (loader) loader.style.display = 'none';
+                    showAlert('An error occurred. Please try again.', true);
+                    console.error('Error:', error);
+                });
         });
     }
 });

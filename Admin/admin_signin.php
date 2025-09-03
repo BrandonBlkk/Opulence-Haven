@@ -98,9 +98,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
     <div class="p-3">
         <!-- Logo -->
         <div class="flex items-end gap-1 select-none">
-            <a href="../User/admin_dashboard.php">
-                <img src="../UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-28 select-none" alt="Logo">
-            </a>
+            <img src="../UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-28 select-none" alt="Logo">
             <p class="text-amber-500 text-sm font-semibold">ADMIN</p>
         </div>
         <h1 class="text-2xl font-bold mt-3 max-w-96">Welcome back! access your admin account</h1>

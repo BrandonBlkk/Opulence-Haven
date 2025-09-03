@@ -3,15 +3,17 @@ session_start();
 require_once('../config/db_connection.php');
 include_once('../includes/auto_id_func.php');
 require_once '../vendor/autoload.php';
-$googleConfig = require_once __DIR__ . '/../config/google.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../config');
+$dotenv->load();
 
 $alertMessage = '';
 $response = ['success' => false, 'message' => '', 'locked' => false, 'attemptsLeft' => null];
 
 $client = new Google\Client();
-$client->setClientId($googleConfig['client_id']);
-$client->setClientSecret($googleConfig['client_secret']);
-$client->setRedirectUri($googleConfig['redirect_uri']);
+$client->setClientId($_ENV['GOOGLE_CLIENT_ID']);
+$client->setClientSecret($_ENV['GOOGLE_CLIENT_SECRET']);
+$client->setRedirectUri($_ENV['GOOGLE_REDIRECT_URI']);
 $client->addScope('email');
 $client->addScope('profile');
 
@@ -202,7 +204,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signin'])) {
             </div>
         </div>
         <div>
-            <a href="Homepage.php">
+            <a href="home_page.php">
                 <img src="../UserImages/Screenshot_2024-11-29_201534-removebg-preview.png" class="w-28 select-none" alt="Logo">
             </a>
             <h1 class="text-2xl font-bold mt-10 sm:mt-20 max-w-96">Welcome back! access your account</h1>
