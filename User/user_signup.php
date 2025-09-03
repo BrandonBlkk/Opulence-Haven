@@ -3,6 +3,11 @@ session_start();
 require_once('../config/db_connection.php');
 include_once('../includes/auto_id_func.php');
 
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../config');
+$dotenv->load();
+
 $alertMessage = '';
 $response = ['success' => false, 'message' => ''];
 $userID = AutoID('usertb', 'UserID', 'USR-', 6);
@@ -88,6 +93,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
     <!-- Add the following line to include Remix Icon -->
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script>
+        function enableSubmit() {
+            document.getElementById("signup").disabled = false;
+        }
+    </script>
 </head>
 
 <body class="flex justify-center items-center min-h-screen min-w-[380px]">
@@ -165,15 +176,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
 
                 <!-- reCAPTCHA -->
                 <div class="flex justify-center">
-                    <div class="g-recaptcha transform scale-75 md:scale-100" data-sitekey="6LcE3G0pAAAAAE1GU9UXBq0POWnQ_1AMwyldy8lX"></div>
+                    <div class="g-recaptcha transform scale-75 md:scale-100"
+                        data-sitekey="<?php echo $_ENV["RECAPTCHA_SITE_KEY"]; ?>"
+                        data-callback="enableSubmit"></div>
                 </div>
 
                 <input type="hidden" name="signup" value="1">
 
                 <!-- Signup Button -->
                 <input
-                    class="bg-amber-500 font-semibold text-white px-4 py-2 rounded-md hover:bg-amber-600 cursor-pointer transition-colors duration-200"
+                    class="bg-amber-500  font-semibold text-white px-4 py-2 rounded-md hover:bg-amber-600 cursor-pointer transition-colors duration-200"
                     type="submit"
+                    id="signup"
                     name="signup"
                     value="Sign Up">
 
@@ -196,9 +210,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                     <a href="../Policies/terms_of_use.php" class="hover:underline underline-offset-2">Terms of use</a>.
                 </p>
             </form>
-
-            <!-- Include reCAPTCHA Script -->
-            <script src="https://www.google.com/recaptcha/api.js" async defer></script>
         </div>
     </div>
 

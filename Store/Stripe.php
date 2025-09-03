@@ -2,9 +2,11 @@
 session_start();
 require_once('../config/db_connection.php');
 require_once __DIR__ . '/../vendor/autoload.php';
-$stripeConfig = require_once __DIR__ . '/../config/stripe.php';
 
-\Stripe\Stripe::setApiKey($stripeConfig['secret_key']);
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../config');
+$dotenv->load();
+
+\Stripe\Stripe::setApiKey($_ENV['STRIPE_SECRET_KEY']);
 
 $userID = $_SESSION['UserID'] ?? null;
 if (!$userID) {

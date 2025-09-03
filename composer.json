@@ -2,6 +2,7 @@
     "require": {
         "phpmailer/phpmailer": "^6.9",
         "google/apiclient": "^2.18",
-        "stripe/stripe-php": "^17.3"
+        "stripe/stripe-php": "^17.3",
+        "vlucas/phpdotenv": "^5.6"
     }
 }
