@@ -93,7 +93,7 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
                             }
                             ?>
                             <span class="px-2 py-1 text-xs font-semibold rounded-full <?= $stockClass ?>">
-                                Stock (<span id="available-stock-<?= htmlspecialchars($product['ProductID']) ?>"><?= htmlspecialchars($product['Stock'] - $product['SaleQuantity']) ?></span>)
+                                Stock (<span id="available-stock-<?= htmlspecialchars($product['ProductID']) ?>"><?= htmlspecialchars($product['Stock']) ?></span>)
                             </span>
 
                             <!-- Sale Stock (only show if > 0) -->
