@@ -76,10 +76,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const addRoleModal = document.getElementById('addRoleModal');
     const addRoleBtn = document.getElementById('addRoleBtn');
     const addRoleCancelBtn = document.getElementById('addRoleCancelBtn');
-    const loader = document.getElementById('loader');
-    const alertMessage = document.getElementById('alertMessage').value;
-    const addRoleSuccess = document.getElementById('addRoleSuccess').value === 'true';
+    const roleForm = document.getElementById("roleForm");
 
+    // Function to close the add modal
+    const closeModal = () => {
+        roleForm.reset();
+        addRoleModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+        darkOverlay2.classList.add('opacity-0', 'invisible');
+        darkOverlay2.classList.remove('opacity-100');
+
+        const errors = ['roleError', 'roleDescriptionError'];
+        errors.forEach(error => {
+            hideError(document.getElementById(error));
+        });
+    };
+    
     if (addRoleModal && addRoleBtn && addRoleCancelBtn) {
         // Show modal
         addRoleBtn.addEventListener('click', () => {
@@ -90,40 +101,47 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Cancel button functionality
         addRoleCancelBtn.addEventListener('click', () => {
-            addRoleModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-            darkOverlay2.classList.add('opacity-0', 'invisible');
-            darkOverlay2.classList.remove('opacity-100');
-            hideError(document.getElementById('roleError'));
-            hideError(document.getElementById('roleDescriptionError'));
+            closeModal();
         });
-    }
-
-    if (addRoleSuccess) {
-        loader.style.display = 'flex';
-
-        // Show Alert
-        setTimeout(() => {
-            loader.style.display = 'none';
-            showAlert('A new role has been successfully added.');
-            setTimeout(() => {
-                window.location.href = 'role_management.php';
-            }, 5000);
-        }, 1000);
-    } else if (alertMessage) {
-        // Show Alert
-        showAlert(alertMessage);
     }
 
     // Add keyup event listeners for real-time validation
     document.getElementById("roleInput").addEventListener("keyup", validateRole);
     document.getElementById("roleDescriptionInput").addEventListener("keyup", validateRoleDescription);
 
-    const roleForm = document.getElementById("roleForm");
     if (roleForm) {
         roleForm.addEventListener("submit", (e) => {
-            if (!validateRoleForm()) {
-                e.preventDefault();
-            }
+            e.preventDefault();
+
+            if (!validateRoleForm()) return;
+
+            const formData = new FormData(roleForm);
+            formData.append('addrole', true);
+
+            fetch('../Admin/role_management.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return res.json();
+            })
+            .then(data => {
+                showAlert(data.message, !data.success);
+
+                if (data.success) {
+                    document.getElementById('roleInput').value = '';
+                    document.getElementById('roleDescriptionInput').value = '';
+                    roleForm.reset();
+                    closeModal();
+                }
+            })
+            .catch(err => {
+                showAlert("Something went wrong. Please try again.", true);
+                console.error(err);
+            });
         });
     }
 });
