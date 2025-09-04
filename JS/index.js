@@ -856,8 +856,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (contactForm) {
         contactForm.addEventListener("submit", (e) => {
             e.preventDefault();
-            
+
             if (!validateContactForm()) {
+                return;
+            }
+            
+            // Check reCAPTCHA
+            const recaptchaResponse = grecaptcha.getResponse();
+            if (!recaptchaResponse || recaptchaResponse.length === 0) {
+                showAlert("Please complete the reCAPTCHA.", true);
                 return;
             }
 

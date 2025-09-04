@@ -16,8 +16,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (signupForm) {
         signupForm.addEventListener("submit", function(e) {
             e.preventDefault();
-                
+
             if (!validateSignUpForm()) {
+                return;
+            }
+
+            // Check reCAPTCHA
+            const recaptchaResponse = grecaptcha.getResponse();
+            if (!recaptchaResponse || recaptchaResponse.length === 0) {
+                showAlert("Please complete the reCAPTCHA.", true);
                 return;
             }
 

@@ -12,23 +12,53 @@ if (!$connect) {
 $alertMessage = '';
 $response = ['success' => false, 'message' => ''];
 
-// Get all orders in the month
+// Get all orders in the month (exclude Pending and Cancelled)
 $orderQuery = "SELECT o.OrderID, od.ProductID, od.OrderUnitQuantity, od.OrderUnitPrice, p.MarkupPercentage
                FROM ordertb o
                JOIN orderdetailtb od ON o.OrderID = od.OrderID
                JOIN producttb p ON od.ProductID = p.ProductID
-               WHERE o.Status = 'Confirmed'"; // Only confirmed orders
+               WHERE o.Status NOT IN ('Pending', 'Cancelled')";
 
 $orderResult = $connect->query($orderQuery);
 
 $totalProfit = 0;
+$uniqueProductsSold = [];
 
-if ($orderResult->num_rows > 0) {
+if ($orderResult && $orderResult->num_rows > 0) {
     while ($row = $orderResult->fetch_assoc()) {
+        // Calculate profit for each product in confirmed orders
         $profitPerUnit = $row['OrderUnitPrice'] * ($row['MarkupPercentage'] / 100);
         $totalProfit += $profitPerUnit * $row['OrderUnitQuantity'];
+
+        // Track unique sold products
+        $uniqueProductsSold[$row['ProductID']] = true;
     }
 }
+
+// Count of unique products sold
+$markupProductCount = count($uniqueProductsSold);
+
+// Total available products
+$allProductQuery = "SELECT COUNT(*) AS totalProducts FROM producttb";
+$allProductResult = $connect->query($allProductQuery);
+$allProductRow = $allProductResult ? $allProductResult->fetch_assoc() : ['totalProducts' => 0];
+$allProductCount = $allProductRow['totalProducts'];
+
+// Calculate real Average Markup
+$markupQuery = "SELECT MarkupPercentage FROM producttb WHERE isActive = 1";
+$markupResult = $connect->query($markupQuery);
+
+$markupSum = 0;
+$markupCount = 0;
+
+if ($markupResult && $markupResult->num_rows > 0) {
+    while ($row = $markupResult->fetch_assoc()) {
+        $markupSum += $row['MarkupPercentage'];
+        $markupCount++;
+    }
+}
+
+$averageMarkup = ($markupCount > 0) ? round($markupSum / $markupCount, 2) : 0;
 ?>
 
 <!DOCTYPE html>
@@ -61,7 +91,9 @@ if ($orderResult->num_rows > 0) {
             <div class="overflow-x-auto">
                 <!-- Pricing Search and Filter -->
                 <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
-                    <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Products <span class="text-gray-400 text-sm ml-2"><?php echo $productCount ?></span></h1>
+                    <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Products
+                        <span class="text-gray-400 text-sm ml-2"><?php echo isset($productCount) ? $productCount : 0; ?></span>
+                    </h1>
                     <div class="flex items-center w-full">
                         <input type="text" name="product_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full outline-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" placeholder="Search for product..." value="<?php echo isset($_GET['product_search']) ? htmlspecialchars($_GET['product_search']) : ''; ?>">
                         <div class="flex items-center">
@@ -79,13 +111,10 @@ if ($orderResult->num_rows > 0) {
                                     $count = $query->num_rows;
 
                                     if ($count) {
-                                        for ($i = 0; $i < $count; $i++) {
-                                            $row = $query->fetch_assoc();
+                                        while ($row = $query->fetch_assoc()) {
                                             $producttype_id = $row['ProductTypeID'];
                                             $producttype = $row['ProductType'];
-                                            // Make sure to use the same variable name as in your query ($filterProductID)
                                             $selected = (isset($_GET['sort']) && $_GET['sort'] == $producttype_id) ? 'selected' : '';
-
                                             echo "<option value='$producttype_id' $selected>$producttype</option>";
                                         }
                                     } else {
@@ -105,7 +134,9 @@ if ($orderResult->num_rows > 0) {
                             <h3 class="text-blue-800 font-semibold">Average Markup</h3>
                             <i class="ri-line-chart-line text-blue-500 text-xl"></i>
                         </div>
-                        <p class="text-2xl font-bold text-blue-900">35%</p>
+                        <p class="text-2xl font-bold text-blue-900">
+                            <?php echo $averageMarkup; ?>%
+                        </p>
                         <p class="text-sm text-blue-600">Across all products</p>
                     </div>
 
@@ -114,7 +145,9 @@ if ($orderResult->num_rows > 0) {
                             <h3 class="text-green-800 font-semibold">Profit Potential</h3>
                             <i class="ri-money-dollar-circle-line text-green-500 text-xl"></i>
                         </div>
-                        <p class="text-2xl font-bold text-green-900">$<?= htmlspecialchars(number_format($totalProfit, 2)) ?></p>
+                        <p class="text-2xl font-bold text-green-900">
+                            $<?php echo number_format((float)$totalProfit, 2); ?>
+                        </p>
                         <p class="text-sm text-green-600">Monthly estimate</p>
                     </div>
 
@@ -123,8 +156,17 @@ if ($orderResult->num_rows > 0) {
                             <h3 class="text-purple-800 font-semibold">Products Priced</h3>
                             <i class="ri-checkbox-circle-line text-purple-500 text-xl"></i>
                         </div>
-                        <p class="text-2xl font-bold text-purple-900"><?php echo $markupProductCount ?>/<?php echo $allProductCount ?></p>
-                        <p class="text-sm text-purple-600">84% completed</p>
+                        <p class="text-2xl font-bold text-purple-900">
+                            <?php echo $markupProductCount ?>/<?php echo $allProductCount ?>
+                        </p>
+                        <p class="text-sm text-purple-600">
+                            <?php
+                            $completionPercentage = ($allProductCount > 0)
+                                ? round(($markupProductCount / $allProductCount) * 100, 2)
+                                : 0;
+                            echo $completionPercentage . "% completed";
+                            ?>
+                        </p>
                     </div>
                 </div>
 
