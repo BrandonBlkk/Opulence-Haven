@@ -94,11 +94,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     <!-- Add the following line to include Remix Icon -->
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-    <script>
-        function enableSubmit() {
-            document.getElementById("signup").disabled = false;
-        }
-    </script>
 </head>
 
 <body class="flex justify-center items-center min-h-screen min-w-[380px]">
@@ -177,8 +172,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                 <!-- reCAPTCHA -->
                 <div class="flex justify-center">
                     <div class="g-recaptcha transform scale-75 md:scale-100"
-                        data-sitekey="<?php echo $_ENV["RECAPTCHA_SITE_KEY"]; ?>"
-                        data-callback="enableSubmit"></div>
+                        data-sitekey="<?php echo $_ENV["RECAPTCHA_SITE_KEY"]; ?>">
+                    </div>
                 </div>
 
                 <input type="hidden" name="signup" value="1">

@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const emailInput = document.getElementById("emailInput");
     const passwordInput = document.getElementById("passwordInput");
     const phoneInput = document.getElementById("phone");
-    const recaptchaContainer = document.getElementById("recaptcha-container");
 
     if (usernameInput) usernameInput.addEventListener("keyup", validateUsername);
     if (emailInput) emailInput.addEventListener("keyup", validateEmail);
@@ -21,14 +20,14 @@ document.addEventListener("DOMContentLoaded", () => {
         signupForm.addEventListener("submit", function (e) {
             e.preventDefault();
 
+            if (!validateSignUpForm()) {
+                return;
+            } 
+
             // Check reCAPTCHA
             const recaptchaResponse = grecaptcha.getResponse();
             if (!recaptchaResponse || recaptchaResponse.length === 0) {
                 showAlert("Please complete the reCAPTCHA.", true);
-                return;
-            }
-
-            if (!validateSignUpForm()) {
                 return;
             }
 

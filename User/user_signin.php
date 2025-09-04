@@ -17,7 +17,6 @@ $client->setRedirectUri($_ENV['GOOGLE_REDIRECT_URI']);
 $client->addScope('email');
 $client->addScope('profile');
 
-
 $url = $client->createAuthUrl();
 
 // Handle Google OAuth Callback

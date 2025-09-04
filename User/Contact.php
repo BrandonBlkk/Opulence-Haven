@@ -3,6 +3,11 @@ session_start();
 require_once('../config/db_connection.php');
 include_once('../includes/auto_id_func.php');
 
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../config');
+$dotenv->load();
+
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
@@ -70,6 +75,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['contactSubmit'])) {
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../CSS/output.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="../CSS/input.css?v=<?php echo time(); ?>">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 
 <body class="relative min-w-[380px]">
@@ -171,14 +177,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['contactSubmit'])) {
 
                     <!-- reCAPTCHA -->
                     <div class="flex justify-center">
-                        <div
-                            class="g-recaptcha transform scale-75 md:scale-100"
-                            data-sitekey="6LcE3G0pAAAAAE1GU9UXBq0POWnQ_1AMwyldy8lX">
-                        </div>
+                        <div class="g-recaptcha transform scale-75 md:scale-100"
+                            data-sitekey="<?php echo $_ENV["RECAPTCHA_SITE_KEY"]; ?>"></div>
                     </div>
-
-                    <!-- Include reCAPTCHA Script -->
-                    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
                     <!-- Signin Button -->
                     <input
