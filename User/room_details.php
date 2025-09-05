@@ -2007,17 +2007,6 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                 behavior: 'smooth'
             });
         }
-
-        function closeModal() {
-            document.getElementById('loginModal').classList.add('hidden');
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('loginModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
     </script>
 
     <script src="//unpkg.com/alpinejs" defer></script>

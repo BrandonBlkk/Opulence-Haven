@@ -199,28 +199,3 @@ if ($productReviewSelectQuery->num_rows > 0) {
     echo "<p class='text-center text-gray-500 my-20'>No reviews available for this product.</p>";
 }
 ?>
-
-<!-- <script>
-    // Review edit
-    document.addEventListener('DOMContentLoaded', function() {
-        // Toggle edit form
-        document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                let reviewId = this.getAttribute('data-review-id');
-                let comment = this.getAttribute('data-comment');
-                let form = document.querySelector(`.edit-form[data-review-id="${reviewId}"]`);
-                form.querySelector('textarea').value = comment;
-                form.classList.remove('hidden');
-                document.querySelector('.review').classList.add('hidden');
-            });
-        });
-
-        // Cancel edit
-        document.querySelectorAll('.cancel-edit').forEach(btn => {
-            btn.addEventListener('click', function() {
-                this.closest('.edit-form').classList.add('hidden');
-                document.querySelector('.review').classList.remove('hidden');
-            });
-        });
-    });
-</script> -->

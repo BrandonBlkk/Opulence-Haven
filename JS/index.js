@@ -477,6 +477,101 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+    const forms = document.querySelectorAll('.roomtype-reaction-form');
+    const loginModal = document.getElementById('loginModal');
+    const rooomReview = document.getElementById('rooomReview');
+    const darkOverlay2 = document.getElementById('darkOverlay2');
+
+    if (!forms.length) return;
+
+    forms.forEach(form => {
+        const reviewID = form.querySelector('input[name="review_id"]').value;
+        const roomTypeID = form.querySelector('input[name="roomTypeID"]').value;
+        const checkin_date = form.querySelector('input[name="checkin_date"]').value;
+        const checkout_date = form.querySelector('input[name="checkout_date"]').value;
+        const adults = form.querySelector('input[name="adults"]').value;
+        const children = form.querySelector('input[name="children"]').value;
+
+        const likeBtn = form.querySelector('.like-btn');
+        const dislikeBtn = form.querySelector('.dislike-btn');
+        const likeIcon = likeBtn.querySelector('i');
+        const dislikeIcon = dislikeBtn.querySelector('i');
+        const likeCountSpan = likeBtn.querySelector('.like-count');
+        const dislikeCountSpan = dislikeBtn.querySelector('.dislike-count');
+
+        likeBtn.addEventListener('click', () => sendReaction('like'));
+        dislikeBtn.addEventListener('click', () => sendReaction('dislike'));
+
+        function sendReaction(type) {
+            const body = new URLSearchParams({
+                review_id: reviewID,
+                roomTypeID: roomTypeID,
+                checkin_date: checkin_date,
+                checkout_date: checkout_date,
+                adults: adults,
+                children: children,
+                reaction_type: type
+            });
+
+            fetch('reaction_handler.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString()
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'not_logged_in') {
+                    if (loginModal && darkOverlay2) {
+                        loginModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        darkOverlay2.classList.remove('opacity-0', 'invisible');
+                        darkOverlay2.classList.add('opacity-100');
+                        rooomReview.style.top = '100%';
+
+                        const closeLoginModal = document.getElementById('closeLoginModal');
+                        if (closeLoginModal) {
+                            closeLoginModal.addEventListener('click', function() {
+                                loginModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                                darkOverlay2.classList.add('opacity-0', 'invisible');
+                                darkOverlay2.classList.remove('opacity-100');
+                            });
+                        }
+                    }
+                    return;
+                }
+
+                if (data.success) {
+                    likeCountSpan.textContent = data.likeCount;
+                    dislikeCountSpan.textContent = data.dislikeCount;
+
+                    if (type === 'like') {
+                        if (likeIcon.classList.contains('ri-thumb-up-fill')) {
+                            likeIcon.classList.replace('ri-thumb-up-fill', 'ri-thumb-up-line');
+                            likeBtn.classList.remove('text-gray-500');
+                        } else {
+                            likeIcon.classList.replace('ri-thumb-up-line', 'ri-thumb-up-fill');
+                            likeBtn.classList.add('text-gray-500');
+                            dislikeIcon.classList.replace('ri-thumb-down-fill', 'ri-thumb-down-line');
+                            dislikeBtn.classList.remove('text-gray-500');
+                        }
+                    } else {
+                        if (dislikeIcon.classList.contains('ri-thumb-down-fill')) {
+                            dislikeIcon.classList.replace('ri-thumb-down-fill', 'ri-thumb-down-line');
+                            dislikeBtn.classList.remove('text-gray-500');
+                        } else {
+                            dislikeIcon.classList.replace('ri-thumb-down-line', 'ri-thumb-down-fill');
+                            dislikeBtn.classList.add('text-gray-500');
+                            likeIcon.classList.replace('ri-thumb-up-fill', 'ri-thumb-up-line');
+                            likeBtn.classList.remove('text-gray-500');
+                        }
+                    }
+                }
+            })
+            .catch(err => console.error(err));
+        }
+    });
+});
+
 // Dining Reservation Modal
 const diningBtn = document.getElementById('diningBtn');
 if (diningBtn) {

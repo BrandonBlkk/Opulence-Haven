@@ -132,23 +132,6 @@ $foundProperties = count($available_rooms);
     include('../includes/login_request.php');
     ?>
 
-    <script>
-        function closeModal() {
-            document.getElementById('loginModal').classList.add('hidden');
-            // Remove the favorite POST parameter from URL if page was refreshed
-            if (window.history.replaceState) {
-                window.history.replaceState(null, null, window.location.pathname);
-            }
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('loginModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
-    </script>
-
     <main class="pb-4">
         <div class="relative swiper-container flex justify-center">
             <!-- Desktop Form (shown on lg screens and up) -->
