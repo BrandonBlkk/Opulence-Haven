@@ -461,30 +461,31 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                         <?php
                         $check = "SELECT * FROM productfavoritetb 
                         WHERE ProductID = '$product_id'
-                        And UserID = '$session_userID'";
+                        AND UserID = '$session_userID'";
 
                         $check_query = $connect->query($check);
                         $rowCount = $check_query->num_rows;
 
                         $buttonHtml = $rowCount > 0
                             ? '
-                             <button name="removefromfavorites" class="bg-slate-100 p-2 rounded-md hover:bg-slate-200 transition-colors duration-200 relative group">
-                                <i class="ri-heart-fill text-xl text-amber-500"></i>
-                                <!-- Tooltip -->
-                                <span class="absolute top-12 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                    Add to Favorites
-                                </span>
-                            </button>
-                            '
+                    <button type="button" class="favorite-btn bg-slate-100 p-2 rounded-md hover:bg-slate-200 transition-colors duration-200 relative group" 
+                        data-product-id="' . $product_id . '" data-action="remove">
+                        <i class="ri-heart-fill text-xl text-amber-500"></i>
+                        <span class="absolute top-12 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            Remove from Favorites
+                        </span>
+                    </button>
+                    '
                             : '
-                             <button name="addtofavorites" class="bg-slate-100 p-2 rounded-md hover:bg-slate-200 transition-colors duration-200 relative group">
-                                <i class="ri-heart-line text-xl text-gray-400"></i>
-                                <!-- Tooltip -->
-                                <span class="absolute top-12 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                    Add to Favorites
-                                </span>
-                            </button>
-                            ';
+                    <button type="button" class="favorite-btn bg-slate-100 p-2 rounded-md hover:bg-slate-200 transition-colors duration-200 relative group" 
+                        data-product-id="' . $product_id . '" data-action="add">
+                        <i class="ri-heart-line text-xl text-gray-400"></i>
+                        <span class="absolute top-12 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            Add to Favorites
+                        </span>
+                    </button>
+                    ';
+
                         echo $buttonHtml;
                         ?>
                     </div>

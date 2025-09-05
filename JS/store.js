@@ -106,6 +106,52 @@ if (storeMenubar && storeDarkOverlay && closeBtn && aside && darkOverlay) {
     });
 }
 
+// Favorite handler
+document.addEventListener('DOMContentLoaded', () => {
+    const favoriteButtons = document.querySelectorAll('.favorite-btn');
+    const loginModal = document.getElementById('loginModal');
+    const darkOverlay2 = document.getElementById('darkOverlay2');
+
+    favoriteButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const productID = button.getAttribute('data-product-id');
+            const action = button.getAttribute('data-action');
+
+            fetch('../Store/favorite_handler.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `product_id=${productID}&action=${action}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'not_logged_in') {
+                    if (loginModal && darkOverlay2) {
+                        loginModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        darkOverlay2.classList.remove('opacity-0', 'invisible');
+                        darkOverlay2.classList.add('opacity-100');
+                    }
+                    return;
+                }
+
+                if (data.success) {
+                    const icon = button.querySelector('i');
+                    const tooltip = button.querySelector('span');
+
+                    if (data.action === 'added') {
+                        button.setAttribute('data-action', 'remove');
+                    } else if (data.action === 'removed') {
+                        button.setAttribute('data-action', 'add');
+                    }
+
+                    if (icon) icon.className = `ri-heart${data.action === 'added' ? '-fill text-xl text-amber-500' : '-line text-xl text-gray-400'}`;
+                    if (tooltip) tooltip.textContent = data.tooltip;
+                }
+            })
+            .catch(err => console.error(err));
+        });
+    });
+});
+
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById('addToBagForm');
     const sizeDropdown = document.getElementById('size');
