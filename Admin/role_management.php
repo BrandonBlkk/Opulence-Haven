@@ -16,23 +16,34 @@ use PHPMailer\PHPMailer\Exception;
 date_default_timezone_set('Asia/Yangon');
 
 $alertMessage = '';
-$addRoleSuccess = false;
 $deleteAdminSuccess = false;
 $resetAdminPasswordSuccess = false;
 $response = ['success' => false, 'message' => ''];
 
+// Add Role
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addrole'])) {
     $role = mysqli_real_escape_string($connect, $_POST['role']);
     $description = mysqli_real_escape_string($connect, $_POST['description']);
 
-    $addRoleQuery = "INSERT INTO roletb (Role, Description)
-    VALUES ('$role', '$description')";
-
-    if ($connect->query($addRoleQuery)) {
-        $addRoleSuccess = true;
+    // Check if the product type already exists using prepared statement
+    $checkQuery = "SELECT Role FROM roletb WHERE Role = '$role'";
+    $checkResult = $connect->query($checkQuery);
+    if ($checkResult->num_rows > 0) {
+        $response['message'] = "Role you added is already existed.";
     } else {
-        $alertMessage = "Failed to add product type. Please try again.";
+        $addRoleQuery = "INSERT INTO roletb (Role, Description)
+        VALUES ('$role', '$description')";
+
+        if ($connect->query($addRoleQuery)) {
+            $response['success'] = true;
+        } else {
+            $response['message'] = "Failed to add product type. Please try again.";
+        }
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Get Admin Details

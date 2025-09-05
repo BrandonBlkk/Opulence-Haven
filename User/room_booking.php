@@ -106,39 +106,6 @@ $stmt->execute();
 $result = $stmt->get_result();
 $available_rooms = $result->fetch_all(MYSQLI_ASSOC);
 $foundProperties = count($available_rooms);
-
-// Add room to favorites
-if (isset($_POST['room_favourite'])) {
-    if ($userID) {
-        $roomTypeID = $_POST['roomTypeID'];
-
-        // Get search parameters from POST data (they should be included in the form submission)
-        $checkin_date = isset($_POST['checkin_date']) ? $_POST['checkin_date'] : '';
-        $checkout_date = isset($_POST['checkout_date']) ? $_POST['checkout_date'] : '';
-        $adults = isset($_POST['adults']) ? intval($_POST['adults']) : 1;
-        $children = isset($_POST['children']) ? intval($_POST['children']) : 0;
-
-        $check = "SELECT COUNT(*) as count FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
-        $result = $connect->query($check);
-        $count = $result->fetch_assoc()['count'];
-
-        if ($count == 0) {
-            $insert = "INSERT INTO roomtypefavoritetb (UserID, RoomTypeID, CheckInDate, CheckOutDate, Adult, Children) 
-                      VALUES ('$userID', '$roomTypeID', '$checkin_date', '$checkout_date', '$adults', '$children')";
-            $connect->query($insert);
-        } else {
-            $delete = "DELETE FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'";
-            $connect->query($delete);
-        }
-
-        // Redirect back with the same search parameters
-        $redirect_url = "room_booking.php?checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children";
-        header("Location: $redirect_url");
-        exit();
-    } else {
-        $showLoginModal = true;
-    }
-}
 ?>
 
 <!DOCTYPE html>
