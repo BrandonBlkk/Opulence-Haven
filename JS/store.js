@@ -874,6 +874,134 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeReviewEventListeners();
 });
 
+// Review toggle edit form
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle edit form
+    const editBtns = document.querySelectorAll('.edit-btn');
+    if (editBtns.length) {
+        editBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const reviewId = this.getAttribute('data-review-id');
+                const comment = this.getAttribute('data-comment');
+                const form = document.querySelector(`.edit-form[data-review-id="${reviewId}"]`);
+                if (!form) return;
+
+                const textarea = form.querySelector('textarea');
+                if (textarea) textarea.value = comment;
+
+                form.classList.remove('hidden');
+
+                // Hide all reviews if they exist
+                document.querySelectorAll('.review').forEach(review => review.classList.add('hidden'));
+            });
+        });
+    }
+
+    // Cancel edit
+    const cancelBtns = document.querySelectorAll('.cancel-edit');
+    if (cancelBtns.length) {
+        cancelBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const editForm = this.closest('.edit-form');
+                if (editForm) editForm.classList.add('hidden');
+
+                // Show all reviews
+                document.querySelectorAll('.review').forEach(review => review.classList.remove('hidden'));
+            });
+        });
+    }
+});
+
+// Reaction handler
+document.addEventListener('DOMContentLoaded', () => {
+    const forms = document.querySelectorAll('.reaction-form');
+    const loginModal = document.getElementById('loginModal');
+    const darkOverlay2 = document.getElementById('darkOverlay2');
+
+    if (!forms.length) return; // no reaction forms, do nothing
+
+    forms.forEach(form => {
+        const reviewIDInput = form.querySelector('input[name="review_id"]');
+        const productIDInput = form.querySelector('input[name="product_id"]');
+        const likeBtn = form.querySelector('.like-btn');
+        const dislikeBtn = form.querySelector('.dislike-btn');
+
+        if (!reviewIDInput || !productIDInput || !likeBtn || !dislikeBtn) return;
+
+        const reviewID = reviewIDInput.value;
+        const productID = productIDInput.value;
+        const likeIcon = likeBtn.querySelector('i');
+        const dislikeIcon = dislikeBtn.querySelector('i');
+        const likeCountSpan = likeBtn.querySelector('.like-count');
+        const dislikeCountSpan = dislikeBtn.querySelector('.dislike-count');
+
+        likeBtn.addEventListener('click', () => sendReaction('like'));
+        dislikeBtn.addEventListener('click', () => sendReaction('dislike'));
+
+        function sendReaction(type) {
+            fetch('reaction_handler.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `review_id=${reviewID}&product_id=${productID}&reaction_type=${type}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'not_logged_in') {
+                    if (loginModal && darkOverlay2) {
+                        loginModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                        darkOverlay2.classList.remove('opacity-0', 'invisible');
+                        darkOverlay2.classList.add('opacity-100');
+
+                        const closeLoginModal = document.getElementById('closeLoginModal');
+                        if (closeLoginModal) {
+                            closeLoginModal.addEventListener('click', function() {
+                                loginModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                                darkOverlay2.classList.add('opacity-0', 'invisible');
+                                darkOverlay2.classList.remove('opacity-100');
+                            });
+                        }
+                    }
+                    return;
+                }
+
+                if (data.success) {
+                    // Update counts
+                    likeCountSpan.textContent = data.likeCount;
+                    dislikeCountSpan.textContent = data.dislikeCount;
+
+                    // Update icon fill/unfill
+                    if (type === 'like') {
+                        if (likeIcon.classList.contains('ri-thumb-up-fill')) {
+                            likeIcon.classList.replace('ri-thumb-up-fill', 'ri-thumb-up-line');
+                            likeBtn.classList.remove('text-gray-500');
+                        } else {
+                            likeIcon.classList.replace('ri-thumb-up-line', 'ri-thumb-up-fill');
+                            likeBtn.classList.add('text-gray-500');
+                            // Remove dislike if previously filled
+                            dislikeIcon.classList.replace('ri-thumb-down-fill', 'ri-thumb-down-line');
+                            dislikeBtn.classList.remove('text-gray-500');
+                        }
+                    } else { // dislike
+                        if (dislikeIcon.classList.contains('ri-thumb-down-fill')) {
+                            dislikeIcon.classList.replace('ri-thumb-down-fill', 'ri-thumb-down-line');
+                            dislikeBtn.classList.remove('text-gray-500');
+                        } else {
+                            dislikeIcon.classList.replace('ri-thumb-down-line', 'ri-thumb-down-fill');
+                            dislikeBtn.classList.add('text-gray-500');
+                            // Remove like if previously filled
+                            likeIcon.classList.replace('ri-thumb-up-fill', 'ri-thumb-up-line');
+                            likeBtn.classList.remove('text-gray-500');
+                        }
+                    }
+                }
+            })
+            .catch(err => console.error(err));
+        }
+    });
+});
+
 const validateOrderForm = () => {
     const isFirstnameValid = validateFirstname();
     const isLastnameValid = validateLastname();
