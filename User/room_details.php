@@ -413,53 +413,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
     }
 }
 
-// Add/Remove room from favorites
-if (isset($_POST['room_favourite'])) {
-    // Initialize response
-    $res = ['status' => '', 'error' => ''];
-
-    if (isset($_SESSION['UserID']) && $_SESSION['UserID']) {
-        $userID = $_SESSION['UserID'];
-        $roomTypeID = $connect->real_escape_string($_POST['roomTypeID']);
-        $checkin_date = isset($_POST['checkin_date']) ? $connect->real_escape_string($_POST['checkin_date']) : '';
-        $checkout_date = isset($_POST['checkout_date']) ? $connect->real_escape_string($_POST['checkout_date']) : '';
-        $adults = isset($_POST['adults']) ? intval($_POST['adults']) : 1;
-        $children = isset($_POST['children']) ? intval($_POST['children']) : 0;
-
-        // Check if already favorited
-        $check = $connect->query("SELECT COUNT(*) as count FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'");
-
-        if ($check && $row = $check->fetch_assoc()) {
-            if ($row['count'] == 0) {
-                // Add to favorites
-                $insert = $connect->query("INSERT INTO roomtypefavoritetb (UserID, RoomTypeID, CheckInDate, CheckOutDate, Adult, Children) 
-                                          VALUES ('$userID', '$roomTypeID', '$checkin_date', '$checkout_date', '$adults', '$children')");
-                if ($insert) {
-                    $res['status'] = 'added';
-                } else {
-                    $res['error'] = 'Insert failed: ' . $connect->error;
-                }
-            } else {
-                // Remove from favorites
-                $delete = $connect->query("DELETE FROM roomtypefavoritetb WHERE UserID = '$userID' AND RoomTypeID = '$roomTypeID'");
-                if ($delete) {
-                    $res['status'] = 'removed';
-                } else {
-                    $res['error'] = 'Delete failed: ' . $connect->error;
-                }
-            }
-        } else {
-            $res['error'] = 'Failed to check favorite status';
-        }
-    } else {
-        $res['status'] = 'not_logged_in';
-    }
-
-    header('Content-Type: application/json');
-    echo json_encode($res);
-    exit();
-}
-
 // Get average rating
 $review_select = "SELECT Rating FROM roomtypereviewtb WHERE RoomTypeID = '$roomtype[RoomTypeID]'";
 $select_query = $connect->query($review_select);
@@ -1048,7 +1001,7 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                                         heartIcon.classList.add('animate-bounce');
                                         favoriteBtn.disabled = true;
 
-                                        fetch('../User/room_details.php', {
+                                        fetch('../User/favorite_handler.php', {
                                                 method: 'POST',
                                                 body: formData,
                                                 headers: {
