@@ -33,32 +33,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const formData = new FormData(this);
 
-            fetch('../User/user_signup.php', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
-                .then(response => {
+            const handleSignup = async () => {
+                try {
+                    const response = await fetch('../User/user_signup.php', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
                     }
-                    return response.json();
-                })
-                .then(data => {
+
+                    const data = await response.json();
+
                     if (data.success) {
                         if (loader) loader.style.display = 'flex';
 
-                        fetch('../Mail/send_welcome_email.php', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            }
-                        })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
+                        const sendWelcomeEmail = async () => {
+                            try {
+                                const emailResponse = await fetch('../Mail/send_welcome_email.php', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    }
+                                });
+
+                                if (!emailResponse.ok) {
+                                    throw new Error('Network response was not ok');
+                                }
+
+                                const emailData = await emailResponse.json();
+
+                                if (emailData.success) {
                                     setTimeout(() => {
                                         if (loader) loader.style.display = 'none';
                                         window.location.href = '../User/home_page.php';
@@ -70,23 +79,29 @@ document.addEventListener("DOMContentLoaded", () => {
                                         window.location.href = '../User/home_page.php';
                                     }, 3000);
                                 }
-                            })
-                            .catch(error => {
+                            } catch (error) {
                                 if (loader) loader.style.display = 'none';
                                 showAlert('Account created but failed to send welcome email. Please contact support.', true);
                                 setTimeout(() => {
                                     window.location.href = '../User/home_page.php';
                                 }, 3000);
-                            });
+                            }
+                        };
+
+                        await sendWelcomeEmail();
                     } else {
                         showAlert(data.message || 'Sign-up failed. Please try again.', true);
                     }
-                })
-                .catch(error => {
+
+                } catch (error) {
+                    // Hide loader on error
                     if (loader) loader.style.display = 'none';
                     showAlert('An error occurred. Please try again.', true);
                     console.error('Error:', error);
-                });
+                }
+            };
+
+            handleSignup();
         });
     }
 });
@@ -109,39 +124,43 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const formData = new FormData(this);
-            
-            fetch('../User/user_signin.php', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Accept': 'application/json'
+
+            const handleSignin = async () => {
+                try {
+                    const response = await fetch('../User/user_signin.php', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Successful sign-in
+                        if (loader) loader.style.display = 'flex';
+                        window.location.href = '../User/home_page.php';
+                    } else if (data.locked) {
+                        // Account locked
+                        window.location.href = '../User/waiting_room.php';
+                    } else {
+                        // Show error message
+                        showAlert(data.message || 'Sign-in failed. Please try again.', true);
+                    }
+                } catch (error) {
+                    // Hide loader on error
+                    if (loader) loader.style.display = 'none';
+                    showAlert('An error occurred. Please try again.', true);
+                    console.error('Error:', error);
                 }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {                
-                if (data.success) {
-                    // Successful sign-in
-                    if (loader) loader.style.display = 'flex';
-                    window.location.href = '../User/home_page.php';
-                } else if (data.locked) {
-                    // Account locked
-                    window.location.href = '../User/waiting_room.php';
-                } else {
-                    // Show error message
-                    showAlert(data.message || 'Sign-in failed. Please try again.', true);
-                }
-            })
-            .catch(error => {
-                // Hide loader on error
-                if (loader) loader.style.display = 'none';
-                showAlert('An error occurred. Please try again.', true);
-                console.error('Error:', error);
-            });
+            }
+
+            handleSignin();
         });
     }
 });
@@ -169,34 +188,38 @@ document.addEventListener("DOMContentLoaded", () => {
             formData.append('email', email);
             formData.append('reset', 'true');
 
-            fetch('../User/forget_password.php', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Accept': 'application/json'
+            const handleForgetPassword = async () => {
+                try {
+                    const response = await fetch('../User/forget_password.php', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    
+                    const data = await response.json();
+
+                    if (data.success) {
+                        emailInput.value = '';
+                        if (loader) loader.style.display = 'none';
+                        showAlert('Password reset link has been sent to your email. The link will expire in 1 hour.');
+                    } else {
+                        if (loader) loader.style.display = 'none';
+                        showAlert(data.message || 'Invalid email address. Please try again.', true);
+                    }                    
+                } catch (error) {
+                    if (loader) loader.style.display = 'none';
+                    showAlert('An error occurred. Please try again.', true);
+                    console.error('Error:', error);
                 }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (loader) loader.style.display = 'none';
-                
-                if (data.success) {
-                    emailInput.value = '';
-                    showAlert('Password reset link has been sent to your email. The link will expire in 1 hour.');
-                } else {
-                    showAlert(data.message || 'Invalid email address. Please try again.', true);
-                }
-            })
-            .catch(error => {
-                if (loader) loader.style.display = 'none';
-                showAlert('An error occurred. Please try again.', true);
-                console.error('Error:', error);
-            });
+            }
+
+            handleForgetPassword();
         });
     }
 });
