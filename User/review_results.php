@@ -201,22 +201,22 @@ if ($totalReviews > 0) {
                         ?>
 
                         <!-- Reactions -->
-                        <form id="roomTypeReactionForm" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" class="mt-3 text-gray-400">
+                        <form method="post" class="mt-3 text-gray-400 roomtype-reaction-form">
                             <input type="hidden" name="review_id" value="<?= htmlspecialchars($roomReview['ReviewID']) ?>">
+                            <input type="hidden" name="roomTypeID" value="<?= htmlspecialchars($roomtype['RoomTypeID']) ?>">
                             <input type="hidden" name="checkin_date" value="<?= htmlspecialchars($checkin_date) ?>">
                             <input type="hidden" name="checkout_date" value="<?= htmlspecialchars($checkout_date) ?>">
                             <input type="hidden" name="adults" value="<?= htmlspecialchars($adults) ?>">
                             <input type="hidden" name="children" value="<?= htmlspecialchars($children) ?>">
-                            <input type="hidden" name="roomTypeID" value="<?= htmlspecialchars($roomtype['RoomTypeID']) ?>">
 
-                            <button type="submit" name="like" class="text-xs cursor-pointer <?= ($userReaction == 'like') ? 'text-gray-500' : '' ?>">
+                            <button type="button" class="like-btn text-xs cursor-pointer <?= ($userReaction == 'like') ? 'text-gray-500' : '' ?>">
                                 <i class="ri-thumb-up-<?= ($userReaction == 'like') ? 'fill' : 'line' ?> text-sm"></i>
-                                <span><?= $likeCount ?></span> Like
+                                <span class="like-count"><?= $likeCount ?></span> Like
                             </button>
 
-                            <button type="submit" name="dislike" class="text-xs cursor-pointer <?= ($userReaction == 'dislike') ? 'text-gray-500' : '' ?>">
+                            <button type="button" class="dislike-btn text-xs cursor-pointer <?= ($userReaction == 'dislike') ? 'text-gray-500' : '' ?>">
                                 <i class="ri-thumb-down-<?= ($userReaction == 'dislike') ? 'fill' : 'line' ?> text-sm"></i>
-                                <span><?= $dislikeCount ?></span> Dislike
+                                <span class="dislike-count"><?= $dislikeCount ?></span> Dislike
                             </button>
                         </form>
                     </div>

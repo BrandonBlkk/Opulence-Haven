@@ -14,16 +14,17 @@
                     <!-- Image Section - Full width on mobile, 28% on desktop -->
                     <div class="w-full md:w-[28%] h-48 sm:h-56 md:h-[261px] overflow-hidden select-none rounded-t-md md:rounded-l-md md:rounded-tr-none relative">
                         <img src="../Admin/<?= htmlspecialchars($roomtype['RoomCoverImage']) ?>" alt="<?= htmlspecialchars($roomtype['RoomType']) ?>" class="w-full h-full object-cover">
-                        <form method="post" id="favoriteForm">
+                        <!-- Change IDs to classes for repeated elements -->
+                        <form method="post" class="favoriteForm">
                             <input type="hidden" name="checkin_date" value="<?= $checkin_date ?>">
                             <input type="hidden" name="checkout_date" value="<?= $checkout_date ?>">
                             <input type="hidden" name="adults" value="<?= $adults ?>">
                             <input type="hidden" name="children" value="<?= $children ?>">
                             <input type="hidden" name="roomTypeID" value="<?= $roomtype['RoomTypeID'] ?>">
                             <input type="hidden" name="room_favourite" value="1">
-                            <button type="submit" name="room_favourite" id="favoriteBtn" class="focus:outline-none">
-                                <i id="heartIcon" class="absolute top-3 right-3 ri-heart-fill text-xl cursor-pointer flex items-center justify-center bg-white w-9 h-9 rounded-full hover:bg-slate-100 transition-colors duration-300 <?= $is_favorited ? 'text-red-500 hover:text-red-600' : 'text-slate-400 hover:text-red-300' ?>"></i>
-                                <span id="heartParticles" class="absolute inset-0 overflow-hidden pointer-events-none"></span>
+                            <button type="submit" name="room_favourite" class="favoriteBtn focus:outline-none">
+                                <i class="heartIcon absolute top-3 right-3 ri-heart-fill text-xl cursor-pointer flex items-center justify-center bg-white w-9 h-9 rounded-full hover:bg-slate-100 transition-colors duration-300 <?= $is_favorited ? 'text-red-500 hover:text-red-600' : 'text-slate-400 hover:text-red-300' ?>"></i>
+                                <span class="heartParticles absolute inset-0 overflow-hidden pointer-events-none"></span>
                             </button>
                         </form>
                     </div>
@@ -139,154 +140,6 @@
         </div>
     </div>
 <?php endif; ?>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const favoriteForm = document.getElementById('favoriteForm');
-        const favoriteBtn = document.getElementById('favoriteBtn');
-        const heartIcon = document.getElementById('heartIcon');
-        const heartParticles = document.getElementById('heartParticles');
-        const loginModal = document.getElementById('loginModal');
-
-        // Array of possible sparkle colors
-        const sparkleColors = [
-            'bg-amber-500',
-            'bg-red-500',
-            'bg-pink-500',
-            'bg-yellow-400',
-            'bg-white',
-            'bg-blue-300'
-        ];
-
-        if (favoriteForm) {
-            favoriteForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                const formData = new FormData(this);
-                const wasFavorited = heartIcon.classList.contains('text-red-500');
-
-                // Add loading state with bounce effect
-                heartIcon.classList.add('animate-bounce');
-                favoriteBtn.disabled = true;
-
-                fetch('../User/favorite_handler.php', {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'Accept': 'application/json'
-                        }
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.status === 'added') {
-                            // Success animation for adding
-                            heartIcon.classList.remove('text-slate-400', 'hover:text-red-300');
-                            heartIcon.classList.add('text-red-500', 'hover:text-red-600');
-                            animateHeartChange(true, wasFavorited);
-                            createSparkleEffect(); // Add sparkle effect only when adding to favorites
-                        } else if (data.status === 'removed') {
-                            // Success animation for removing
-                            heartIcon.classList.remove('text-red-500', 'hover:text-red-600');
-                            heartIcon.classList.add('text-slate-400', 'hover:text-red-300');
-                            animateHeartChange(false, wasFavorited);
-                        } else if (data.status === 'not_logged_in') {
-                            loginModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-
-                            const darkOverlay2 = document.getElementById('darkOverlay2');
-                            darkOverlay2.classList.remove('opacity-0', 'invisible');
-                            darkOverlay2.classList.add('opacity-100');
-
-                            const closeLoginModal = document.getElementById('closeLoginModal');
-                            closeLoginModal.addEventListener('click', function() {
-                                loginModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-                                darkOverlay2.classList.add('opacity-0', 'invisible');
-                                darkOverlay2.classList.remove('opacity-100');
-                            })
-                        } else if (data.error) {
-                            console.error('Error:', data.error);
-                            // Revert visual state if error occurred
-                            revertHeartState(wasFavorited);
-                            alert('An error occurred: ' + data.error);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        // Revert visual state if error occurred
-                        revertHeartState(wasFavorited);
-                        alert('An error occurred. Please try again.');
-                    })
-                    .finally(() => {
-                        // Remove loading state after animation completes
-                        setTimeout(() => {
-                            heartIcon.classList.remove('animate-bounce');
-                            favoriteBtn.disabled = false;
-                        }, 500);
-                    });
-            });
-        }
-
-        function animateHeartChange(isNowFavorited, wasFavorited) {
-            // Skip animation if state didn't actually change (shouldn't happen)
-            if (isNowFavorited === wasFavorited) return;
-        }
-
-        function revertHeartState(wasFavorited) {
-            if (wasFavorited) {
-                heartIcon.classList.add('text-red-500', 'hover:text-red-600');
-                heartIcon.classList.remove('text-slate-400', 'hover:text-red-300');
-            } else {
-                heartIcon.classList.add('text-slate-400', 'hover:text-red-300');
-                heartIcon.classList.remove('text-red-500', 'hover:text-red-600');
-            }
-        }
-
-        function createSparkleEffect() {
-            // Clear previous particles
-            heartParticles.innerHTML = '';
-
-            for (let i = 0; i < 5; i++) {
-                const sparkle = document.createElement('div');
-                // Get random color from sparkleColors array
-                const randomColor = sparkleColors[Math.floor(Math.random() * sparkleColors.length)];
-                sparkle.className = `absolute w-1.5 h-1.5 ${randomColor} rounded-full opacity-0`;
-                sparkle.style.left = `${30 + Math.random() * 40}%`;
-                sparkle.style.top = `${30 + Math.random() * 40}%`;
-
-                // Animate sparkle with more dynamic movement
-                sparkle.animate([{
-                        transform: 'translate(0, 0) scale(0.5)',
-                        opacity: 0
-                    },
-                    {
-                        transform: `translate(${(Math.random() - 0.5) * 10}px, ${(Math.random() - 0.5) * 10}px) scale(1.8)`,
-                        opacity: 0.9,
-                        offset: 0.5
-                    },
-                    {
-                        transform: `translate(${(Math.random() - 0.5) * 20}px, ${(Math.random() - 0.5) * 20}px) scale(0.2)`,
-                        opacity: 0
-                    }
-                ], {
-                    duration: 1000,
-                    delay: i * 150,
-                    easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
-                });
-
-                heartParticles.appendChild(sparkle);
-
-                // Remove sparkle after animation
-                setTimeout(() => {
-                    sparkle.remove();
-                }, 1150 + i * 150);
-            }
-        }
-    });
-</script>
 
 <style>
     @keyframes bounce {

@@ -179,16 +179,16 @@ if ($productReviewSelectQuery->num_rows > 0) {
                 }
                 ?>
 
-                <form method="post" class="mt-3 text-gray-400">
+                <form method="post" class="mt-3 text-gray-400 reaction-form">
                     <input type="hidden" name="review_id" value="<?= htmlspecialchars($reviewID) ?>">
                     <input type="hidden" name="product_id" value="<?= htmlspecialchars($product_id) ?>">
-                    <button type="submit" name="like" class="text-xs cursor-pointer <?= ($userReaction == 'like') ? 'text-gray-500' : '' ?>">
+                    <button type="button" class="like-btn text-xs cursor-pointer <?= ($userReaction == 'like') ? 'text-gray-500' : '' ?>">
                         <i class="ri-thumb-up-<?= ($userReaction == 'like') ? 'fill' : 'line' ?> text-sm"></i>
-                        <span><?= $likeCount ?></span> Like
+                        <span class="like-count"><?= $likeCount ?></span> Like
                     </button>
-                    <button type="submit" name="dislike" class="text-xs cursor-pointer <?= ($userReaction == 'dislike') ? 'text-gray-500' : '' ?>">
+                    <button type="button" class="dislike-btn text-xs cursor-pointer <?= ($userReaction == 'dislike') ? 'text-gray-500' : '' ?>">
                         <i class="ri-thumb-down-<?= ($userReaction == 'dislike') ? 'fill' : 'line' ?> text-sm"></i>
-                        <span><?= $dislikeCount ?></span> Dislike
+                        <span class="dislike-count"><?= $dislikeCount ?></span> Dislike
                     </button>
                 </form>
             </div>
@@ -199,28 +199,3 @@ if ($productReviewSelectQuery->num_rows > 0) {
     echo "<p class='text-center text-gray-500 my-20'>No reviews available for this product.</p>";
 }
 ?>
-
-<script>
-    // Review edit
-    document.addEventListener('DOMContentLoaded', function() {
-        // Toggle edit form
-        document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                let reviewId = this.getAttribute('data-review-id');
-                let comment = this.getAttribute('data-comment');
-                let form = document.querySelector(`.edit-form[data-review-id="${reviewId}"]`);
-                form.querySelector('textarea').value = comment;
-                form.classList.remove('hidden');
-                document.querySelector('.review').classList.add('hidden');
-            });
-        });
-
-        // Cancel edit
-        document.querySelectorAll('.cancel-edit').forEach(btn => {
-            btn.addEventListener('click', function() {
-                this.closest('.edit-form').classList.add('hidden');
-                document.querySelector('.review').classList.remove('hidden');
-            });
-        });
-    });
-</script>
