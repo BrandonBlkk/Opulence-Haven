@@ -454,6 +454,9 @@ $foundProperties = count($available_rooms);
 
         <script>
             document.addEventListener('DOMContentLoaded', function() {
+                // Initialize favorite buttons
+                initFavoriteButtons();
+
                 // Set selected option based on current sort
                 const currentSort = new URLSearchParams(window.location.search).get('sort') || 'top_picks';
                 const sortSelect = document.getElementById('sortRooms');
@@ -479,12 +482,10 @@ $foundProperties = count($available_rooms);
                     const url = new URL(window.location.href);
                     url.searchParams.set('sort', this.value);
 
-                    // Show loading state
                     if (showLoading) {
                         showLoadingState();
                     }
 
-                    // Get the current form data
                     const availabilityForm = document.querySelector('.availability-form');
                     const formData = new URLSearchParams(new FormData(availabilityForm));
                     formData.append('sort', this.value);
@@ -514,84 +515,70 @@ $foundProperties = count($available_rooms);
                         if (showLoading) {
                             this.dataset.clicked = 'true';
                         }
-                        // Don't submit immediately for mobile, wait for Apply button
                     });
                 });
 
-                // Submit handler for desktop filter form
                 document.getElementById('filterForm').addEventListener('submit', function(e) {
                     e.preventDefault();
                     submitFilterForm(this, true);
                 });
 
-                // Submit handler for mobile filter form
                 document.getElementById('mobileFilterForm').addEventListener('submit', function(e) {
                     e.preventDefault();
-                    // For mobile form, always show loading when submitting
                     submitFilterForm(this, true);
-
-                    // Close mobile sidebar after applying filters
                     document.getElementById('mobileFilterSidebar').classList.add('-translate-x-full');
                 });
 
-                // Function to submit filter form via AJAX
                 function submitFilterForm(form, showLoading) {
                     const formData = new URLSearchParams(new FormData(form));
                     formData.append('ajax_request', '1');
 
-                    // Get the base URL from the availability form
                     const availabilityForm = document.querySelector('.availability-form');
                     const baseUrl = availabilityForm.action;
-
-                    // Combine with filter parameters
                     const fetchUrl = baseUrl + '?' + formData.toString();
 
-                    // Show loading state if requested
                     if (showLoading) {
                         showLoadingState();
                     }
 
-                    // Fetch results - pass whether we should delay or not
                     fetchResults(fetchUrl, showLoading);
                 }
 
-                // Function to show loading state
                 function showLoadingState() {
                     document.getElementById('room-results-container').innerHTML = `
-                <div class="w-full space-y-2">
-                    ${Array(3).fill().map(() => `
-                    <div class="bg-white overflow-hidden rounded-md shadow-sm border animate-pulse">
-                        <div class="flex flex-col md:flex-row">
-                            <div class="w-full md:w-[28%] h-48 sm:h-56 md:h-[261px] bg-gray-200"></div>
-                            <div class="w-full md:w-2/3 p-4 space-y-4">
-                                <div class="flex justify-between">
-                                    <div class="space-y-3 w-2/3">
-                                        <div class="h-6 bg-gray-200 rounded w-3/4"></div>
-                                        <div class="h-4 bg-gray-200 rounded w-1/2"></div>
-                                        <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-                                    </div>
-                                    <div class="space-y-1 w-1/3 text-right">
-                                        <div class="h-3 bg-gray-200 rounded ml-auto w-2/3"></div>
-                                        <div class="h-5 bg-gray-200 rounded ml-auto w-1/2"></div>
-                                    </div>
+            <div class="w-full space-y-2">
+                ${Array(3).fill().map(() => `
+                <div class="bg-white overflow-hidden rounded-md shadow-sm border animate-pulse">
+                    <div class="flex flex-col md:flex-row">
+                        <div class="w-full md:w-[28%] h-48 sm:h-56 md:h-[261px] bg-gray-200"></div>
+                        <div class="w-full md:w-2/3 p-4 space-y-4">
+                            <div class="flex justify-between">
+                                <div class="space-y-3 w-2/3">
+                                    <div class="h-6 bg-gray-200 rounded w-3/4"></div>
+                                    <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+                                    <div class="h-4 bg-gray-200 rounded w-3/4"></div>
                                 </div>
-                                <div class="space-y-2">
-                                    <div class="h-4 bg-gray-200 rounded w-full"></div>
-                                    <div class="h-4 bg-gray-200 rounded w-5/6"></div>
-                                    <div class="h-4 bg-gray-200 rounded w-4/6"></div>
+                                <div class="space-y-1 w-1/3 text-right">
+                                    <div class="h-3 bg-gray-200 rounded ml-auto w-2/3"></div>
+                                    <div class="h-5 bg-gray-200 rounded ml-auto w-1/2"></div>
                                 </div>
-                                <div class="flex flex-wrap gap-2">
-                                    ${Array(5).fill().map(() => `<div class="h-6 bg-gray-200 rounded w-16"></div>`).join('')}
-                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="h-4 bg-gray-200 rounded w-full"></div>
+                                <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+                                <div class="h-4 bg-gray-200 rounded w-4/6"></div>
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                ${Array(5).fill().map(() => `<div class="h-6 bg-gray-200 rounded w-16"></div>`).join('')}
                             </div>
                         </div>
                     </div>
-                    `).join('')}
                 </div>
-            `;
+                `).join('')}
+            </div>
+        `;
                 }
 
-                // Function to fetch and display results
                 function fetchResults(url, shouldDelay) {
                     fetch(url, {
                             method: 'GET',
@@ -601,9 +588,7 @@ $foundProperties = count($available_rooms);
                             }
                         })
                         .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
+                            if (!response.ok) throw new Error('Network response was not ok');
                             return response.text();
                         })
                         .then(data => {
@@ -611,29 +596,28 @@ $foundProperties = count($available_rooms);
                                 const tempDiv = document.createElement('div');
                                 tempDiv.innerHTML = data;
 
-                                // Update the room results container
                                 const newContent = tempDiv.querySelector('#room-results-container');
-
-                                // Extract the new count from the response
                                 const countElement = tempDiv.querySelector('#propertiesCount');
                                 const newCount = countElement ? countElement.textContent : '0 properties found';
 
                                 if (newContent) {
                                     document.getElementById('room-results-container').innerHTML = newContent.innerHTML;
-                                    // Update the properties count
                                     document.getElementById('propertiesCount').textContent = newCount;
                                     window.history.pushState({
                                         path: url.toString()
                                     }, '', url.toString());
+
+                                    // FIX: Reinitialize favorite buttons after AJAX content update
+                                    initFavoriteButtons();
                                 } else {
                                     throw new Error('Invalid response format');
                                 }
                             };
 
                             if (shouldDelay) {
-                                setTimeout(processData, 1000); // Delay for first click
+                                setTimeout(processData, 1000);
                             } else {
-                                processData(); // No delay for subsequent clicks
+                                processData();
                             }
                         })
                         .catch(error => {
@@ -654,29 +638,121 @@ $foundProperties = count($available_rooms);
                     </div>
                 </div>
             `;
-                            // Update count to show error state
                             document.getElementById('propertiesCount').textContent = 'Rooms: 0 properties found';
                         });
                 }
 
-                // Handle availability form submissions
                 const availabilityForms = document.querySelectorAll('.availability-form');
-
                 availabilityForms.forEach(function(availabilityForm) {
                     availabilityForm.addEventListener('submit', function(e) {
                         e.preventDefault();
-
                         const formData = new URLSearchParams(new FormData(availabilityForm));
                         formData.append('ajax_request', '1');
-
                         showLoadingState();
-
                         const url = availabilityForm.action + '?' + formData.toString();
-
-                        fetchResults(url, true); // Always use delay for form submissions
+                        fetchResults(url, true);
                     });
                 });
+
+                // INITIALIZE FAVORITE BUTTONS ON PAGE LOAD
+                initFavoriteButtons();
             });
+
+            // FUNCTION TO REBIND FAVORITE BUTTON EVENTS
+            function initFavoriteButtons() {
+                const loginModal = document.getElementById('loginModal');
+                const darkOverlay2 = document.getElementById('darkOverlay2');
+                const sparkleColors = [
+                    'bg-amber-500', 'bg-red-500', 'bg-pink-500', 'bg-yellow-400', 'bg-white', 'bg-blue-300'
+                ];
+
+                document.querySelectorAll('.favoriteForm').forEach(favoriteForm => {
+                    const favoriteBtn = favoriteForm.querySelector('.favoriteBtn');
+                    const heartIcon = favoriteForm.querySelector('.heartIcon');
+                    const heartParticles = favoriteForm.querySelector('.heartParticles');
+
+                    favoriteForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        const formData = new FormData(this);
+                        heartIcon.classList.add('animate-bounce');
+                        favoriteBtn.disabled = true;
+
+                        fetch('../User/favorite_handler.php', {
+                                method: 'POST',
+                                body: formData,
+                                headers: {
+                                    'Accept': 'application/json'
+                                }
+                            })
+                            .then(response => {
+                                if (!response.ok) throw new Error('Network response was not ok');
+                                return response.json();
+                            })
+                            .then(data => {
+                                if (data.status === 'added') {
+                                    heartIcon.classList.remove('text-slate-400', 'hover:text-red-300');
+                                    heartIcon.classList.add('text-red-500', 'hover:text-red-600');
+                                    createSparkleEffect(heartParticles);
+                                } else if (data.status === 'removed') {
+                                    heartIcon.classList.remove('text-red-500', 'hover:text-red-600');
+                                    heartIcon.classList.add('text-slate-400', 'hover:text-red-300');
+                                } else if (data.status === 'not_logged_in') {
+                                    if (loginModal && darkOverlay2) {
+                                        loginModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                                        darkOverlay2.classList.remove('opacity-0', 'invisible');
+                                        darkOverlay2.classList.add('opacity-100');
+                                        const closeLoginModal = document.getElementById('closeLoginModal');
+                                        closeLoginModal.addEventListener('click', function() {
+                                            loginModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                                            darkOverlay2.classList.add('opacity-0', 'invisible');
+                                            darkOverlay2.classList.remove('opacity-100');
+                                        });
+                                    }
+                                }
+                            })
+                            .catch(error => console.error('Error:', error))
+                            .finally(() => {
+                                setTimeout(() => {
+                                    heartIcon.classList.remove('animate-bounce');
+                                    favoriteBtn.disabled = false;
+                                }, 500);
+                            });
+                    });
+
+                    function createSparkleEffect(heartParticles) {
+                        heartParticles.innerHTML = '';
+                        for (let i = 0; i < 5; i++) {
+                            const sparkle = document.createElement('div');
+                            const randomColor = sparkleColors[Math.floor(Math.random() * sparkleColors.length)];
+                            sparkle.className = `absolute w-1.5 h-1.5 ${randomColor} rounded-full opacity-0`;
+                            sparkle.style.left = `${30 + Math.random() * 40}%`;
+                            sparkle.style.top = `${30 + Math.random() * 40}%`;
+
+                            sparkle.animate([{
+                                    transform: 'translate(0, 0) scale(0.5)',
+                                    opacity: 0
+                                },
+                                {
+                                    transform: `translate(${(Math.random() - 0.5) * 10}px, ${(Math.random() - 0.5) * 10}px) scale(1.8)`,
+                                    opacity: 0.9,
+                                    offset: 0.5
+                                },
+                                {
+                                    transform: `translate(${(Math.random() - 0.5) * 20}px, ${(Math.random() - 0.5) * 20}px) scale(0.2)`,
+                                    opacity: 0
+                                }
+                            ], {
+                                duration: 1000,
+                                delay: i * 150,
+                                easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+                            });
+
+                            heartParticles.appendChild(sparkle);
+                            setTimeout(() => sparkle.remove(), 1150 + i * 150);
+                        }
+                    }
+                });
+            }
         </script>
 
         <style>

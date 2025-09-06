@@ -376,6 +376,227 @@ if (menubar) {
     });
 }
 
+// Room Favorite Multiple Forms
+document.addEventListener('DOMContentLoaded', function () {
+    const loginModal = document.getElementById('loginModal');
+    const darkOverlay2 = document.getElementById('darkOverlay2');
+    const sparkleColors = [
+        'bg-amber-500', 'bg-red-500', 'bg-pink-500', 'bg-yellow-400', 'bg-white', 'bg-blue-300'
+    ];
+
+    // Handle multiple favorite forms (.favoriteForm)
+    const favoriteForms = document.querySelectorAll('.favoriteForm');
+    if (favoriteForms.length > 0) {
+        favoriteForms.forEach(favoriteForm => {
+            const favoriteBtn = favoriteForm.querySelector('.favoriteBtn');
+            const heartIcon = favoriteForm.querySelector('.heartIcon');
+            const heartParticles = favoriteForm.querySelector('.heartParticles');
+
+            if (!favoriteBtn || !heartIcon || !heartParticles) return;
+
+            favoriteForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+                const wasFavorited = heartIcon.classList.contains('text-red-500');
+
+                heartIcon.classList.add('animate-bounce');
+                favoriteBtn.disabled = true;
+
+                fetch('../User/favorite_handler.php', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'Accept': 'application/json' }
+                })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.status === 'added') {
+                            heartIcon.classList.remove('text-slate-400', 'hover:text-red-300');
+                            heartIcon.classList.add('text-red-500', 'hover:text-red-600');
+                            createSparkleEffectMultiple(heartParticles);
+                        } else if (data.status === 'removed') {
+                            heartIcon.classList.remove('text-red-500', 'hover:text-red-600');
+                            heartIcon.classList.add('text-slate-400', 'hover:text-red-300');
+                        } else if (data.status === 'not_logged_in') {
+                            if (loginModal && darkOverlay2) {
+                                loginModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                                darkOverlay2.classList.add('opacity-100');
+
+                                const closeLoginModal = document.getElementById('closeLoginModal');
+                                if (closeLoginModal) {
+                                    closeLoginModal.addEventListener('click', function () {
+                                        loginModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                                        darkOverlay2.classList.add('opacity-0', 'invisible');
+                                        darkOverlay2.classList.remove('opacity-100');
+                                    });
+                                }
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    })
+                    .finally(() => {
+                        setTimeout(() => {
+                            heartIcon.classList.remove('animate-bounce');
+                            favoriteBtn.disabled = false;
+                        }, 500);
+                    });
+            });
+
+            function createSparkleEffectMultiple(heartParticles) {
+                heartParticles.innerHTML = '';
+                for (let i = 0; i < 5; i++) {
+                    const sparkle = document.createElement('div');
+                    const randomColor = sparkleColors[Math.floor(Math.random() * sparkleColors.length)];
+                    sparkle.className = `absolute w-1.5 h-1.5 ${randomColor} rounded-full opacity-0`;
+                    sparkle.style.left = `${30 + Math.random() * 40}%`;
+                    sparkle.style.top = `${30 + Math.random() * 40}%`;
+
+                    sparkle.animate([
+                        { transform: 'translate(0, 0) scale(0.5)', opacity: 0 },
+                        {
+                            transform: `translate(${(Math.random() - 0.5) * 10}px, ${(Math.random() - 0.5) * 10}px) scale(1.8)`,
+                            opacity: 0.9,
+                            offset: 0.5
+                        },
+                        {
+                            transform: `translate(${(Math.random() - 0.5) * 20}px, ${(Math.random() - 0.5) * 20}px) scale(0.2)`,
+                            opacity: 0
+                        }
+                    ], {
+                        duration: 1000,
+                        delay: i * 150,
+                        easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+                    });
+
+                    heartParticles.appendChild(sparkle);
+                    setTimeout(() => sparkle.remove(), 1150 + i * 150);
+                }
+            }
+        });
+    }
+
+    // Handle single favorite form (#favoriteForm)
+    const singleFavoriteForm = document.getElementById('favoriteForm');
+    if (singleFavoriteForm) {
+        const favoriteBtn = document.getElementById('favoriteBtn');
+        const heartIcon = document.getElementById('heartIcon');
+        const heartParticles = document.getElementById('heartParticles');
+
+        singleFavoriteForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const wasFavorited = heartIcon.classList.contains('text-red-500');
+
+            heartIcon.classList.add('animate-bounce');
+            favoriteBtn.disabled = true;
+
+            fetch('../User/favorite_handler.php', {
+                method: 'POST',
+                body: formData,
+                headers: { 'Accept': 'application/json' }
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 'added') {
+                        heartIcon.classList.remove('text-slate-400', 'hover:text-red-300');
+                        heartIcon.classList.add('text-red-500', 'hover:text-red-600');
+                        animateHeartChange(true, wasFavorited);
+                        createSparkleEffectSingle();
+                    } else if (data.status === 'removed') {
+                        heartIcon.classList.remove('text-red-500', 'hover:text-red-600');
+                        heartIcon.classList.add('text-slate-400', 'hover:text-red-300');
+                        animateHeartChange(false, wasFavorited);
+                    } else if (data.status === 'not_logged_in') {
+                        if (loginModal && darkOverlay2) {
+                            loginModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                            darkOverlay2.classList.remove('opacity-0', 'invisible');
+                            darkOverlay2.classList.add('opacity-100');
+
+                            const closeLoginModal = document.getElementById('closeLoginModal');
+                            if (closeLoginModal) {
+                                closeLoginModal.addEventListener('click', function () {
+                                    loginModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                                    darkOverlay2.classList.add('opacity-0', 'invisible');
+                                    darkOverlay2.classList.remove('opacity-100');
+                                });
+                            }
+                        }
+                    } else if (data.error) {
+                        console.error('Error:', data.error);
+                        revertHeartState(wasFavorited);
+                        alert('An error occurred: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    revertHeartState(wasFavorited);
+                    alert('An error occurred. Please try again.');
+                })
+                .finally(() => {
+                    setTimeout(() => {
+                        heartIcon.classList.remove('animate-bounce');
+                        favoriteBtn.disabled = false;
+                    }, 500);
+                });
+        });
+
+        function animateHeartChange(isNowFavorited, wasFavorited) {
+            if (isNowFavorited === wasFavorited) return;
+        }
+
+        function revertHeartState(wasFavorited) {
+            if (wasFavorited) {
+                heartIcon.classList.add('text-red-500', 'hover:text-red-600');
+                heartIcon.classList.remove('text-slate-400', 'hover:text-red-300');
+            } else {
+                heartIcon.classList.add('text-slate-400', 'hover:text-red-300');
+                heartIcon.classList.remove('text-red-500', 'hover:text-red-600');
+            }
+        }
+
+        function createSparkleEffectSingle() {
+            heartParticles.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                const sparkle = document.createElement('div');
+                const randomColor = sparkleColors[Math.floor(Math.random() * sparkleColors.length)];
+                sparkle.className = `absolute w-1.5 h-1.5 ${randomColor} rounded-full opacity-0`;
+                sparkle.style.left = `${30 + Math.random() * 40}%`;
+                sparkle.style.top = `${30 + Math.random() * 40}%`;
+
+                sparkle.animate([
+                    { transform: 'translate(0, 0) scale(0.5)', opacity: 0 },
+                    {
+                        transform: `translate(${(Math.random() - 0.5) * 10}px, ${(Math.random() - 0.5) * 10}px) scale(1.8)`,
+                        opacity: 0.9,
+                        offset: 0.5
+                    },
+                    {
+                        transform: `translate(${(Math.random() - 0.5) * 20}px, ${(Math.random() - 0.5) * 20}px) scale(0.2)`,
+                        opacity: 0
+                    }
+                ], {
+                    duration: 1000,
+                    delay: i * 150,
+                    easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+                });
+
+                heartParticles.appendChild(sparkle);
+                setTimeout(() => sparkle.remove(), 1150 + i * 150);
+            }
+        }
+    }
+});
+
 //Rooom Review
 const viewAllReviews = document.getElementById('viewAllReviews');
 if (viewAllReviews) {
@@ -477,6 +698,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// Room Type Reaction
 document.addEventListener('DOMContentLoaded', () => {
     const forms = document.querySelectorAll('.roomtype-reaction-form');
     const loginModal = document.getElementById('loginModal');
