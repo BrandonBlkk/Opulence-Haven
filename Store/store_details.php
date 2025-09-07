@@ -628,7 +628,7 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
             <!-- Tab Contents -->
             <div class="mt-5">
                 <!-- Description -->
-                <div id="description" class="tab-content hidden">
+                <div id="description" class="tab-content">
                     <p class="text-gray-600"><?php echo nl2br($description); ?></p>
                 </div>
                 <!-- Specification -->
@@ -636,7 +636,7 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                     <p class="text-gray-600"><?php echo nl2br($product_specification); ?></p>
                 </div>
                 <!-- Information -->
-                <div id="information" class="tab-content grid grid-cols-1 sm:grid-cols-2">
+                <div id="information" class="tab-content grid grid-cols-1 sm:grid-cols-2 hidden">
                     <div>
                         <h1 id="tab-specification" class="tab text-base sm:text-lg text-blue-900 font-semibold cursor-pointer select-none">Information</h1>
                         <p class="text-gray-600"><?php echo nl2br($product_information); ?></p>
@@ -688,22 +688,12 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                             activeBar.style.width = `${tabRect.width}px`;
                             activeBar.style.left = `${tabRect.left - parentRect.left}px`;
                         }
-
-                        // Store the active tab in localStorage
-                        localStorage.setItem('activeTab', tabId);
                     };
 
-                    // Set the active tab on page load
-                    document.addEventListener('DOMContentLoaded', () => {
-                        // Get the stored tab or use default if none exists
-                        const savedTab = localStorage.getItem('activeTab');
-                        const initialTab = savedTab || 'description';
-
-                        // Show the tab
-                        showTab(initialTab);
-                    });
-
                     document.addEventListener('DOMContentLoaded', function() {
+                        // Show description first by default
+                        showTab('description');
+
                         // Get all review date containers
                         const dateContainers = document.querySelectorAll('.review-date-container');
 
@@ -732,59 +722,39 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
             <h1 class="text-lg sm:text-xl text-blue-900 font-semibold">Recommended Just For You</h1>
         </div>
         <section class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 px-4 max-w-[1000px] mx-auto">
-            <!-- Card 1 -->
-            <a href="#" class="block w-full sm:max-w-[300px] mx-auto group">
-                <div class="h-auto sm:h-[180px] select-none">
-                    <img src="../UserImages/hotel-room-5858069_1280.jpg" class="w-full h-full object-cover rounded-sm" alt="Hotel Room">
-                </div>
-                <div>
-                    <h1 class="text-slate-700 font-semibold mt-3">Black Friday Limited Offer</h1>
-                    <p class="text-slate-600 mt-2">
-                        Book on ALL.com to get 3x Reward points for your stay, across Europe and North Africa.
-                        Choose from a variety of brands, and find your dream destination for your perfect trip.
-                    </p>
-                    <div class="flex items-center text-amber-500 group mt-1">
-                        <span class="group-hover:text-amber-600 transition-all duration-200">Book now</span>
-                        <i class="ri-arrow-right-line text-xl group-hover:text-amber-600 group-hover:translate-x-2 transition-all duration-200"></i>
-                    </div>
-                </div>
-            </a>
+            <?php
+            // Get recommended products
+            $query = "SELECT * FROM producttb WHERE ProductID != ? AND isActive = 1 AND SaleQuantity > 0 ORDER BY RAND() LIMIT 3";
+            $query = $connect->prepare($query);
+            $query->bind_param("s", $product_id);
+            $query->execute();
+            $result = $query->get_result();
 
-            <!-- Card 2 -->
-            <a href="#" class="block w-full sm:max-w-[300px] mx-auto group">
-                <div class="h-auto sm:h-[180px] select-none">
-                    <img src="../UserImages/FORMAT-16-9E---1920-X-1080-PX (1)_3by2.webp" class="w-full h-full object-cover rounded-sm" alt="Hotel Room">
-                </div>
-                <div>
-                    <h1 class="text-slate-700 font-semibold mt-3">Life in balance: Breakfast at Opulence</h1>
-                    <p class="text-slate-600 mt-2">
-                        When there's an opportunity to indulge while enjoying a variety of choices,
-                        ensuring the energy needed for the day ahead. Perfect for business or family trips.
-                    </p>
-                    <div class="flex items-center text-amber-500 group mt-1">
-                        <span class="group-hover:text-amber-600 transition-all duration-200">Book now</span>
-                        <i class="ri-arrow-right-line text-xl group-hover:text-amber-600 group-hover:translate-x-2 transition-all duration-200"></i>
-                    </div>
-                </div>
-            </a>
-
-            <!-- Card 3 -->
-            <a href="#" class="block w-full sm:max-w-[300px] mx-auto group">
-                <div class="h-auto sm:h-[180px] select-none">
-                    <img src="../UserImages/hotel-room-5858069_1280.jpg" class="w-full h-full object-cover rounded-sm" alt="Hotel Room">
-                </div>
-                <div>
-                    <h1 class="text-slate-700 font-semibold mt-3">Opulence Store - Black Friday</h1>
-                    <p class="text-slate-600 mt-2">
-                        25% off on Opulence bedding collection. End the year softly with Opulence bedding for cozy,
-                        hotel-like nights. Pillows, duvets, mattresses, and much more!
-                    </p>
-                    <div class="flex items-center text-amber-500 group mt-1">
-                        <span class="group-hover:text-amber-600 transition-all duration-200">Shop now</span>
-                        <i class="ri-arrow-right-line text-xl group-hover:text-amber-600 group-hover:translate-x-2 transition-all duration-200"></i>
-                    </div>
-                </div>
-            </a>
+            if ($result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+            ?>
+                    <a href="#" class="block w-full sm:max-w-[300px] mx-auto group">
+                        <div class="h-auto sm:h-[180px] select-none">
+                            <img src="../UserImages/hotel-room-5858069_1280.jpg" class="w-full h-full object-cover rounded-sm" alt="Hotel Room">
+                        </div>
+                        <div>
+                            <h1 class="text-slate-700 font-semibold mt-3">Black Friday Limited Offer</h1>
+                            <p class="text-slate-600 mt-2">
+                                Book on ALL.com to get 3x Reward points for your stay, across Europe and North Africa.
+                                Choose from a variety of brands, and find your dream destination for your perfect trip.
+                            </p>
+                            <div class="flex items-center text-amber-500 group mt-1">
+                                <span class="group-hover:text-amber-600 transition-all duration-200">Book now</span>
+                                <i class="ri-arrow-right-line text-xl group-hover:text-amber-600 group-hover:translate-x-2 transition-all duration-200"></i>
+                            </div>
+                        </div>
+                    </a>
+            <?php
+                }
+            } else {
+                echo '<p class="col-span-3 text-gray-500 text-center my-36">No recommended products found.</p>';
+            }
+            ?>
         </section>
     </main>
 
