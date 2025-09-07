@@ -1133,7 +1133,6 @@ if (isset($_GET['payment'])) {
                             });
                         </script>
 
-
                         <form id="reservationForm" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" class="py-6">
                             <h2 class="text-xl font-semibold text-gray-800 mb-4">Enter your details</h2>
 
