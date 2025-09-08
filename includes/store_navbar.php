@@ -238,7 +238,7 @@ include('maintenance_alert.php');
                 <a href="toiletrie_spa.php" class="flex items-center gap-1 font-semibold hover:bg-gray-100 p-2 rounded-sm transition-colors duration-200">
                     Toiletries and Spa
                 </a>
-                <a href="Traditional.php" class="flex items-center gap-1 font-semibold hover:bg-gray-100 p-2 rounded-sm transition-colors duration-200">
+                <a href="traditional.php" class="flex items-center gap-1 font-semibold hover:bg-gray-100 p-2 rounded-sm transition-colors duration-200">
                     Traditional Products
                 </a>
             </div>

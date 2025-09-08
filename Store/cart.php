@@ -17,7 +17,7 @@
                 $count_row = $count_result->fetch_assoc();
                 $cartCount = $count_row['total'] ?? 0;
             }
-            echo $cartCount . ' item' . ($cartCount != 1 ? 's' : '');
+            echo $cartCount . ' item' . ($cartCount >= 1 ? 's' : '');
             ?>
         </span>
     </a>

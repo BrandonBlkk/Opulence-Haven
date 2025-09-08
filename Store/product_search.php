@@ -25,7 +25,7 @@ if (isset($_GET['search'])) {
             LEFT JOIN productimagetb pi_primary
                 ON p.ProductID = pi_primary.ProductID AND pi_primary.PrimaryImage = 1
             LEFT JOIN productimagetb pi_secondary
-                ON p.ProductID = pi_secondary.ProductID AND pi_scondary.SecondaryImage = 1
+                ON p.ProductID = pi_secondary.ProductID AND pi_secondary.SecondaryImage = 1
             WHERE p.Title LIKE '%$searchQuery%' OR pt.ProductType LIKE '%$searchQuery%' OR p.Brand LIKE '%$searchQuery%'
             GROUP BY p.ProductID";
 

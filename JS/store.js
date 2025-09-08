@@ -732,13 +732,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     const newContent = doc.getElementById('review-results-container');
                     if (newContent) {
                         document.getElementById('review-results-container').innerHTML = newContent.innerHTML;
+
                         const cleanUrl = new URL(url);
                         cleanUrl.searchParams.delete('ajax_request');
-                        window.history.replaceState({
-                            path: cleanUrl.toString()
-                        }, '', cleanUrl.toString());
-                        initializeReviewEventListeners(); // rebind events after AJAX
+                        window.history.replaceState({ path: cleanUrl.toString() }, '', cleanUrl.toString());
+
+                        initializeReviewEventListeners(); // rebind read more/less, edit, delete
                         setupReviewEditDelete(); // rebind edit/delete
+                        initializeReactionHandlers(); // <-- NEW LINE: Re-initialize like/dislike
                     } else {
                         throw new Error('Invalid response format - review content not found');
                     }
@@ -860,64 +861,50 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.querySelector('.review').classList.remove('hidden');
             });
         });
+    }
 
-        // AJAX handler for edit form
-        document.querySelectorAll('.edit-form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const formData = new FormData(this);
-                fetch(window.location.href, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            // alert(data.message);
+    // NEW: Like/Dislike buttons initializer
+    function initializeReactionButtons() {
+        document.querySelectorAll('.reaction-form').forEach(form => {
+            const likeBtn = form.querySelector('.like-btn');
+            const dislikeBtn = form.querySelector('.dislike-btn');
+            const reviewId = form.querySelector('input[name="review_id"]').value;
+            const productId = form.querySelector('input[name="product_id"]').value;
 
-                            fetchReviewResults(window.location.href + '&ajax_request=1', false);
-                        } else {
-                            // alert(data.message);
-                        }
-                    })
-                    .catch(err => console.error(err));
-            });
+            likeBtn.addEventListener('click', () => sendReaction(form, reviewId, productId, 'like'));
+            dislikeBtn.addEventListener('click', () => sendReaction(form, reviewId, productId, 'dislike'));
         });
+    }
 
-        document.querySelectorAll('form[class="mt-3 text-gray-400"]').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const formData = new FormData(this);
-                formData.append('ajax_request', '1');
-                fetch(this.action || window.location.href, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            const likeButton = this.querySelector('button[name="like"]');
-                            const dislikeButton = this.querySelector('button[name="dislike"]');
-                            likeButton.innerHTML = `<i class="ri-thumb-up-${data.userReaction === 'like' ? 'fill' : 'line'} text-sm"></i> <span>${data.likeCount}</span> Like`;
-                            dislikeButton.innerHTML = `<i class="ri-thumb-down-${data.userReaction === 'dislike' ? 'fill' : 'line'} text-sm"></i> <span>${data.dislikeCount}</span> Dislike`;
-                            likeButton.className = `text-xs cursor-pointer ${data.userReaction === 'like' ? 'text-gray-500' : ''}`;
-                            dislikeButton.className = `text-xs cursor-pointer ${data.userReaction === 'dislike' ? 'text-gray-500' : ''}`;
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
-            });
-        });
+    function sendReaction(form, reviewId, productId, type) {
+        const formData = new FormData();
+        formData.append('review_id', reviewId);
+        formData.append('product_id', productId);
+        formData.append('reaction', type);
+
+        fetch('../Store/reaction_handler.php', {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const likeBtn = form.querySelector('.like-btn');
+                const dislikeBtn = form.querySelector('.dislike-btn');
+                likeBtn.innerHTML = `<i class="ri-thumb-up-${data.userReaction === 'like' ? 'fill' : 'line'} text-sm"></i> <span class="like-count">${data.likeCount}</span> Like`;
+                dislikeBtn.innerHTML = `<i class="ri-thumb-down-${data.userReaction === 'dislike' ? 'fill' : 'line'} text-sm"></i> <span class="dislike-count">${data.dislikeCount}</span> Dislike`;
+                likeBtn.className = `text-xs cursor-pointer ${data.userReaction === 'like' ? 'text-gray-500' : ''}`;
+                dislikeBtn.className = `text-xs cursor-pointer ${data.userReaction === 'dislike' ? 'text-gray-500' : ''}`;
+            }
+        })
+        .catch(err => console.error(err));
     }
 
     // Call on page load
     setupReviewEditDelete();
     initializeReviewEventListeners();
+    initializeReactionButtons(); // INITIALLY BIND LIKE/DISLIKE
 });
 
 // Review toggle edit form
@@ -958,13 +945,103 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// // Reaction handler
+// document.addEventListener('DOMContentLoaded', () => {
+//     const forms = document.querySelectorAll('.reaction-form');
+//     const loginModal = document.getElementById('loginModal');
+//     const darkOverlay2 = document.getElementById('darkOverlay2');
+
+//     if (!forms.length) return; // no reaction forms, do nothing
+
+//     forms.forEach(form => {
+//         const reviewIDInput = form.querySelector('input[name="review_id"]');
+//         const productIDInput = form.querySelector('input[name="product_id"]');
+//         const likeBtn = form.querySelector('.like-btn');
+//         const dislikeBtn = form.querySelector('.dislike-btn');
+
+//         if (!reviewIDInput || !productIDInput || !likeBtn || !dislikeBtn) return;
+
+//         const reviewID = reviewIDInput.value;
+//         const productID = productIDInput.value;
+//         const likeIcon = likeBtn.querySelector('i');
+//         const dislikeIcon = dislikeBtn.querySelector('i');
+//         const likeCountSpan = likeBtn.querySelector('.like-count');
+//         const dislikeCountSpan = dislikeBtn.querySelector('.dislike-count');
+
+//         likeBtn.addEventListener('click', () => sendReaction('like'));
+//         dislikeBtn.addEventListener('click', () => sendReaction('dislike'));
+
+//         function sendReaction(type) {
+//             fetch('reaction_handler.php', {
+//                 method: 'POST',
+//                 headers: {
+//                     'Content-Type': 'application/x-www-form-urlencoded'
+//                 },
+//                 body: `review_id=${reviewID}&product_id=${productID}&reaction_type=${type}`
+//             })
+//             .then(res => res.json())
+//             .then(data => {
+//                 if (data.status === 'not_logged_in') {
+//                     if (loginModal && darkOverlay2) {
+//                         loginModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+//                         darkOverlay2.classList.remove('opacity-0', 'invisible');
+//                         darkOverlay2.classList.add('opacity-100');
+
+//                         const closeLoginModal = document.getElementById('closeLoginModal');
+//                         if (closeLoginModal) {
+//                             closeLoginModal.addEventListener('click', function() {
+//                                 loginModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+//                                 darkOverlay2.classList.add('opacity-0', 'invisible');
+//                                 darkOverlay2.classList.remove('opacity-100');
+//                             });
+//                         }
+//                     }
+//                     return;
+//                 }
+
+//                 if (data.success) {
+//                     // Update counts
+//                     likeCountSpan.textContent = data.likeCount;
+//                     dislikeCountSpan.textContent = data.dislikeCount;
+
+//                     // Update icon fill/unfill
+//                     if (type === 'like') {
+//                         if (likeIcon.classList.contains('ri-thumb-up-fill')) {
+//                             likeIcon.classList.replace('ri-thumb-up-fill', 'ri-thumb-up-line');
+//                             likeBtn.classList.remove('text-gray-500');
+//                         } else {
+//                             likeIcon.classList.replace('ri-thumb-up-line', 'ri-thumb-up-fill');
+//                             likeBtn.classList.add('text-gray-500');
+//                             // Remove dislike if previously filled
+//                             dislikeIcon.classList.replace('ri-thumb-down-fill', 'ri-thumb-down-line');
+//                             dislikeBtn.classList.remove('text-gray-500');
+//                         }
+//                     } else { // dislike
+//                         if (dislikeIcon.classList.contains('ri-thumb-down-fill')) {
+//                             dislikeIcon.classList.replace('ri-thumb-down-fill', 'ri-thumb-down-line');
+//                             dislikeBtn.classList.remove('text-gray-500');
+//                         } else {
+//                             dislikeIcon.classList.replace('ri-thumb-down-line', 'ri-thumb-down-fill');
+//                             dislikeBtn.classList.add('text-gray-500');
+//                             // Remove like if previously filled
+//                             likeIcon.classList.replace('ri-thumb-up-fill', 'ri-thumb-up-line');
+//                             likeBtn.classList.remove('text-gray-500');
+//                         }
+//                     }
+//                 }
+//             })
+//             .catch(err => console.error(err));
+//         }
+//     });
+// });
+
 // Reaction handler
-document.addEventListener('DOMContentLoaded', () => {
+function initializeReactionHandlers() {
     const forms = document.querySelectorAll('.reaction-form');
     const loginModal = document.getElementById('loginModal');
     const darkOverlay2 = document.getElementById('darkOverlay2');
 
-    if (!forms.length) return; // no reaction forms, do nothing
+    if (!forms.length) return;
 
     forms.forEach(form => {
         const reviewIDInput = form.querySelector('input[name="review_id"]');
@@ -1013,11 +1090,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 if (data.success) {
-                    // Update counts
                     likeCountSpan.textContent = data.likeCount;
                     dislikeCountSpan.textContent = data.dislikeCount;
 
-                    // Update icon fill/unfill
                     if (type === 'like') {
                         if (likeIcon.classList.contains('ri-thumb-up-fill')) {
                             likeIcon.classList.replace('ri-thumb-up-fill', 'ri-thumb-up-line');
@@ -1025,18 +1100,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         } else {
                             likeIcon.classList.replace('ri-thumb-up-line', 'ri-thumb-up-fill');
                             likeBtn.classList.add('text-gray-500');
-                            // Remove dislike if previously filled
                             dislikeIcon.classList.replace('ri-thumb-down-fill', 'ri-thumb-down-line');
                             dislikeBtn.classList.remove('text-gray-500');
                         }
-                    } else { // dislike
+                    } else {
                         if (dislikeIcon.classList.contains('ri-thumb-down-fill')) {
                             dislikeIcon.classList.replace('ri-thumb-down-fill', 'ri-thumb-down-line');
                             dislikeBtn.classList.remove('text-gray-500');
                         } else {
                             dislikeIcon.classList.replace('ri-thumb-down-line', 'ri-thumb-down-fill');
                             dislikeBtn.classList.add('text-gray-500');
-                            // Remove like if previously filled
                             likeIcon.classList.replace('ri-thumb-up-fill', 'ri-thumb-up-line');
                             likeBtn.classList.remove('text-gray-500');
                         }
@@ -1046,7 +1119,10 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(err => console.error(err));
         }
     });
-});
+}
+
+// Run on page load
+document.addEventListener('DOMContentLoaded', initializeReactionHandlers);
 
 const validateOrderForm = () => {
     const isFirstnameValid = validateFirstname();
