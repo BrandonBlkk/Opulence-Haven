@@ -21,9 +21,12 @@ if (isset($_GET["product_ID"])) {
               INNER JOIN producttypetb pt ON p.ProductTypeID = pt.ProductTypeID
               LEFT JOIN productimagetb pi ON p.ProductID = pi.ProductID
               LEFT JOIN sizetb ps ON p.ProductID = ps.ProductID
-              WHERE p.ProductID = '$product_id'";
-
-    $product = $connect->query($query)->fetch_assoc();
+              WHERE p.ProductID = ?";
+    $query = $connect->prepare($query);
+    $query->bind_param("s", $product_id);
+    $query->execute();
+    $result = $query->get_result();
+    $product = $result->fetch_assoc();
 
     // Fetch product details
     $product_id = $product['ProductID'];
@@ -49,8 +52,11 @@ if (isset($_GET["product_ID"])) {
     $main_product_image = $product['ImageUserPath'];
     $side_images = [];
 
-    $query_images = "SELECT ImageUserPath FROM productimagetb WHERE ProductID = '$product_id'";
-    $result_images = $connect->query($query_images);
+    $query_images = "SELECT ImageUserPath FROM productimagetb WHERE ProductID = ?";
+    $query_images = $connect->prepare($query_images);
+    $query_images->bind_param("s", $product_id);
+    $query_images->execute();
+    $result_images = $query_images->get_result();
 
     // Store side images
     while ($image = $result_images->fetch_assoc()) {
@@ -61,13 +67,20 @@ if (isset($_GET["product_ID"])) {
     $product_size = $product['Size'];
     $sizes = [];
 
-    $query_sizes = "SELECT Size, PriceModifier  FROM sizetb WHERE ProductID = '$product_id'";
-    $result_sizes = $connect->query($query_sizes);
+    $query_sizes = "SELECT Size, PriceModifier  FROM sizetb WHERE ProductID = ?";
+    $query_sizes = $connect->prepare($query_sizes);
+    $query_sizes->bind_param("s", $product_id);
+    $query_sizes->execute();
+    $result_sizes = $query_sizes->get_result();
 
     // Store sizes
     while ($size = $result_sizes->fetch_assoc()) {
         $sizes[] = $size['Size'];
     }
+
+    $query_sizes->close();
+    $query_images->close();
+    $query->close();
 }
 
 // Check if CustomerID is set in session
@@ -76,14 +89,21 @@ if (isset($session_userID) && !empty($_SESSION['UserID'])) {
     // Process form submission if favoriteBtn is set
     if (isset($_POST['addtofavorites'])) {
 
-        $check_query = "SELECT COUNT(*) as count FROM productfavoritetb WHERE UserID = '$session_userID' AND ProductID = '$product_id'";
-        $result = $connect->query($check_query);
+        $check_query = "SELECT COUNT(*) as count FROM productfavoritetb WHERE UserID = ? AND ProductID = ?";
+        $check_query = $connect->prepare($check_query);
+        $check_query->bind_param("ss", $session_userID, $product_id);
+        $check_query->execute();
+        $result = $check_query->get_result();
         $count = $result->fetch_assoc()['count'];
+        $check_query->close();
 
         // If the product is not already in favorites, insert it
         if ($count == 0) {
-            $insert_query = "INSERT INTO productfavoritetb (UserID, ProductID) VALUES ('$session_userID', '$product_id')";
-            $connect->query($insert_query);
+            $insert_query = "INSERT INTO productfavoritetb (UserID, ProductID) VALUES (?, ?)";
+            $insert_query = $connect->prepare($insert_query);
+            $insert_query->bind_param("ss", $session_userID, $product_id);
+            $insert_query->execute();
+            $insert_query->close();
 
             // Refresh the page
             header("Location: ../Store/store_details.php?product_ID=$product_id");
@@ -100,8 +120,11 @@ if (isset($session_userID) && !empty($_SESSION['UserID'])) {
 // Remove specified product from favorite
 if (isset($_POST['removefromfavorites'])) {
 
-    $delete_query = "DELETE FROM productfavoritetb WHERE ProductID = '$product_id'";
-    $connect->query($delete_query);
+    $delete_query = "DELETE FROM productfavoritetb WHERE ProductID = ?";
+    $delete_query = $connect->prepare($delete_query);
+    $delete_query->bind_param("s", $product_id);
+    $delete_query->execute();
+    $delete_query->close();
 
     // Refresh the page
     header("Location: ../Store/store_details.php?product_ID=$product_id");
@@ -217,15 +240,21 @@ if (isset($_POST['addtobag'])) {
 }
 
 // Product Review
-$productReviewQuery = "SELECT COUNT(*) as count FROM productreviewtb WHERE ProductID = '$product_id'";
+$productReviewQuery = "SELECT COUNT(*) as count FROM productreviewtb WHERE ProductID = ?";
+$productReviewQuery = $connect->prepare($productReviewQuery);
+$productReviewQuery->bind_param("s", $product_id);
 
 // Execute the count query
-$productReviewResult = $connect->query($productReviewQuery);
-$productReviewCount = $productReviewResult->fetch_assoc()['count'];
+$productReviewResult = $productReviewQuery->execute();
+$productReviewCount = $productReviewQuery->get_result()->fetch_assoc()['count'];
+$productReviewQuery->close();
 
 $productReviewSelect = "SELECT * FROM productreviewtb 
-WHERE ProductID = '$product_id'";
-$productReviewSelectQuery = $connect->query($productReviewSelect);
+WHERE ProductID = ?";
+$productReviewSelect = $connect->prepare($productReviewSelect);
+$productReviewSelect->bind_param("s", $product_id);
+$productReviewSelectQuery = $productReviewSelect->execute();
+$productReviewSelectQuery = $productReviewSelect->get_result();
 $productReviews = [];
 
 if ($productReviewSelectQuery->num_rows > 0) {
