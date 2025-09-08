@@ -1,6 +1,6 @@
 <?php
 // Set the number of rows per page
-$rowsPerPage = 1;
+$rowsPerPage = 4;
 
 // Get the current page number from the URL or default to 1
 $currentPage = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;

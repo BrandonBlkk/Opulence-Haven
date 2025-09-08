@@ -654,6 +654,105 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// Room Type Review
+document.addEventListener("DOMContentLoaded", () => {
+    const writeReviewModal = document.getElementById('writeReviewModal');
+    const writeReview = document.getElementById('writeReview');
+    const productForm = document.getElementById('productForm');
+    const ReviewCancelBtn = document.getElementById('ReviewCancelBtn');
+    const darkOverlay2 = document.getElementById('darkOverlay2');
+
+    if (writeReviewModal && writeReview && productForm && ReviewCancelBtn && darkOverlay2) {
+        // Show modal
+        writeReview.addEventListener('click', () => {
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
+            writeReviewModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+        });
+
+        // Cancel button functionality
+        ReviewCancelBtn.addEventListener('click', () => {
+            writeReviewModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+            productForm.reset();
+
+            const errors = ['ratingError', 'reviewError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
+        });
+    }
+
+    // Add keyup event listeners for real-time validation
+    const reviewInput = document.getElementById("reviewInput");
+
+    if (reviewInput) reviewInput.addEventListener("keyup", validateProductReview);
+    
+    document.querySelectorAll('.star-rating').forEach(star => {
+        star.addEventListener('click', () => {
+            hideError(document.getElementById('ratingError'));
+        });
+    });
+
+    if (productForm) {
+        productForm.addEventListener("submit", async function(e) {
+            e.preventDefault();
+            
+            if (!validateProductReviewForm()) {
+                return;
+            }
+            
+            try {
+                const formData = new FormData(this);
+                // Add any additional fields that might be outside the form but in the modal
+                const ratingValue = document.getElementById('ratingValue').value;
+                formData.append('rating', ratingValue);
+                
+                const response = await fetch('../Store/store_details.php', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                
+                if (data.status) {
+                    // Success - update UI without reload
+                    showAlert('Review submitted successfully!', false);
+                    
+                    // Reset form
+                    this.reset();
+                    
+                    // Reset stars
+                    document.querySelectorAll('.star-rating span').forEach(star => {
+                        star.className = 'text-gray-300 hover:text-amber-400';
+                    });
+                    document.getElementById('ratingValue').value = '0';
+                    
+                    // Hide modal if exists
+                    if (writeReviewModal) {
+                        writeReviewModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                        darkOverlay2.classList.add('opacity-0', 'invisible');
+                        darkOverlay2.classList.remove('opacity-100');
+                    }
+                } else {
+                    showAlert(data.message || 'Failed to submit review', true);
+                }
+            } catch (error) {
+                showAlert('An error occurred. Please try again.', true);
+                console.error('Error:', error);
+            }
+        });
+    }
+});
+
 // Filter reviews
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -1143,6 +1242,13 @@ const validateReturnItemForm = () => {
     return isOrderIDValid && isEmailValid;
 };
 
+const validateProductReviewForm = () => {
+    const isProductReviewValid = validateProductReview();
+    const isRatingValid = validateRating();
+
+    return isProductReviewValid && isRatingValid;
+}
+
 // Individual validation functions
 
 const validateOrderID = () => {
@@ -1293,4 +1399,49 @@ const validateZip = () => {
             return null;
         }
     );
+}
+
+const validateRating = () => {
+    const ratingValue = document.getElementById('ratingValue').value;
+    const ratingErrorElement = document.getElementById('ratingError'); 
+    
+    const getMessageError = (ratingValue) => {
+        if (ratingValue === '0' || ratingValue === '') {
+            return "Rating is required.";
+        }
+        return null; 
+    };
+
+    const errorMessage = getMessageError(ratingValue);
+
+    if (errorMessage) {
+        showError(ratingErrorElement, errorMessage);
+        return false;
+    } else {
+        hideError(ratingErrorElement);
+        return true;
+    }
+}
+
+const validateProductReview = () => {
+    const reviewInput = document.getElementById("reviewInput").value.trim();
+    const reviewError = document.getElementById("reviewError");
+
+    const getMessageError = (reviewInput) => {
+        if (!reviewInput) return "Review is required.";
+        if (reviewInput.length < 10) return "Message must be at least 10 characters long.";
+        if (reviewInput.length > 1000) return "Message cannot exceed 1000 characters.";
+        return null; 
+    };
+
+    const errorMessage = getMessageError(reviewInput);
+
+    switch (true) {
+        case errorMessage !== null:
+            showError(reviewError, errorMessage);
+            return false;
+        default:
+            hideError(reviewError);
+            return true;
+    }
 }
