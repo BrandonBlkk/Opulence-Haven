@@ -78,7 +78,7 @@ if ($menuResult && $menuResult->num_rows > 0) {
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 </head>
 
-<body class="relative min-w-[350px]">
+<body class="relative min-w-[380px]">
     <?php
     include('../includes/navbar.php');
     include('../includes/cookies.php');
