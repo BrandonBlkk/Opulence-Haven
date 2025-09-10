@@ -557,7 +557,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['UserID']) && isset($_
         </section>
 
         <section class="text-white bg-[url('../UserImages/pexels-maksgelatin-4352247.jpg')] bg-cover bg-center bg-no-repeat mb-4">
-            <div class="flex flex-col justify-center w-full lg:w-1/2 py-16 px-4 ml-28 relative">
+            <div class="flex flex-col justify-center w-full lg:w-1/2 py-16 px-4 ml-0 sm:ml-28 relative">
                 <form action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="exclusiveMembershipForm">
                     <!-- ✅ Hidden User ID Field -->
                     <input type="hidden" id="userID" name="UserID" value="<?php echo isset($_SESSION['UserID']) ? $_SESSION['UserID'] : ''; ?>">

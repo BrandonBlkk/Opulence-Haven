@@ -654,6 +654,141 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// Room Type Review
+document.addEventListener("DOMContentLoaded", () => {
+    const writeReviewModal = document.getElementById('writeReviewModal');
+    const writeReview = document.getElementById('writeReview');
+    const productForm = document.getElementById('productForm');
+    const ReviewCancelBtn = document.getElementById('ReviewCancelBtn');
+    const darkOverlay2 = document.getElementById('darkOverlay2');
+
+    if (writeReviewModal && writeReview && productForm && ReviewCancelBtn && darkOverlay2) {
+        // Show modal
+        writeReview.addEventListener('click', () => {
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
+            writeReviewModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+        });
+
+        // Cancel button functionality
+        ReviewCancelBtn.addEventListener('click', () => {
+            writeReviewModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+            productForm.reset();
+
+            const errors = ['ratingError', 'reviewError'];
+            errors.forEach(error => {
+                hideError(document.getElementById(error));
+            });
+        });
+    }
+
+    // Add keyup event listeners for real-time validation
+    const reviewInput = document.getElementById("reviewInput");
+
+    if (reviewInput) reviewInput.addEventListener("keyup", validateProductReview);
+    
+    document.querySelectorAll('.star-rating').forEach(star => {
+        star.addEventListener('click', () => {
+            hideError(document.getElementById('ratingError'));
+        });
+    });
+
+    if (productForm) {
+        productForm.addEventListener("submit", async function(e) {
+            e.preventDefault();
+            
+            if (!validateProductReviewForm()) {
+                return;
+            }
+            
+            try {
+                const formData = new FormData(this);
+                // Add any additional fields that might be outside the form but in the modal
+                const ratingValue = document.getElementById('ratingValue').value;
+                formData.append('rating', ratingValue);
+                
+                const response = await fetch('../Store/store_details.php', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                
+                if (data.status) {
+                    // Success - update UI without reload
+                    showAlert('Review submitted successfully!', false);
+                    
+                    // Reset form
+                    this.reset();
+                    
+                    // Reset stars
+                    document.querySelectorAll('.star-rating span').forEach(star => {
+                        star.className = 'text-gray-300 hover:text-amber-400';
+                    });
+                    document.getElementById('ratingValue').value = '0';
+                    
+                    // Hide modal if exists
+                    if (writeReviewModal) {
+                        writeReviewModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                        darkOverlay2.classList.add('opacity-0', 'invisible');
+                        darkOverlay2.classList.remove('opacity-100');
+                    }
+
+                    // 🔥 Fetch updated reviews and refresh container
+                    const currentUrl = new URL(window.location.href);
+                    const newParams = new URLSearchParams();
+                    if (currentUrl.searchParams.get('product_ID')) {
+                        newParams.set('product_ID', currentUrl.searchParams.get('product_ID'));
+                    }
+                    newParams.set('sort', currentUrl.searchParams.get('sort') || 'oldest');
+                    newParams.set('ajax_request', '1');
+                    currentUrl.search = newParams.toString();
+                    const fetchUrl = currentUrl.toString();
+
+                    // Reuse your fetchReviewResults from filter reviews
+                    fetch(fetchUrl, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'text/html'
+                        }
+                    })
+                    .then(res => res.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const newContent = doc.getElementById('review-results-container');
+                        if (newContent) {
+                            document.getElementById('review-results-container').innerHTML = newContent.innerHTML;
+
+                            // Rebind events after reload
+                            initializeReviewEventListeners();
+                            setupReviewEditDelete();
+                            initializeReactionHandlers(); // Fixed this line
+                        }
+                    })
+                    .catch(err => console.error(err));
+
+                } else {
+                    showAlert(data.message || 'Failed to submit review', true);
+                }
+            } catch (error) {
+                showAlert('An error occurred. Please try again.', true);
+                console.error('Error:', error);
+            }
+        });
+    }
+});
+
 // Filter reviews
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -739,7 +874,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         initializeReviewEventListeners(); // rebind read more/less, edit, delete
                         setupReviewEditDelete(); // rebind edit/delete
-                        initializeReactionHandlers(); // <-- NEW LINE: Re-initialize like/dislike
+                        initializeReactionHandlers(); // Re-initialize like/dislike
                     } else {
                         throw new Error('Invalid response format - review content not found');
                     }
@@ -863,48 +998,70 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // NEW: Like/Dislike buttons initializer
-    function initializeReactionButtons() {
+    // FIXED: Proper reaction handler initialization
+    function initializeReactionHandlers() {
         document.querySelectorAll('.reaction-form').forEach(form => {
             const likeBtn = form.querySelector('.like-btn');
             const dislikeBtn = form.querySelector('.dislike-btn');
-            const reviewId = form.querySelector('input[name="review_id"]').value;
-            const productId = form.querySelector('input[name="product_id"]').value;
-
-            likeBtn.addEventListener('click', () => sendReaction(form, reviewId, productId, 'like'));
-            dislikeBtn.addEventListener('click', () => sendReaction(form, reviewId, productId, 'dislike'));
+            
+            if (likeBtn && dislikeBtn) {
+                // Remove any existing event listeners
+                const newLikeBtn = likeBtn.cloneNode(true);
+                const newDislikeBtn = dislikeBtn.cloneNode(true);
+                
+                likeBtn.parentNode.replaceChild(newLikeBtn, likeBtn);
+                dislikeBtn.parentNode.replaceChild(newDislikeBtn, dislikeBtn);
+                
+                // Add new event listeners
+                newLikeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    handleReaction(form, 'like');
+                });
+                
+                newDislikeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    handleReaction(form, 'dislike');
+                });
+            }
         });
     }
 
-    function sendReaction(form, reviewId, productId, type) {
-        const formData = new FormData();
-        formData.append('review_id', reviewId);
-        formData.append('product_id', productId);
-        formData.append('reaction', type);
-
+    function handleReaction(form, reactionType) {
+        const formData = new FormData(form);
+        formData.append('reaction', reactionType);
+        
         fetch('../Store/reaction_handler.php', {
             method: 'POST',
             body: formData,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                const likeBtn = form.querySelector('.like-btn');
-                const dislikeBtn = form.querySelector('.dislike-btn');
-                likeBtn.innerHTML = `<i class="ri-thumb-up-${data.userReaction === 'like' ? 'fill' : 'line'} text-sm"></i> <span class="like-count">${data.likeCount}</span> Like`;
-                dislikeBtn.innerHTML = `<i class="ri-thumb-down-${data.userReaction === 'dislike' ? 'fill' : 'line'} text-sm"></i> <span class="dislike-count">${data.dislikeCount}</span> Dislike`;
-                likeBtn.className = `text-xs cursor-pointer ${data.userReaction === 'like' ? 'text-gray-500' : ''}`;
-                dislikeBtn.className = `text-xs cursor-pointer ${data.userReaction === 'dislike' ? 'text-gray-500' : ''}`;
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
             }
         })
-        .catch(err => console.error(err));
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the button states and counts
+                const likeBtn = form.querySelector('.like-btn');
+                const dislikeBtn = form.querySelector('.dislike-btn');
+                
+                if (likeBtn && dislikeBtn) {
+                    // Update like button
+                    likeBtn.innerHTML = `<i class="ri-thumb-up-${data.userReaction === 'like' ? 'fill' : 'line'} text-sm"></i> <span class="like-count">${data.likeCount}</span> Like`;
+                    likeBtn.className = `text-xs cursor-pointer ${data.userReaction === 'like' ? 'text-gray-500' : ''}`;
+                    
+                    // Update dislike button
+                    dislikeBtn.innerHTML = `<i class="ri-thumb-down-${data.userReaction === 'dislike' ? 'fill' : 'line'} text-sm"></i> <span class="dislike-count">${data.dislikeCount}</span> Dislike`;
+                    dislikeBtn.className = `text-xs cursor-pointer ${data.userReaction === 'dislike' ? 'text-gray-500' : ''}`;
+                }
+            }
+        })
+        .catch(error => console.error('Error:', error));
     }
 
     // Call on page load
     setupReviewEditDelete();
     initializeReviewEventListeners();
-    initializeReactionButtons(); // INITIALLY BIND LIKE/DISLIKE
+    initializeReactionHandlers();
 });
 
 // Review toggle edit form
@@ -1143,6 +1300,13 @@ const validateReturnItemForm = () => {
     return isOrderIDValid && isEmailValid;
 };
 
+const validateProductReviewForm = () => {
+    const isProductReviewValid = validateProductReview();
+    const isRatingValid = validateRating();
+
+    return isProductReviewValid && isRatingValid;
+}
+
 // Individual validation functions
 
 const validateOrderID = () => {
@@ -1293,4 +1457,49 @@ const validateZip = () => {
             return null;
         }
     );
+}
+
+const validateRating = () => {
+    const ratingValue = document.getElementById('ratingValue').value;
+    const ratingErrorElement = document.getElementById('ratingError'); 
+    
+    const getMessageError = (ratingValue) => {
+        if (ratingValue === '0' || ratingValue === '') {
+            return "Rating is required.";
+        }
+        return null; 
+    };
+
+    const errorMessage = getMessageError(ratingValue);
+
+    if (errorMessage) {
+        showError(ratingErrorElement, errorMessage);
+        return false;
+    } else {
+        hideError(ratingErrorElement);
+        return true;
+    }
+}
+
+const validateProductReview = () => {
+    const reviewInput = document.getElementById("reviewInput").value.trim();
+    const reviewError = document.getElementById("reviewError");
+
+    const getMessageError = (reviewInput) => {
+        if (!reviewInput) return "Review is required.";
+        if (reviewInput.length < 10) return "Message must be at least 10 characters long.";
+        if (reviewInput.length > 1000) return "Message cannot exceed 1000 characters.";
+        return null; 
+    };
+
+    const errorMessage = getMessageError(reviewInput);
+
+    switch (true) {
+        case errorMessage !== null:
+            showError(reviewError, errorMessage);
+            return false;
+        default:
+            hideError(reviewError);
+            return true;
+    }
 }

@@ -263,6 +263,43 @@ if ($productReviewSelectQuery->num_rows > 0) {
     }
 }
 
+// Submit Review
+if (isset($_POST['submitreview'])) {
+    $response = ['status' => false, 'message' => ''];
+
+    if ($session_userID) {
+        // Get values from POST
+        $productID = $_POST['productID'];
+        $rating = intval($_POST['rating']);
+        $review = mysqli_real_escape_string($connect, $_POST['reviewtext']);
+
+        // Insert into database
+        $insert = "INSERT INTO productreviewtb (Rating, Comment, UserID, ProductID) 
+                  VALUES ('$rating', '$review', '$session_userID', '$productID')";
+
+        if ($connect->query($insert)) {
+            $response['status'] = true;
+            $response['message'] = 'Review submitted successfully!';
+
+            // If you want to return the new review data for dynamic display:
+            $newReviewId = $connect->insert_id;
+            $response['review'] = [
+                'id' => $newReviewId,
+                'rating' => $rating,
+                'comment' => $review,
+            ];
+        } else {
+            $response['message'] = 'Database error: ' . $connect->error;
+        }
+    } else {
+        $response['message'] = 'User not logged in';
+    }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
+}
+
 //Review Edit
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_edit'])) {
 
@@ -678,13 +715,31 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                 </div>
 
                 <div id="review" class="tab-content hidden">
-                    <form id="reviewFilterForm" class="w-24" method="get">
-                        <input type="hidden" name="product_ID" value="<?= htmlspecialchars($_GET['product_ID'] ?? '') ?>">
-                        <select id="sortReviews" name="sort" class="block w-full py-1 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none">
-                            <option value="oldest" <?= (isset($_GET['sort']) && $_GET['sort'] === 'oldest') ? 'selected' : '' ?>>Oldest</option>
-                            <option value="newest" <?= (isset($_GET['sort']) && $_GET['sort'] === 'newest') ? 'selected' : '' ?>>Newest</option>
-                        </select>
-                    </form>
+                    <div class="flex justify-between items-start">
+                        <form id="reviewFilterForm" class="w-24" method="get">
+                            <input type="hidden" name="product_ID" value="<?= htmlspecialchars($_GET['product_ID'] ?? '') ?>">
+                            <select id="sortReviews" name="sort" class="block w-full py-1 text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none">
+                                <option value="oldest" <?= (isset($_GET['sort']) && $_GET['sort'] === 'oldest') ? 'selected' : '' ?>>Oldest</option>
+                                <option value="newest" <?= (isset($_GET['sort']) && $_GET['sort'] === 'newest') ? 'selected' : '' ?>>Newest</option>
+                            </select>
+                        </form>
+
+                        <?php if ($session_userID) : ?>
+                            <!-- User -->
+                            <button id="writeReview"
+                                class="text-start border-2 border-blue-900 rounded-md px-4 py-2 text-blue-900 
+                                hover:border-blue-950 hover:text-blue-950 text-sm font-medium select-none">
+                                Write a review
+                            </button>
+                        <?php else : ?>
+                            <!-- Guest -->
+                            <a href="../User/user_signin.php"
+                                class="text-start border-2 inline-block border-blue-900 rounded-md px-4 py-2 text-blue-900 
+                                hover:border-blue-950 hover:text-blue-950 text-sm font-medium select-none">
+                                Sign in to write a review
+                            </a>
+                        <?php endif; ?>
+                    </div>
 
                     <div id="review-results-container">
                         <?php include('../Store/review_results.php'); ?>
@@ -692,6 +747,56 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
 
                     <div id="review-pagination-container" class="flex justify-between items-center mt-3">
                         <?php include('../Store/review_pagination.php'); ?>
+                    </div>
+                </div>
+
+                <div id="writeReviewModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+                    <div class="bg-white w-full md:w-1/2 lg:w-1/3 mx-4 p-6 rounded-md shadow-md max-h-[90vh] overflow-y-auto">
+                        <h2 class="text-xl text-gray-700 font-bold mb-4">Write a Review</h2>
+                        <form class="flex flex-col space-y-4" action="" method="post" id="productForm">
+                            <!-- Inside your review form -->
+                            <input type="hidden" name="productID" value="<?= htmlspecialchars($product_id) ?>">
+
+                            <!-- Star Rating -->
+                            <div class="relative">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Rating</label>
+                                <div class="flex space-x-1 select-none">
+                                    <?php for ($i = 1; $i <= 5; $i++): ?>
+                                        <button type="button" class="star-rating text-2xl" data-rating="<?= $i ?>">
+                                            <span class="text-gray-300 hover:text-amber-400">★</span>
+                                        </button>
+                                    <?php endfor; ?>
+                                </div>
+                                <input type="hidden" id="ratingValue" name="rating" value="0">
+                                <small id="ratingError" class="absolute left-2 -bottom-3 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            </div>
+
+                            <!-- Review Text -->
+                            <div class="relative">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Your Review</label>
+                                <textarea
+                                    id="reviewInput"
+                                    class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out min-h-[150px]"
+                                    name="reviewtext"
+                                    placeholder="Share your experience..."></textarea>
+                                <small id="reviewError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                            </div>
+
+                            <input type="hidden" name="submitreview" value="1">
+
+                            <!-- Form Actions -->
+                            <div class="flex justify-end gap-4 select-none pt-4">
+                                <div id="ReviewCancelBtn" class="px-4 py-2 text-amber-500 font-semibold hover:text-amber-600 cursor-pointer">
+                                    Cancel
+                                </div>
+                                <button
+                                    type="submit"
+                                    name="submitreview"
+                                    class="bg-amber-500 text-white font-semibold px-4 py-2 rounded-sm select-none hover:bg-amber-600 transition-colors">
+                                    Submit Review
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
@@ -739,6 +844,31 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                                     timeAgo.classList.remove('hidden');
                                     fullDate.classList.add('hidden');
                                 }, 2000);
+                            });
+                        });
+                    });
+
+                    // Star rating functionality
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const stars = document.querySelectorAll('.star-rating');
+                        const ratingInput = document.getElementById('ratingValue');
+
+                        stars.forEach(star => {
+                            star.addEventListener('click', function() {
+                                const rating = parseInt(this.getAttribute('data-rating'));
+                                ratingInput.value = rating;
+
+                                // Update star display
+                                stars.forEach((s, index) => {
+                                    const starIcon = s.querySelector('span');
+                                    if (index < rating) {
+                                        starIcon.classList.add('text-amber-400');
+                                        starIcon.classList.remove('text-gray-300');
+                                    } else {
+                                        starIcon.classList.add('text-gray-300');
+                                        starIcon.classList.remove('text-amber-400');
+                                    }
+                                });
                             });
                         });
                     });
