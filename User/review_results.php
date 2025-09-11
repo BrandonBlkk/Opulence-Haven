@@ -26,7 +26,7 @@ if ($totalReviews > 0) {
         $roomTypeFilter = " AND rr.RoomTypeID IN (" . implode(',', $escapedRoomTypes) . ")";
     }
 ?>
-    <div id="review-section" class="space-y-4 mb-8 w-full h-[600px] overflow-y-auto">
+    <div id="review-section" class="reservationScrollBar space-y-4 mb-8 w-full h-[600px] overflow-y-auto">
         <!-- Grid Layout for Reviews -->
         <div id="reviews-container" class="flex flex-col gap-4 divide-y-2 divide-slate-100">
             <?php
@@ -42,6 +42,7 @@ if ($totalReviews > 0) {
             if ($filteredReviews > 0) {
                 while ($roomReview = $roomReviewResult->fetch_assoc()) {
                     // Extract initials
+                    $userid = $roomReview['UserID'];
                     $nameParts = explode(' ', trim($roomReview['UserName']));
                     $initials = substr($nameParts[0], 0, 1);
                     if (count($nameParts) > 1) {
@@ -108,6 +109,47 @@ if ($totalReviews > 0) {
                                                 Reviewed on <span><?= htmlspecialchars(date('Y-m-d h:i', strtotime($roomReview['AddedDate']))) ?></span>
                                             </span>
                                         </div>
+                                        <div x-data="{ open: false }" class="relative inline-block <?= ($userID === $userid) ? '' : 'hidden' ?>">
+                                            <button
+                                                @click="open = !open"
+                                                type="button"
+                                                class="text-gray-500 hover:text-gray-600 focus:outline-none transition-colors duration-200">
+                                                <i class="ri-more-line text-xl"></i>
+                                            </button>
+                                            <div
+                                                x-show="open"
+                                                x-transition:enter="transition ease-out duration-100"
+                                                x-transition:enter-start="transform opacity-0 scale-95"
+                                                x-transition:enter-end="transform opacity-100 scale-100"
+                                                x-transition:leave="transition ease-in duration-75"
+                                                x-transition:leave-start="transform opacity-100 scale-100"
+                                                x-transition:leave-end="transform opacity-0 scale-95"
+                                                @click.away="open = false"
+                                                class="absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                                                role="menu"
+                                                style="display: none;">
+                                                <form method="post" class="delete-form py-1 select-none" role="none">
+                                                    <?php $reviewID = $roomReview['ReviewID'] ?? 0; ?>
+                                                    <input type="hidden" name="review_id" value="<?= $reviewID ?>">
+                                                    <input type="hidden" name="delete" value="1">
+                                                    <button
+                                                        @click="open = false"
+                                                        type="button"
+                                                        class="edit-btn block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200"
+                                                        data-review-id="<?= $reviewID ?>"
+                                                        data-comment="<?= htmlspecialchars($roomReview['Comment'] ?? '') ?>">
+                                                        <i class="ri-edit-line mr-2"></i> Edit
+                                                    </button>
+                                                    <button
+                                                        @click="open = false"
+                                                        type="submit"
+                                                        name="delete"
+                                                        class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200">
+                                                        <i class="ri-delete-bin-line mr-2"></i> Delete
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
 
                                         <script>
                                             document.addEventListener('DOMContentLoaded', function() {
@@ -153,9 +195,54 @@ if ($totalReviews > 0) {
                                 <p class="text-gray-900 text-xs"><?php echo $roomReview['TravellerType'] ?? ''; ?></p>
                             </div>
                         </div>
-                        <p class="text-gray-700 text-sm">
-                            "<?php echo $roomReview['Comment'] ?? ''; ?>"
-                        </p>
+
+                        <!-- Review text -->
+                        <div class="review" data-review-id="<?= $reviewID ?>">
+                            <p class="review-text text-gray-700 text-sm">
+                                "<?= htmlspecialchars($roomReview['Comment'] ?? '') ?>"
+                            </p>
+                        </div>
+
+                        <!-- Hidden edit form -->
+                        <form method="post" class="edit-form hidden mt-2" data-review-id="<?= $reviewID ?>">
+                            <input type="hidden" name="review_id" value="<?= $reviewID ?>">
+                            <input type="hidden" name="save_edit" value="1">
+                            <textarea name="updated_comment" rows="4" class="w-full border rounded p-2 text-sm outline-none"><?= htmlspecialchars($roomReview['Comment'] ?? '') ?></textarea>
+                            <button type="submit" name="save_edit" class="mt-2 text-gray-600 bg-gray-200 hover:bg-gray-300 py-1 px-3 rounded text-sm outline-none select-none">Save</button>
+                            <button type="button" class="cancel-edit text-sm text-gray-500 ml-2 select-none">Cancel</button>
+                        </form>
+
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const editBtns = document.querySelectorAll('.edit-btn');
+                                editBtns.forEach(btn => {
+                                    btn.addEventListener('click', function() {
+                                        const reviewId = this.getAttribute('data-review-id');
+                                        const comment = this.getAttribute('data-comment');
+                                        const form = document.querySelector(`.edit-form[data-review-id="${reviewId}"]`);
+                                        const reviewText = document.querySelector(`.review[data-review-id="${reviewId}"]`);
+                                        if (!form || !reviewText) return;
+                                        const textarea = form.querySelector('textarea');
+                                        if (textarea) textarea.value = comment;
+                                        reviewText.classList.add('hidden');
+                                        form.classList.remove('hidden');
+                                    });
+                                });
+
+                                const cancelBtns = document.querySelectorAll('.cancel-edit');
+                                cancelBtns.forEach(btn => {
+                                    btn.addEventListener('click', function() {
+                                        const editForm = this.closest('.edit-form');
+                                        const reviewId = editForm.getAttribute('data-review-id');
+                                        const reviewText = document.querySelector(`.review[data-review-id="${reviewId}"]`);
+                                        if (editForm && reviewText) {
+                                            editForm.classList.add('hidden');
+                                            reviewText.classList.remove('hidden');
+                                        }
+                                    });
+                                });
+                            });
+                        </script>
 
                         <?php
                         // Initialize reaction counts and user reaction
@@ -225,7 +312,7 @@ if ($totalReviews > 0) {
                     // Fetch country names for newly loaded reviews
                     document.querySelectorAll('.country-name').forEach(el => {
                         const countryCode = el.getAttribute('data-country-code');
-                        if (!el._fetched) { // Only fetch if not already fetched
+                        if (!el._fetched) {
                             el._fetched = true;
                             fetch(`https://restcountries.com/v3.1/alpha/${countryCode}`)
                                 .then(response => response.json())
@@ -233,7 +320,7 @@ if ($totalReviews > 0) {
                                     el.textContent = data[0]?.name?.common || countryCode;
                                 })
                                 .catch(() => {
-                                    el.textContent = countryCode; // Fallback if API fails
+                                    el.textContent = countryCode;
                                 });
                         }
                     });
@@ -252,166 +339,3 @@ if ($totalReviews > 0) {
 <?php
 }
 ?>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Auto-submit for all filters
-        document.querySelectorAll('.auto-submit').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const showLoading = this.dataset.clicked === 'false';
-                if (showLoading) {
-                    this.dataset.clicked = 'true';
-                }
-                submitReviewFilterForm(showLoading);
-            });
-        });
-
-        // Function to submit filter form via AJAX
-        function submitReviewFilterForm(showLoading) {
-            const formData = new URLSearchParams();
-
-            // Get selected ratings
-            const ratingCheckboxes = document.querySelectorAll('input[name="ratings[]"]:checked');
-            ratingCheckboxes.forEach(checkbox => {
-                formData.append('ratings[]', checkbox.value);
-            });
-
-            // Get selected traveller types
-            const travellerTypeCheckboxes = document.querySelectorAll('input[name="traveller_type[]"]:checked');
-            travellerTypeCheckboxes.forEach(checkbox => {
-                formData.append('traveller_type[]', checkbox.value);
-            });
-
-            // Get selected room types
-            const roomTypeCheckboxes = document.querySelectorAll('input[name="roomtypes[]"]:checked');
-            roomTypeCheckboxes.forEach(checkbox => {
-                formData.append('roomtypes[]', checkbox.value);
-            });
-
-            // Get current URL parameters
-            const currentParams = new URLSearchParams(window.location.search);
-            currentParams.forEach((value, key) => {
-                if (key !== 'ratings[]' && key !== 'traveller_type[]' && key !== 'roomtypes[]') {
-                    formData.append(key, value);
-                }
-            });
-
-            formData.append('ajax_request', '1');
-
-            // Show loading state if requested
-            if (showLoading) {
-                showReviewLoadingState();
-            }
-
-            // Fetch results
-            fetchReviewResults(formData, showLoading);
-        }
-
-        // Function to show loading state
-        function showReviewLoadingState() {
-            document.getElementById('reviews-container').innerHTML = `
-            <div class="w-[80%] space-y-4">
-                ${Array(3).fill().map(() => `
-                <div class="bg-white p-4 animate-pulse">
-                    <div class="flex items-center mb-4">
-                        <div class="w-10 h-10 rounded-full bg-gray-200 mr-3"></div>
-                        <div class="space-y-2 flex-1">
-                            <div class="h-4 bg-gray-200 rounded w-1/3"></div>
-                            <div class="h-3 bg-gray-200 rounded w-1/4"></div>
-                        </div>
-                    </div>
-                    <div class="space-y-2">
-                        <div class="h-4 bg-gray-200 rounded w-full"></div>
-                        <div class="h-4 bg-gray-200 rounded w-5/6"></div>
-                        <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-                    </div>
-                </div>
-                `).join('')}
-            </div>
-        `;
-        }
-
-        // Function to fetch and display results
-        function fetchReviewResults(formData, shouldDelay) {
-            const url = window.location.pathname + '?' + formData.toString();
-
-            fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'text/html'
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.text();
-                })
-                .then(data => {
-                    const processData = () => {
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = data;
-
-                        // Update the reviews container
-                        const newContent = tempDiv.querySelector('#reviews-container');
-                        if (newContent) {
-                            document.getElementById('reviews-container').innerHTML = newContent.innerHTML;
-                            window.history.pushState({
-                                path: url.toString()
-                            }, '', url.toString());
-
-                            // Trigger country name fetch for new reviews
-                            fetchCountryNames();
-                        } else {
-                            throw new Error('Invalid response format');
-                        }
-                    };
-
-                    if (shouldDelay) {
-                        setTimeout(processData, 1000); // Delay for first click
-                    } else {
-                        processData(); // No delay for subsequent clicks
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    document.getElementById('reviews-container').innerHTML = `
-                <div class="bg-white p-8 rounded-lg shadow-sm border text-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <h2 class="text-xl font-bold text-gray-800 mt-4">Error Loading Reviews</h2>
-                    <p class="text-gray-600 mt-2">We couldn't load the reviews. Please try again.</p>
-                    <div class="mt-6">
-                        <button onclick="window.location.reload()" class="inline-block bg-orange-500 text-white px-6 py-2 rounded-md hover:bg-orange-600 transition-colors select-none">
-                            Try Again
-                        </button>
-                    </div>
-                </div>
-            `;
-                });
-        }
-
-        // Function to fetch country names
-        function fetchCountryNames() {
-            document.querySelectorAll('.country-name').forEach(el => {
-                const countryCode = el.getAttribute('data-country-code');
-                if (!el._fetched) { // Only fetch if not already fetched
-                    el._fetched = true;
-                    fetch(`https://restcountries.com/v3.1/alpha/${countryCode}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            el.textContent = data[0]?.name?.common || countryCode;
-                        })
-                        .catch(() => {
-                            el.textContent = countryCode; // Fallback if API fails
-                        });
-                }
-            });
-        }
-
-        // Initial fetch of country names
-        fetchCountryNames();
-    });
-</script>

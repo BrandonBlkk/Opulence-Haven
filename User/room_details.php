@@ -491,7 +491,89 @@ if (isset($_POST['submitreview'])) {
         $response['message'] = 'User not logged in';
     }
 
-    header('Content-Type: application/json');
+    // Ensure clean JSON response
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($response);
+    exit;
+}
+
+//Review Edit
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_edit'])) {
+
+    $response = ['success' => false, 'message' => 'Failed to update review'];
+
+    // Validate inputs
+    $review_id = isset($_POST['review_id']) ? (int) $_POST['review_id'] : 0;
+    $updated_comment = isset($_POST['updated_comment']) ? trim($_POST['updated_comment']) : '';
+
+    if ($review_id > 0 && $updated_comment !== '') {
+        // Use prepared statement (no need for real_escape_string)
+        $stmt = $connect->prepare("UPDATE roomtypereviewtb SET Comment = ? WHERE ReviewID = ?");
+        if ($stmt) {
+            $stmt->bind_param("si", $updated_comment, $review_id);
+            if ($stmt->execute()) {
+                $response['success'] = true;
+                $response['message'] = 'Review updated successfully';
+            } else {
+                $response['message'] = 'Database execute failed';
+            }
+            $stmt->close();
+        } else {
+            $response['message'] = 'Database prepare failed';
+        }
+    } else {
+        $response['message'] = 'Invalid data';
+    }
+
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($response);
+    exit;
+}
+
+// Review delete
+if (isset($_POST['delete'])) {
+    $review_id = isset($_POST['review_id']) ? (int) $_POST['review_id'] : 0;
+
+    header('Content-Type: application/json; charset=utf-8');
+
+    if ($review_id > 0) {
+        $delete_query = $connect->prepare("DELETE FROM roomtypereviewtb WHERE ReviewID = ?");
+        if ($delete_query) {
+            $delete_query->bind_param("i", $review_id);
+            if ($delete_query->execute()) {
+                $response = [
+                    'success' => true,
+                    'message' => 'Review deleted successfully'
+                ];
+            } else {
+                $response = [
+                    'success' => false,
+                    'message' => 'Database delete failed'
+                ];
+            }
+            $delete_query->close();
+        } else {
+            $response = [
+                'success' => false,
+                'message' => 'Database prepare failed'
+            ];
+        }
+    } else {
+        $response = [
+            'success' => false,
+            'message' => 'Missing required fields'
+        ];
+    }
+
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
     echo json_encode($response);
     exit();
 }
