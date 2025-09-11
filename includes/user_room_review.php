@@ -1,13 +1,23 @@
-<aside id="rooomReview" class="fixed top-full flex flex-col bg-white w-full h-full p-4 z-40 transition-all duration-500 ease-in-out">
+<aside id="roomReview" class="fixed top-full flex flex-col bg-white w-full h-full p-4 z-40 transition-all duration-500 ease-in-out">
     <div class="flex justify-end pb-3">
         <i id="reviewCloseBtn" class="ri-close-line text-2xl cursor-pointer rounded transition-colors duration-300"></i>
     </div>
 
     <div class="flex justify-between items-center mb-2">
         <h2 class="text-xl font-bold text-gray-800 mb-3">Guests who stayed here loved</h2>
-        <button id="writeReview" class="mt-4 text-start border-2 border-blue-600 rounded-md px-4 py-2 text-blue-600 hover:border-blue-800 hover:text-blue-800 text-sm font-medium select-none">
-            Write a review
-        </button>
+        <?php if ($userID) : ?>
+            <!-- User -->
+            <button id="writeReview" class="mt-4 text-start border-2 border-blue-600 rounded-md px-4 py-2 text-blue-600 hover:border-blue-800 hover:text-blue-800 text-sm font-medium select-none">
+                Write a review
+            </button>
+        <?php else : ?>
+            <!-- Guest -->
+            <a href="../User/user_signin.php"
+                class="text-start border-2 inline-block border-blue-900 rounded-md px-4 py-2 text-blue-900 
+                                hover:border-blue-950 hover:text-blue-950 text-sm font-medium select-none">
+                Sign in to write a review
+            </a>
+        <?php endif; ?>
     </div>
 
     <div class="flex flex-col md:flex-row gap-4">

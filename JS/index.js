@@ -597,21 +597,20 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-//Rooom Review
+//Room Review
 const viewAllReviews = document.getElementById('viewAllReviews');
 if (viewAllReviews) {
     const reviewCloseBtn = document.getElementById('reviewCloseBtn');
-    const rooomReview = document.getElementById('rooomReview');
+    const roomReview = document.getElementById('roomReview');
     const darkOverlay = document.getElementById('darkOverlay');
 
     viewAllReviews.addEventListener('click', () => {
-        rooomReview.style.top = '0%';
+        roomReview.style.top = '0%';
     });
 
     reviewCloseBtn.addEventListener('click', () => {
-        rooomReview.style.top = '100%';
+        roomReview.style.top = '100%';
 
-        // Unset checkbox
         const checkboxes = document.querySelectorAll('input[type="checkbox"]');
         checkboxes.forEach((checkbox) => {
             checkbox.checked = false;
@@ -619,19 +618,18 @@ if (viewAllReviews) {
     });
 
     darkOverlay.addEventListener('click', () => {
-        rooomReview.style.top = '100%';
+        roomReview.style.top = '100%';
     });
 }
 
 // Room Type Review
 document.addEventListener("DOMContentLoaded", () => {
-    // Add keyup event listeners for real-time validation
     const travellerTypeSelect = document.getElementById("travellerTypeSelect");
     const reviewInput = document.getElementById("reviewInput");
 
     if (reviewInput) reviewInput.addEventListener("keyup", validateRoomTypeReview);
     if (travellerTypeSelect) travellerTypeSelect.addEventListener("change", validateTravellerType);
-    
+
     document.querySelectorAll('.star-rating').forEach(star => {
         star.addEventListener('click', () => {
             hideError(document.getElementById('ratingError'));
@@ -639,53 +637,39 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const writeReviewModal = document.getElementById("writeReviewModal");
-    const reviewForm = document.getElementById("reviewForm"); // Add this form element in your HTML
+    const reviewForm = document.getElementById("reviewForm");
 
     if (reviewForm) {
         reviewForm.addEventListener("submit", async function(e) {
             e.preventDefault();
-            
-            if (!validateRoomTypeReviewForm()) {
-                return;
-            }
-            
+
+            if (!validateRoomTypeReviewForm()) return;
+
             try {
                 const formData = new FormData(this);
-                // Add any additional fields that might be outside the form but in the modal
                 const ratingValue = document.getElementById('ratingValue').value;
                 formData.append('rating', ratingValue);
-                
+
                 const response = await fetch('../User/room_details.php', {
                     method: 'POST',
                     body: formData,
-                    headers: {
-                        'Accept': 'application/json'
-                    }
+                    headers: { 'Accept': 'application/json' }
                 });
 
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-
                 const data = await response.json();
-                
                 if (data.status) {
-                    // Success - update UI without reload
                     showAlert('Review submitted successfully!', false);
-                    
-                    // Reset form
                     this.reset();
-                    
-                    // Reset stars
+
                     document.querySelectorAll('.star-rating span').forEach(star => {
                         star.className = 'text-gray-300 hover:text-amber-400';
                     });
                     document.getElementById('ratingValue').value = '0';
-                    
-                    // Hide modal if exists
+
                     if (writeReviewModal) {
-                        const modal = bootstrap.Modal.getInstance(writeReviewModal);
-                        if (modal) modal.hide();
+                        writeReviewModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                        darkOverlay2.classList.add('opacity-0', 'invisible');
+                        darkOverlay2.classList.remove('opacity-100');
                     }
                 } else {
                     showAlert(data.message || 'Failed to submit review', true);
@@ -698,99 +682,279 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Room Type Reaction
-document.addEventListener('DOMContentLoaded', () => {
-    const forms = document.querySelectorAll('.roomtype-reaction-form');
+// Room Type Reaction & Filter Initialization
+document.addEventListener('DOMContentLoaded', function() {
     const loginModal = document.getElementById('loginModal');
-    const rooomReview = document.getElementById('rooomReview');
+    const roomReview = document.getElementById('roomReview');
     const darkOverlay2 = document.getElementById('darkOverlay2');
 
-    if (!forms.length) return;
+    function initializeReactions() {
+        const forms = document.querySelectorAll('.roomtype-reaction-form');
+        if (!forms.length) return;
 
-    forms.forEach(form => {
-        const reviewID = form.querySelector('input[name="review_id"]').value;
-        const roomTypeID = form.querySelector('input[name="roomTypeID"]').value;
-        const checkin_date = form.querySelector('input[name="checkin_date"]').value;
-        const checkout_date = form.querySelector('input[name="checkout_date"]').value;
-        const adults = form.querySelector('input[name="adults"]').value;
-        const children = form.querySelector('input[name="children"]').value;
+        forms.forEach(form => {
+            if (form.dataset.bound === "true") return;
+            form.dataset.bound = "true";
 
-        const likeBtn = form.querySelector('.like-btn');
-        const dislikeBtn = form.querySelector('.dislike-btn');
-        const likeIcon = likeBtn.querySelector('i');
-        const dislikeIcon = dislikeBtn.querySelector('i');
-        const likeCountSpan = likeBtn.querySelector('.like-count');
-        const dislikeCountSpan = dislikeBtn.querySelector('.dislike-count');
+            const reviewID = form.querySelector('input[name="review_id"]').value;
+            const roomTypeID = form.querySelector('input[name="roomTypeID"]').value;
+            const checkin_date = form.querySelector('input[name="checkin_date"]').value;
+            const checkout_date = form.querySelector('input[name="checkout_date"]').value;
+            const adults = form.querySelector('input[name="adults"]').value;
+            const children = form.querySelector('input[name="children"]').value;
 
-        likeBtn.addEventListener('click', () => sendReaction('like'));
-        dislikeBtn.addEventListener('click', () => sendReaction('dislike'));
+            const likeBtn = form.querySelector('.like-btn');
+            const dislikeBtn = form.querySelector('.dislike-btn');
+            const likeIcon = likeBtn.querySelector('i');
+            const dislikeIcon = dislikeBtn.querySelector('i');
+            const likeCountSpan = likeBtn.querySelector('.like-count');
+            const dislikeCountSpan = dislikeBtn.querySelector('.dislike-count');
 
-        function sendReaction(type) {
-            const body = new URLSearchParams({
-                review_id: reviewID,
-                roomTypeID: roomTypeID,
-                checkin_date: checkin_date,
-                checkout_date: checkout_date,
-                adults: adults,
-                children: children,
-                reaction_type: type
-            });
+            likeBtn.addEventListener('click', () => sendReaction('like'));
+            dislikeBtn.addEventListener('click', () => sendReaction('dislike'));
 
-            fetch('reaction_handler.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: body.toString()
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'not_logged_in') {
-                    if (loginModal && darkOverlay2) {
-                        loginModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-                        darkOverlay2.classList.remove('opacity-0', 'invisible');
-                        darkOverlay2.classList.add('opacity-100');
-                        rooomReview.style.top = '100%';
+            function sendReaction(type) {
+                const body = new URLSearchParams({
+                    review_id: reviewID,
+                    roomTypeID: roomTypeID,
+                    checkin_date,
+                    checkout_date,
+                    adults,
+                    children,
+                    reaction_type: type
+                });
+
+                fetch('reaction_handler.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: body.toString()
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'not_logged_in') {
+                        if (loginModal && darkOverlay2) {
+                            loginModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                            darkOverlay2.classList.remove('opacity-0', 'invisible');
+                            darkOverlay2.classList.add('opacity-100');
+                            if (roomReview) roomReview.
+                            style.top = '100%';
 
                         const closeLoginModal = document.getElementById('closeLoginModal');
-                        if (closeLoginModal) {
-                            closeLoginModal.addEventListener('click', function() {
-                                loginModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-                                darkOverlay2.classList.add('opacity-0', 'invisible');
-                                darkOverlay2.classList.remove('opacity-100');
-                            });
+                            if (closeLoginModal) {
+                                closeLoginModal.addEventListener('click', function () {
+                                    loginModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                                    darkOverlay2.classList.add('opacity-0', 'invisible');
+                                    darkOverlay2.classList.remove('opacity-100');
+                                });
+                            }
                         }
+                        return;
                     }
-                    return;
-                }
 
-                if (data.success) {
-                    likeCountSpan.textContent = data.likeCount;
-                    dislikeCountSpan.textContent = data.dislikeCount;
+                    if (data.success) {
+                        likeCountSpan.textContent = data.likeCount;
+                        dislikeCountSpan.textContent = data.dislikeCount;
 
-                    if (type === 'like') {
-                        if (likeIcon.classList.contains('ri-thumb-up-fill')) {
-                            likeIcon.classList.replace('ri-thumb-up-fill', 'ri-thumb-up-line');
-                            likeBtn.classList.remove('text-gray-500');
-                        } else {
-                            likeIcon.classList.replace('ri-thumb-up-line', 'ri-thumb-up-fill');
-                            likeBtn.classList.add('text-gray-500');
-                            dislikeIcon.classList.replace('ri-thumb-down-fill', 'ri-thumb-down-line');
-                            dislikeBtn.classList.remove('text-gray-500');
-                        }
-                    } else {
-                        if (dislikeIcon.classList.contains('ri-thumb-down-fill')) {
+                        if (type === 'like') {
+                            likeIcon.classList.toggle('ri-thumb-up-fill');
+                            likeIcon.classList.toggle('ri-thumb-up-line');
+                            likeBtn.classList.toggle('text-gray-500');
+
                             dislikeIcon.classList.replace('ri-thumb-down-fill', 'ri-thumb-down-line');
                             dislikeBtn.classList.remove('text-gray-500');
                         } else {
-                            dislikeIcon.classList.replace('ri-thumb-down-line', 'ri-thumb-down-fill');
-                            dislikeBtn.classList.add('text-gray-500');
+                            dislikeIcon.classList.toggle('ri-thumb-down-fill');
+                            dislikeIcon.classList.toggle('ri-thumb-down-line');
+                            dislikeBtn.classList.toggle('text-gray-500');
+
                             likeIcon.classList.replace('ri-thumb-up-fill', 'ri-thumb-up-line');
                             likeBtn.classList.remove('text-gray-500');
                         }
                     }
-                }
-            })
-            .catch(err => console.error(err));
+                })
+                .catch(err => console.error(err));
+            }
+        });
+
+        initializeEditDelete();
+    }
+
+    function initializeEditDelete() {
+        // Edit buttons
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.removeEventListener('click', editHandler);
+            btn.addEventListener('click', editHandler);
+        });
+
+        function editHandler() {
+            const reviewId = this.getAttribute('data-review-id');
+            const comment = this.getAttribute('data-comment');
+            const form = document.querySelector(`.edit-form[data-review-id="${reviewId}"]`);
+            const reviewText = document.querySelector(`.review[data-review-id="${reviewId}"]`);
+            if (!form || !reviewText) return;
+            const textarea = form.querySelector('textarea');
+            if (textarea) textarea.value = comment;
+            reviewText.classList.add('hidden');
+            form.classList.remove('hidden');
         }
+
+        // Cancel edit buttons
+        document.querySelectorAll('.cancel-edit').forEach(btn => {
+            btn.removeEventListener('click', cancelHandler);
+            btn.addEventListener('click', cancelHandler);
+        });
+
+        function cancelHandler() {
+            const editForm = this.closest('.edit-form');
+            const reviewId = editForm.getAttribute('data-review-id');
+            const reviewText = document.querySelector(`.review[data-review-id="${reviewId}"]`);
+            if (editForm && reviewText) {
+                editForm.classList.add('hidden');
+                reviewText.classList.remove('hidden');
+            }
+        }
+
+        // AJAX SUBMIT EDIT FORM
+        document.querySelectorAll('.edit-form').forEach(form => {
+            form.removeEventListener('submit', editSubmitHandler);
+            form.addEventListener('submit', editSubmitHandler);
+        });
+
+        async function editSubmitHandler(e) {
+            e.preventDefault();
+            const form = e.currentTarget;
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('../User/room_details.php', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    // Update review text
+                    const reviewId = form.querySelector('input[name="review_id"]').value;
+                    const reviewText = document.querySelector(`.review[data-review-id="${reviewId}"] p`);
+                    reviewText.textContent = `"${formData.get('updated_comment')}"`;
+                    form.classList.add('hidden');
+                    reviewText.closest('.review').classList.remove('hidden');
+                    showAlert(data.message, false);
+                } else {
+                    showAlert(data.message || 'Failed to update review', true);
+                }
+            } catch (err) {
+                console.error(err);
+                showAlert('An error occurred. Please try again.', true);
+            }
+        }
+
+        // AJAX SUBMIT DELETE FORM
+        document.querySelectorAll('.delete-form').forEach(form => {
+            form.removeEventListener('submit', deleteSubmitHandler);
+            form.addEventListener('submit', deleteSubmitHandler);
+        });
+
+        async function deleteSubmitHandler(e) {
+            e.preventDefault();
+            const form = e.currentTarget;
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('../User/room_details.php', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    const reviewId = form.querySelector('input[name="review_id"]').value;
+                    const reviewCard = form.closest('.review-card');
+                    if (reviewCard) reviewCard.remove();
+                    showAlert(data.message, false);
+                } else {
+                    showAlert(data.message || 'Failed to delete review', true);
+                }
+            } catch (err) {
+                console.error(err);
+                showAlert('An error occurred. Please try again.', true);
+            }
+        }
+    }
+
+    function initializeReviewFilters() {
+        document.querySelectorAll('.auto-submit').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const showLoading = this.dataset.clicked === 'false';
+                if (showLoading) this.dataset.clicked = 'true';
+                submitReviewFilterForm(showLoading);
+            });
+        });
+    }
+
+    function submitReviewFilterForm(showLoading) {
+        const formData = new URLSearchParams();
+        document.querySelectorAll('input[name="ratings[]"]:checked').forEach(cb => formData.append('ratings[]', cb.value));
+        document.querySelectorAll('input[name="traveller_type[]"]:checked').forEach(cb => formData.append('traveller_type[]', cb.value));
+        document.querySelectorAll('input[name="roomtypes[]"]:checked').forEach(cb => formData.append('roomtypes[]', cb.value));
+
+        const currentParams = new URLSearchParams(window.location.search);
+        currentParams.forEach((value, key) => {
+            if (!['ratings[]','traveller_type[]','roomtypes[]'].includes(key)) formData.append(key, value);
+        });
+
+        formData.append('ajax_request', '1');
+        if (showLoading) showReviewLoadingState();
+        fetchReviewResults(formData, showLoading);
+    }
+
+    function showReviewLoadingState() {
+        const container = document.getElementById('reviews-container');
+        if (!container) return;
+        container.innerHTML = `<div class="w-[80%] space-y-4">${Array(3).fill().map(() => `<div class="bg-white p-4 animate-pulse"><div class="flex items-center mb-4"><div class="w-10 h-10 rounded-full bg-gray-200 mr-3"></div><div class="space-y-2 flex-1"><div class="h-4 bg-gray-200 rounded w-1/3"></div><div class="h-3 bg-gray-200 rounded w-1/4"></div></div></div><div class="space-y-2"><div class="h-4 bg-gray-200 rounded w-full"></div><div class="h-4 bg-gray-200 rounded w-5/6"></div><div class="h-4 bg-gray-200 rounded w-3/4"></div></div></div>`).join('')}</div>`;
+    }
+
+    function fetchReviewResults(formData, shouldDelay) {
+        const url = window.location.pathname + '?' + formData.toString();
+        fetch(url, { method: 'GET', headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' } })
+        .then(res => res.text())
+        .then(data => {
+            const processData = () => {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = data;
+                const newContent = tempDiv.querySelector('#reviews-container');
+                if (newContent) {
+                    document.getElementById('reviews-container').innerHTML = newContent.innerHTML;
+                    window.history.pushState({ path: url.toString() }, '', url.toString());
+                    fetchCountryNames();
+                    document.dispatchEvent(new Event('reviewsUpdated'));
+                }
+            };
+            if (shouldDelay) setTimeout(processData, 1000);
+            else processData();
+        })
+        .catch(err => console.error(err));
+    }
+
+    function fetchCountryNames() {
+        document.querySelectorAll('.country-name').forEach(el => {
+            const countryCode = el.getAttribute('data-country-code');
+            if (!el._fetched) {
+                el._fetched = true;
+                fetch(`https://restcountries.com/v3.1/alpha/${countryCode}`)
+                    .then(res => res.json())
+                    .then(data => el.textContent = data[0]?.name?.common || countryCode)
+                    .catch(() => el.textContent = countryCode);
+            }
+        });
+    }
+
+    initializeReactions();
+    initializeReviewFilters();
+    fetchCountryNames();
+
+    document.addEventListener('reviewsUpdated', () => {
+        initializeReactions();
     });
 });
 

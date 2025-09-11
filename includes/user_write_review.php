@@ -112,14 +112,14 @@
     document.addEventListener("DOMContentLoaded", () => {
         const writeReviewModal = document.getElementById('writeReviewModal');
         const writeReview = document.getElementById('writeReview');
-        const rooomReview = document.getElementById('rooomReview');
+        const roomReview = document.getElementById('roomReview');
         const ReviewCancelBtn = document.getElementById('ReviewCancelBtn');
         const darkOverlay2 = document.getElementById('darkOverlay2');
 
         if (writeReviewModal && writeReview && ReviewCancelBtn && darkOverlay2) {
             // Show modal
             writeReview.addEventListener('click', () => {
-                rooomReview.style.top = '100%';
+                roomReview.style.top = '100%';
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
                 writeReviewModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
@@ -127,7 +127,7 @@
 
             // Cancel button functionality
             ReviewCancelBtn.addEventListener('click', () => {
-                rooomReview.style.top = '0%';
+                roomReview.style.top = '0%';
                 writeReviewModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
                 darkOverlay2.classList.add('opacity-0', 'invisible');
                 darkOverlay2.classList.remove('opacity-100');
