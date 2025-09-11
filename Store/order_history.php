@@ -410,6 +410,7 @@ if (isset($_POST['cancel_order'])) {
     include('../includes/footer.php');
     ?>
 
+    <script src="//unpkg.com/alpinejs" defer></script>
     <script type="module" src="../JS/index.js"></script>
 </body>
 
