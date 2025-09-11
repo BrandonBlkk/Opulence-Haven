@@ -685,7 +685,9 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                 <h1 id="tab-description" class="tab text-base sm:text-lg text-blue-900 font-semibold cursor-pointer select-none <?= ($description === 'Not provided') ? 'hidden' : ''; ?>" onclick="showTab('description')">Description</h1>
                 <h1 id="tab-specification" class="tab text-base sm:text-lg text-blue-900 font-semibold cursor-pointer select-none <?= ($product_specification === 'Not provided') ? 'hidden' : ''; ?>" onclick="showTab('specification')">Specification</h1>
                 <h1 id="tab-information" class="tab text-base sm:text-lg text-blue-900 font-semibold cursor-pointer select-none <?= ($product_information === 'Not provided') ? 'hidden' : ''; ?>" onclick="showTab('information')">Information</h1>
-                <h1 id="tab-review" class="tab text-base sm:text-lg text-blue-900 font-semibold cursor-pointer select-none" onclick="showTab('review')">Reviews (<?= ($productReviewCount) ?>)</h1>
+                <h1 id="tab-review" class="tab text-base sm:text-lg text-blue-900 font-semibold cursor-pointer select-none" onclick="showTab('review')">
+                    Reviews (<?= ($productReviewCount) ?>)
+                </h1>
 
                 <!-- Moving Bar -->
                 <div id="active-bar" class="absolute bottom-0 left-0 h-[2px] bg-blue-900 transition-all duration-300"></div>
