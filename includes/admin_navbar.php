@@ -406,7 +406,7 @@ if (mysqli_num_rows($query) > 0) {
                                 </div>
                                 <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= htmlspecialchars($allReservationCount) ?></p>
                             </a>
-                            <a href="../Admin/add_product.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
+                            <a href="../Admin/order.php" class="flex justify-between text-slate-600 hover:bg-gray-100 p-2 rounded-sm transition-colors duration-300 select-none <?= ($role === '1' || $role === '5') ? 'flex' : 'hidden'; ?>">
                                 <div class="flex items-center gap-1">
                                     <i class="ri-shopping-bag-2-line text-xl"></i>
                                     <span class="font-semibold text-sm">Order</span>
