@@ -174,7 +174,7 @@ if (isset($_GET['payment']) && $_GET['payment'] == 'success' && isset($_GET['ord
             }
 
             // Redirect after success
-            header("Location: store_checkout.php");
+            header("Location: modify_order.php?order_id=" . $order_id . "&payment=success");
             exit();
         } else {
             die("Error updating order status and total: " . $connect->error);
@@ -185,6 +185,6 @@ if (isset($_GET['payment']) && $_GET['payment'] == 'success' && isset($_GET['ord
     }
 } else {
     // Invalid access to this page
-    header("Location: store_checkout.php");
+    header("Location: modify_order.php?order_id=" . $order_id . "&payment=cancel");
     exit();
 }

@@ -320,19 +320,19 @@ document.getElementById('modifyForm')?.addEventListener('submit', function(e) {
     let shippingChanged = false;
     let quantityChanged = false;
 
-    // --- Detect shipping field changes ---
+    // Detect shipping field changes
     const shippingFields = ['FullName','PhoneNumber','ShippingAddress','City','State','ZipCode'];
     for (let field of shippingFields) {
         const input = form.querySelector(`[name="${field}"]`);
         if (!input) continue;
-        const originalValue = input.getAttribute('value'); // PHP loaded value
+        const originalValue = input.getAttribute('value');
         if (input.value !== originalValue) {
             shippingChanged = true;
             break;
         }
     }
 
-    // --- Detect quantity changes ---
+    // Detect quantity changes
     const qtyInputs = form.querySelectorAll('input[name^="qty"]');
     qtyInputs.forEach(input => {
         const originalQty = input.getAttribute('value');
@@ -347,7 +347,7 @@ document.getElementById('modifyForm')?.addEventListener('submit', function(e) {
         return;
     }
 
-    // --- Show loading on button ---
+    // Show loading on button
     const originalBtnText = submitBtn.innerHTML;
     submitBtn.disabled = true;
     submitBtn.innerHTML = `
@@ -360,7 +360,7 @@ document.getElementById('modifyForm')?.addEventListener('submit', function(e) {
         </span>
     `;
 
-    // --- Proceed with AJAX ---
+    // Proceed with AJAX
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '../Store/modify_order_save.php', true);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -370,8 +370,6 @@ document.getElementById('modifyForm')?.addEventListener('submit', function(e) {
             try {
                 const res = JSON.parse(xhr.responseText || '{}');
                 if (xhr.status === 200 && res.success) {
-                    showAlert('Your order has been updated successfully.');
-
                     // Redirect to Stripe only if additional amount is due AND quantity was changed
                     if (quantityChanged && res.additional_due > 0) {
                         window.location.href = '../Store/stripe_modified_order.php?order_id=' + encodeURIComponent(form.querySelector('input[name="order_id"]').value);
