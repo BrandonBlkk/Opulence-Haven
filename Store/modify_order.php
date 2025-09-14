@@ -14,6 +14,7 @@ if (empty($_GET['order_id'])) {
     exit('Missing order_id');
 }
 $orderId = $_GET['order_id'];
+$cancelAlert = null;
 
 // Handle Stripe payment cancel first
 if (isset($_GET['payment'], $_GET['order_id']) && $_GET['payment'] === 'cancel') {
@@ -65,6 +66,12 @@ if (isset($_GET['payment'], $_GET['order_id']) && $_GET['payment'] === 'cancel')
         // Clear session stored originals
         unset($_SESSION['original_order_' . $cancelOrderId]);
         unset($_SESSION['original_lines_' . $cancelOrderId]);
+
+        // set success alert
+        $cancelAlert = "Your payment was canceled. The order has been restored to its original state.";
+    } else {
+        // set fallback alert
+        $cancelAlert = "Your payment was canceled. No changes were made to the order.";
     }
 }
 
@@ -99,7 +106,8 @@ $canModify = in_array($orderStatus, ['Order Placed', 'Processing']);
 $qItems = "
   SELECT od.ProductID, od.SizeID, od.OrderUnitQuantity, od.OrderUnitPrice,
          COALESCE(p.Title, CONCAT('Product ', od.ProductID)) AS Title,
-         COALESCE(i.ImageUserPath, '../images/placeholder.png') AS ImageUserPath
+         COALESCE(i.ImageUserPath, '../images/placeholder.png') AS ImageUserPath,
+         p.SaleQuantity
   FROM orderdetailtb od
   LEFT JOIN producttb p ON p.ProductID = od.ProductID
   LEFT JOIN productimagetb i ON i.ProductID = od.ProductID AND i.PrimaryImage = 1
@@ -146,6 +154,12 @@ $csrf = $_SESSION['csrf_token'];
     <div class="max-w-6xl mx-auto p-6">
         <h1 class="text-2xl sm:text-4xl text-center text-blue-900 tracking-wide">Modify Order</h1>
 
+        <?php if ($cancelAlert): ?>
+            <div class="p-4 mt-10 rounded border-l-4 border-red-400 bg-red-50 text-red-500">
+                <i class="fas fa-exclamation-circle mr-2"></i> <?= htmlspecialchars($cancelAlert) ?>
+            </div>
+        <?php endif; ?>
+
         <?php if (!$canModify): ?>
             <div class="p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 rounded mb-6">
                 <strong>Notice:</strong> This order cannot be modified because its status is
@@ -153,7 +167,7 @@ $csrf = $_SESSION['csrf_token'];
             </div>
         <?php endif; ?>
 
-        <form id="modifyForm" method="POST" class="space-y-6 bg-white p-6">
+        <form id="modifyForm" method="POST" class="space-y-6 bg-white">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
             <input type="hidden" name="order_id" value="<?= htmlspecialchars($orderId) ?>">
 
@@ -231,7 +245,7 @@ $csrf = $_SESSION['csrf_token'];
                             </div>
                             <div>
                                 <label class="block text-xs text-gray-500 mb-1">Quantity</label>
-                                <input type="number" min="1"
+                                <input type="number" min="1" max="<?= $item['SaleQuantity'] ?>"
                                     name="qty[<?= htmlspecialchars($item['ProductID']) ?>][<?= htmlspecialchars($item['SizeID']) ?>]"
                                     value="<?= (int)$item['OrderUnitQuantity'] ?>"
                                     class="w-20 border border-gray-300 rounded px-2 py-1 text-sm outline-none"

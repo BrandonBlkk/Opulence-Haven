@@ -874,9 +874,9 @@ $availablePercentage = ($allAvailableRooms / $totalRooms) * 100;
                         {
                             global $connect;
                             $query = "SELECT SUM(TotalPrice) as total FROM ordertb 
-              WHERE Status = 'Confirmed' 
-              AND YEAR(OrderDate) = $year 
-              AND MONTH(OrderDate) = $month";
+                  WHERE Status = 'Confirmed' 
+                  AND YEAR(OrderDate) = $year 
+                  AND MONTH(OrderDate) = $month";
                             $result = $connect->query($query);
                             $row = $result->fetch_assoc();
                             return $row['total'] ? floatval($row['total']) : 0;
@@ -887,9 +887,9 @@ $availablePercentage = ($allAvailableRooms / $totalRooms) * 100;
                         {
                             global $connect;
                             $query = "SELECT SUM(TotalPrice) as total FROM reservationtb 
-              WHERE Status = 'Confirmed' 
-              AND YEAR(ReservationDate) = $year 
-              AND MONTH(ReservationDate) = $month";
+                  WHERE Status = 'Confirmed' 
+                  AND YEAR(ReservationDate) = $year 
+                  AND MONTH(ReservationDate) = $month";
                             $result = $connect->query($query);
                             $row = $result->fetch_assoc();
                             return $row['total'] ? floatval($row['total']) : 0;
@@ -919,7 +919,6 @@ $availablePercentage = ($allAvailableRooms / $totalRooms) * 100;
 
                         // Format the numbers
                         $formattedIncome = number_format($currentTotalIncome, 2);
-                        $shortIncome = ($currentTotalIncome >= 1000) ? number_format($currentTotalIncome / 1000, 2) . 'K' : $formattedIncome;
                         $percentageFormatted = number_format(abs($percentageChange), 2);
                         $percentageClass = ($percentageChange >= 0) ? 'text-green-500' : 'text-red-500';
                         $percentageSymbol = ($percentageChange >= 0) ? '↑' : '↓';
@@ -927,7 +926,7 @@ $availablePercentage = ($allAvailableRooms / $totalRooms) * 100;
 
                         <!-- Display in your HTML -->
                         <div class="w-1/5">
-                            <h3 class="text-2xl font-semibold text-blue-600">$<?php echo $shortIncome; ?></h3>
+                            <h3 class="text-2xl font-semibold text-blue-600">$<?php echo $formattedIncome; ?></h3>
                             <p class="text-gray-500 text-xs">Income</p>
                             <p class="<?php echo $percentageClass; ?> text-sm">
                                 <?php echo $percentageSymbol . ' ' . $percentageFormatted . '%'; ?>
@@ -937,20 +936,20 @@ $availablePercentage = ($allAvailableRooms / $totalRooms) * 100;
                         // Fetch total expenses for the current month
                         $currentMonth = date('Y-m');
                         $expenseQuery = $connect->query("
-    SELECT SUM(TotalAmount) AS totalExpenses 
-    FROM purchasetb 
-    WHERE DATE_FORMAT(PurchaseDate, '%Y-%m') = '$currentMonth'
-");
+                SELECT SUM(TotalAmount) AS totalExpenses 
+                FROM purchasetb 
+                WHERE DATE_FORMAT(PurchaseDate, '%Y-%m') = '$currentMonth'
+            ");
                         $expenseData = $expenseQuery->fetch_assoc();
                         $totalExpenses = $expenseData['totalExpenses'] ?? 0;
 
                         // Fetch total expenses for the last month
                         $lastMonth = date('Y-m', strtotime('-1 month'));
                         $lastMonthQuery = $connect->query("
-    SELECT SUM(TotalAmount) AS lastMonthExpenses
-    FROM purchasetb 
-    WHERE DATE_FORMAT(PurchaseDate, '%Y-%m') = '$lastMonth'
-");
+                SELECT SUM(TotalAmount) AS lastMonthExpenses
+                FROM purchasetb 
+                WHERE DATE_FORMAT(PurchaseDate, '%Y-%m') = '$lastMonth'
+            ");
                         $lastMonthData = $lastMonthQuery->fetch_assoc();
                         $lastMonthExpenses = $lastMonthData['lastMonthExpenses'] ?? 0;
 

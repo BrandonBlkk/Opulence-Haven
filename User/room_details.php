@@ -98,8 +98,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
         }
 
         $priceData = $priceResult->fetch_assoc();
-        $tax = $priceData['RoomPrice'] * 0.1;
-        $price = $priceData['RoomPrice'] + $tax;
+        $basePrice = $priceData['RoomPrice']; // base price per night
+
+        // calculate stay length
+        $interval = $checkIn->diff($checkOut);
+        $nights = $interval->days;
+        $totalRoomPrice = $basePrice * $nights; // total before tax
 
         if ($guests) {
             if ($priceData['RoomCapacity'] < $guests) {
@@ -164,28 +168,55 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
                 $stmtExpiry->bind_param("ss", $newExpiry, $reservationID);
                 $stmtExpiry->execute();
             } else {
-                // Create new reservation
+                // Create new reservation with temporary price = 0
                 $reservationID = uniqid('RSV_');
                 $expiryDate = date('Y-m-d H:i:s', strtotime('+30 minutes'));
 
                 // Insert into reservationtb
-                $reservationQuery = "INSERT INTO reservationtb (ReservationID, UserID, TotalPrice, ExpiryDate, Status) VALUES (?, ?, ?, ?, 'Pending')";
+                $reservationQuery = "INSERT INTO reservationtb (ReservationID, UserID, TotalPrice, ExpiryDate, Status) VALUES (?, ?, 0, ?, 'Pending')";
                 $stmt = $connect->prepare($reservationQuery);
-                $stmt->bind_param("ssds", $reservationID, $userID, $price, $expiryDate);
+                $stmt->bind_param("sss", $reservationID, $userID, $expiryDate);
                 $stmt->execute();
             }
 
-            // Insert into reservationdetailtb
+            // Insert into reservationdetailtb (price based on nights)
             $detailQuery = "INSERT INTO reservationdetailtb (ReservationID, RoomID, CheckInDate, CheckOutDate, Adult, Children, Price) VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt2 = $connect->prepare($detailQuery);
-            $stmt2->bind_param("ssssssd", $reservationID, $roomID, $checkInDate, $checkOutDate, $adults, $children, $price);
+            $stmt2->bind_param("ssssssd", $reservationID, $roomID, $checkInDate, $checkOutDate, $adults, $children, $totalRoomPrice);
             $stmt2->execute();
 
-            // Update the total price in reservationtb
-            $updateTotal = "UPDATE reservationtb SET TotalPrice = (SELECT SUM(Price) FROM reservationdetailtb WHERE ReservationID = ?) WHERE ReservationID = ?";
+            // Update the total price in reservationtb with tax applied once
+            $updateTotal = "UPDATE reservationtb 
+                            SET TotalPrice = (SELECT SUM(Price) FROM reservationdetailtb WHERE ReservationID = ?) * 1.1 
+                            WHERE ReservationID = ?";
             $stmtUpdate = $connect->prepare($updateTotal);
             $stmtUpdate->bind_param("ss", $reservationID, $reservationID);
             $stmtUpdate->execute();
+
+            // Calculate PointsEarned based on membership
+            $getUserMembership = "SELECT Membership FROM usertbb WHERE UserID = ?";
+            $stmtMember = $connect->prepare($getUserMembership);
+            $stmtMember->bind_param("s", $userID);
+            $stmtMember->execute();
+            $memberResult = $stmtMember->get_result();
+            $membership = $memberResult->fetch_assoc()['Membership'];
+
+            // Get the updated total price
+            $getTotalPrice = "SELECT TotalPrice FROM reservationtb WHERE ReservationID = ?";
+            $stmtTotal = $connect->prepare($getTotalPrice);
+            $stmtTotal->bind_param("s", $reservationID);
+            $stmtTotal->execute();
+            $totalResult = $stmtTotal->get_result();
+            $totalPrice = $totalResult->fetch_assoc()['TotalPrice'];
+
+            // Points calculation: member 3x, non-member 1x
+            $pointsEarned = ($membership == 1) ? $totalPrice * 3 : $totalPrice * 1;
+
+            // Update PointsEarned in reservationtb
+            $updatePoints = "UPDATE reservationtb SET PointsEarned = ? WHERE ReservationID = ?";
+            $stmtPoints = $connect->prepare($updatePoints);
+            $stmtPoints->bind_param("ds", $pointsEarned, $reservationID);
+            $stmtPoints->execute();
 
             // Update Room Status
             $updateRoomStatus = "UPDATE roomtb SET RoomStatus = 'Reserved' WHERE RoomID = ?";
@@ -327,10 +358,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
                 CheckInDate = ?, 
                 CheckOutDate = ?, 
                 Adult = ?, 
-                Children = ? 
+                Children = ?, 
+                Price = ? 
                 WHERE RoomID = ? AND ReservationID = ?";
         $stmt = $connect->prepare($update_room);
-        $stmt->bind_param("ssiiss", $checkInDate, $checkOutDate, $adults, $children, $roomID, $reservationID);
+        $stmt->bind_param("ssiisss", $checkInDate, $checkOutDate, $adults, $children, $subtotal, $roomID, $reservationID);
 
         if (!$stmt->execute()) {
             throw new Exception("Failed to update room reservation details: " . $stmt->error);
@@ -342,7 +374,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
         }
 
         // Recalculate the total price for the entire reservation
-        $getAllRooms = "SELECT rd.RoomID, rt.RoomPrice 
+        $getAllRooms = "SELECT rd.RoomID, rd.Price, rt.RoomPrice, rd.CheckInDate, rd.CheckOutDate
                        FROM reservationdetailtb rd
                        JOIN roomtb r ON rd.RoomID = r.RoomID
                        JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
@@ -354,22 +386,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
 
         $totalSubtotal = 0;
         while ($room = $allRoomsResult->fetch_assoc()) {
-            // For the current room, use the new dates to calculate nights
-            if ($room['RoomID'] == $roomID) {
-                $roomNights = $nights;
-            } else {
-                // For other rooms, get their existing dates
-                $getRoomDates = "SELECT CheckInDate, CheckOutDate FROM reservationdetailtb WHERE RoomID = ? AND ReservationID = ?";
-                $stmtDates = $connect->prepare($getRoomDates);
-                $stmtDates->bind_param("ss", $room['RoomID'], $reservationID);
-                $stmtDates->execute();
-                $datesResult = $stmtDates->get_result();
-                $dates = $datesResult->fetch_assoc();
-                $roomCheckIn = new DateTime($dates['CheckInDate']);
-                $roomCheckOut = new DateTime($dates['CheckOutDate']);
-                $roomNights = $roomCheckOut->diff($roomCheckIn)->days;
-            }
-            $totalSubtotal += $room['RoomPrice'] * $roomNights;
+            $roomCheckIn = new DateTime($room['CheckInDate']);
+            $roomCheckOut = new DateTime($room['CheckOutDate']);
+            $roomNights = $roomCheckOut->diff($roomCheckIn)->days;
+
+            $roomSubtotal = $room['RoomPrice'] * $roomNights;
+            $totalSubtotal += $roomSubtotal;
+
+            // Update each room's Price field to keep consistency
+            $updateDetailPrice = "UPDATE reservationdetailtb SET Price = ? WHERE RoomID = ? AND ReservationID = ?";
+            $stmtPriceUpdate = $connect->prepare($updateDetailPrice);
+            $stmtPriceUpdate->bind_param("dss", $roomSubtotal, $room['RoomID'], $reservationID);
+            $stmtPriceUpdate->execute();
         }
 
         $totalTax = $totalSubtotal * 0.10;

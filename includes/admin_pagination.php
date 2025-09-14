@@ -18,6 +18,7 @@ $ruleCurrentPage = isset($_GET['rulepage']) && is_numeric($_GET['rulepage']) ? (
 $menuCurrentPage = isset($_GET['menupage']) && is_numeric($_GET['menupage']) ? (int)$_GET['menupage'] : 1;
 $userCurrentPage = isset($_GET['userpage']) && is_numeric($_GET['userpage']) ? (int)$_GET['userpage'] : 1;
 $reservationCurrentPage  = isset($_GET['bookingpage']) && is_numeric($_GET['bookingpage']) ? (int)$_GET['bookingpage'] : 1;
+$orderCurrentPage = isset($_GET['orderpage']) && is_numeric($_GET['orderpage']) ? (int)$_GET['orderpage'] : 1;
 $purchaseCurrentPage = isset($_GET['purchasepage']) && is_numeric($_GET['purchasepage']) ? (int)$_GET['purchasepage'] : 1;
 
 // Calculate the offset for the query
@@ -36,6 +37,7 @@ $ruleOffset = ($ruleCurrentPage - 1) * $rowsPerPage;
 $menuOffset = ($menuCurrentPage - 1) * $rowsPerPage;
 $userOffset = ($userCurrentPage - 1) * $rowsPerPage;
 $reservationOffset = ($reservationCurrentPage  - 1) * $rowsPerPage;
+$orderOffset = ($orderCurrentPage - 1) * $rowsPerPage;
 $purchaseOffset = ($purchaseCurrentPage - 1) * $rowsPerPage;
 
 // Initialize search and filter variables
@@ -50,6 +52,7 @@ $searchFacilityTypeQuery = isset($_GET['facilitytype_search']) ? mysqli_real_esc
 $searchFacilityQuery = isset($_GET['facility_search']) ? mysqli_real_escape_string($connect, $_GET['facility_search']) : '';
 $searchMenuQuery = isset($_GET['menu_search']) ? mysqli_real_escape_string($connect, $_GET['menu_search']) : '';
 $searchBookingQuery = isset($_GET['booking_search']) ? mysqli_real_escape_string($connect, $_GET['booking_search']) : '';
+$searchOrderQuery = isset($_GET['order_search']) ? mysqli_real_escape_string($connect, $_GET['order_search']) : '';
 $searchUserQuery = isset($_GET['user_search']) ? mysqli_real_escape_string($connect, $_GET['user_search']) : '';
 $searchPurchaseQuery = isset($_GET['purchase_search']) ? mysqli_real_escape_string($connect, $_GET['purchase_search']) : '';
 
