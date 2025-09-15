@@ -61,7 +61,7 @@ if (mysqli_num_rows($contactSelectQuery) > 0) {
             <th class="p-3 text-start hidden xl:table-cell">Phone</th>
             <th class="p-3 text-start hidden xl:table-cell">Country</th>
             <th class="p-3 text-start hidden lg:table-cell">Message</th>
-            <th class="p-3 text-start hidden md:table-cell">Status</th>
+            <th class="p-3 text-start hidden">Status</th>
             <th class="p-3 text-start hidden xl:table-cell">Date</th>
             <th class="p-3 text-start">Action</th>
         </tr>
@@ -85,7 +85,7 @@ if (mysqli_num_rows($contactSelectQuery) > 0) {
                         </div>
                         <div>
                             <p class="font-bold"><?= htmlspecialchars($contact['FullName']) ?></p>
-                            <p><?= htmlspecialchars($contact['UserEmail']) ?></p>
+                            <p class="text-xs text-gray-500 truncate"><?= htmlspecialchars($contact['UserEmail']) ?></p>
                         </div>
                     </td>
                     <td class="p-3 text-start hidden xl:table-cell">
@@ -97,7 +97,7 @@ if (mysqli_num_rows($contactSelectQuery) > 0) {
                     <td class="p-3 text-start space-x-1 hidden lg:table-cell">
                         <p><?= htmlspecialchars(mb_strimwidth($contact['ContactMessage'], 0, 50, '...')) ?></p>
                     </td>
-                    <td class="p-3 text-start space-x-1 select-none hidden md:table-cell">
+                    <td class="p-3 text-start space-x-1 select-none">
                         <span class="px-2 py-1 text-xs font-semibold rounded-full border <?= $contact['Status'] === 'responded' ? 'bg-green-100 border-green-200 text-green-800' : 'bg-red-100 border-red-200 text-red-800' ?>">
                             <?= htmlspecialchars($contact['Status']) === 'responded' ? 'Responded' : 'Pending' ?>
                         </span>

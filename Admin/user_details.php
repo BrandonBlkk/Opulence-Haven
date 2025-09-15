@@ -46,7 +46,7 @@ if (!$connect) {
                             value="<?php echo isset($_GET['user_search']) ? htmlspecialchars($_GET['user_search']) : ''; ?>">
 
                         <div class="flex items-center">
-                            <label for="sort" class="ml-4 mr-2 flex items-center cursor-pointer select-none">
+                            <label for="sort" class="ml-0 sm:ml-4 mr-2 flex items-center cursor-pointer select-none">
                                 <i class="ri-filter-2-line text-xl"></i>
                                 <p>Filters</p>
                             </label>

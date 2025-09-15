@@ -94,10 +94,10 @@ $averageMarkup = ($markupCount > 0) ? round($markupSum / $markupCount, 2) : 0;
                     <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Products
                         <span class="text-gray-400 text-sm ml-2"><?php echo isset($productCount) ? $productCount : 0; ?></span>
                     </h1>
-                    <div class="flex items-center w-full">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center w-full gap-2 sm:gap-0">
                         <input type="text" name="product_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full outline-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" placeholder="Search for product..." value="<?php echo isset($_GET['product_search']) ? htmlspecialchars($_GET['product_search']) : ''; ?>">
                         <div class="flex items-center">
-                            <label for="sort" class="ml-4 mr-2 flex items-center cursor-pointer select-none">
+                            <label for="sort" class="ml-0 sm:ml-4 mr-2 flex items-center cursor-pointer select-none">
                                 <i class="ri-filter-2-line text-xl"></i>
                                 <p>Filters</p>
                             </label>

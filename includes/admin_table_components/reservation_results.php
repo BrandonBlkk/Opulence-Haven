@@ -82,7 +82,7 @@ if (mysqli_num_rows($bookingSelectQuery) > 0) {
                         </div>
                         <div>
                             <p class="font-bold"><?= htmlspecialchars($booking['Title'] . ' ' . $booking['FirstName'] . ' ' . $booking['LastName']) ?> <span class="text-gray-400 text-xs font-normal">(<?= htmlspecialchars($booking['UserName']) ?>)</span></p>
-                            <p><?= htmlspecialchars($booking['UserEmail']) ?></p>
+                            <p class="text-xs text-gray-500 truncate"><?= htmlspecialchars($booking['UserEmail']) ?></p>
                             <div class="text-xs text-gray-400 mt-1 textred">
                                 <?= htmlspecialchars($booking['Travelling'] === 1 ? 'Travelling' : 'Not Travelling') ?>
                             </div>

@@ -163,7 +163,7 @@ if (isset($_POST['deleteproductimage'])) {
                 <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
                     <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Product Images <span class="text-gray-400 text-sm ml-2"><?php echo $productImageCount ?></span></h1>
                     <div class="flex items-center">
-                        <label for="sort" class="ml-4 mr-2 flex items-center cursor-pointer select-none">
+                        <label for="sort" class="ml-0 sm:ml-4 mr-2 flex items-center cursor-pointer select-none">
                             <i class="ri-filter-2-line text-xl"></i>
                             <p>Filters</p>
                         </label>

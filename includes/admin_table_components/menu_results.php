@@ -28,10 +28,10 @@ if (mysqli_num_rows($menuSelectQuery) > 0) {
         <tr class="bg-gray-100 text-gray-600 text-sm">
             <th class="p-3 text-start">ID</th>
             <th class="p-3 text-start">Menu</th>
-            <th class="p-3 text-start hidden sm:table-cell">Description</th>
-            <th class="p-3 text-start hidden sm:table-cell">Start Time</th>
-            <th class="p-3 text-start hidden sm:table-cell">End Time</th>
-            <th class="p-3 text-start hidden sm:table-cell">Status</th>
+            <th class="p-3 text-start hidden lg:table-cell">Description</th>
+            <th class="p-3 text-start hidden md:table-cell">Start Time</th>
+            <th class="p-3 text-start hidden md:table-cell">End Time</th>
+            <th class="p-3 text-start hidden lg:table-cell">Status</th>
             <th class="p-3 text-start">Actions</th>
         </tr>
     </thead>
@@ -48,19 +48,18 @@ if (mysqli_num_rows($menuSelectQuery) > 0) {
                     <td class="p-3 text-start">
                         <?= htmlspecialchars($menu['MenuName']) ?>
                     </td>
-                    <td class="p-3 text-start">
+                    <td class="p-3 text-start hidden lg:table-cell">
                         <?= htmlspecialchars($menu['Description']) ?>
                     </td>
-                    <td class="p-3 text-start">
+                    <td class="p-3 text-start hidden md:table-cell">
                         <?= htmlspecialchars($menu['StartTime']) ?>
                     </td>
-                    <td class="p-3 text-start">
+                    <td class="p-3 text-start hidden md:table-cell">
                         <?= htmlspecialchars($menu['EndTime']) ?>
                     </td>
-                    <td class="p-3 text-start">
+                    <td class="p-3 text-start hidden lg:table-cell">
                         <?= htmlspecialchars($menu['Status']) ?>
                     </td>
-
                     <td class="p-3 text-start space-x-1 select-none">
                         <i class="details-btn ri-eye-line text-lg cursor-pointer"
                             data-menu-id="<?= htmlspecialchars($menu['MenuID']) ?>"></i>

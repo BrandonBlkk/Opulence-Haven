@@ -59,19 +59,19 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
                     <td class="p-4 text-start select-none">
                         <div class="flex items-center gap-2">
                             <?php if ($isOutOfStock): ?>
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 border-red-200 text-red-800">
+                                <span class="px-2 py-1 text-xs whitespace-nowrap font-semibold rounded-full bg-red-100 border-red-200 text-red-800">
                                     Out of Stock
                                 </span>
                             <?php elseif ($isCriticalStock): ?>
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 border-red-200 text-red-800">
+                                <span class="px-2 py-1 text-xs whitespace-nowrap font-semibold rounded-full bg-red-100 border-red-200 text-red-800">
                                     Critical (<?= $product['Stock'] ?> left)
                                 </span>
                             <?php elseif ($isLowStock): ?>
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 border-yellow-200 text-yellow-800">
+                                <span class="px-2 py-1 text-xs whitespace-nowrap font-semibold rounded-full bg-yellow-100 border-yellow-200 text-yellow-800">
                                     Low (<?= $product['Stock'] ?> left)
                                 </span>
                             <?php else: ?>
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 border-green-200 text-green-800">
+                                <span class="px-2 py-1 text-xs whitespace-nowrap font-semibold rounded-full bg-green-100 border-green-200 text-green-800">
                                     In Stock (<?= $product['Stock'] ?>)
                                 </span>
                             <?php endif; ?>
