@@ -4825,106 +4825,152 @@ document.addEventListener('DOMContentLoaded', function() {
     const darkOverlay2 = document.getElementById('darkOverlay2');
     const purchaseDetailsModal = document.getElementById('purchaseDetailsModal');
     const closePurchaseDetailsBtn = document.getElementById('closePurchaseDetailsBtn');
-    
-    const closeModal = () => {
-        purchaseDetailsModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-        darkOverlay2.classList.add('opacity-0', 'invisible');
-        darkOverlay2.classList.remove('opacity-100');
-    };
 
-    // Function to attach event listeners to a row
-    const attachEventListenersToRow = (row) => {
-        // Details button
-        const detailsBtn = row.querySelector('.details-btn');
-        if (detailsBtn) {
-            detailsBtn.addEventListener('click', function() {
-                const purchaseId = this.getAttribute('data-purchase-id');
-                darkOverlay2.classList.remove('opacity-0', 'invisible');
-                darkOverlay2.classList.add('opacity-100');
-
-                fetch(`../Admin/purchase_history.php?action=getPurchaseDetails&id=${purchaseId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success && data.purchase) {
-                            // Set basic purchase info
-                            document.getElementById('detailPurchaseID').textContent = data.purchase.PurchaseID;
-                            document.getElementById('detailPurchaseDate').textContent = formatDate(data.purchase.PurchaseDate);
-                            document.getElementById('detailAdmin').textContent = data.purchase.FirstName + ' ' + data.purchase.LastName;
-                            document.getElementById('detailAdminEmail').textContent = data.purchase.AdminEmail;
-                            document.getElementById('detailSupplier').textContent = data.purchase.SupplierName;
-                            document.getElementById('detailSupplierEmail').textContent = data.purchase.SupplierEmail;
-                            document.getElementById('detailTotalAmount').textContent = '$' + parseFloat(data.purchase.TotalAmount).toFixed(2);
-                            document.getElementById('detailTax').textContent = '$' + parseFloat(data.purchase.PurchaseTax).toFixed(2);
-                            document.getElementById('detailStatus').textContent = data.purchase.Status;
-                            
-                            // Fetch purchase items
-                            fetchPurchaseItems(purchaseId);
-                            
-                            // Show modal
-                            purchaseDetailsModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-                            purchaseDetailsModal.classList.add('opacity-100', 'visible', 'translate-y-0');
-                        } else {
-                            console.error('Failed to load purchase details');
-                            showNotification('error', 'Failed to load purchase details');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Fetch error:', error);
-                        showNotification('error', 'Error loading purchase details');
-                    });
-            });
+    // helper to format date/time
+    function formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+        try {
+            return new Date(dateString).toLocaleDateString('en-US', options);
+        } catch (e) {
+            return dateString;
         }
-    };
+    }
 
-    // Function to fetch purchase items
+    function showModal() {
+        if (darkOverlay2) {
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
+        }
+        if (purchaseDetailsModal) {
+            purchaseDetailsModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+            purchaseDetailsModal.classList.add('opacity-100', 'visible', 'translate-y-0');
+        }
+    }
+
+    function hideModal() {
+        if (darkOverlay2) {
+            darkOverlay2.classList.remove('opacity-100');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+        }
+        if (purchaseDetailsModal) {
+            purchaseDetailsModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            purchaseDetailsModal.classList.remove('opacity-100', 'visible', 'translate-y-0');
+        }
+    }
+
+    closePurchaseDetailsBtn && closePurchaseDetailsBtn.addEventListener('click', hideModal);
+    // Close modal if overlay clicked
+    if (darkOverlay2) {
+        darkOverlay2.addEventListener('click', hideModal);
+    }
+
+    // fetch items and render into table body #purchaseItems
     function fetchPurchaseItems(purchaseId) {
-        fetch(`../Admin/purchase_history.php?action=getPurchaseItems&id=${purchaseId}`)
+        fetch(`../Admin/purchase_history.php?action=getPurchaseItems&id=${encodeURIComponent(purchaseId)}`)
             .then(response => response.json())
             .then(data => {
                 const itemsContainer = document.getElementById('purchaseItems');
+                if (!itemsContainer) return;
                 itemsContainer.innerHTML = '';
-                
-                if (data.success && data.items && data.items.length > 0) {
+
+                if (data.success && Array.isArray(data.items) && data.items.length) {
                     data.items.forEach(item => {
-                        const row = document.createElement('tr');
-                        row.className = 'border-b border-gray-200 hover:bg-gray-50';
-                        row.innerHTML = `
-                            <td class="p-3">${item.ProductName}</td>
-                            <td class="p-3">${item.Quantity}</td>
-                            <td class="p-3">₱${parseFloat(item.UnitPrice).toFixed(2)}</td>
-                            <td class="p-3">₱${parseFloat(item.Quantity * item.UnitPrice).toFixed(2)}</td>
+                        const tr = document.createElement('tr');
+                        tr.className = 'border-b border-gray-200 hover:bg-gray-50';
+                        const qty = parseFloat(item.Quantity || 0);
+                        const unit = parseFloat(item.UnitPrice || 0);
+                        const total = qty * unit;
+
+                        tr.innerHTML = `
+                            <td class="p-3">${item.ProductName || item.ProductID || 'Product'}</td>
+                            <td class="p-3">${qty}</td>
+                            <td class="p-3">${unit.toFixed(2)}</td>
+                            <td class="p-3">${total.toFixed(2)}</td>
                         `;
-                        itemsContainer.appendChild(row);
+                        itemsContainer.appendChild(tr);
                     });
                 } else {
                     itemsContainer.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-gray-500">No items found</td></tr>';
                 }
             })
-            .catch(error => {
-                console.error('Error fetching purchase items:', error);
-                document.getElementById('purchaseItems').innerHTML = '<tr><td colspan="4" class="p-3 text-center text-red-500">Error loading items</td></tr>';
+            .catch(err => {
+                console.error('Error fetching purchase items:', err);
+                const itemsContainer = document.getElementById('purchaseItems');
+                if (itemsContainer) {
+                    itemsContainer.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-red-500">Error loading items</td></tr>';
+                }
             });
     }
 
-    // Helper function to format date
-    function formatDate(dateString) {
-        const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-        return new Date(dateString).toLocaleDateString('en-US', options);
+    // Attach click behavior for each row's details button
+    function attachEventListenersToRow(row) {
+        if (!row) return;
+        const detailsBtn = row.querySelector('.details-btn');
+        if (!detailsBtn) return;
+
+        detailsBtn.addEventListener('click', function() {
+            const purchaseId = this.getAttribute('data-purchase-id');
+            if (!purchaseId) return;
+
+            // show overlay immediately
+            if (darkOverlay2) {
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+            }
+
+            // fetch header info
+            fetch(`../Admin/purchase_history.php?action=getPurchaseDetails&id=${encodeURIComponent(purchaseId)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success || !data.purchase) {
+                        console.error('Failed to load purchase details', data);
+                        // Hide overlay in case of error
+                        if (darkOverlay2) {
+                            darkOverlay2.classList.remove('opacity-100');
+                            darkOverlay2.classList.add('opacity-0', 'invisible');
+                        }
+                        return;
+                    }
+
+                    const p = data.purchase;
+
+                    // Map data into UI (IDs must exist in DOM)
+                    document.getElementById('detailPurchaseID').textContent = p.PurchaseID || '';
+                    document.getElementById('detailPurchaseDate').textContent = formatDate(p.PurchaseDate || p.AddedDate || '');
+                    document.getElementById('detailAdmin').textContent = ((p.FirstName || '') + ' ' + (p.LastName || '')).trim();
+                    document.getElementById('detailAdminEmail').textContent = p.AdminEmail || '';
+                    document.getElementById('detailSupplier').textContent = p.SupplierName || '';
+                    document.getElementById('detailSupplierEmail').textContent = p.SupplierEmail || '';
+                    document.getElementById('detailTotalAmount').textContent = p.TotalAmount !== null ? ('$' + parseFloat(p.TotalAmount).toFixed(2)) : 'N/A';
+                    document.getElementById('detailTax').textContent = p.PurchaseTax !== null ? ('$' + parseFloat(p.PurchaseTax).toFixed(2)) : 'N/A';
+                    document.getElementById('detailStatus').textContent = p.Status || '';
+
+                    // fetch and render items
+                    fetchPurchaseItems(purchaseId);
+
+                    // show modal
+                    showModal();
+                })
+                .catch(err => {
+                    console.error('Fetch error:', err);
+                    if (darkOverlay2) {
+                        darkOverlay2.classList.remove('opacity-100');
+                        darkOverlay2.classList.add('opacity-0', 'invisible');
+                    }
+                });
+        });
     }
 
-    closePurchaseDetailsBtn.addEventListener('click', function() {
-        closeModal();
-    })
-
-        // Initialize event listeners for existing rows
-    const initializeExistingRows = () => {
+    // Initialize existing rows on page load
+    function initializeExistingRows() {
+        // If the purchases table is a specific table, narrow selector
         const rows = document.querySelectorAll('tbody tr');
         rows.forEach(row => {
             attachEventListenersToRow(row);
         });
-    };
-    
-    // Initialize buttons on page load
+    }
+
     initializeExistingRows();
 });
 

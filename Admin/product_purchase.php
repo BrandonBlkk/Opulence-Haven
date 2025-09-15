@@ -144,7 +144,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['ajax'])) {
                     $adminID = $_SESSION["AdminID"];
                     $supplierID = $_POST["supplierID"];
                     $purchaseTax = 0.10; // 10% tax
-                    $status = 'Pending';
+                    $status = 'Confirmed';
 
                     // Calculate subtotal (sum of all unit prices)
                     $subtotal = 0;
