@@ -10,39 +10,58 @@ if (!$connect) {
 }
 
 $alertMessage = '';
+$response = ['success' => false];
 
-// Get Product Type Details
+// Only handle requests that include action and id
 if (isset($_GET['action']) && isset($_GET['id'])) {
     $id = mysqli_real_escape_string($connect, $_GET['id']);
     $action = $_GET['action'];
 
-    if ($action == 'getPurchaseDetails') {
-        $query = "SELECT p.*, a.FirstName, a.LastName, a.AdminEmail, s.SupplierName, s.SupplierEmail FROM purchasetb p
-        JOIN admintb a ON p.AdminID = a.AdminID
-        JOIN suppliertb s ON p.SupplierID = s.SupplierID WHERE PurchaseID = '$id'";
-        $purchase = $connect->query($query)->fetch_assoc();
-
-        if ($purchase) {
+    if ($action === 'getPurchaseDetails') {
+        // Get purchase header with admin and supplier info
+        $query = "
+            SELECT p.*, a.FirstName, a.LastName, a.AdminEmail, s.SupplierName, s.SupplierEmail
+            FROM purchasetb p
+            LEFT JOIN admintb a ON p.AdminID = a.AdminID
+            LEFT JOIN suppliertb s ON p.SupplierID = s.SupplierID
+            WHERE p.PurchaseID = '$id'
+            LIMIT 1
+        ";
+        $res = $connect->query($query);
+        if ($res && $res->num_rows > 0) {
+            $purchase = $res->fetch_assoc();
             $response['success'] = true;
             $response['purchase'] = $purchase;
         } else {
             $response['success'] = false;
             $response['message'] = 'Purchase not found';
         }
-    } elseif ($action == 'getPurchaseItems') {
-        $query = "SELECT pd.*, p.ProductName 
-                  FROM purchasedetailtb pd 
-                  JOIN producttb p ON pd.ProductID = p.ProductID 
-                  WHERE pd.PurchaseID = '$id'";
-        $result = $connect->query($query);
-
+    } elseif ($action === 'getPurchaseItems') {
+        // Get purchase items and product names
+        $query = "
+            SELECT pd.PurchaseID, pd.ProductID, pd.PurchaseUnitQuantity AS Quantity, pd.PurchaseUnitPrice AS UnitPrice, p.Title AS ProductName
+            FROM purchasedetailtb pd
+            LEFT JOIN producttb p ON pd.ProductID = p.ProductID
+            WHERE pd.PurchaseID = '$id'
+        ";
+        $res = $connect->query($query);
         $items = [];
-        while ($row = $result->fetch_assoc()) {
-            $items[] = $row;
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                // Normalize numeric values
+                $row['Quantity'] = (float)$row['Quantity'];
+                $row['UnitPrice'] = (float)$row['UnitPrice'];
+                $items[] = $row;
+            }
+            $response['success'] = true;
+            $response['items'] = $items;
+        } else {
+            $response['success'] = false;
+            $response['message'] = 'Error fetching items';
         }
-
-        $response['success'] = true;
-        $response['items'] = $items;
+    } else {
+        $response['success'] = false;
+        $response['message'] = 'Invalid action';
     }
 
     header('Content-Type: application/json');
@@ -99,69 +118,148 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
             </div>
         </div>
 
-        <!-- Add this modal at the bottom of your file, before the scripts -->
-        <div id="purchaseDetailsModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
-            <div class="bg-white max-w-4xl p-6 rounded-md shadow-md text-center w-full">
-                <h2 class="text-xl text-start text-gray-700 font-bold mb-4">Purchase Details</h2>
+        <!-- Purchase Details Modal -->
+        <div id="purchaseDetailsModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible -translate-y-5 p-2 transition-all duration-300">
+            <div class="reservationScrollBar bg-white rounded-xl max-w-4xl w-full p-6 animate-fade-in max-h-[92vh] overflow-y-auto overflow-x-hidden">
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-gray-800">Purchase Details</h3>
+                    <button id="closePurchaseDetailsBtn" class="text-gray-400 hover:text-gray-500">
+                        <i class="ri-close-line text-xl"></i>
+                    </button>
+                </div>
 
-                <!-- Purchase Summary -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-start">
-                    <div>
-                        <p class="text-sm text-gray-500">Purchase ID</p>
-                        <p class="font-medium" id="detailPurchaseID"></p>
+                <div class="space-y-3">
+                    <!-- Purchase Summary -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-800 mb-3">Summary</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <p class="text-sm text-gray-500">Purchase ID</p>
+                                <p class="text-sm font-medium text-gray-600" id="detailPurchaseID"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Date</p>
+                                <p class="text-sm font-medium text-gray-600" id="detailPurchaseDate"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Purchased By</p>
+                                <p class="text-sm font-medium text-gray-600" id="detailAdmin"></p>
+                                <p class="text-xs text-gray-500" id="detailAdminEmail"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Supplier</p>
+                                <p class="text-sm font-medium text-gray-600" id="detailSupplier"></p>
+                                <p class="text-xs text-gray-500" id="detailSupplierEmail"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Total Amount</p>
+                                <p class="text-sm font-medium text-gray-600" id="detailTotalAmount"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Tax</p>
+                                <p class="text-sm font-medium text-gray-600" id="detailTax"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Status</p>
+                                <p class="text-sm font-medium text-gray-600" id="detailStatus"></p>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Date</p>
-                        <p class="font-medium" id="detailPurchaseDate"></p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Admin</p>
-                        <p class="font-medium" id="detailAdmin"></p>
-                        <p class="text-sm text-gray-500" id="detailAdminEmail"></p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Supplier</p>
-                        <p class="font-medium" id="detailSupplier"></p>
-                        <p class="text-sm text-gray-500" id="detailSupplierEmail"></p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Total Amount</p>
-                        <p class="font-medium" id="detailTotalAmount"></p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Tax</p>
-                        <p class="font-medium" id="detailTax"></p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Status</p>
-                        <p class="font-medium" id="detailStatus"></p>
+
+                    <!-- Items Table -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-800 mb-3">Items Purchased</h4>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white border rounded-lg overflow-hidden">
+                                <thead>
+                                    <tr class="bg-gray-100 text-gray-600 text-sm">
+                                        <th class="p-3 text-start">Product</th>
+                                        <th class="p-3 text-start">Quantity</th>
+                                        <th class="p-3 text-start">Unit Price</th>
+                                        <th class="p-3 text-start">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-600 text-sm" id="purchaseItems">
+                                    <!-- Items will be inserted here -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Items Table -->
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-600 text-sm">
-                                <th class="p-3 text-start">Product</th>
-                                <th class="p-3 text-start">Quantity</th>
-                                <th class="p-3 text-start">Unit Price</th>
-                                <th class="p-3 text-start">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-600 text-sm" id="purchaseItems">
-                            <!-- Items will be inserted here -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="flex justify-end mt-6">
-                    <button id="closePurchaseDetailsBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm">
-                        Close
+                <!-- Footer Buttons -->
+                <div class="flex justify-end gap-3 mt-6">
+                    <button id="printVoucherBtn" class="px-4 py-2 bg-amber-500 text-white hover:bg-amber-600 rounded-sm transition-colors duration-200 select-none">
+                        <i class="ri-printer-line mr-1"></i> Print Voucher
+                    </button>
+                    <button id="downloadVoucherBtn" class="px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-sm transition-colors duration-200 select-none">
+                        <i class="ri-download-line mr-1"></i> Download Voucher
                     </button>
                 </div>
             </div>
         </div>
+
+        <script>
+            // Print Voucher
+            document.getElementById("printVoucherBtn").addEventListener("click", function() {
+                const contentToPrint = document.querySelector("#purchaseDetailsModal .space-y-3").innerHTML; // only details
+                const newWindow = window.open("", "_blank");
+                newWindow.document.write(`
+        <html>
+            <head>
+                <title>Purchase Voucher</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; }
+                    h3 { margin-bottom: 10px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    table, th, td { border: 1px solid #ddd; }
+                    th, td { padding: 8px; text-align: left; }
+                    th { background: #f5f5f5; }
+                </style>
+            </head>
+            <body>
+                <h3>Purchase Voucher</h3>
+                ${contentToPrint}
+            </body>
+        </html>
+    `);
+                newWindow.document.close();
+                newWindow.print();
+            });
+
+            // Download Voucher
+            document.getElementById("downloadVoucherBtn").addEventListener("click", function() {
+                const contentToDownload = document.querySelector("#purchaseDetailsModal .space-y-3").innerHTML;
+                const blob = new Blob([`
+        <html>
+            <head>
+                <title>Purchase Voucher</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; }
+                    h3 { margin-bottom: 10px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    table, th, td { border: 1px solid #ddd; }
+                    th, td { padding: 8px; text-align: left; }
+                    th { background: #f5f5f5; }
+                </style>
+            </head>
+            <body>
+                <h3>Purchase Voucher</h3>
+                ${contentToDownload}
+            </body>
+        </html>
+        `], {
+                    type: "text/html"
+                });
+
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = "purchase-voucher.html";
+                link.click();
+                URL.revokeObjectURL(link.href);
+            });
+        </script>
     </div>
 
     <!-- Loader -->

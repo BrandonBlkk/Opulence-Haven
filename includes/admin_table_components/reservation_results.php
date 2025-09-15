@@ -4,36 +4,44 @@ include(__DIR__ . '/../admin_pagination.php');
 
 // Construct the reservation query based on search and status filter
 if ($filterStatus !== 'random' && !empty($searchBookingQuery)) {
-    $bookingSelect = "SELECT r.*, u.UserName, u.UserPhone 
+    $bookingSelect = "SELECT r.*, u.UserName, u.UserPhone, u.UserEmail, u.ProfileBgColor 
                      FROM reservationtb r 
                      JOIN usertb u ON r.UserID = u.UserID  
                      WHERE r.Status = '$filterStatus' 
+                     AND r.Status != 'Pending'
                      AND (r.FirstName LIKE '%$searchBookingQuery%' 
                           OR r.LastName LIKE '%$searchBookingQuery%'
                           OR r.UserPhone LIKE '%$searchBookingQuery%'
                           OR r.ReservationID LIKE '%$searchBookingQuery%'
                           OR u.UserName LIKE '%$searchBookingQuery%') 
+                     ORDER BY r.ReservationDate DESC
                      LIMIT $rowsPerPage OFFSET $reservationOffset";
 } elseif ($filterStatus !== 'random') {
-    $bookingSelect = "SELECT r.*, u.UserName, u.UserPhone 
+    $bookingSelect = "SELECT r.*, u.UserName, u.UserPhone, u.UserEmail, u.ProfileBgColor
                      FROM reservationtb r 
                      JOIN usertb u ON r.UserID = u.UserID 
                      WHERE r.Status = '$filterStatus' 
+                     AND r.Status != 'Pending'
+                     ORDER BY r.ReservationDate DESC
                      LIMIT $rowsPerPage OFFSET $reservationOffset";
 } elseif (!empty($searchBookingQuery)) {
-    $bookingSelect = "SELECT r.*, u.UserName, u.UserPhone 
+    $bookingSelect = "SELECT r.*, u.UserName, u.UserPhone, u.UserEmail, u.ProfileBgColor 
                      FROM reservationtb r 
                      JOIN usertb u ON r.UserID = u.UserID 
                      WHERE (r.FirstName LIKE '%$searchBookingQuery%'
                            OR r.LastName LIKE '%$searchBookingQuery%'
                            OR r.UserPhone LIKE '%$searchBookingQuery%'
                            OR r.ReservationID LIKE '%$searchBookingQuery%'
-                           OR u.UserName LIKE '%$searchBookingQuery%') 
+                           OR u.UserName LIKE '%$searchBookingQuery%')
+                     AND r.Status != 'Pending'
+                     ORDER BY r.ReservationDate DESC
                      LIMIT $rowsPerPage OFFSET $reservationOffset";
 } else {
-    $bookingSelect = "SELECT r.*, u.UserName, u.UserPhone 
+    $bookingSelect = "SELECT r.*, u.UserName, u.UserPhone, u.UserEmail, u.ProfileBgColor
                      FROM reservationtb r
                      JOIN usertb u ON r.UserID = u.UserID 
+                     WHERE r.Status != 'Pending'
+                     ORDER BY r.ReservationDate DESC
                      LIMIT $rowsPerPage OFFSET $reservationOffset";
 }
 
@@ -68,12 +76,16 @@ if (mysqli_num_rows($bookingSelectQuery) > 0) {
                             <span>#<?= htmlspecialchars($booking['ReservationID']) ?></span>
                         </div>
                     </td>
-                    <td class="p-3 text-start">
-                        <div class="font-medium">
-                            <?= htmlspecialchars($booking['Title'] . ' ' . $booking['UserName'] . ' ' . $booking['LastName']) ?>
+                    <td class="p-3 text-start flex items-center gap-2">
+                        <div id="profilePreview" class="w-10 h-10 object-cover rounded-full bg-[<?php echo $booking['ProfileBgColor'] ?>] text-white select-none">
+                            <p class="w-full h-full flex items-center justify-center font-semibold"><?php echo strtoupper(substr($booking['UserName'], 0, 1)); ?></p>
                         </div>
-                        <div class="text-xs text-gray-400">
-                            <?= htmlspecialchars($booking['Travelling'] === 1 ? 'Travelling' : 'Not Travelling') ?>
+                        <div>
+                            <p class="font-bold"><?= htmlspecialchars($booking['Title'] . ' ' . $booking['FirstName'] . ' ' . $booking['LastName']) ?> <span class="text-gray-400 text-xs font-normal">(<?= htmlspecialchars($booking['UserName']) ?>)</span></p>
+                            <p><?= htmlspecialchars($booking['UserEmail']) ?></p>
+                            <div class="text-xs text-gray-400 mt-1 textred">
+                                <?= htmlspecialchars($booking['Travelling'] === 1 ? 'Travelling' : 'Not Travelling') ?>
+                            </div>
                         </div>
                     </td>
                     <td class="p-3 text-start hidden sm:table-cell">
@@ -113,7 +125,7 @@ if (mysqli_num_rows($bookingSelectQuery) > 0) {
                                 $statusClass = 'bg-gray-100 border-gray-200 text-gray-800';
                         }
                         ?>
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full border <?= $statusClass ?>">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full border select-none <?= $statusClass ?>">
                             <?= htmlspecialchars($booking['Status']) ?>
                         </span>
                     </td>

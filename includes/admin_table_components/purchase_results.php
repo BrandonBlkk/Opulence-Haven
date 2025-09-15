@@ -4,9 +4,9 @@ include(__DIR__ . '/../admin_pagination.php');
 
 // Construct the product type query based on search
 if (!empty($searchPurchaseQuery)) {
-    $purchaseSelect = "SELECT * FROM purchasetb WHERE ProductType LIKE '%$searchPurchaseQuery%' OR Description LIKE '%$searchPurchaseQuery%' LIMIT $rowsPerPage OFFSET $purchaseOffset";
+    $purchaseSelect = "SELECT * FROM purchasetb WHERE ProductType LIKE '%$searchPurchaseQuery%' OR Description LIKE '%$searchPurchaseQuery%' AND Status = 'Confirmed' Order By PurchaseDate DESC LIMIT $rowsPerPage OFFSET $purchaseOffset";
 } else {
-    $purchaseSelect = "SELECT * FROM purchasetb LIMIT $rowsPerPage OFFSET $purchaseOffset";
+    $purchaseSelect = "SELECT * FROM purchasetb WHERE Status = 'Confirmed' Order By PurchaseDate DESC LIMIT $rowsPerPage OFFSET $purchaseOffset";
 }
 
 $purchaseSelectQuery = $connect->query($purchaseSelect);
@@ -55,9 +55,8 @@ while ($row = $supplierSelectQuery->fetch_assoc()) {
             ?>
                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                     <td class="p-3 text-start whitespace-nowrap">
-                        <div class="flex items-center gap-2 font-medium text-gray-500">
-                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                            <span><?= htmlspecialchars($purchase['PurchaseID']) ?></span>
+                        <div class="font-medium text-gray-500">
+                            <span>#<?= htmlspecialchars($purchase['PurchaseID']) ?></span>
                         </div>
                     </td>
                     <td class="p-3 text-start">

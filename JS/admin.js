@@ -4381,6 +4381,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         updateCartTable();
                         productSelect.value = "";
                         document.getElementById('supplierID').value = "";
+                        document.getElementById('addToListForm').reset();
                     } else {
                         showAlert(data.message, true);
                     }
@@ -4449,254 +4450,218 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Reservation Details Modal
 document.addEventListener("DOMContentLoaded", () => {
-    // Modal Elements
     const reservationModal = document.getElementById('reservationModal');
     const closeReservationDetailButton = document.getElementById('closeReservationDetailButton');
-    // const loader = document.getElementById('loader');
     const darkOverlay2 = document.getElementById('darkOverlay2');
 
-    // Get current pagination and search parameters from URL
-    // const urlParams = new URLSearchParams(window.location.search);
-    // const currentPage = urlParams.get('facilitypage') || 1;
-    // const currentSearch = urlParams.get('facility_search') || '';
-    // const currentSort = urlParams.get('sort') || 'random';
-
-    // Function to close modals
-    // const closeModal = () => {
-    //     addFacilityModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-    //     darkOverlay2.classList.add('opacity-0', 'invisible');
-    //     darkOverlay2.classList.remove('opacity-100');
-
-    //     const errors = ['facilityError'];
-    //     errors.forEach(error => {
-    //         hideError(document.getElementById(error));
-    //     });
-    // };
-
-    // closeReservationDetailButton.addEventListener('click', () => {
-    //     reservationModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-    //     darkOverlay2.classList.add('opacity-0', 'invisible');
-    //     darkOverlay2.classList.remove('opacity-100');
-
-    //     // const errors = ['updateFacilityError'];
-    //     // errors.forEach(error => {
-    //     //     hideError(document.getElementById(error));
-    //     // });
-    // });
-
-    // Function to attach event listeners to a row
-    // const attachEventListenersToRow = (row) => {
-    //     // Details button
-    //     const detailsBtn = row.querySelector('.details-btn');
-    //     if (detailsBtn) {
-    //         detailsBtn.addEventListener('click', function() {
-    //             const reservationId = this.getAttribute('data-reservation-id');
-    //             darkOverlay2.classList.remove('opacity-0', 'invisible');
-    //             darkOverlay2.classList.add('opacity-100');
-
-    //             fetch(`../Admin/reservation.php?action=getReservationDetails&id=${reservationId}`)
-    //                 .then(response => response.json())
-    //                 .then(data => {
-    //                     if (data.success) {
-    //                         document.getElementById('roomImage').src = data.reservation.RoomCoverImage;
-    //                         document.getElementById('roomType').textContent = data.reservation.RoomType;
-    //                         document.getElementById('roomDescription').textContent = data.reservation.RoomDescription;
-    //                         document.getElementById('pointsEarned').textContent = data.reservation.PointsEarned;
-    //                         document.getElementById('pointsRedeemed').textContent = data.reservation.PointsRedeemed;
-    //                         document.getElementById('totalPrice').textContent = data.reservation.TotalPrice;
-    //                         reservationModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-    //                     } else {
-    //                         console.error('Failed to load reservation details');
-    //                     }
-    //                 })
-    //                 .catch(error => console.error('Fetch error:', error));
-    //         });
-    //     }
-    // };
-    
-    // Function to format date
-    function formatDate(dateString) {
-        const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    function formatDate(dateString, options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) {
+        if (!dateString) return "N/A";
         return new Date(dateString).toLocaleDateString('en-US', options);
     }
 
-    // Function to attach event listeners to a row
-    const attachEventListenersToRow = (row) => {
-        // Details button
+    function relativeTimeFromNow(dateString) {
+        if (!dateString) return '';
+        const now = new Date();
+        const then = new Date(dateString);
+        const diffMs = then - now;
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        if (diffMs <= 0) return '(expired)';
+        if (diffDays === 0) return '(today)';
+        if (diffDays === 1) return '(in 1 day)';
+        return `(in ${diffDays} days)`;
+    }
+
+    let roomSwiper = null; // Keep Swiper instance
+
+    // reservations: array of rooms (reservation.Rooms), nights: calculated from top-level CheckIn/CheckOut
+    function initializeRoomSwiper(reservations, nights) {
+        const swiperWrapper = document.querySelector('#roomContainer .swiper-wrapper');
+        if (!swiperWrapper) return;
+        swiperWrapper.innerHTML = '';
+
+        // Destroy previous swiper if exists
+        if (roomSwiper) {
+            try { roomSwiper.destroy(true, true); } catch (e) { /* ignore */ }
+            roomSwiper = null;
+        }
+
+        reservations.forEach(room => {
+            const roomPrice = parseFloat(room.Price || 0); // stored as total for the stay
+            const perNight = (nights > 0) ? (roomPrice / nights) : roomPrice;
+
+            const slide = document.createElement('div');
+            slide.className = 'swiper-slide';
+            slide.innerHTML = `
+                <div class="flex flex-col md:flex-row gap-4 py-2 px-3">
+                    <div class="md:w-1/3 select-none">
+                        <div class="relative h-48 md:h-40">
+                            <img src="../Admin/${room.RoomCoverImage}" 
+                                 alt="${room.RoomType}" 
+                                 class="w-full h-full object-cover rounded-lg">
+                        </div>
+                    </div>
+                    <div class="md:w-2/3">
+                        <h5 class="font-bold text-lg text-gray-800">${room.RoomType}</h5>
+                        <p class="text-sm text-gray-600 mt-1">
+                            ${room.RoomDescription && room.RoomDescription.length > 150 
+                                ? room.RoomDescription.substring(0, 150) + "..." 
+                                : (room.RoomDescription || '')}
+                        </p>
+                        <div class="mt-2 text-xs text-gray-500">
+                            <div>Room: <span class="font-medium">${room.RoomName}</span></div>
+                            <div>Guests: <span class="font-medium">${room.Adult || 0} Adult${(room.Adult||0) > 1 ? 's' : ''}${(room.Children||0) > 0 ? `, ${room.Children} Child${(room.Children||0) > 1 ? 'ren' : ''}` : ''}</span></div>
+                            <div>Price (stay): <span class="font-medium">$${roomPrice.toFixed(2)}</span></div>
+                            <div class="text-xs text-gray-400">(${nights} night${nights > 1 ? 's' : ''} — $${perNight.toFixed(2)}/night)</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            swiperWrapper.appendChild(slide);
+        });
+
+        // Initialize new swiper (or re-init)
+        roomSwiper = new Swiper('.roomTypeSwiper', {
+            slidesPerView: 1,
+            spaceBetween: 20,
+            centeredSlides: true,
+            pagination: { el: '.swiper-pagination', clickable: true },
+            breakpoints: { 768: { slidesPerView: 1, spaceBetween: 30 } }
+        });
+    }
+
+    const attachReservationListenersToRow = (row) => {
         const detailsBtn = row.querySelector('.details-btn');
         if (detailsBtn) {
             detailsBtn.addEventListener('click', function() {
                 const reservationId = this.getAttribute('data-reservation-id');
-                
-                // Make sure dark overlay exists and is shown
+
+                // Show modal
                 if (darkOverlay2) {
                     darkOverlay2.classList.remove('opacity-0', 'invisible');
                     darkOverlay2.classList.add('opacity-100');
                 }
-                
-                // Show the modal immediately while loading data
                 reservationModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
 
+                // Fetch reservation details
                 fetch(`../Admin/reservation.php?action=getReservationDetails&id=${reservationId}`)
                     .then(response => response.json())
                     .then(data => {
-                        if (data.success && data.reservation) {
-                            const reservation = data.reservation;
-                            
-                            // Set user information
-                            document.getElementById('userName').textContent = `${reservation.Title || ''} ${reservation.FirstName} ${reservation.LastName}`;
-                            document.getElementById('userPhone').textContent = reservation.UserPhone;
-                            document.getElementById('reservationDate').textContent = formatDate(reservation.ReservationDate);
-                            
-                            // Calculate nights
-                            const checkInDate = new Date(reservation.CheckInDate);
-                            const checkOutDate = new Date(reservation.CheckOutDate);
-                            const nights = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
-                            
-                            // Set pricing information
-                            const roomRate = reservation.Price * nights;
-                            const taxesFees = roomRate * 0.1;
-                            const totalPrice = roomRate + taxesFees - (reservation.PointsDiscount || 0);
-                            
-                            document.getElementById('roomRateLabel').textContent = `Room Rate (${nights} night${nights > 1 ? 's' : ''}):`;
-                            document.getElementById('roomRate').textContent = `$ ${roomRate.toFixed(2)}`;
-                            
-                            if (reservation.PointsRedeemed > 0) {
-                                document.getElementById('pointsDiscountContainer').classList.remove('hidden');
-                                document.getElementById('pointsDiscountLabel').textContent = `Points Discount (${reservation.PointsRedeemed} points):`;
-                                document.getElementById('pointsDiscount').textContent = `- $ ${reservation.PointsDiscount.toFixed(2)}`;
-                            } else {
-                                document.getElementById('pointsDiscountContainer').classList.add('hidden');
-                            }
-                            
-                            document.getElementById('taxesFees').textContent = `$ ${taxesFees.toFixed(2)}`;
-                            document.getElementById('totalPrice').textContent = `$ ${totalPrice.toFixed(2)}`;
-                            
-                            if (reservation.PointsEarned > 0) {
-                                document.getElementById('pointsEarnedContainer').classList.remove('hidden');
-                                document.getElementById('pointsEarned').textContent = `+ ${reservation.PointsEarned} points`;
-                            } else {
-                                document.getElementById('pointsEarnedContainer').classList.add('hidden');
-                            }
-                        
-                            // Initialize Swiper with the room data
-                            initializeRoomSwiper(reservation);
-                            
-                        } else {
+                        if (!data.success || !data.reservation) {
                             console.error('Failed to load reservation details');
+                            return;
                         }
+
+                        const reservation = data.reservation;
+
+                        // User Info
+                        document.getElementById('userName').textContent = `${reservation.Title ?? ''} ${reservation.FirstName ?? ''} ${reservation.LastName ?? ''}`.trim();
+                        document.getElementById('userPhone').textContent = reservation.UserPhone ?? "N/A";
+
+                        // Email with mailto link
+                        const userEmailEl = document.getElementById('userEmail');
+                        if (reservation.UserEmail) {
+                            userEmailEl.textContent = reservation.UserEmail;
+                            userEmailEl.href = `mailto:${reservation.UserEmail}`;
+                        } else {
+                            userEmailEl.textContent = "N/A";
+                            userEmailEl.removeAttribute('href');
+                        }
+
+                        // Reservation date & expiry
+                        document.getElementById('reservationDate').textContent = formatDate(reservation.ReservationDate);
+                        if (reservation.ExpiryDate) {
+                            const expiryText = `Expires on ${formatDate(reservation.CheckInDate, { year: 'numeric', month: 'short', day: 'numeric' })} ${relativeTimeFromNow(reservation.CheckInDate)}`;
+                            const expiryEl = document.getElementById('reservationExpiry');
+                            expiryEl.textContent = expiryText;
+
+                            // highlight if < 2 days
+                            const expiryDate = new Date(reservation.CheckInDate);
+                            const diffDays = Math.ceil((expiryDate - new Date()) / (1000*60*60*24));
+                            expiryEl.classList.remove('text-red-500', 'text-gray-500', 'text-yellow-600');
+                            if (diffDays <= 2) expiryEl.classList.add('text-red-500');
+                            else if (diffDays <= 7) expiryEl.classList.add('text-yellow-600');
+                            else expiryEl.classList.add('text-gray-500');
+                        } else {
+                            document.getElementById('reservationExpiry').textContent = '';
+                        }
+
+                        // Rooms array
+                        const rooms = Array.isArray(reservation.Rooms) ? reservation.Rooms : (reservation.Rooms ? [reservation.Rooms] : []);
+
+                        // Determine nights — if different per room is needed, server must return per-room dates.
+                        const checkIn = reservation.CheckInDate ? new Date(reservation.CheckInDate) : null;
+                        const checkOut = reservation.CheckOutDate ? new Date(reservation.CheckOutDate) : null;
+                        const nights = (checkIn && checkOut) ? Math.max(1, Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24))) : 1;
+
+                        // Itemize each room and compute subtotal
+                        const subtotal = rooms.reduce((sum, r) => sum + (parseFloat(r.Price) || 0), 0);
+                        const taxesFees = subtotal * 0.10;
+                        const pointsDiscount = parseFloat(reservation.PointsDiscount || 0) || 0;
+                        const total = subtotal + taxesFees - pointsDiscount;
+
+                        // Update UI: room breakdown (per room), subtotal, taxes, total
+                        const roomRateLabel = document.getElementById('roomRateLabel');
+                        const roomRateEl = document.getElementById('roomRate');
+                        const taxesFeesEl = document.getElementById('taxesFees');
+                        const totalPriceEl = document.getElementById('totalPrice');
+
+                        roomRateLabel.textContent = `Rooms Subtotal (${rooms.length} room${rooms.length>1?'s':''}, ${nights} night${nights>1?'s':''}):`;
+                        roomRateEl.textContent = `$ ${subtotal.toFixed(2)}`;
+                        taxesFeesEl.textContent = `$ ${taxesFees.toFixed(2)}`;
+                        totalPriceEl.textContent = `$ ${total.toFixed(2)}`;
+
+                        // Points discount (show/hide)
+                        if ((parseFloat(reservation.PointsRedeemed) || 0) > 0 || pointsDiscount > 0) {
+                            document.getElementById('pointsDiscountContainer').classList.remove('hidden');
+                            document.getElementById('pointsDiscount').textContent = `- $ ${pointsDiscount.toFixed(2)}`;
+                        } else {
+                            document.getElementById('pointsDiscountContainer').classList.add('hidden');
+                        }
+
+                        // Points earned (show/hide)
+                        if ((parseFloat(reservation.PointsEarned) || 0) > 0) {
+                            document.getElementById('pointsEarnedContainer').classList.remove('hidden');
+                            document.getElementById('pointsEarned').textContent = `+ ${parseFloat(reservation.PointsEarned).toFixed(0)} points`;
+                        } else {
+                            document.getElementById('pointsEarnedContainer').classList.add('hidden');
+                        }
+
+                        // Create or update itemized room list under pricing
+                        (function renderRoomBreakdown() {
+                            // find the pricing container
+                            const roomRateEl = document.getElementById('roomRate');
+                            const pricingBlock = roomRateEl ? roomRateEl.closest('.space-y-3') : null;
+                            if (!pricingBlock) return;
+
+                            let breakdown = document.getElementById('roomBreakdown');
+                            if (!breakdown) {
+                                breakdown = document.createElement('div');
+                                breakdown.id = 'roomBreakdown';
+                                breakdown.className = 'space-y-1 text-sm text-gray-700';
+                                // insert before taxes row (taxesFees's parent)
+                                const taxesRow = document.getElementById('taxesFees')?.parentElement;
+                                if (taxesRow) pricingBlock.insertBefore(breakdown, taxesRow);
+                                else pricingBlock.appendChild(breakdown);
+                            }
+                            // fill breakdown
+                            breakdown.innerHTML = rooms.map(r => {
+                                const rPrice = parseFloat(r.Price || 0);
+                                const perNight = nights > 0 ? (rPrice / nights) : rPrice;
+                                return `<div class="flex justify-between"><span>${r.RoomName || 'Room'} <span class="text-xs text-gray-500">(${nights} night${nights>1?'s':''})</span></span><span class="font-medium">$${rPrice.toFixed(2)} <span class="text-xs text-gray-400">($${perNight.toFixed(2)}/night)</span></span></div>`;
+                            }).join('');
+                        })();
+
+                        // Initialize swiper with rooms and nights so slide shows correct per-room totals
+                        initializeRoomSwiper(rooms, nights);
                     })
-                    .catch(error => console.error('Fetch error:', error));
+                    .catch(error => {
+                        console.error('Fetch error:', error);
+                    });
             });
         }
     };
 
-    // Function to initialize Swiper with room data
-    function initializeRoomSwiper(reservation) {
-        const roomContainer = document.getElementById('roomContainer');
-        roomContainer.innerHTML = ''; // Clear previous content
-        
-        // Create a new slide for the room
-        const slide = document.createElement('div');
-        slide.className = 'swiper-slide';
-        
-        slide.innerHTML = `
-            <div class="flex flex-col md:flex-row gap-4 py-2">
-                <div class="md:w-1/3 select-none">
-                    <div class="relative" style="height: 200px;">
-                        <img src="../Admin/${reservation.RoomCoverImage}" 
-                            alt="Room Image"
-                            class="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-105">
-                    </div>
-                </div>
-
-                <div class="md:w-2/3">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h5 class="font-bold text-lg text-gray-800">${reservation.RoomType}</h5>
-                            <p class="text-sm text-gray-600 mt-1 line-clamp-2">${reservation.RoomDescription}</p>
-                            <div class="mt-2 text-xs text-gray-500">
-                                1 room of this type
-                                <div class="flex flex-wrap gap-2 mt-1">
-                                    <div class="group relative">
-                                        <span class="bg-gray-100 px-2 py-1 rounded text-gray-600 font-semibold text-xs cursor-default">
-                                            Room #${reservation.RoomName}
-                                        </span>
-                                        <div class="absolute z-20 left-0 mt-1 w-64 bg-white p-3 rounded-lg shadow-sm border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                                            <div class="flex items-center gap-2 text-sm mb-1">
-                                                <i class="ri-calendar-check-line text-orange-500"></i>
-                                                ${new Date(reservation.CheckInDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} 
-                                                <span class="text-gray-400">→</span> 
-                                                ${new Date(reservation.CheckOutDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                            </div>
-                                            <div class="flex items-center gap-2 text-sm mb-2">
-                                                <i class="ri-user-line text-orange-500"></i>
-                                                ${reservation.Adult} Adult${reservation.Adult > 1 ? 's' : ''}
-                                                ${reservation.Children > 0 ? 
-                                                    `<span class="text-gray-400">+</span> ${reservation.Children} Child${reservation.Children > 1 ? 'ren' : ''}` : 
-                                                    ''}
-                                            </div>
-                                            <div class="text-sm text-gray-600">
-                                                <span class="font-medium">$${reservation.Price.toFixed(2)}</span>
-                                                <span class="text-gray-500">/night</span>
-                                            </div>
-                                            <div class="bg-red-50 border-l-4 border-red-400 p-2 my-2 rounded-r">
-                                                <div class="flex items-start">
-                                                    <i class="ri-alert-line text-red-500 mt-0.5 mr-1 text-sm"></i>
-                                                    <span class="text-xs text-red-700">$50 fee if cancelled within 48 hours</span>
-                                                </div>
-                                            </div>
-                                            <button class="cancel-btn mt-1 w-full bg-red-50 hover:bg-red-100 text-red-600 text-xs font-medium py-2 px-3 rounded-md transition-colors duration-200 flex items-center justify-center select-none"
-                                                data-reservation-id="${reservation.ReservationID}">
-                                                <i class="ri-close-circle-line mr-1"></i> Cancel Reservation
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <a href="../User/room_details.php?roomTypeID=${reservation.RoomTypeID}&checkin_date=${reservation.CheckInDate}&checkout_date=${reservation.CheckOutDate}&adults=${reservation.Adult}&children=${reservation.Children}"
-                        class="mt-2 text-orange-600 hover:text-orange-700 font-medium inline-flex items-center text-xs bg-orange-50 px-3 py-1 rounded-full">
-                        <i class="ri-information-line mr-1"></i> Room Details
-                    </a>
-                </div>
-            </div>
-        `;
-        
-        roomContainer.appendChild(slide);
-        
-        // Initialize Swiper
-        const swiper = new Swiper('.roomTypeSwiper', {
-            slidesPerView: 1,
-            spaceBetween: 20,
-            centeredSlides: true,
-            pagination: {
-                el: '.swiper-pagination',
-                clickable: true,
-            },
-            breakpoints: {
-                768: {
-                    slidesPerView: 1,
-                    spaceBetween: 30
-                }
-            }
-        });
-        
-        // Add event listener to cancel button
-        const cancelBtn = slide.querySelector('.cancel-btn');
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', function() {
-                const reservationId = this.getAttribute('data-reservation-id');
-                // Add your cancellation logic here
-                alert(`Canceling reservation ${reservationId}`);
-            });
-        }
-    }
-
-    // Close modal button
-    document.getElementById('closeReservationDetailButton').addEventListener('click', function() {
+    closeReservationDetailButton.addEventListener('click', () => {
         reservationModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
         if (darkOverlay2) {
             darkOverlay2.classList.remove('opacity-100');
@@ -4704,36 +4669,20 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Make sure to initialize Swiper library
-    document.addEventListener('DOMContentLoaded', function() {
-        // Load Swiper CSS if not already loaded
-        if (!document.querySelector('link[href*="swiper-bundle.min.css"]')) {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = 'https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css';
-            document.head.appendChild(link);
-        }
-        
-        // Load Swiper JS if not already loaded
-        if (!window.Swiper) {
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js';
-            script.onload = function() {
-                console.log('Swiper loaded successfully');
-            };
-            document.body.appendChild(script);
-        }
-    });
-
-    // Function to initialize action buttons for all rows
-    function initializeReservationActionButtons() {
-        document.querySelectorAll('tbody tr').forEach(row => {
-            attachEventListenersToRow(row);
-        });
+    // Load Swiper library if missing
+    if (!document.querySelector('link[href*="swiper-bundle.min.css"]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css';
+        document.head.appendChild(link);
+    }
+    if (!window.Swiper) {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js';
+        document.body.appendChild(script);
     }
 
-    // Call this function after loading new content via AJAX
-    initializeReservationActionButtons();
+    document.querySelectorAll('tbody tr').forEach(row => attachReservationListenersToRow(row));
 });
 
 // Order Details Modal
@@ -4876,106 +4825,152 @@ document.addEventListener('DOMContentLoaded', function() {
     const darkOverlay2 = document.getElementById('darkOverlay2');
     const purchaseDetailsModal = document.getElementById('purchaseDetailsModal');
     const closePurchaseDetailsBtn = document.getElementById('closePurchaseDetailsBtn');
-    
-    const closeModal = () => {
-        purchaseDetailsModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-        darkOverlay2.classList.add('opacity-0', 'invisible');
-        darkOverlay2.classList.remove('opacity-100');
-    };
 
-    // Function to attach event listeners to a row
-    const attachEventListenersToRow = (row) => {
-        // Details button
-        const detailsBtn = row.querySelector('.details-btn');
-        if (detailsBtn) {
-            detailsBtn.addEventListener('click', function() {
-                const purchaseId = this.getAttribute('data-purchase-id');
-                darkOverlay2.classList.remove('opacity-0', 'invisible');
-                darkOverlay2.classList.add('opacity-100');
-
-                fetch(`../Admin/purchase_history.php?action=getPurchaseDetails&id=${purchaseId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success && data.purchase) {
-                            // Set basic purchase info
-                            document.getElementById('detailPurchaseID').textContent = data.purchase.PurchaseID;
-                            document.getElementById('detailPurchaseDate').textContent = formatDate(data.purchase.PurchaseDate);
-                            document.getElementById('detailAdmin').textContent = data.purchase.FirstName + ' ' + data.purchase.LastName;
-                            document.getElementById('detailAdminEmail').textContent = data.purchase.AdminEmail;
-                            document.getElementById('detailSupplier').textContent = data.purchase.SupplierName;
-                            document.getElementById('detailSupplierEmail').textContent = data.purchase.SupplierEmail;
-                            document.getElementById('detailTotalAmount').textContent = '$' + parseFloat(data.purchase.TotalAmount).toFixed(2);
-                            document.getElementById('detailTax').textContent = '$' + parseFloat(data.purchase.PurchaseTax).toFixed(2);
-                            document.getElementById('detailStatus').textContent = data.purchase.Status;
-                            
-                            // Fetch purchase items
-                            fetchPurchaseItems(purchaseId);
-                            
-                            // Show modal
-                            purchaseDetailsModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-                            purchaseDetailsModal.classList.add('opacity-100', 'visible', 'translate-y-0');
-                        } else {
-                            console.error('Failed to load purchase details');
-                            showNotification('error', 'Failed to load purchase details');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Fetch error:', error);
-                        showNotification('error', 'Error loading purchase details');
-                    });
-            });
+    // helper to format date/time
+    function formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+        try {
+            return new Date(dateString).toLocaleDateString('en-US', options);
+        } catch (e) {
+            return dateString;
         }
-    };
+    }
 
-    // Function to fetch purchase items
+    function showModal() {
+        if (darkOverlay2) {
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
+        }
+        if (purchaseDetailsModal) {
+            purchaseDetailsModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+            purchaseDetailsModal.classList.add('opacity-100', 'visible', 'translate-y-0');
+        }
+    }
+
+    function hideModal() {
+        if (darkOverlay2) {
+            darkOverlay2.classList.remove('opacity-100');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+        }
+        if (purchaseDetailsModal) {
+            purchaseDetailsModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            purchaseDetailsModal.classList.remove('opacity-100', 'visible', 'translate-y-0');
+        }
+    }
+
+    closePurchaseDetailsBtn && closePurchaseDetailsBtn.addEventListener('click', hideModal);
+    // Close modal if overlay clicked
+    if (darkOverlay2) {
+        darkOverlay2.addEventListener('click', hideModal);
+    }
+
+    // fetch items and render into table body #purchaseItems
     function fetchPurchaseItems(purchaseId) {
-        fetch(`../Admin/purchase_history.php?action=getPurchaseItems&id=${purchaseId}`)
+        fetch(`../Admin/purchase_history.php?action=getPurchaseItems&id=${encodeURIComponent(purchaseId)}`)
             .then(response => response.json())
             .then(data => {
                 const itemsContainer = document.getElementById('purchaseItems');
+                if (!itemsContainer) return;
                 itemsContainer.innerHTML = '';
-                
-                if (data.success && data.items && data.items.length > 0) {
+
+                if (data.success && Array.isArray(data.items) && data.items.length) {
                     data.items.forEach(item => {
-                        const row = document.createElement('tr');
-                        row.className = 'border-b border-gray-200 hover:bg-gray-50';
-                        row.innerHTML = `
-                            <td class="p-3">${item.ProductName}</td>
-                            <td class="p-3">${item.Quantity}</td>
-                            <td class="p-3">₱${parseFloat(item.UnitPrice).toFixed(2)}</td>
-                            <td class="p-3">₱${parseFloat(item.Quantity * item.UnitPrice).toFixed(2)}</td>
+                        const tr = document.createElement('tr');
+                        tr.className = 'border-b border-gray-200 hover:bg-gray-50';
+                        const qty = parseFloat(item.Quantity || 0);
+                        const unit = parseFloat(item.UnitPrice || 0);
+                        const total = qty * unit;
+
+                        tr.innerHTML = `
+                            <td class="p-3">${item.ProductName || item.ProductID || 'Product'}</td>
+                            <td class="p-3">${qty}</td>
+                            <td class="p-3">${unit.toFixed(2)}</td>
+                            <td class="p-3">${total.toFixed(2)}</td>
                         `;
-                        itemsContainer.appendChild(row);
+                        itemsContainer.appendChild(tr);
                     });
                 } else {
                     itemsContainer.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-gray-500">No items found</td></tr>';
                 }
             })
-            .catch(error => {
-                console.error('Error fetching purchase items:', error);
-                document.getElementById('purchaseItems').innerHTML = '<tr><td colspan="4" class="p-3 text-center text-red-500">Error loading items</td></tr>';
+            .catch(err => {
+                console.error('Error fetching purchase items:', err);
+                const itemsContainer = document.getElementById('purchaseItems');
+                if (itemsContainer) {
+                    itemsContainer.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-red-500">Error loading items</td></tr>';
+                }
             });
     }
 
-    // Helper function to format date
-    function formatDate(dateString) {
-        const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-        return new Date(dateString).toLocaleDateString('en-US', options);
+    // Attach click behavior for each row's details button
+    function attachEventListenersToRow(row) {
+        if (!row) return;
+        const detailsBtn = row.querySelector('.details-btn');
+        if (!detailsBtn) return;
+
+        detailsBtn.addEventListener('click', function() {
+            const purchaseId = this.getAttribute('data-purchase-id');
+            if (!purchaseId) return;
+
+            // show overlay immediately
+            if (darkOverlay2) {
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+            }
+
+            // fetch header info
+            fetch(`../Admin/purchase_history.php?action=getPurchaseDetails&id=${encodeURIComponent(purchaseId)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success || !data.purchase) {
+                        console.error('Failed to load purchase details', data);
+                        // Hide overlay in case of error
+                        if (darkOverlay2) {
+                            darkOverlay2.classList.remove('opacity-100');
+                            darkOverlay2.classList.add('opacity-0', 'invisible');
+                        }
+                        return;
+                    }
+
+                    const p = data.purchase;
+
+                    // Map data into UI (IDs must exist in DOM)
+                    document.getElementById('detailPurchaseID').textContent = p.PurchaseID || '';
+                    document.getElementById('detailPurchaseDate').textContent = formatDate(p.PurchaseDate || p.AddedDate || '');
+                    document.getElementById('detailAdmin').textContent = ((p.FirstName || '') + ' ' + (p.LastName || '')).trim();
+                    document.getElementById('detailAdminEmail').textContent = p.AdminEmail || '';
+                    document.getElementById('detailSupplier').textContent = p.SupplierName || '';
+                    document.getElementById('detailSupplierEmail').textContent = p.SupplierEmail || '';
+                    document.getElementById('detailTotalAmount').textContent = p.TotalAmount !== null ? ('$' + parseFloat(p.TotalAmount).toFixed(2)) : 'N/A';
+                    document.getElementById('detailTax').textContent = p.PurchaseTax !== null ? ('$' + parseFloat(p.PurchaseTax).toFixed(2)) : 'N/A';
+                    document.getElementById('detailStatus').textContent = p.Status || '';
+
+                    // fetch and render items
+                    fetchPurchaseItems(purchaseId);
+
+                    // show modal
+                    showModal();
+                })
+                .catch(err => {
+                    console.error('Fetch error:', err);
+                    if (darkOverlay2) {
+                        darkOverlay2.classList.remove('opacity-100');
+                        darkOverlay2.classList.add('opacity-0', 'invisible');
+                    }
+                });
+        });
     }
 
-    closePurchaseDetailsBtn.addEventListener('click', function() {
-        closeModal();
-    })
-
-        // Initialize event listeners for existing rows
-    const initializeExistingRows = () => {
+    // Initialize existing rows on page load
+    function initializeExistingRows() {
+        // If the purchases table is a specific table, narrow selector
         const rows = document.querySelectorAll('tbody tr');
         rows.forEach(row => {
             attachEventListenersToRow(row);
         });
-    };
-    
-    // Initialize buttons on page load
+    }
+
     initializeExistingRows();
 });
 

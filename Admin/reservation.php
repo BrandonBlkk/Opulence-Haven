@@ -11,31 +11,65 @@ if (!$connect) {
 
 $alertMessage = '';
 
-// Get Rule Details
+// Get Reservation Details
 if (isset($_GET['action']) && isset($_GET['id'])) {
     $id = mysqli_real_escape_string($connect, $_GET['id']);
     $action = $_GET['action'];
 
-    // Build query based on action
-    $query = match ($action) {
-        'getReservationDetails' => "SELECT rd.*, r.*, rb.*, rtb.*, u.UserName, u.UserPhone 
-               FROM reservationdetailtb rd
-               JOIN reservationtb r ON rd.ReservationID = r.ReservationID
-               JOIN roomtb rb ON rd.RoomID = rb.RoomID
-               JOIN roomtypetb rtb ON rb.RoomTypeID = rtb.RoomTypeID
-               JOIN usertb u ON r.UserID = u.UserID 
-               WHERE rd.ReservationID = '$id'",
-        default => null
-    };
+    $response = ['success' => false];
 
-    if ($query) {
-        $reservation = $connect->query($query)->fetch_assoc();
+    if ($action === 'getReservationDetails') {
+        $query = "
+            SELECT rd.*, r.*, rb.*, rtb.*, u.UserEmail, u.UserName, u.UserPhone
+            FROM reservationdetailtb rd
+            JOIN reservationtb r ON rd.ReservationID = r.ReservationID
+            JOIN roomtb rb ON rd.RoomID = rb.RoomID
+            JOIN roomtypetb rtb ON rb.RoomTypeID = rtb.RoomTypeID
+            JOIN usertb u ON r.UserID = u.UserID
+            WHERE rd.ReservationID = '$id'
+        ";
+        $result = $connect->query($query);
 
-        if ($reservation) {
+        if ($result && $result->num_rows > 0) {
+            $reservationData = null;
+
+            while ($row = $result->fetch_assoc()) {
+                if (!$reservationData) {
+                    $reservationData = [
+                        'ReservationID' => $row['ReservationID'],
+                        'UserEmail' => $row['UserEmail'] ?? null,
+                        'FirstName' => $row['FirstName'] ?? null,
+                        'LastName' => $row['LastName'] ?? null,
+                        'Title' => $row['Title'] ?? null,
+                        'UserPhone' => $row['UserPhone'] ?? null,
+                        'ReservationDate' => $row['ReservationDate'] ?? null,
+                        'ExpiryDate' => $row['ExpiryDate'] ?? null,
+                        'CheckInDate' => $row['CheckInDate'] ?? null,
+                        'CheckOutDate' => $row['CheckOutDate'] ?? null,
+                        'TotalPrice' => $row['TotalPrice'] ?? 0,
+                        'PointsDiscount' => $row['PointsDiscount'] ?? 0,
+                        'PointsRedeemed' => $row['PointsRedeemed'] ?? 0,
+                        'PointsEarned' => $row['PointsEarned'] ?? 0,
+                        'Rooms' => []
+                    ];
+                }
+
+                // Push each reserved room into Rooms array
+                $reservationData['Rooms'][] = [
+                    'RoomID' => $row['RoomID'],
+                    'RoomName' => $row['RoomName'],
+                    'RoomTypeID' => $row['RoomTypeID'],
+                    'RoomType' => $row['RoomType'],
+                    'RoomDescription' => $row['RoomDescription'],
+                    'RoomCoverImage' => $row['RoomCoverImage'] ?? 'default.png',
+                    'Adult' => $row['Adult'] ?? 0,
+                    'Children' => $row['Children'] ?? 0,
+                    'Price' => $row['Price'] ?? 0
+                ];
+            }
+
             $response['success'] = true;
-            $response['reservation'] = $reservation;
-        } else {
-            $response['success'] = true;
+            $response['reservation'] = $reservationData;
         }
     }
 
@@ -110,7 +144,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
 
         <!-- Reservation Modal -->
         <div id="reservationModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible -translate-y-5 p-2 transition-all duration-300">
-            <div class="bg-white rounded-xl max-w-4xl w-full p-6 animate-fade-in">
+            <div class="reservationScrollBar bg-white rounded-xl max-w-4xl w-full p-6 animate-fade-in max-h-[92vh] overflow-y-auto overflow-x-hidden">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-bold text-gray-800">Reservation Details</h3>
                     <button id="closeReservationDetailButton" class="text-gray-400 hover:text-gray-500">
@@ -121,34 +155,41 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
                 <div class="space-y-3">
                     <!-- User Information -->
                     <div class="bg-gray-50 p-4 rounded-lg">
-                        <h4 class="font-medium text-gray-800 mb-3">Your Information</h4>
+                        <h4 class="font-medium text-gray-800 mb-3">User Information</h4>
                         <div class="space-y-2">
                             <div class="flex justify-between">
                                 <span class="text-sm text-gray-600">Name:</span>
-                                <span class="text-sm font-medium" id="userName"></span>
+                                <span class="text-sm font-medium text-gray-600" id="userName"></span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-sm text-gray-600">Phone:</span>
-                                <span class="text-sm font-medium" id="userPhone"></span>
+                                <span class="text-sm font-medium text-gray-600" id="userPhone"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-600">Email:</span>
+                                <span class="text-sm font-medium text-gray-600">
+                                    <a href="#" id="userEmail" class="hover:underline"></a>
+                                    <i class="ri-mail-fill"></i>
+                                </span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-sm text-gray-600">Reservation Date:</span>
-                                <span class="text-sm font-medium" id="reservationDate"></span>
+                                <div class="flex flex-col text-right">
+                                    <span class="text-sm font-medium text-gray-600" id="reservationDate"></span>
+                                    <span class="text-xs font-semibold text-red-500" id="reservationExpiry"></span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
+
                     <!-- Room Information -->
                     <div class="bg-gray-50 p-4 rounded-lg">
-                        <h4 class="font-medium text-gray-800 mb-3">Room Information</h4>
-
-                        <!-- Swiper Container -->
-                        <div class="swiper roomTypeSwiper">
-                            <div class="swiper-wrapper" id="roomContainer">
-                                <!-- Rooms will be dynamically inserted here -->
-                            </div>
-                            <!-- Add Pagination -->
-                            <div class="swiper-pagination"></div>
+                        <h4 class="font-medium text-gray-800 mb-3">Rooms Reserved</h4>
+                        <div class="space-y-2 roomTypeSwiper" id="roomContainer">
+                            <!-- Dynamically inserted rooms will appear here -->
+                            <div class="swiper-wrapper"></div>
+                            <div class="swiper-pagination mt-2"></div>
                         </div>
                     </div>
 
@@ -158,7 +199,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
                         <div class="space-y-3">
                             <div class="flex justify-between">
                                 <span class="text-sm text-gray-600" id="roomRateLabel">Room Rate:</span>
-                                <span class="text-sm font-medium" id="roomRate"></span>
+                                <span class="text-sm font-medium text-gray-600" id="roomRate"></span>
                             </div>
 
                             <div class="flex justify-between hidden" id="pointsDiscountContainer">
@@ -168,11 +209,11 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
 
                             <div class="flex justify-between">
                                 <span class="text-sm text-gray-600">Taxes & Fees:</span>
-                                <span class="text-sm font-medium" id="taxesFees"></span>
+                                <span class="text-sm font-medium text-gray-600" id="taxesFees"></span>
                             </div>
                             <div class="border-t border-gray-200 pt-2 flex justify-between">
                                 <span class="font-medium text-gray-800">Total:</span>
-                                <span class="font-bold" id="totalPrice"></span>
+                                <span class="font-bold text-gray-600" id="totalPrice"></span>
                             </div>
 
                             <div class="pt-2 flex justify-between hidden" id="pointsEarnedContainer">
