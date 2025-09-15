@@ -194,7 +194,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
             $stmtUpdate->execute();
 
             // Calculate PointsEarned based on membership
-            $getUserMembership = "SELECT Membership FROM usertbb WHERE UserID = ?";
+            $getUserMembership = "SELECT Membership FROM usertb WHERE UserID = ?";
             $stmtMember = $connect->prepare($getUserMembership);
             $stmtMember->bind_param("s", $userID);
             $stmtMember->execute();
