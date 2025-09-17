@@ -29,7 +29,7 @@
         <!-- Additional Information Section -->
         <div class="additional-info text-center mt-6 space-y-4">
             <p class="text-gray-600 text-sm">
-                <span class="font-medium">Booking Tip:</span> Rooms and offers are held during the queue but may become limited. Please stay on the page.
+                <span class="font-medium">Reservation Tip:</span> Rooms and offers are held during the queue but may become limited. Please stay on the page.
             </p>
             <p class="text-gray-600 text-sm">
                 <span class="font-medium">Questions?</span> Reach out to our support team at <a href="mailto:support@opulenceHaven.com" class="text-amber-600 underline">support@opulenceHaven.com</a>.
