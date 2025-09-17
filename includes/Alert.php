@@ -8,15 +8,24 @@
 <input type="hidden" id="purchaseSuccess" value="<?php echo $purchaseSuccess ? 'true' : 'false'; ?>">
 <input type="hidden" id="resetPasswordSuccess" value="<?php echo $resetPasswordSuccess ? 'true' : 'false'; ?>">
 
-<div id="alertBox" class="fixed -bottom-20 right-3 sm:w-auto sm:max-w-sm inline-flex items-center rounded-md shadow-lg z-40 px-4 py-3 transition-all duration-150 ease-out transform opacity-0 bg-slate-800">
-    <i id="closeAlert" class="absolute top-0 right-1 cursor-pointer ri-close-line text-slate-50 hover:text-slate-100 transition-colors duration-200"></i>
+<div id="alertBox"
+    class="fixed -bottom-20 right-3 sm:w-auto sm:max-w-sm w-fit max-w-[90%] inline-flex items-center rounded-md shadow-lg z-40 px-4 py-3 transition-all duration-150 ease-out transform opacity-0 bg-slate-800">
+
+    <i id="closeAlert"
+        class="absolute top-0 right-1 cursor-pointer ri-close-line text-slate-50 hover:text-slate-100 transition-colors duration-200"></i>
+
     <div class="flex items-center gap-2 select-none justify-start">
         <div>
             <i id="alertIcon" class="text-2xl text-white"></i>
         </div>
-        <p class="font-semibold text-white text-sm sm:text-base whitespace-nowrap" id="alertText"></p>
+        <p id="alertText"
+            class="font-semibold text-white text-sm sm:text-base break-words">
+        </p>
     </div>
-    <div id="alertLoader" class="absolute bottom-0 left-0 h-1 bg-white bg-opacity-30 rounded-b-md w-full overflow-hidden">
-        <div id="alertLoaderBar" class="h-full bg-opacity-70 transition-all duration-[5000ms] ease-linear w-0"></div>
+
+    <div id="alertLoader"
+        class="absolute bottom-0 left-0 h-1 bg-white bg-opacity-30 rounded-b-md w-full overflow-hidden">
+        <div id="alertLoaderBar"
+            class="h-full bg-opacity-70 transition-all duration-[5000ms] ease-linear w-0"></div>
     </div>
 </div>
