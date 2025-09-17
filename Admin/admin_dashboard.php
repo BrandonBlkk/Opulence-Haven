@@ -1182,7 +1182,7 @@ $availablePercentage = ($allAvailableRooms / $totalRooms) * 100;
                             </p>
                             <div class="text-gray-600 text-sm">
                                 <h1 class="font-bold"><?= htmlspecialchars($user['UserName']) ?></h1>
-                                <p><?= htmlspecialchars($user['UserEmail']) ?></p>
+                                <p class="text-xs text-gray-500 truncate"><?= htmlspecialchars($user['UserEmail']) ?></p>
                             </div>
                         </div>
                     </div>

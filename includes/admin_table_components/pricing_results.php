@@ -21,8 +21,6 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
         $products[] = $row;
     }
 }
-
-// Update product - This will now be handled via AJAX
 ?>
 
 <table class="min-w-full bg-white rounded-lg">
@@ -31,8 +29,8 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
             <th class="p-3 text-start">ID</th>
             <th class="p-3 text-start">Product</th>
             <th class="p-3 text-start hidden sm:table-cell">Supplier Price</th>
-            <th class="p-3 text-start">Selling Price</th>
-            <th class="p-3 text-start">Profit/Unit</th>
+            <th class="p-3 text-start hidden sm:table-cell">Selling Price</th>
+            <th class="p-3 text-start hidden lg:table-cell">Profit/Unit</th>
             <th class="p-3 text-start">Stock</th>
             <th class="p-3 text-start">Status</th>
             <th class="p-3 text-start hidden lg:table-cell">Added Date</th>
@@ -68,7 +66,7 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
                         echo '$' . htmlspecialchars(number_format($finalPrice, 2));
                         ?>
                     </td>
-                    <td class="p-3 text-start hidden sm:table-cell" id="profit-unit-<?= htmlspecialchars($product['ProductID']) ?>">
+                    <td class="p-3 text-start hidden lg:table-cell" id="profit-unit-<?= htmlspecialchars($product['ProductID']) ?>">
                         <?php
                         $profit = $basePrice * ($markup / 100);
                         echo '$' . htmlspecialchars(number_format($profit, 2));
@@ -81,9 +79,7 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
                     <!-- Stock Column -->
                     <td class="p-3 text-start select-none">
                         <div class="flex flex-col gap-1">
-                            <!-- Main Stock -->
                             <?php
-                            // Determine stock badge classes
                             if ($isOutOfStock) {
                                 $stockClass = 'bg-red-100 border border-red-200 text-red-800';
                             } elseif ($isCriticalStock) {
@@ -92,11 +88,9 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
                                 $stockClass = 'bg-green-100 border border-green-200 text-green-800';
                             }
                             ?>
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full <?= $stockClass ?>">
+                            <span class="px-2 py-1 text-xs font-semibold whitespace-nowrap rounded-full <?= $stockClass ?>">
                                 Stock (<span id="available-stock-<?= htmlspecialchars($product['ProductID']) ?>"><?= htmlspecialchars($product['Stock']) ?></span>)
                             </span>
-
-                            <!-- Sale Stock (only show if > 0) -->
                             <?php if (!empty($product['SaleQuantity']) && $product['SaleQuantity'] > 0): ?>
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 border border-blue-200 text-blue-800">
                                     Sale (<span id="sale-quantity-<?= htmlspecialchars($product['ProductID']) ?>"><?= htmlspecialchars($product['SaleQuantity']) ?></span>)
@@ -105,10 +99,11 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
                         </div>
                     </td>
                     <td class="p-3 text-start">
-                        <span class="text-xs px-2 py-1 rounded-full select-none border
-        <?= $product['IsActive']
-                    ? 'bg-green-100 text-green-800 border-green-200'
-                    : 'bg-red-100 text-red-800 border-red-200' ?>" id="status-badge-<?= htmlspecialchars($product['ProductID']) ?>">
+                        <span class="text-xs px-2 py-1 rounded-full select-none border whitespace-nowrap
+                            <?= $product['IsActive']
+                                ? 'bg-green-100 text-green-800 border-green-200'
+                                : 'bg-red-100 text-red-800 border-red-200' ?>"
+                            id="status-badge-<?= htmlspecialchars($product['ProductID']) ?>">
                             <?= htmlspecialchars($product['IsActive'] ? 'On Sale' : 'Not On Sale') ?>
                         </span>
                     </td>
@@ -119,8 +114,7 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
                         <form method="POST" class="inline-flex items-center gap-4 product-update-form" data-product-id="<?= htmlspecialchars($product['ProductID']) ?>">
                             <input type="hidden" name="product_id" value="<?= htmlspecialchars($product['ProductID']) ?>">
 
-                            <!-- Sale Quantity Input -->
-                            <div class="flex flex-col items-start">
+                            <div class="flex flex-col items-start hidden sm:flex">
                                 <label for="sale-quantity-<?= $product['ProductID'] ?>" class="text-xs text-gray-600">Qty</label>
                                 <input id="sale-quantity-<?= $product['ProductID'] ?>" type="number" step="1" min="0" max="<?= $product['Stock'] ?>" name="sale_quantity"
                                     value="<?= htmlspecialchars($product['SaleQuantity'] ?? 0) ?>"
@@ -128,8 +122,7 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
                                     placeholder="Sale Qty">
                             </div>
 
-                            <!-- Markup Percentage Input -->
-                            <div class="flex flex-col items-start">
+                            <div class="flex flex-col items-start hidden sm:flex">
                                 <label for="markup-<?= $product['ProductID'] ?>" class="text-xs text-gray-600">Markup %</label>
                                 <input id="markup-<?= $product['ProductID'] ?>" type="number" step="0.01" min="0" name="markup_percentage"
                                     value="<?= htmlspecialchars($product['MarkupPercentage']) ?>"
@@ -137,7 +130,6 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
                                     placeholder="%">
                             </div>
 
-                            <!-- Toggle Switch for Product Active Status -->
                             <label class="relative inline-block w-9 h-5">
                                 <input type="checkbox" name="is_active" value="1"
                                     <?= $product['IsActive'] ? 'checked' : '' ?>
@@ -158,6 +150,7 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
         <?php endif; ?>
     </tbody>
 </table>
+
 
 <script>
     // Function to handle search and filter

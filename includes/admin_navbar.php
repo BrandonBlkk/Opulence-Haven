@@ -82,6 +82,11 @@ $reservationCountQuery = "SELECT COUNT(*) as count FROM reservationtb WHERE Stat
 $reservationCountResult = $connect->query($reservationCountQuery);
 $allReservationCount = $reservationCountResult->fetch_assoc()['count'];
 
+// Fetch reservation count
+$orderCountQuery = "SELECT COUNT(*) as count FROM ordertb WHERE Status = 'Order Placed'";
+$orderCountResult = $connect->query($orderCountQuery);
+$allOrderCount = $orderCountResult->fetch_assoc()['count'];
+
 // Initialize search and filter variables for contact
 $searchContactQuery = isset($_GET['contact_search']) ? mysqli_real_escape_string($connect, $_GET['contact_search']) : '';
 $searchFromDate = isset($_GET['from_date']) ? $_GET['from_date'] : '';
@@ -411,7 +416,7 @@ if (mysqli_num_rows($query) > 0) {
                                     <i class="ri-shopping-bag-2-line text-xl"></i>
                                     <span class="font-semibold text-sm">Order</span>
                                 </div>
-                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allProductCount ?></p>
+                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?php echo $allOrderCount ?></p>
                             </a>
                         </div>
                     </div>

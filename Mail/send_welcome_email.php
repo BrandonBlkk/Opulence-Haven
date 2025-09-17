@@ -113,8 +113,8 @@ try {
                 <p>You can now enjoy all the benefits of being a member, including:</p>
                 <div>
                     <ul>
-                        <li>Exclusive room booking offers</li>
-                        <li>Access to your bookings from any device</li>
+                        <li>Exclusive room reservation offers</li>
+                        <li>Access to your reservations and orders from any device</li>
                         <li>Special member discounts</li>
                     </ul>
                 </div>

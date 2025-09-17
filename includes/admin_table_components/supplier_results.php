@@ -63,7 +63,7 @@ if (mysqli_num_rows($supplierSelectQuery) > 0) {
                     </td>
                     <td class="p-3">
                         <p class="font-bold"><?= htmlspecialchars($supplier['SupplierName']) ?></p>
-                        <p><?= htmlspecialchars($supplier['SupplierEmail']) ?></p>
+                        <p class="text-xs text-gray-500 truncate"><?= htmlspecialchars($supplier['SupplierEmail']) ?></p>
                     </td>
                     <td class="p-3 text-start hidden md:table-cell">
                         <?php

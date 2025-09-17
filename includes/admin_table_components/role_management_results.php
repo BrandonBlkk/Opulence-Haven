@@ -72,7 +72,7 @@ if (mysqli_num_rows($adminSelectQuery) > 0) {
                                         }
                                         ?> -->
                             </p>
-                            <p><?= htmlspecialchars($admin['AdminEmail']) ?></p>
+                            <p class="text-xs text-gray-500 truncate"><?= htmlspecialchars($admin['AdminEmail']) ?></p>
                         </div>
                     </td>
                     <td class="p-3 text-start hidden md:table-cell">

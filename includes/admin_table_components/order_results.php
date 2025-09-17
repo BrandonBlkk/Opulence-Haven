@@ -11,13 +11,15 @@ if ($filterStatus !== 'random' && !empty($searchBookingQuery)) {
                      AND (o.FullName LIKE '%$searchBookingQuery%' 
                           OR o.PhoneNumber LIKE '%$searchBookingQuery%'
                           OR o.OrderID LIKE '%$searchBookingQuery%'
-                          OR u.UserName LIKE '%$searchBookingQuery%') 
+                          OR u.UserName LIKE '%$searchBookingQuery%')
+                     ORDER BY o.OrderDate DESC
                      LIMIT $rowsPerPage OFFSET $reservationOffset";
 } elseif ($filterStatus !== 'random') {
     $orderSelect = "SELECT o.*, u.UserName, u.UserPhone, u.ProfileBgColor, u.UserEmail  
                      FROM ordertb o
                      JOIN usertb u ON o.UserID = u.UserID 
-                     WHERE o.Status = '$filterStatus' 
+                     WHERE o.Status = '$filterStatus'
+                     ORDER BY o.OrderDate DESC
                      LIMIT $rowsPerPage OFFSET $reservationOffset";
 } elseif (!empty($searchBookingQuery)) {
     $orderSelect = "SELECT o.*, u.UserName, u.UserPhone, u.ProfileBgColor, u.UserEmail 
@@ -27,11 +29,13 @@ if ($filterStatus !== 'random' && !empty($searchBookingQuery)) {
                            OR o.PhoneNumber LIKE '%$searchBookingQuery%'
                            OR o.OrderID LIKE '%$searchBookingQuery%'
                            OR u.UserName LIKE '%$searchBookingQuery%') 
+                     ORDER BY o.OrderDate DESC
                      LIMIT $rowsPerPage OFFSET $reservationOffset";
 } else {
     $orderSelect = "SELECT o.*, u.UserName, u.UserPhone, u.ProfileBgColor, u.UserEmail 
                      FROM ordertb o
                      JOIN usertb u ON o.UserID = u.UserID 
+                     ORDER BY o.OrderDate DESC
                      LIMIT $rowsPerPage OFFSET $reservationOffset";
 }
 
@@ -66,13 +70,16 @@ if ($orderSelectQuery && mysqli_num_rows($orderSelectQuery) > 0) {
                             <span>#<?= htmlspecialchars($order['OrderID']) ?></span>
                         </div>
                     </td>
-                    <td class="p-3 text-start flex items-center gap-2">
+                    <td class="p-3 text-start whitespace-nowrap flex items-center gap-2">
                         <div id="profilePreview" class="w-10 h-10 object-cover rounded-full bg-[<?php echo $order['ProfileBgColor'] ?>] text-white select-none">
                             <p class="w-full h-full flex items-center justify-center font-semibold"><?php echo strtoupper(substr($order['UserName'], 0, 1)); ?></p>
                         </div>
                         <div>
-                            <p class="font-bold"><?= htmlspecialchars($order['FullName']) ?> <span class="text-gray-400 text-xs font-normal">(<?= htmlspecialchars($order['UserName']) ?>)</span></p>
-                            <p><?= htmlspecialchars($order['UserEmail']) ?></p>
+                            <p class="font-bold">
+                                <?= htmlspecialchars($order['FullName']) ?>
+                                <span class="text-gray-400 text-xs font-normal">(<?= htmlspecialchars($order['UserName']) ?>)</span>
+                            </p>
+                            <p class="text-xs text-gray-500 truncate hidden sm:block"><?= htmlspecialchars($order['UserEmail']) ?></p>
                         </div>
                     </td>
                     <td class="p-3 text-start hidden sm:table-cell">
@@ -120,7 +127,7 @@ if ($orderSelectQuery && mysqli_num_rows($orderSelectQuery) > 0) {
                                 $statusClass = 'bg-gray-100 border-gray-200 text-gray-800';
                         }
                         ?>
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full border <?= $statusClass ?>">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full border select-none <?= $statusClass ?>">
                             <?= htmlspecialchars($order['Status']) ?>
                         </span>
                     </td>

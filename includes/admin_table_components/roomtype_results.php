@@ -25,7 +25,7 @@ if (mysqli_num_rows($roomTypeSelectQuery) > 0) {
             <th class="p-3 text-start">ID</th>
             <th class="p-3 text-start">Cover Image</th>
             <th class="p-3 text-start">Type</th>
-            <th class="p-3 text-start hidden sm:table-cell">Description</th>
+            <th class="p-3 text-start hidden lg:table-cell">Description</th>
             <th class="p-3 text-start hidden sm:table-cell">Capacity</th>
             <th class="p-3 text-start">Actions</th>
         </tr>
@@ -46,7 +46,7 @@ if (mysqli_num_rows($roomTypeSelectQuery) > 0) {
                     <td class="p-3 text-start">
                         <?= htmlspecialchars($roomType['RoomType']) ?>
                     </td>
-                    <td class="p-3 text-start hidden sm:table-cell">
+                    <td class="p-3 text-start hidden lg:table-cell">
                         <?= htmlspecialchars($roomType['RoomDescription']) ?>
                     </td>
                     <td class="p-3 text-start hidden sm:table-cell">

@@ -54,7 +54,7 @@ if (mysqli_num_rows($userSelectQuery) > 0) {
                         </p>
                         <div>
                             <p class="font-bold"><?= htmlspecialchars($user['UserName']) ?></p>
-                            <p><?= htmlspecialchars($user['UserEmail']) ?></p>
+                            <p class="text-xs text-gray-500 truncate"><?= htmlspecialchars($user['UserEmail']) ?></p>
                         </div>
 
                         <a class="opacity-0 group-hover:opacity-100 transition-all duration-200" href="mailto:<?= htmlspecialchars($user['UserEmail']) ?>"><i class="ri-mail-fill text-lg"></i></a>

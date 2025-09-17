@@ -41,9 +41,9 @@ while ($row = $supplierSelectQuery->fetch_assoc()) {
         <tr class="bg-gray-100 text-gray-600 text-sm">
             <th class="p-3 text-start">ID</th>
             <th class="p-3 text-start">Admin</th>
-            <th class="p-3 text-start hidden sm:table-cell">Supplier</th>
-            <th class="p-3 text-start">Total Amount</th>
-            <th class="p-3 text-start">Tax</th>
+            <th class="p-3 text-start hidden md:table-cell">Supplier</th>
+            <th class="p-3 text-start hidden md:table-cell">Total Amount</th>
+            <th class="p-3 text-start hidden lg:table-cell">Tax</th>
             <th class="p-3 text-start">Status</th>
             <th class="p-3 text-start">Actions</th>
         </tr>
@@ -54,11 +54,14 @@ while ($row = $supplierSelectQuery->fetch_assoc()) {
                 $admin = isset($admins[$purchase['AdminID']]) ? $admins[$purchase['AdminID']] : null;
             ?>
                 <tr class="border-b border-gray-200 hover:bg-gray-50">
+                    <!-- ID -->
                     <td class="p-3 text-start whitespace-nowrap">
                         <div class="font-medium text-gray-500">
                             <span>#<?= htmlspecialchars($purchase['PurchaseID']) ?></span>
                         </div>
                     </td>
+
+                    <!-- Admin -->
                     <td class="p-3 text-start">
                         <?php if ($admin): ?>
                             <div class="flex items-center gap-3">
@@ -73,25 +76,33 @@ while ($row = $supplierSelectQuery->fetch_assoc()) {
                                             alt="Profile">
                                     </div>
                                 <?php endif; ?>
-                                <div>
-                                    <p class="font-bold"><?= htmlspecialchars($admin['FirstName'] . ' ' . $admin['LastName']) ?></p>
-                                    <p class="text-xs text-gray-500"><?= htmlspecialchars($admin['AdminEmail']) ?></p>
+                                <div class="truncate">
+                                    <p class="font-bold truncate"><?= htmlspecialchars($admin['FirstName'] . ' ' . $admin['LastName']) ?></p>
+                                    <p class="text-xs text-gray-500 truncate"><?= htmlspecialchars($admin['AdminEmail']) ?></p>
                                 </div>
                             </div>
                         <?php else: ?>
                             <div class="text-gray-400">Admin not found</div>
                         <?php endif; ?>
                     </td>
-                    <td class="p-3 text-start hidden sm:table-cell">
-                        <p class="font-bold"><?= isset($suppliers[$purchase['SupplierID']]) ? htmlspecialchars($suppliers[$purchase['SupplierID']]) : htmlspecialchars($purchase['SupplierID']) ?></p>
-                        <p><?= isset($supplierEmails[$purchase['SupplierID']]) ? htmlspecialchars($supplierEmails[$purchase['SupplierID']]) : htmlspecialchars($purchase['SupplierID']) ?></p>
+
+                    <!-- Supplier -->
+                    <td class="p-3 text-start hidden md:table-cell">
+                        <p class="font-bold truncate"><?= isset($suppliers[$purchase['SupplierID']]) ? htmlspecialchars($suppliers[$purchase['SupplierID']]) : htmlspecialchars($purchase['SupplierID']) ?></p>
+                        <p class="text-xs truncate"><?= isset($supplierEmails[$purchase['SupplierID']]) ? htmlspecialchars($supplierEmails[$purchase['SupplierID']]) : htmlspecialchars($purchase['SupplierID']) ?></p>
                     </td>
-                    <td class="p-3 text-start">
+
+                    <!-- Total Amount -->
+                    <td class="p-3 text-start hidden md:table-cell">
                         $<?= number_format($purchase['TotalAmount'], 2) ?>
                     </td>
-                    <td class="p-3 text-start">
+
+                    <!-- Tax -->
+                    <td class="p-3 text-start hidden lg:table-cell">
                         $<?= ($purchase['PurchaseTax']) ?>
                     </td>
+
+                    <!-- Status -->
                     <td class="p-3 text-start select-none">
                         <?php
                         $statusClass = '';
@@ -113,6 +124,8 @@ while ($row = $supplierSelectQuery->fetch_assoc()) {
                             <?= htmlspecialchars($purchase['Status']) ?>
                         </span>
                     </td>
+
+                    <!-- Actions -->
                     <td class="p-3 text-start space-x-1 select-none">
                         <i class="details-btn ri-eye-line text-lg cursor-pointer"
                             data-purchase-id="<?= htmlspecialchars($purchase['PurchaseID']) ?>"></i>
