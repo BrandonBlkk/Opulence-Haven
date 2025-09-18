@@ -53,6 +53,17 @@ if (isset($_GET['payment']) && $_GET['payment'] == 'success' && isset($_GET['ord
         $tax = $subtotal * 0.10;
         $total_price = $subtotal + $tax + $deliveryFee;
 
+        // Fetch AdditionalAmount from DB
+        $add_query = $connect->prepare("SELECT AdditionalAmount FROM ordertb WHERE OrderID = ?");
+        $add_query->bind_param("s", $order_id);
+        $add_query->execute();
+        $add_result = $add_query->get_result();
+        $additionalAmount = 0.00;
+        if ($add_row = $add_result->fetch_assoc()) {
+            $additionalAmount = (float)$add_row['AdditionalAmount'];
+        }
+        $add_query->close();
+
         // Update order status, total price, and tax
         $update_status = $connect->prepare("UPDATE ordertb SET Status = 'Processing', TotalPrice = ?, OrderTax = ? WHERE OrderID = ?");
         $update_status->bind_param("dds", $total_price, $tax, $order_id);
@@ -83,7 +94,7 @@ if (isset($_GET['payment']) && $_GET['payment'] == 'success' && isset($_GET['ord
 
                     // Content
                     $mail->isHTML(true);
-                    $mail->Subject = "Payment Confirmation - Order #{$order_id}";
+                    $mail->Subject = "Order Modification Confirmation - Order #{$order_id}";
                     $mail->Body = "
                     <html>
                     <head>
@@ -131,10 +142,10 @@ if (isset($_GET['payment']) && $_GET['payment'] == 'success' && isset($_GET['ord
                     </head>
                     <body>
                         <div class='content'>
-                            <h2>Payment Confirmation</h2>
+                            <h2>Order Modification Confirmation</h2>
                             <p>Hello {$username},</p>
-                            <p>Thank you for your purchase! Your payment for <strong>Order #{$order_id}</strong> was successful.</p>
-                            <h3>Order Details</h3>
+                            <p>Your order <strong>#{$order_id}</strong> has been successfully modified.</p>
+                            <h3>Updated Order Details</h3>
                             <table>
                                 <thead>
                                     <tr>
@@ -153,10 +164,11 @@ if (isset($_GET['payment']) && $_GET['payment'] == 'success' && isset($_GET['ord
                                 <strong>Subtotal:</strong> $" . number_format($subtotal, 2) . "<br>
                                 <strong>Tax (10%):</strong> $" . number_format($tax, 2) . "<br>
                                 <strong>Delivery Fee:</strong> $" . number_format($deliveryFee, 2) . "<br>
+                                <strong>Additional Fee:</strong> $" . number_format($additionalAmount, 2) . "<br>
                                 <strong>Total:</strong> $" . number_format($total_price, 2) . "
                             </p>
-                            <p>Your order is now being processed. We will notify you once it ships.</p>
-                            <p>Thank you for shopping with us!</p>
+                            <p>Your modified order is now being processed. We will notify you once it ships.</p>
+                            <p>Thank you for choosing Opulence Haven!</p>
                         </div>
                         <div class='footer'>
                             <p>&copy; " . date('Y') . " Opulence Haven. All rights reserved.</p>
@@ -165,16 +177,16 @@ if (isset($_GET['payment']) && $_GET['payment'] == 'success' && isset($_GET['ord
                     </html>
                     ";
 
-                    $mail->AltBody = "Hello {$username},\n\nThank you for your purchase! Your payment for Order #{$order_id} was successful.\n\nOrder Details:\n\n" . strip_tags($items_html) . "\n\nSubtotal: $" . number_format($subtotal, 2) . "\nTax: $" . number_format($tax, 2) . "\nDelivery Fee: $" . number_format($deliveryFee, 2) . "\nTotal: $" . number_format($total_price, 2) . "\n\nYour order is now being processed. Thank you for shopping with us!";
+                    $mail->AltBody = "Hello {$username},\n\nYour order #{$order_id} has been successfully modified.\n\nOrder Details:\n\n" . strip_tags($items_html) . "\n\nSubtotal: $" . number_format($subtotal, 2) . "\nTax: $" . number_format($tax, 2) . "\nDelivery Fee: $" . number_format($deliveryFee, 2) . "\nAdditional Fee: $" . number_format($additionalAmount, 2) . "\nTotal: $" . number_format($total_price, 2) . "\n\nYour modified order is now being processed. Thank you for shopping with us!";
 
                     $mail->send();
                 } catch (Exception $e) {
-                    error_log("Payment confirmation email failed: {$mail->ErrorInfo}");
+                    error_log("Order modification email failed: {$mail->ErrorInfo}");
                 }
             }
 
             // Redirect after success
-            header("Location: store_checkout.php?order_id=" . $order_id . "&payment=success");
+            header("Location: modify_order.php?order_id=" . $order_id . "&payment=success");
             exit();
         } else {
             die("Error updating order status and total: " . $connect->error);
@@ -185,6 +197,6 @@ if (isset($_GET['payment']) && $_GET['payment'] == 'success' && isset($_GET['ord
     }
 } else {
     // Invalid access to this page
-    header("Location: store_checkout.php?order_id=" . $order_id . "&payment=cancel");
+    header("Location: modify_order.php?order_id=" . $order_id . "&payment=cancel");
     exit();
 }
