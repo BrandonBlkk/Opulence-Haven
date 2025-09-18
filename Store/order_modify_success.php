@@ -53,6 +53,17 @@ if (isset($_GET['payment']) && $_GET['payment'] == 'success' && isset($_GET['ord
         $tax = $subtotal * 0.10;
         $total_price = $subtotal + $tax + $deliveryFee;
 
+        // Fetch AdditionalAmount from DB
+        $add_query = $connect->prepare("SELECT AdditionalAmount FROM ordertb WHERE OrderID = ?");
+        $add_query->bind_param("s", $order_id);
+        $add_query->execute();
+        $add_result = $add_query->get_result();
+        $additionalAmount = 0.00;
+        if ($add_row = $add_result->fetch_assoc()) {
+            $additionalAmount = (float)$add_row['AdditionalAmount'];
+        }
+        $add_query->close();
+
         // Update order status, total price, and tax
         $update_status = $connect->prepare("UPDATE ordertb SET Status = 'Processing', TotalPrice = ?, OrderTax = ? WHERE OrderID = ?");
         $update_status->bind_param("dds", $total_price, $tax, $order_id);
@@ -153,6 +164,7 @@ if (isset($_GET['payment']) && $_GET['payment'] == 'success' && isset($_GET['ord
                                 <strong>Subtotal:</strong> $" . number_format($subtotal, 2) . "<br>
                                 <strong>Tax (10%):</strong> $" . number_format($tax, 2) . "<br>
                                 <strong>Delivery Fee:</strong> $" . number_format($deliveryFee, 2) . "<br>
+                                <strong>Additional Fee:</strong> $" . number_format($additionalAmount, 2) . "<br>
                                 <strong>Total:</strong> $" . number_format($total_price, 2) . "
                             </p>
                             <p>Your modified order is now being processed. We will notify you once it ships.</p>
@@ -165,7 +177,7 @@ if (isset($_GET['payment']) && $_GET['payment'] == 'success' && isset($_GET['ord
                     </html>
                     ";
 
-                    $mail->AltBody = "Hello {$username},\n\nYour order #{$order_id} has been successfully modified.\n\nOrder Details:\n\n" . strip_tags($items_html) . "\n\nSubtotal: $" . number_format($subtotal, 2) . "\nTax: $" . number_format($tax, 2) . "\nDelivery Fee: $" . number_format($deliveryFee, 2) . "\nTotal: $" . number_format($total_price, 2) . "\n\nYour modified order is now being processed. Thank you for shopping with us!";
+                    $mail->AltBody = "Hello {$username},\n\nYour order #{$order_id} has been successfully modified.\n\nOrder Details:\n\n" . strip_tags($items_html) . "\n\nSubtotal: $" . number_format($subtotal, 2) . "\nTax: $" . number_format($tax, 2) . "\nDelivery Fee: $" . number_format($deliveryFee, 2) . "\nAdditional Fee: $" . number_format($additionalAmount, 2) . "\nTotal: $" . number_format($total_price, 2) . "\n\nYour modified order is now being processed. Thank you for shopping with us!";
 
                     $mail->send();
                 } catch (Exception $e) {
