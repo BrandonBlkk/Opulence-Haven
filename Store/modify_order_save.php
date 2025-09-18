@@ -99,17 +99,19 @@ try {
     mysqli_stmt_close($stmt3);
 
     $itemsTotal = (float)($sumRow['items_total'] ?? 0);
-    $orderTax = (float)$order['OrderTax']; // keep existing tax
-    $deliveryFee = 5.00; // Fixed delivery fee
+    $taxRate = 0.10; // 10% tax
+    $newTax = $itemsTotal * $taxRate;
+    $deliveryFee = 5.00;
 
-    $newGrandTotal = $itemsTotal + $orderTax + $deliveryFee;
-
+    $newGrandTotal = $itemsTotal + $newTax + $deliveryFee;
     $previousTotal = (float)($order['TotalPrice'] ?? 0);
-    $additionalAmount = max(0, $newGrandTotal - $previousTotal);
 
-    $qTotals = "UPDATE ordertb SET TotalPrice=?, AdditionalAmount=? WHERE OrderID=?";
+    // AdditionalAmount should only reflect extra due, not reductions
+    $additionalAmount = ($newGrandTotal > $previousTotal) ? ($newGrandTotal - $previousTotal) : 0;
+
+    $qTotals = "UPDATE ordertb SET TotalPrice=?, OrderTax=?, AdditionalAmount=? WHERE OrderID=?";
     $stmt4 = mysqli_prepare($connect, $qTotals);
-    mysqli_stmt_bind_param($stmt4, 'dds', $newGrandTotal, $additionalAmount, $orderId);
+    mysqli_stmt_bind_param($stmt4, 'ddds', $newGrandTotal, $newTax, $additionalAmount, $orderId);
     if (!mysqli_stmt_execute($stmt4)) throw new Exception('Failed to update totals');
     mysqli_stmt_close($stmt4);
 

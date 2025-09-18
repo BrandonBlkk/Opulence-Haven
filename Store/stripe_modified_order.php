@@ -52,7 +52,7 @@ $line_items = [[
 try {
     $checkout_session = \Stripe\Checkout\Session::create([
         "mode" => "payment",
-        "success_url" => "http://localhost/OpulenceHaven/Store/payment_success.php?payment=success&order_id=" . $orderID,
+        "success_url" => "http://localhost/OpulenceHaven/Store/order_modify_success.php?payment=success&order_id=" . $orderID,
         "cancel_url" => "http://localhost/OpulenceHaven/Store/modify_order.php?order_id=" . $orderID . "&payment=cancel",
         "locale" => "auto",
         "customer_email" => $_SESSION['UserEmail'] ?? null,

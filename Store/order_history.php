@@ -139,6 +139,10 @@ if (isset($_POST['cancel_order'])) {
                                         <span class="font-light text-gray-600">Tax:</span>
                                         <span class="text-gray-700">$<?php echo number_format($order['OrderTax'], 2); ?></span>
                                     </div>
+                                    <div class="flex justify-between py-2 text-sm">
+                                        <span class="font-light text-gray-600">Delivery:</span>
+                                        <span class="text-gray-700">$5.00</span>
+                                    </div>
                                     <div class="flex justify-between py-3 border-t border-gray-200 mt-2 text-base">
                                         <span class="font-light text-gray-700">Grand Total:</span>
                                         <span class="font-light text-gray-700">$<?php echo number_format($order['TotalPrice'], 2); ?></span>

@@ -27,23 +27,24 @@ if (isset($_GET['payment'], $_GET['order_id']) && $_GET['payment'] === 'cancel')
     if ($originalOrder) {
         mysqli_begin_transaction($connect);
 
-        // Restore order totals and shipping info
+        // Restore order totals, shipping info, and original OrderTax
         $qRestoreOrder = "
             UPDATE ordertb
-            SET FullName=?, PhoneNumber=?, ShippingAddress=?, City=?, State=?, ZipCode=?, TotalPrice=?, AdditionalAmount=0
+            SET FullName=?, PhoneNumber=?, ShippingAddress=?, City=?, State=?, ZipCode=?, TotalPrice=?, AdditionalAmount=0, OrderTax=?
             WHERE OrderID=? AND UserID=?
         ";
         $stmtR = mysqli_prepare($connect, $qRestoreOrder);
         mysqli_stmt_bind_param(
             $stmtR,
-            'ssssssdss',
+            'ssssssdsss',
             $originalOrder['FullName'],
             $originalOrder['PhoneNumber'],
             $originalOrder['ShippingAddress'],
             $originalOrder['City'],
             $originalOrder['State'],
             $originalOrder['ZipCode'],
-            $originalOrder['TotalPrice'],
+            $originalOrder['TotalPrice'],     // Restore original TotalPrice
+            $originalOrder['OrderTax'],       // Restore original OrderTax
             $cancelOrderId,
             $userId
         );
@@ -155,9 +156,18 @@ $csrf = $_SESSION['csrf_token'];
         <h1 class="text-2xl sm:text-4xl text-center text-blue-900 tracking-wide">Modify Order</h1>
 
         <?php if ($cancelAlert): ?>
-            <div class="p-4 mt-10 rounded border-l-4 border-red-400 bg-red-50 text-red-500">
+            <div id="cancelAlert" class="p-4 mt-10 rounded border-l-4 border-red-400 bg-red-50 text-red-500">
                 <i class="fas fa-exclamation-circle mr-2"></i> <?= htmlspecialchars($cancelAlert) ?>
             </div>
+
+            <script>
+                setTimeout(() => {
+                    const alertBox = document.getElementById('cancelAlert');
+                    if (alertBox) {
+                        alertBox.style.display = 'none';
+                    }
+                }, 3000);
+            </script>
         <?php endif; ?>
 
         <?php if (!$canModify): ?>
