@@ -42,6 +42,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
             while ($row = $result->fetch_assoc()) {
                 if (!$orderData) {
                     $orderData = [
+                        'OrderID' => $row['OrderID'],
                         'FullName' => $row['FullName'] ?? null,
                         'UserName' => $row['UserName'] ?? null,
                         'ProfileBgColor' => $row['ProfileBgColor'] ?? null,
@@ -75,6 +76,18 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
             $response['order'] = $orderData;
         }
 
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit;
+    }
+
+    // Ship Order (AJAX request)
+    if ($action === 'shipOrder') {
+        $orderId = mysqli_real_escape_string($connect, $id);
+        $updateQuery = "UPDATE ordertb SET Status='Shipped' WHERE OrderID='$orderId'";
+        if (mysqli_query($connect, $updateQuery)) {
+            $response['success'] = true;
+        }
         header('Content-Type: application/json');
         echo json_encode($response);
         exit;
@@ -231,6 +244,13 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mt-6 flex justify-end gap-3">
+                    <button id="shipOrderButton" type="button" class="px-4 py-2 bg-amber-500 text-white hover:bg-amber-600 rounded-sm transition-colors duration-200 select-none">
+                        Ship Order
+                    </button>
                 </div>
             </div>
         </div>

@@ -4690,19 +4690,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const orderModal = document.getElementById('orderModal');
     const closeOrderDetailButton = document.getElementById('closeOrderDetailButton');
     const darkOverlay2 = document.getElementById('darkOverlay2');
+    const shipOrderButton = document.getElementById('shipOrderButton');
+
+    let currentOrderId = null;
 
     function formatDate(dateString) {
-        const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+        const options = {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        };
         return new Date(dateString).toLocaleDateString('en-US', options);
     }
 
-    let orderSwiper = null; // Keep Swiper instance to destroy on new order
+    let orderSwiper = null;
 
     function initializeOrderProductSwiper(products) {
         const swiperWrapper = document.querySelector('#orderProductContainer .swiper-wrapper');
         swiperWrapper.innerHTML = '';
 
-        // Destroy previous swiper if exists
         if (orderSwiper) {
             orderSwiper.destroy(true, true);
             orderSwiper = null;
@@ -4716,34 +4724,41 @@ document.addEventListener("DOMContentLoaded", () => {
             const slide = document.createElement('div');
             slide.className = 'swiper-slide';
             slide.innerHTML = `
-                <div class="flex flex-col md:flex-row gap-4 py-2 px-3">
-                    <div class="md:w-1/3 select-none">
-                        <div class="relative h-48 md:h-40">
-                            <img src="../Admin/${product.ImageAdminPath}" 
-                                 alt="${product.Title}" 
-                                 class="w-full h-full object-cover rounded-lg">
-                        </div>
-                    </div>
-                    <div class="md:w-2/3">
-                        <h5 class="font-bold text-lg text-gray-800">${product.Title}</h5>
-                        <p class="text-sm text-gray-600 mt-1">${product.Description}</p>
-                        <div class="mt-2 text-xs text-gray-500">
-                            Quantity: <span class="font-medium">${product.OrderUnitQuantity}</span><br>
-                            Price: <span class="font-medium">$${realPrice.toFixed(2)}</span>
-                        </div>
+            <div class="flex flex-col md:flex-row gap-4 py-2 px-3">
+                <div class="md:w-1/3 select-none">
+                    <div class="relative h-48 md:h-40">
+                        <img src="../Admin/${product.ImageAdminPath}" 
+                                alt="${product.Title}" 
+                                class="w-full h-full object-cover rounded-lg">
                     </div>
                 </div>
-            `;
+                <div class="md:w-2/3">
+                    <h5 class="font-bold text-lg text-gray-800">${product.Title}</h5>
+                    <p class="text-sm text-gray-600 mt-1">${product.Description}</p>
+                    <div class="mt-2 text-xs text-gray-500">
+                        Quantity: <span class="font-medium">${product.OrderUnitQuantity}</span><br>
+                        Price: <span class="font-medium">$${realPrice.toFixed(2)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
             swiperWrapper.appendChild(slide);
         });
 
-        // Initialize new swiper
         orderSwiper = new Swiper('.orderProductSwiper', {
             slidesPerView: 1,
             spaceBetween: 20,
             centeredSlides: true,
-            pagination: { el: '.swiper-pagination', clickable: true },
-            breakpoints: { 768: { slidesPerView: 1, spaceBetween: 30 } }
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true
+            },
+            breakpoints: {
+                768: {
+                    slidesPerView: 1,
+                    spaceBetween: 30
+                }
+            }
         });
     }
 
@@ -4752,25 +4767,23 @@ document.addEventListener("DOMContentLoaded", () => {
         if (detailsBtn) {
             detailsBtn.addEventListener('click', function() {
                 const orderId = this.getAttribute('data-order-id');
+                currentOrderId = orderId;
 
-                // Show modal
                 if (darkOverlay2) {
                     darkOverlay2.classList.remove('opacity-0', 'invisible');
                     darkOverlay2.classList.add('opacity-100');
                 }
                 orderModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
 
-                // Fetch order details
                 fetch(`../Admin/order.php?action=getOrderDetails&id=${orderId}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success && data.order) {
                             const order = data.order;
 
-                            // User Info
                             document.getElementById('userFullName').textContent = order.FullName ?? "N/A";
                             document.getElementById('userName').textContent = order.UserName ? order.UserName.charAt(0).toUpperCase() : "N/A";
-                            document.getElementById('profilePreview').style.backgroundColor = order.ProfileBgColor ?? "#999"; 
+                            document.getElementById('profilePreview').style.backgroundColor = order.ProfileBgColor ?? "#999";
                             document.getElementById('userEmail').textContent = order.UserEmail ?? "N/A";
                             document.getElementById('userPhone').textContent = order.UserPhone ?? "N/A";
                             document.getElementById('userAddress').textContent = order.ShippingAddress ?? "N/A";
@@ -4779,12 +4792,10 @@ document.addEventListener("DOMContentLoaded", () => {
                             document.getElementById('userZip').textContent = order.ZipCode ?? "N/A";
                             document.getElementById('orderDate').textContent = formatDate(order.OrderDate);
 
-                            // Pricing
                             document.getElementById('orderSubtotal').textContent = `$ ${parseFloat(order.Subtotal ?? 0).toFixed(2)}`;
                             document.getElementById('orderTaxesFees').textContent = `$ ${parseFloat(order.OrderTax ?? 0).toFixed(2)}`;
                             document.getElementById('orderTotal').textContent = `$ ${parseFloat(order.TotalPrice ?? 0).toFixed(2)}`;
 
-                            // Products
                             const products = Array.isArray(order.Products) ? order.Products : [];
                             initializeOrderProductSwiper(products);
                         } else {
@@ -4804,7 +4815,55 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Load Swiper library if missing
+    const loader = document.getElementById('loader');   
+
+    // Ship Order handler 
+    shipOrderButton.addEventListener('click', () => {
+        if (!currentOrderId) return;
+
+        // Show loader at the start
+        if (loader) loader.style.display = 'flex';
+
+        fetch(`../Admin/order.php?action=shipOrder&id=${currentOrderId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    orderModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                    if (darkOverlay2) {
+                        darkOverlay2.classList.remove('opacity-100');
+                        darkOverlay2.classList.add('opacity-0', 'invisible');
+                    }
+
+                    // Send Email
+                    const sendEmail = async () => {
+                        try {
+                            const response = await fetch(`../Mail/send_order_shipped_email.php?id=${currentOrderId}`);
+                            const data = await response.json();
+                            if (data.success) {
+                                showAlert("Order has been marked as Shipped and email has been sent.");
+                            } else {
+                                showAlert("Failed to update order status.", true);
+                            }
+                        } catch (error) {
+                            showAlert("Failed to update order status.", true);
+                        } finally {
+                            // Hide loader after email is sent
+                            if (loader) loader.style.display = 'none';
+                        }
+                    };
+                    sendEmail();
+                } else {
+                    showAlert("Failed to update order status.", true);
+                    if (loader) loader.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Ship error:', error);
+                if (loader) loader.style.display = 'none';
+            });
+    });
+
+    // Load Swiper if missing
     if (!document.querySelector('link[href*="swiper-bundle.min.css"]')) {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
