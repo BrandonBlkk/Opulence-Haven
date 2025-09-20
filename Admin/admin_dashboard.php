@@ -392,7 +392,7 @@ $availablePercentage = ($allAvailableRooms / $totalRooms) * 100;
                 ordertb
             WHERE 
                 OrderDate BETWEEN ? AND ?
-                AND Status = 'Confirmed'
+                AND Status != 'Pending'
             GROUP BY 
                 DATE(OrderDate)
             ORDER BY 
@@ -874,7 +874,7 @@ $availablePercentage = ($allAvailableRooms / $totalRooms) * 100;
                         {
                             global $connect;
                             $query = "SELECT SUM(TotalPrice) as total FROM ordertb 
-                  WHERE Status = 'Confirmed' 
+                  WHERE Status != 'Pending' 
                   AND YEAR(OrderDate) = $year 
                   AND MONTH(OrderDate) = $month";
                             $result = $connect->query($query);
