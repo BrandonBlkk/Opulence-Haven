@@ -5033,6 +5033,197 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeExistingRows();
 });
 
+// User Details Modal
+document.addEventListener("DOMContentLoaded", () => {
+    const userDetailsModal = document.getElementById("userDetailsModal");
+    const closeUserDetailButton = document.getElementById("closeUserDetailButton");
+    const closeUserDetailFooterBtn = document.getElementById("closeUserDetailFooterBtn");
+    const darkOverlay2 = document.getElementById("darkOverlay2");
+
+    // Delete modal elements
+    const userConfirmDeleteModal = document.getElementById("userConfirmDeleteModal");
+    const profileDeleteBtn = document.getElementById("profileDeleteBtn");
+    const userCancelDeleteBtn = document.getElementById("userCancelDeleteBtn");
+    const deleteUserID = document.getElementById("deleteUserID");
+    const userDeleteName = document.getElementById("userDeleteName");
+
+    let currentUserId = null;
+    let currentUserName = null;
+
+    // Only run if modal exists on the page
+    if (!userDetailsModal) return;
+
+    // Populate modal with data
+    function populateUserDetails(user) {
+        const setText = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value || "N/A";
+        };
+
+        setText("userName", user.UserName ? user.UserName.charAt(0).toUpperCase() : "?");
+        setText("userDetailsName", user.UserName);
+        setText("userDetailsEmail", user.UserEmail);
+        setText("userDetailsPhone", user.UserPhone);
+        setText("userDetailsID", user.UserID);
+        setText("userDetailsStatus", user.Status);
+        setText("userDetailsSignup", user.SignupDate);
+        setText("userDetailsLastSignIn", user.LastSignIn);
+        setText("userDetailsMembership", user.Membership == 1 ? "VIP Email" : "Standard Email");
+        setText("userDetailsPoints", user.PointsBalance ?? 0);
+
+        // Profile background color
+        const profileBg = document.getElementById("userProfileBg");
+        if (profileBg) profileBg.style.backgroundColor = user.ProfileBgColor || "#ccc";
+
+        // Extra fields if exist
+        setText("userDetailsAddress", user.Address);
+        setText("userDetailsRole", user.Role);
+        setText("userDetailsNotes", user.Notes);
+
+        // Store user ID + Name for deletion modal
+        currentUserId = user.UserID;
+        currentUserName = user.UserName;
+    }
+
+    // Open modal
+    function openUserModal() {
+        userDetailsModal.classList.remove("opacity-0", "invisible", "-translate-y-5");
+        userDetailsModal.classList.add("opacity-100");
+        if (darkOverlay2) {
+            darkOverlay2.classList.remove("opacity-0", "invisible");
+            darkOverlay2.classList.add("opacity-100");
+        }
+    }
+
+    // Close modal
+    function closeUserModal() {
+        userDetailsModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+        userDetailsModal.classList.remove("opacity-100");
+        if (darkOverlay2) {
+            darkOverlay2.classList.add("opacity-0", "invisible");
+            darkOverlay2.classList.remove("opacity-100");
+        }
+    }
+
+    // Open Delete Confirmation Modal
+    function openDeleteModal() {
+        if (!userConfirmDeleteModal) return;
+        userConfirmDeleteModal.classList.remove("opacity-0", "invisible", "-translate-y-5");
+        userConfirmDeleteModal.classList.add("opacity-100");
+
+        if (userDeleteName) userDeleteName.textContent = currentUserName || "Unknown";
+        if (deleteUserID) deleteUserID.value = currentUserId || "";
+
+        if (darkOverlay2) {
+            darkOverlay2.classList.remove("opacity-0", "invisible");
+            darkOverlay2.classList.add("opacity-100");
+        }
+    }
+
+    // Close Delete Confirmation Modal
+    function closeDeleteModal() {
+        if (!userConfirmDeleteModal) return;
+        userConfirmDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+        userConfirmDeleteModal.classList.remove("opacity-100");
+
+        userDetailsModal.classList.remove("opacity-0", "invisible", "-translate-y-5");
+        userDetailsModal.classList.add("opacity-100");
+
+        darkOverlay2.classList.remove("opacity-0", "invisible");
+        darkOverlay2.classList.add("opacity-100");
+    }
+
+    // Attach event listeners to all details buttons
+    document.querySelectorAll(".details-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            const userId = btn.getAttribute("data-user-id");
+            if (!userId) return;
+
+            try {
+                const response = await fetch(`?action=getUserDetails&id=${encodeURIComponent(userId)}`);
+                const data = await response.json();
+
+                if (data.success && data.user) {
+                    populateUserDetails(data.user);
+                    openUserModal();
+                } else {
+                    showAlert("User details not found.", true);
+                }
+            } catch (err) {
+                console.error("Error fetching user details:", err);
+            }
+        });
+    });
+
+    const confirmInput = document.getElementById("deleteUserConfirmInput");
+    const deleteBtn = document.getElementById("confirmUserDeleteBtn");
+
+    if (confirmInput && deleteBtn) {
+        confirmInput.addEventListener("input", () => {
+            deleteBtn.disabled = confirmInput.value.toUpperCase() !== "DELETE";
+        });
+    }
+
+    // Delete User
+    if (deleteBtn && deleteUserID) {
+        deleteBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            const userId = deleteUserID.value;
+            if (!userId) return;
+
+            const handleUserDelete = async () => {
+                try {
+                    const response = await fetch("../Admin/user_details.php", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        body: new URLSearchParams({
+                            deleteuser: "1",
+                            userid: userId
+                        })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        closeDeleteModal();
+                        closeUserModal();
+                        showAlert("User deleted successfully!");
+                    } else {
+                        showAlert(data.message || "Failed to delete user.", true);
+                    }
+                } catch (error) {
+                    console.error("AJAX delete error:", error);
+                }
+            }
+
+            handleUserDelete();
+        });
+    }
+
+    // Cancel button
+    const cancelBtn = document.getElementById("userCancelDeleteBtn");
+    const modal = document.getElementById("userConfirmDeleteModal");
+    if (cancelBtn && modal) {
+        cancelBtn.addEventListener("click", () => {
+            modal.classList.add("opacity-0", "invisible");
+            modal.classList.remove("opacity-100");
+        });
+    }
+
+    // Close modal on button clicks
+    if (closeUserDetailButton) closeUserDetailButton.addEventListener("click", closeUserModal);
+    if (closeUserDetailFooterBtn) closeUserDetailFooterBtn.addEventListener("click", closeUserModal);
+
+    // Delete button (inside user details modal) -> open confirm modal
+    if (profileDeleteBtn) profileDeleteBtn.addEventListener("click", () => {
+        closeUserModal(); // close user details first
+        openDeleteModal(); // open delete confirmation
+    });
+
+    // Cancel delete
+    if (userCancelDeleteBtn) userCancelDeleteBtn.addEventListener("click", closeDeleteModal);
+});
+
 // Full form validation function
 const validateProductTypeForm = () => {
     const isTypeValid = validateProductType();
