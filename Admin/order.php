@@ -39,6 +39,16 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         if ($result && $result->num_rows > 0) {
             $orderData = null;
 
+            // --- Calculate subtotal for the exact order ---
+            $subtotalQuery = "
+                SELECT SUM(OrderUnitPrice) AS Subtotal 
+                FROM orderdetailtb 
+                WHERE OrderID = '$id'
+            ";
+            $subtotalResult = $connect->query($subtotalQuery);
+            $subtotalRow = $subtotalResult ? $subtotalResult->fetch_assoc() : null;
+            $exactSubtotal = $subtotalRow ? (float)$subtotalRow['Subtotal'] : 0.00;
+
             while ($row = $result->fetch_assoc()) {
                 if (!$orderData) {
                     $orderData = [
@@ -53,7 +63,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
                         'State' => $row['State'] ?? null,
                         'ZipCode' => $row['ZipCode'] ?? null,
                         'OrderDate' => $row['OrderDate'] ?? null,
-                        'Subtotal' => $row['Subtotal'] ?? 0,
+                        'Subtotal' => $exactSubtotal, // ✅ exact subtotal from orderdetailtb
                         'OrderTax' => $row['OrderTax'] ?? 0,
                         'TotalPrice' => $row['TotalPrice'] ?? 0,
                         'Products' => []

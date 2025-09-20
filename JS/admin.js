@@ -4793,7 +4793,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             document.getElementById('orderDate').textContent = formatDate(order.OrderDate);
 
                             document.getElementById('orderSubtotal').textContent = `$ ${parseFloat(order.Subtotal ?? 0).toFixed(2)}`;
-                            document.getElementById('orderTaxesFees').textContent = `$ ${parseFloat(order.OrderTax ?? 0).toFixed(2)}`;
+                            document.getElementById('orderTaxesFees').textContent = `$ ${((parseFloat(order.OrderTax) || 0) + 5).toFixed(2)}`;
                             document.getElementById('orderTotal').textContent = `$ ${parseFloat(order.TotalPrice ?? 0).toFixed(2)}`;
 
                             const products = Array.isArray(order.Products) ? order.Products : [];
