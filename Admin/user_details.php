@@ -48,15 +48,31 @@ if (isset($_GET['action']) && $_GET['action'] === 'getUserDetails' && isset($_GE
     exit;
 }
 
-// Delete Admin
+// Delete User
 if (isset($_POST['deleteuser']) && !empty($_POST['userid'])) {
     $userId = mysqli_real_escape_string($connect, $_POST['userid']);
 
+    // Fetch user details
+    $fetchQuery = $connect->prepare("SELECT UserEmail, UserName FROM usertb WHERE UserID = ?");
+    $fetchQuery->bind_param("s", $userId);
+    $fetchQuery->execute();
+    $userResult = $fetchQuery->get_result();
+
+    $userData = null;
+    if ($userResult && $userResult->num_rows > 0) {
+        $userData = $userResult->fetch_assoc();
+    }
+
+    // Delete user
     $deleteQuery = $connect->prepare("DELETE FROM usertb WHERE UserID = ?");
     $deleteQuery->bind_param("s", $userId);
 
     if ($deleteQuery->execute()) {
-        echo json_encode(['success' => true]);
+        echo json_encode([
+            'success' => true,
+            'userEmail' => $userData['UserEmail'] ?? null,
+            'userName'  => $userData['UserName'] ?? null
+        ]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Failed to delete user. Please try again.']);
     }

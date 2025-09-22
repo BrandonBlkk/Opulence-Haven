@@ -5171,6 +5171,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const userId = deleteUserID.value;
             if (!userId) return;
 
+            // Show loader at the start
+            if (loader) loader.style.display = 'flex'
+
             const handleUserDelete = async () => {
                 try {
                     const response = await fetch("../Admin/user_details.php", {
@@ -5184,10 +5187,42 @@ document.addEventListener("DOMContentLoaded", () => {
                         })
                     });
                     const data = await response.json();
+                    
                     if (data.success) {
-                        closeDeleteModal();
-                        closeUserModal();
-                        showAlert("User deleted successfully!");
+                        const sendUserDeleteEmail = async () => {
+                            try {
+                                const emailResponse = await fetch(`../Mail/send_user_delete_email.php?email=${encodeURIComponent(data.userEmail)}&name=${encodeURIComponent(data.userName)}`);
+
+                                if (!emailResponse.ok) throw new Error("Network response was not ok");
+
+                                const emailData = await emailResponse.json();
+
+                                // Remove user from table
+                                const userRow = document.querySelector(`.details-btn[data-user-id="${userId}"]`)?.closest("tr");
+                                if (userRow) {
+                                    userRow.remove();
+                                }
+
+                                if (emailData.success) {
+                                    closeDeleteModal();
+                                    closeUserModal();
+                                    showAlert("User deleted successfully!");
+                                } else {
+                                    closeDeleteModal();
+                                    closeUserModal();
+                                    showAlert("User deleted successfully but failed to send delete email. Please contact support.", true);
+                                }
+                            } catch (error) {
+                                closeDeleteModal();
+                                closeUserModal();
+                                showAlert("User deleted successfully but failed to send delete email. Please contact support.", true);
+                            } finally {
+                                // Hide loader when request completes 
+                                if (loader) loader.style.display = 'none';
+                            }
+                        };
+
+                        sendUserDeleteEmail();
                     } else {
                         showAlert(data.message || "Failed to delete user.", true);
                     }
