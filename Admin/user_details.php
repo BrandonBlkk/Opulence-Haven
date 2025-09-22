@@ -7,6 +7,77 @@ require_once('../includes/auth_check.php');
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
+
+$alertMessage = '';
+
+// Get User Details
+if (isset($_GET['action']) && $_GET['action'] === 'getUserDetails' && isset($_GET['id'])) {
+    $id = mysqli_real_escape_string($connect, $_GET['id']);
+    $response = ['success' => false];
+
+    $query = "
+        SELECT UserID, UserName, UserEmail, UserPhone, SignupDate, LastSignIn, 
+               Status, Profile, ProfileBgColor, Membership, PointsBalance
+        FROM usertb
+        WHERE UserID = '$id'
+        LIMIT 1
+    ";
+    $result = $connect->query($query);
+
+    if ($result && $result->num_rows > 0) {
+        $user = $result->fetch_assoc();
+
+        $response['success'] = true;
+        $response['user'] = [
+            'UserID'        => $user['UserID'],
+            'UserName'      => $user['UserName'],
+            'UserEmail'     => $user['UserEmail'],
+            'UserPhone'     => $user['UserPhone'],
+            'SignupDate'    => $user['SignupDate'],
+            'LastSignIn'    => $user['LastSignIn'],
+            'Status'        => $user['Status'],
+            'Profile'       => $user['Profile'],
+            'ProfileBgColor' => $user['ProfileBgColor'],
+            'Membership'    => $user['Membership'],
+            'PointsBalance' => $user['PointsBalance']
+        ];
+    }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit;
+}
+
+// Delete User
+if (isset($_POST['deleteuser']) && !empty($_POST['userid'])) {
+    $userId = mysqli_real_escape_string($connect, $_POST['userid']);
+
+    // Fetch user details
+    $fetchQuery = $connect->prepare("SELECT UserEmail, UserName FROM usertb WHERE UserID = ?");
+    $fetchQuery->bind_param("s", $userId);
+    $fetchQuery->execute();
+    $userResult = $fetchQuery->get_result();
+
+    $userData = null;
+    if ($userResult && $userResult->num_rows > 0) {
+        $userData = $userResult->fetch_assoc();
+    }
+
+    // Delete user
+    $deleteQuery = $connect->prepare("DELETE FROM usertb WHERE UserID = ?");
+    $deleteQuery->bind_param("s", $userId);
+
+    if ($deleteQuery->execute()) {
+        echo json_encode([
+            'success' => true,
+            'userEmail' => $userData['UserEmail'] ?? null,
+            'userName'  => $userData['UserName'] ?? null
+        ]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to delete user. Please try again.']);
+    }
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -80,97 +151,147 @@ if (!$connect) {
             </div>
         </div>
 
-        <!-- Admin Delete Modal -->
-        <div id="adminConfirmDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
-            <form class="bg-white max-w-lg p-6 rounded-md shadow-md text-center" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="adminDeleteForm">
-                <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Admin Deletion</h2>
-                <p class="text-slate-600 mb-2">You are about to delete the following Admin:</p>
-                <div class="flex justify-center items-center gap-2 mb-2">
-                    <div class="relative">
-                        <div class="w-16 h-16 rounded-full select-none">
-                            <img id="adminDeleteProfile" src="" alt="Admin Profile" class="w-full h-full object-cover rounded-full mx-auto">
+        <!-- User Details Modal -->
+        <div id="userDetailsModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-x-5 transition-all duration-300">
+            <div class="bg-white rounded-xl max-w-lg w-full p-6 animate-fade-in max-h-[90vh] overflow-y-auto overflow-x-hidden shadow-md">
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-gray-800">User Details</h3>
+                    <button id="closeUserDetailButton" class="text-gray-400 hover:text-gray-500">
+                        <i class="ri-close-line text-xl"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-3">
+                    <!-- User Information -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-800 mb-3">User Information</h4>
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-3">
+                                <div class="py-3 text-start flex items-center gap-2 text-gray-600 text-sm">
+                                    <div id="userProfileBg" class="w-10 h-10 object-cover rounded-full text-white select-none">
+                                        <p class="w-full h-full flex items-center justify-center font-semibold" id="userName"></p>
+                                    </div>
+                                    <div class="text-left text-gray-600 text-sm">
+                                        <p id="userDetailsName" class="font-bold text-base"></p>
+                                        <p id="userDetailsEmail"></p>
+                                        <p id="userDetailsPhone"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mt-3">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">User ID:</span>
+                                    <span class="font-medium text-gray-600" id="userDetailsID"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Status:</span>
+                                    <span class="font-medium text-gray-600" id="userDetailsStatus"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Signup Date:</span>
+                                    <span class="font-medium text-gray-600" id="userDetailsSignup"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Last Sign In:</span>
+                                    <span class="font-medium text-gray-600" id="userDetailsLastSignIn"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Membership:</span>
+                                    <span class="font-medium text-gray-600" id="userDetailsMembership"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Points Balance:</span>
+                                    <span class="font-medium text-gray-600" id="userDetailsPoints"></span>
+                                </div>
+                            </div>
                         </div>
-                        <i class="ri-alert-line bg-slate-200 bg-opacity-55 text-red-500 text-lg absolute -bottom-1 -right-1 rounded-full flex items-center justify-center w-6 h-6 p-1"></i>
-                    </div>
-                    <div class="text-left text-gray-600 text-sm">
-                        <p id="adminDeleteUsername" class="font-bold text-base"></p>
-                        <p id="adminDeleteEmail"></p>
-                        <p id="adminDeleteRole"></p>
                     </div>
                 </div>
+
+                <!-- Action Buttons -->
+                <div class="mt-6 flex justify-end gap-3">
+                    <button id="profileDeleteBtn" class="border-2 px-4 py-2 rounded-sm flex items-center justify-center gap-2 select-none">
+                        <i class="ri-delete-bin-line text-xl text-red-500"></i>
+                        <p class="font-semibold text-gray-600">Delete Account</p>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Delete Modal -->
+        <div id="userConfirmDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible transition-all duration-300">
+            <form
+                class="relative bg-white w-full max-w-md p-6 rounded-lg shadow-xl transform transition-all duration-300 text-center"
+                action="<?php echo $_SERVER["PHP_SELF"]; ?>"
+                method="post"
+                id="userDeleteForm">
+
+                <!-- Header Icon -->
+                <div class="flex items-center justify-center mb-4 relative">
+                    <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                        <i class="ri-alert-line text-red-600 text-2xl"></i>
+                    </div>
+                </div>
+
+                <!-- Title -->
+                <h2 class="text-xl font-semibold text-gray-800 mb-2">Delete User</h2>
+                <p class="text-gray-600 text-sm mb-4">You are about to delete the following user:</p>
+
+                <!-- User Profile Info -->
+                <div class="flex justify-center items-center gap-4 mb-4">
+                    <!-- Text version -->
+                    <div id="textUserProfileContainer" class="rounded-full w-16 h-16 bg-gray-300 flex items-center justify-center text-white text-xl font-semibold select-none" style="display: none;">
+                        <p id="userDeleteProfileText"></p>
+                        <i class="ri-alert-line bg-slate-200 bg-opacity-55 text-red-500 text-lg absolute -bottom-1 -right-1 rounded-full flex items-center justify-center w-6 h-6 p-1"></i>
+                    </div>
+                    <!-- Image version -->
+                    <div id="imageUserProfileContainer" class="relative w-16 h-16 rounded-full select-none" style="display: none;">
+                        <img id="userDeleteProfile" src="" alt="User Profile" class="w-full h-full object-cover rounded-full mx-auto">
+                        <i class="ri-alert-line bg-slate-200 bg-opacity-55 text-red-500 text-lg absolute -bottom-1 -right-1 rounded-full flex items-center justify-center w-6 h-6 p-1"></i>
+                    </div>
+                    <!-- User info -->
+                    <div class="text-left text-gray-600 text-sm">
+                        <p id="userDeleteUsername" class="font-bold text-base"></p>
+                        <p id="userDeleteEmail"></p>
+                        <p id="userDeleteRole"></p>
+                    </div>
+                </div>
+
+                <!-- Warning -->
                 <p class="text-sm text-gray-500 mb-4">
-                    Deleting this admin will permanently remove them from the system, including all associated data. This action cannot be undone.
+                    This action is permanent and cannot be undone. All related data will be removed.
                 </p>
-                <input type="hidden" name="adminid" id="deleteAdminID">
+
+                <!-- Hidden Input -->
+                <input type="hidden" name="userid" id="deleteUserID">
+
+                <!-- Confirm Input -->
                 <input
-                    id="deleteAdminConfirmInput"
+                    id="deleteUserConfirmInput"
                     type="text"
                     placeholder='Type "DELETE" here'
                     class="w-full p-2 mb-4 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-red-300" />
-                <div class="flex justify-end gap-4 select-none">
-                    <div id="adminCancelDeleteBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm">
+
+                <!-- Buttons -->
+                <div class="flex justify-end gap-3 select-none">
+                    <button type="button" id="userCancelDeleteBtn"
+                        class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm">
                         Cancel
-                    </div>
-                    <button
-                        type="submit"
-                        id="confirmAdminDeleteBtn"
-                        name="deleteadmin"
+                    </button>
+                    <button type="submit" id="confirmUserDeleteBtn" name="deleteuser"
                         class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 cursor-not-allowed rounded-sm" disabled>
                         Delete
                     </button>
                 </div>
             </form>
         </div>
-
-        <!-- Add Role Form -->
-        <div id="addRoleModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
-            <div class="bg-white w-full md:w-1/3 p-6 rounded-md shadow-md ">
-                <h2 class="text-xl font-bold mb-4">Add New Role</h2>
-                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="roleForm">
-                    <!-- Role Input -->
-                    <div class="relative w-full">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Role Information</label>
-                        <input
-                            id="roleInput"
-                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                            type="text"
-                            name="role"
-                            placeholder="Enter role">
-                        <small id="roleError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                    </div>
-
-                    <!-- Description Input -->
-                    <div class="relative">
-                        <textarea
-                            id="roleDescriptionInput"
-                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
-                            type="text"
-                            name="description"
-                            placeholder="Enter role description"></textarea>
-                        <small id="roleDescriptionError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
-                    </div>
-
-                    <div class="flex justify-end gap-4 select-none">
-                        <div id="addRoleCancelBtn" class="px-4 py-2 text-amber-500 font-semibold hover:text-amber-600">
-                            Cancel
-                        </div>
-                        <!-- Submit Button -->
-                        <button
-                            type="submit"
-                            name="addrole"
-                            class="bg-amber-500 text-white font-semibold px-4 py-2 rounded-sm select-none hover:bg-amber-600 transition-colors">
-                            Add Role
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
     </div>
 
     <!-- Loader -->
     <?php
-    // include('../includes/alert.php');
-    // include('../includes/loader.php');
+    include('../includes/alert.php');
+    include('../includes/loader.php');
     ?>
 
     <script src="//unpkg.com/alpinejs" defer></script>

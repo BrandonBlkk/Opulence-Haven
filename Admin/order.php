@@ -39,6 +39,16 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         if ($result && $result->num_rows > 0) {
             $orderData = null;
 
+            // --- Calculate subtotal for the exact order ---
+            $subtotalQuery = "
+                SELECT SUM(OrderUnitPrice) AS Subtotal 
+                FROM orderdetailtb 
+                WHERE OrderID = '$id'
+            ";
+            $subtotalResult = $connect->query($subtotalQuery);
+            $subtotalRow = $subtotalResult ? $subtotalResult->fetch_assoc() : null;
+            $exactSubtotal = $subtotalRow ? (float)$subtotalRow['Subtotal'] : 0.00;
+
             while ($row = $result->fetch_assoc()) {
                 if (!$orderData) {
                     $orderData = [
@@ -53,9 +63,10 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
                         'State' => $row['State'] ?? null,
                         'ZipCode' => $row['ZipCode'] ?? null,
                         'OrderDate' => $row['OrderDate'] ?? null,
-                        'Subtotal' => $row['Subtotal'] ?? 0,
+                        'Subtotal' => $exactSubtotal, // ✅ exact subtotal from orderdetailtb
                         'OrderTax' => $row['OrderTax'] ?? 0,
                         'TotalPrice' => $row['TotalPrice'] ?? 0,
+                        'Status' => $row['Status'] ?? null, // ✅ Added Status
                         'Products' => []
                     ];
                 }
@@ -264,6 +275,39 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
 
     <script src="//unpkg.com/alpinejs" defer></script>
     <script type="module" src="../JS/admin.js"></script>
+
+    <script>
+        // ✅ Disable Ship Order button if Status is Shipped or Delivered
+        document.addEventListener("DOMContentLoaded", () => {
+            const shipOrderButton = document.getElementById('shipOrderButton');
+
+            // Intercept fetch response for getOrderDetails
+            const originalFetch = window.fetch;
+            window.fetch = async (...args) => {
+                const response = await originalFetch(...args);
+
+                if (args[0].includes("action=getOrderDetails")) {
+                    response.clone().json().then(data => {
+                        if (data.success && data.order) {
+                            const status = data.order.Status;
+                            if (status === "Shipped" || status === "Delivered") {
+                                shipOrderButton.disabled = true;
+                                shipOrderButton.textContent = "Already " + status;
+                                shipOrderButton.classList.add("bg-gray-300", "cursor-not-allowed");
+                                shipOrderButton.classList.remove("bg-amber-500", "hover:bg-amber-600");
+                            } else {
+                                shipOrderButton.disabled = false;
+                                shipOrderButton.textContent = "Ship Order";
+                                shipOrderButton.classList.remove("bg-gray-300", "cursor-not-allowed");
+                                shipOrderButton.classList.add("bg-amber-500", "hover:bg-amber-600");
+                            }
+                        }
+                    });
+                }
+                return response;
+            };
+        });
+    </script>
 </body>
 
 </html>

@@ -4,13 +4,25 @@ include(__DIR__ . '/../admin_pagination.php');
 
 // Construct the user query based on search
 if ($filterMembershipID !== 'random' && !empty($searchUserQuery)) {
-    $userSelect = "SELECT * FROM usertb WHERE Membership = '$filterMembershipID' AND (UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%') LIMIT $rowsPerPage OFFSET $userOffset";
+    $userSelect = "SELECT * FROM usertb 
+                   WHERE Membership = '$filterMembershipID' 
+                   AND (UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%') 
+                   ORDER BY SignupDate DESC 
+                   LIMIT $rowsPerPage OFFSET $userOffset";
 } elseif ($filterMembershipID !== 'random') {
-    $userSelect = "SELECT * FROM usertb WHERE Membership = '$filterMembershipID' LIMIT $rowsPerPage OFFSET $userOffset";
+    $userSelect = "SELECT * FROM usertb 
+                   WHERE Membership = '$filterMembershipID' 
+                   ORDER BY SignupDate DESC 
+                   LIMIT $rowsPerPage OFFSET $userOffset";
 } elseif (!empty($searchUserQuery)) {
-    $userSelect = "SELECT * FROM usertb WHERE UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%' LIMIT $rowsPerPage OFFSET $userOffset";
+    $userSelect = "SELECT * FROM usertb 
+                   WHERE UserName LIKE '%$searchUserQuery%' OR UserEmail LIKE '%$searchUserQuery%' 
+                   ORDER BY SignupDate DESC 
+                   LIMIT $rowsPerPage OFFSET $userOffset";
 } else {
-    $userSelect = "SELECT * FROM usertb LIMIT $rowsPerPage OFFSET $userOffset";
+    $userSelect = "SELECT * FROM usertb 
+                   ORDER BY SignupDate DESC 
+                   LIMIT $rowsPerPage OFFSET $userOffset";
 }
 
 $userSelectQuery = $connect->query($userSelect);
@@ -78,10 +90,6 @@ if (mysqli_num_rows($userSelectQuery) > 0) {
                     <td class="p-3 text-start space-x-1 select-none">
                         <i class="details-btn ri-eye-line text-lg cursor-pointer"
                             data-user-id="<?= htmlspecialchars($user['UserID']) ?>"></i>
-                        <button class=" text-red-500">
-                            <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                data-user-id="<?= htmlspecialchars($user['UserID']) ?>"></i>
-                        </button>
                     </td>
                 </tr>
             <?php endforeach; ?>
