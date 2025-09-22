@@ -5042,6 +5042,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Delete modal elements
     const userConfirmDeleteModal = document.getElementById("userConfirmDeleteModal");
+    const userDeleteForm = document.getElementById("userDeleteForm");
     const profileDeleteBtn = document.getElementById("profileDeleteBtn");
     const userCancelDeleteBtn = document.getElementById("userCancelDeleteBtn");
     const deleteUserID = document.getElementById("deleteUserID");
@@ -5103,6 +5104,7 @@ document.addEventListener("DOMContentLoaded", () => {
             darkOverlay2.classList.add("opacity-0", "invisible");
             darkOverlay2.classList.remove("opacity-100");
         }
+        userDeleteForm.reset();
     }
 
     // Open Delete Confirmation Modal
@@ -5168,11 +5170,30 @@ document.addEventListener("DOMContentLoaded", () => {
     if (deleteBtn && deleteUserID) {
         deleteBtn.addEventListener("click", (e) => {
             e.preventDefault();
+
             const userId = deleteUserID.value;
             if (!userId) return;
 
+            // Get reason inputs
+            const reasonSelect = document.getElementById("deleteReason");
+            const customReason = document.getElementById("customDeleteReason");
+
+            // Validation check
+            if (!reasonSelect.value) {
+                showAlert("Please select a reason for deleting this user.", true);
+                return;
+            }
+            if (reasonSelect.value === "Other" && !customReason.value.trim()) {
+                showAlert("Please provide a custom reason for deletion.", true);
+                return;
+            }
+
+            // Prepare reason (use custom if "Other" selected)
+            const finalReason =
+                reasonSelect.value === "Other" ? customReason.value.trim() : reasonSelect.value;
+
             // Show loader at the start
-            if (loader) loader.style.display = 'flex'
+            if (loader) loader.style.display = 'flex';
 
             const handleUserDelete = async () => {
                 try {
@@ -5183,7 +5204,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         },
                         body: new URLSearchParams({
                             deleteuser: "1",
-                            userid: userId
+                            userid: userId,
+                            reason: finalReason
                         })
                     });
                     const data = await response.json();
@@ -5191,7 +5213,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (data.success) {
                         const sendUserDeleteEmail = async () => {
                             try {
-                                const emailResponse = await fetch(`../Mail/send_user_delete_email.php?email=${encodeURIComponent(data.userEmail)}&name=${encodeURIComponent(data.userName)}`);
+                                const emailResponse = await fetch(`../Mail/send_user_delete_email.php?email=${encodeURIComponent(data.userEmail)}&name=${encodeURIComponent(data.userName)}&reason=${encodeURIComponent(finalReason)}`);
 
                                 if (!emailResponse.ok) throw new Error("Network response was not ok");
 

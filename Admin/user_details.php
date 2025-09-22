@@ -8,6 +8,9 @@ if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
+$admin = $_SESSION["AdminID"] ?? null;
+$role = $_SESSION["RoleID"] ?? null;
+
 $alertMessage = '';
 
 // Get User Details
@@ -211,10 +214,13 @@ if (isset($_POST['deleteuser']) && !empty($_POST['userid'])) {
 
                 <!-- Action Buttons -->
                 <div class="mt-6 flex justify-end gap-3">
-                    <button id="profileDeleteBtn" class="border-2 px-4 py-2 rounded-sm flex items-center justify-center gap-2 select-none">
-                        <i class="ri-delete-bin-line text-xl text-red-500"></i>
-                        <p class="font-semibold text-gray-600">Delete Account</p>
-                    </button>
+                    <?php if ($role == 1): ?>
+                        <button id="profileDeleteBtn"
+                            class="border-2 px-4 py-2 rounded-sm flex items-center justify-center gap-2 select-none">
+                            <i class="ri-delete-bin-line text-xl text-red-500"></i>
+                            <p class="font-semibold text-gray-600">Delete Account</p>
+                        </button>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -266,6 +272,21 @@ if (isset($_POST['deleteuser']) && !empty($_POST['userid'])) {
                 <!-- Hidden Input -->
                 <input type="hidden" name="userid" id="deleteUserID">
 
+                <!-- Reason for Deletion -->
+                <div class="mb-4 text-left">
+                    <label for="deleteReason" class="block text-sm font-medium text-gray-700 mb-1">Reason for Deletion</label>
+                    <select name="deleteReason" id="deleteReason" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-red-300">
+                        <option value="">Select a reason</option>
+                        <option value="Violation of Terms">Violation of Terms</option>
+                        <option value="Fake Account">Fake Account</option>
+                        <option value="Inactive Account">Inactive Account</option>
+                        <option value="Requested by User">Requested by User</option>
+                        <option value="Other">Other (Specify Below)</option>
+                    </select>
+                    <!-- Custom reason -->
+                    <textarea name="customDeleteReason" id="customDeleteReason" rows="2" placeholder="Enter custom reason" class="w-full mt-2 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-red-300 hidden"></textarea>
+                </div>
+
                 <!-- Confirm Input -->
                 <input
                     id="deleteUserConfirmInput"
@@ -286,6 +307,25 @@ if (isset($_POST['deleteuser']) && !empty($_POST['userid'])) {
                 </div>
             </form>
         </div>
+
+        <script>
+            // Show custom reason textarea when "Other" is selected
+            document.addEventListener("DOMContentLoaded", () => {
+                const reasonSelect = document.getElementById("deleteReason");
+                const customReason = document.getElementById("customDeleteReason");
+
+                if (reasonSelect && customReason) {
+                    reasonSelect.addEventListener("change", () => {
+                        if (reasonSelect.value === "Other") {
+                            customReason.classList.remove("hidden");
+                        } else {
+                            customReason.classList.add("hidden");
+                            customReason.value = "";
+                        }
+                    });
+                }
+            });
+        </script>
     </div>
 
     <!-- Loader -->
