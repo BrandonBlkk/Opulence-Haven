@@ -22,6 +22,54 @@ if (mysqli_num_rows($adminSelectQuery) > 0) {
         $admins[] = $row;
     }
 }
+
+// // Update admin role
+// if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['updateRole'], $_POST['updateAdminID'])) {
+//     $updateRole = intval($_POST['updateRole']);
+//     $updateAdminID = $connect->real_escape_string($_POST['updateAdminID']);
+
+//     // Make sure super admin can't change his own role
+//     if ($adminID != $updateAdminID) {
+//         $updateQuery = "UPDATE admintb SET RoleID = ? WHERE AdminID = ?";
+//         $stmt = $connect->prepare($updateQuery);
+//         $stmt->bind_param("is", $updateRole, $updateAdminID);
+
+//         if ($stmt->execute()) {
+//             echo "window.location.href=window.location.href;</script>";
+//         } else {
+//             echo "<script>alert('Error updating role');</script>";
+//         }
+//         $stmt->close();
+//     }
+// }
+
+$adminID = $_SESSION['AdminID'] ?? null;
+$role = $_SESSION['RoleID'] ?? null;
+
+// Handle role update request (AJAX)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['updateRole'], $_POST['updateAdminID'])) {
+    header("Content-Type: application/json; charset=UTF-8");
+
+    $updateRole = intval($_POST['updateRole']);
+    $updateAdminID = $connect->real_escape_string($_POST['updateAdminID']);
+
+    // Make sure super admin can't change his own role
+    if ($adminID != $updateAdminID) {
+        $updateQuery = "UPDATE admintb SET RoleID = ? WHERE AdminID = ?";
+        $stmt = $connect->prepare($updateQuery);
+        $stmt->bind_param("is", $updateRole, $updateAdminID);
+
+        if ($stmt->execute()) {
+            echo json_encode(["success" => true]);
+        } else {
+            echo json_encode(["success" => false, "message" => "Error updating role"]);
+        }
+        $stmt->close();
+    } else {
+        echo json_encode(["success" => false, "message" => "Not allowed to change own role"]);
+    }
+    exit;
+}
 ?>
 
 <table class="min-w-full bg-white rounded-lg">
@@ -65,33 +113,51 @@ if (mysqli_num_rows($adminSelectQuery) > 0) {
                         ?>
                         <div>
                             <p class="font-bold"><?= htmlspecialchars($admin['FirstName'] . ' ' . $admin['LastName']) ?>
-                                <!-- <?php
-                                        // Check if the admin ID matches the logged-in admin's ID
-                                        if ($adminID == $admin['AdminID']) {
-                                            echo "<span class='text-sm text-green-500 font-semibold'> (You)</span>";
-                                        }
-                                        ?> -->
+                                <?php
+                                // Check if the admin ID matches the logged-in admin's ID
+                                if ($adminID == $admin['AdminID']) {
+                                    echo "<span class='text-sm text-green-500 font-semibold'> (You)</span>";
+                                }
+                                ?>
                             </p>
                             <p class="text-xs text-gray-500 truncate"><?= htmlspecialchars($admin['AdminEmail']) ?></p>
                         </div>
                     </td>
                     <td class="p-3 text-start hidden md:table-cell">
-                        <select name="updateRole" class="border rounded p-2 bg-gray-50">
-                            <?php
-                            // Fetch roles for the dropdown
-                            $rolesQuery = "SELECT * FROM roletb";
-                            $rolesResult = $connect->query($rolesQuery);
+                        <?php if ($admin['RoleID'] != 1 || $admin['AdminID'] != $adminID): ?>
+                            <form class="roleUpdateForm" method="POST" action="javascript:void(0);">
+                                <input type="hidden" name="updateAdminID" value="<?= htmlspecialchars($admin['AdminID']) ?>">
+                                <select name="updateRole" class="border rounded p-2 bg-gray-50 outline-none">
+                                    <?php
+                                    // Fetch roles for the dropdown
+                                    $rolesQuery = "SELECT * FROM roletb";
+                                    $rolesResult = $connect->query($rolesQuery);
 
-                            if ($rolesResult->num_rows > 0) {
-                                while ($roleRow = $rolesResult->fetch_assoc()) {
-                                    $selected = $roleRow['RoleID'] == $admin['RoleID'] ? 'selected' : '';
-                                    echo "<option value='{$roleRow['RoleID']}' $selected>{$roleRow['Role']}</option>";
+                                    if ($rolesResult->num_rows > 0) {
+                                        while ($roleRow = $rolesResult->fetch_assoc()) {
+                                            $selected = $roleRow['RoleID'] == $admin['RoleID'] ? 'selected' : '';
+                                            echo "<option value='{$roleRow['RoleID']}' $selected>{$roleRow['Role']}</option>";
+                                        }
+                                    } else {
+                                        echo "<option value='' disabled>No roles available</option>";
+                                    }
+                                    ?>
+                                </select>
+                            </form>
+                        <?php else: ?>
+                            <span class="px-2 py-1 border rounded bg-gray-100 text-gray-600 select-none">
+                                <?php
+                                $roleNameQuery = "SELECT Role FROM roletb WHERE RoleID = " . intval($admin['RoleID']);
+                                $roleNameResult = $connect->query($roleNameQuery);
+                                if ($roleNameResult && $roleNameResult->num_rows > 0) {
+                                    $roleName = $roleNameResult->fetch_assoc();
+                                    echo htmlspecialchars($roleName['Role']);
+                                } else {
+                                    echo "Unknown";
                                 }
-                            } else {
-                                echo "<option value='' disabled>No roles available</option>";
-                            }
-                            ?>
-                        </select>
+                                ?>
+                            </span>
+                        <?php endif; ?>
                     </td>
                     <td class="p-3 text-start space-x-1 select-none hidden lg:table-cell">
                         <span class="text-xs px-2 py-1 rounded-full select-none border <?= $admin['Status'] === 'active' ? 'bg-green-100 border-green-200' : 'bg-red-100 border-red-200' ?>">
@@ -105,9 +171,6 @@ if (mysqli_num_rows($adminSelectQuery) > 0) {
                         </button>
                     </td>
                     <td class="p-3 text-start space-x-1 select-none">
-                        <button class=" text-amber-500">
-                            <i class="ri-edit-line text-xl"></i>
-                        </button>
                         <button class=" text-red-500">
                             <i class="delete-btn ri-delete-bin-7-line text-xl"
                                 data-admin-id="<?= htmlspecialchars($admin['AdminID']) ?>"></i>

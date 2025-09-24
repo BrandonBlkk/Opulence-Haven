@@ -146,6 +146,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// Role Management
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".roleUpdateForm select").forEach(select => {
+        select.addEventListener("change", function() {
+            const form = this.closest("form");
+            const formData = new FormData(form);
+
+            fetch("../includes/admin_table_components/role_management_results.php", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert("Role updated successfully!");
+                    } else {
+                        showAlert("Error: " + data.message, true);
+                    }
+                })
+                .catch(err => console.error("Fetch error:", err));
+        });
+    });
+});
+
 // Supplier Form and Modals
 document.addEventListener("DOMContentLoaded", () => {
     // Add Supplier Modal Elements
