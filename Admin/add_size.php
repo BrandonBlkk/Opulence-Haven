@@ -138,6 +138,33 @@ if (isset($_POST['deleteproductsize'])) {
     echo json_encode($response);
     exit();
 }
+
+// Initialize response
+$response = ['success' => false, 'message' => 'Invalid request'];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    // Bulk delete
+    if (isset($_POST['bulkdeleteproductsizes'], $_POST['productsizeids']) && is_array($_POST['productsizeids'])) {
+        $ids = array_map(function ($id) use ($connect) {
+            return "'" . mysqli_real_escape_string($connect, $id) . "'";
+        }, $_POST['productsizeids']);
+
+        $idsList = implode(',', $ids);
+        $deleteQuery = "DELETE FROM sizetb WHERE SizeID IN ($idsList)";
+
+        if ($connect->query($deleteQuery)) {
+            $response = ['success' => true, 'deletedCount' => count($ids)];
+        } else {
+            $response = ['success' => false, 'message' => 'Failed to delete selected product sizes.'];
+        }
+        echo json_encode($response);
+        exit();
+    }
+
+    echo json_encode($response);
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -164,9 +191,14 @@ if (isset($_POST['deleteproductsize'])) {
                     <h2 class="text-xl text-gray-700 font-bold mb-4">Add Product Size Overview</h2>
                     <p>Add information about product sizes to help customers find the right fit, improve shopping convenience, and enhance the overall purchasing experience.</p>
                 </div>
-                <button id="addProductSizeBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
-                    <i class="ri-add-line text-xl"></i>
-                </button>
+                <div class="flex gap-2">
+                    <button id="addProductSizeBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
+                        <i class="ri-add-line text-xl"></i>
+                    </button>
+                    <button id="bulkDeleteBtn" class="hidden px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">
+                        Delete Selected
+                    </button>
+                </div>
             </div>
 
             <!-- Prooduct Image Table -->
@@ -312,11 +344,30 @@ if (isset($_POST['deleteproductsize'])) {
             </form>
         </div>
 
+        <!-- Product Size Bulk Delete Modal -->
+        <div id="productSizeBulkDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+            <form class="bg-white max-w-3xl p-6 rounded-md shadow-md text-center" id="productSizeBulkDeleteForm">
+                <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Multiple Deletions</h2>
+                <p class="text-slate-600 mb-2">You are about to delete <span id="bulkDeleteCount" class="font-semibold"></span> selected product sizes.</p>
+                <p class="text-sm text-gray-500 mb-4">
+                    Deleting will permanently remove them from the system, including all associated data.
+                </p>
+                <div class="flex justify-end gap-4 select-none">
+                    <div id="productSizeBulkCancelDeleteBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm cursor-pointer">
+                        Cancel
+                    </div>
+                    <button type="submit" class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-sm">
+                        Delete
+                    </button>
+                </div>
+            </form>
+        </div>
+
         <!-- Add Product Size Form -->
         <div id="addProductSizeModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white w-full md:w-1/3 p-6 rounded-md shadow-md ">
                 <h2 class="text-xl text-gray-700 font-bold mb-4">Add New Product Size</h2>
-                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" enctype="multipart/form-data" method="post" id="productSizeForm">
+                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="productSizeForm">
                     <!-- Size Input -->
                     <div class="relative w-full">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Product Size Information</label>

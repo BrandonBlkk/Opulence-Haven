@@ -10,6 +10,10 @@ if (isset($_GET['email']) && isset($_GET['name'])) {
     $userEmail = $_GET['email'];
     $userName  = $_GET['name'] ?: "User";
 
+    // Get delete reasons if provided
+    $deleteReason = $_GET['reason'] ?? '';
+    $customDeleteReason = $_GET['customReason'] ?? '';
+
     $response = ['success' => false];
 
     try {
@@ -33,6 +37,11 @@ if (isset($_GET['email']) && isset($_GET['name'])) {
         $mail->isHTML(true);
         $mail->Subject = "Account Deletion Notice";
 
+        $reasonText = htmlspecialchars($deleteReason);
+        if (!empty($customDeleteReason)) {
+            $reasonText .= " - " . htmlspecialchars($customDeleteReason);
+        }
+
         $mail->Body = '
         <html>
         <head>
@@ -53,6 +62,7 @@ if (isset($_GET['email']) && isset($_GET['name'])) {
                 <div class="content">
                     <h2>Dear ' . htmlspecialchars($userName) . ',</h2>
                     <p>We regret to inform you that your account with <strong>Opulence Haven</strong> has been permanently deleted by an administrator.</p>
+                    <p><strong>Reason for deletion:</strong> ' . $reasonText . '</p>
                     <p>All personal information and related data linked to your account have been removed from our system.</p>
                     <p>If you believe this was done in error or have any questions, please <a href="mailto:info@opulencehaven.com">contact our support team</a>.</p>
                     <p>Thank you for being a part of <strong>Opulence Haven</strong>.</p>

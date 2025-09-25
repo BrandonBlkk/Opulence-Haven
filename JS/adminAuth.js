@@ -30,63 +30,61 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const formData = new FormData(this);
             
-            fetch('../Admin/admin_signup.php', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {        
-                if (data.success) {
-                    // Successful sign-in
-                    if (loader) loader.style.display = 'flex';
-                    
-                    // Send email
-                    fetch('../Mail/confirm_admin.php', {
+            const handleSignUp = async () => {
+                try {
+                    const response = await fetch('../Admin/admin_signup.php', {
                         method: 'POST',
+                        body: formData,
                         headers: {
-                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
                         }
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Successful sign-in
+                        if (loader) loader.style.display = 'flex';
+
+                        try {
+                            const emailResponse = await fetch('../Mail/confirm_admin.php', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                }
+                            });
+
+                            if (!emailResponse.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+
+                            const emailData = await emailResponse.json();
+
+                            if (emailData.success) {
+                                showAlert('Account created successfully. Please check your email for confirmation.');
+                            } else {
+                                showAlert('Account created but failed to send confirmation email. Please contact support.', true);
+                            }
+                        } catch (error) {
+                            console.error('Error:', error);
                         }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.success) {
-                            if (loader) loader.style.display = 'none';
-                            showAlert('Account created successfully. Please check your email for confirmation.');
-                        } else {
-                            // Handle email sending error
-                            if (loader) loader.style.display = 'none';
-                            showAlert('Account created but failed to send confirmation email. Please contact support.' , true);
-                        }
-                    })
-                    .catch(error => {
-                        // Hide loader on error
-                        if (loader) loader.style.display = 'none';
-                        console.error('Error:', error);
-                    })
-                } else {
-                    // Show error message
-                    showAlert(data.message || 'Sign-up failed. Please try again.', true);
+                    } else {
+                        showAlert(data.message || 'Sign-up failed. Please try again.', true);
+                    }
+                } catch (error) {
+                    showAlert('An error occurred. Please try again.', true);
+                    console.error('Error:', error);
+                } finally {
+                    if (loader) loader.style.display = 'none';
+                    signupForm.reset();
                 }
-            })
-            .catch(error => {
-                // Hide loader on error
-                if (loader) loader.style.display = 'none';
-                showAlert('An error occurred. Please try again.', true);
-                console.error('Error:', error);
-            });
+            }
+
+            handleSignUp();
         });
     }
 });
@@ -109,39 +107,43 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const formData = new FormData(this);
-            
-            fetch('../Admin/admin_signin.php', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Accept': 'application/json'
+
+            const handleSignIn = async () => {
+                try {
+                    const response = await fetch('../Admin/admin_signin.php', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Successful sign-in
+                        if (loader) loader.style.display = 'flex';
+                        window.location.href = '../Admin/admin_dashboard.php';
+                    } else if (data.locked) {
+                        // Account locked
+                        window.location.href = '../User/waiting_room.php';
+                    } else {
+                        // Show error message
+                        showAlert(data.message || 'Sign-in failed. Please try again.', true);
+                    }
+                } catch (error) {
+                    // Hide loader on error
+                    if (loader) loader.style.display = 'none';
+                    showAlert('An error occurred. Please try again.', true);
+                    console.error('Error:', error);
                 }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {           
-                if (data.success) {
-                    // Successful sign-in
-                    if (loader) loader.style.display = 'flex';
-                    window.location.href = '../Admin/admin_dashboard.php';
-                } else if (data.locked) {
-                    // Account locked
-                    window.location.href = '../User/waiting_room.php';
-                } else {
-                    // Show error message
-                    showAlert(data.message || 'Sign-in failed. Please try again.', true);
-                }
-            })
-            .catch(error => {
-                // Hide loader on error
-                if (loader) loader.style.display = 'none';
-                showAlert('An error occurred. Please try again.', true);
-                console.error('Error:', error);
-            });
+            };
+
+            handleSignIn();
         });
     }
 });
