@@ -22,6 +22,10 @@ if (mysqli_num_rows($ruleSelectQuery) > 0) {
 <table class="min-w-full bg-white rounded-lg">
     <thead>
         <tr class="bg-gray-100 text-gray-600 text-sm">
+            <th class="p-3 text-start">
+                <input type="checkbox" id="selectAllRules"
+                    class="form-checkbox h-3 w-3 border-2 text-amber-500">
+            </th>
             <th class="p-3 text-start">ID</th>
             <th class="p-3 text-start">Title</th>
             <th class="p-3 text-start hidden sm:table-cell">Rule</th>
@@ -34,14 +38,12 @@ if (mysqli_num_rows($ruleSelectQuery) > 0) {
             <?php foreach ($rules as $rule): ?>
                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                     <td class="p-3 text-start whitespace-nowrap">
-                        <div class="flex items-center gap-2 font-medium text-gray-500">
-                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                            <span><?= htmlspecialchars($rule['RuleID']) ?></span>
-                        </div>
+                        <input type="checkbox"
+                            class="ruleCheckbox form-checkbox h-3 w-3 border-2 text-amber-500"
+                            value="<?= htmlspecialchars($rule['RuleID']) ?>">
                     </td>
-                    <td class="p-3 text-start">
-                        <?= htmlspecialchars($rule['RuleTitle']) ?>
-                    </td>
+                    <td class="p-3 text-start"><?= htmlspecialchars($rule['RuleID']) ?></td>
+                    <td class="p-3 text-start"><?= htmlspecialchars($rule['RuleTitle']) ?></td>
                     <td class="p-3 text-start hidden sm:table-cell">
                         <?= htmlspecialchars(mb_strimwidth($rule['Rule'], 0, 50, '...')) ?>
                     </td>
@@ -62,7 +64,7 @@ if (mysqli_num_rows($ruleSelectQuery) > 0) {
             <?php endforeach; ?>
         <?php else: ?>
             <tr>
-                <td colspan="7" class="p-3 text-center text-gray-500 py-52">
+                <td colspan="6" class="p-3 text-center text-gray-500 py-52">
                     No rules available.
                 </td>
             </tr>

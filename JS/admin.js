@@ -730,8 +730,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!validateProductTypeForm()) return;
 
-            loader.style.display = 'flex';
-
             const formData = new FormData(productTypeForm);
             formData.append('addproducttype', true);
 
@@ -746,7 +744,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 return res.json();
             })
             .then(data => {
-                loader.style.display = 'none';
                 showAlert(data.message, !data.success);
 
                 if (data.success) {
@@ -760,7 +757,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             })
             .catch(err => {
-                loader.style.display = 'none';
                 showAlert("Something went wrong. Please try again.", true);
                 console.error(err);
             });
@@ -790,9 +786,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (!validateUpdateProductTypeForm()) return;
 
-                const loader = document.getElementById('loader');
-                loader.style.display = 'flex';
-
                 const formData = new FormData(updateProductTypeForm);
                 formData.append('editproducttype', true);
                 // Include current page in the form data
@@ -809,7 +802,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     return res.json();
                 })
                 .then(data => {
-                    loader.style.display = 'none';
                     showAlert(data.message, !data.success);
 
                     if (data.success) {
@@ -827,7 +819,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 })
                 .catch(err => {
-                    loader.style.display = 'none';
                     showAlert("Something went wrong. Please try again.", true);
                     console.error(err);
                 });
@@ -883,6 +874,107 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             });
         }
+    }
+
+    // Bulk Delete Elements
+    const bulkDeleteProductTypesBtn = document.getElementById('bulkDeleteProductTypesBtn');
+    const selectAllProductTypes = document.getElementById('selectAllProductTypes');
+    const bulkProductTypeConfirmDeleteModal = document.getElementById('bulkProductTypeConfirmDeleteModal');
+    const bulkProductTypeCancelDeleteBtn = document.getElementById('bulkProductTypeCancelDeleteBtn');
+    const bulkProductTypeCount = document.getElementById('bulkProductTypeCount');
+
+    // Toggle button
+    const toggleBulkDeleteProductTypesBtn = () => {
+        const selected = document.querySelectorAll('.rowProductTypeCheckbox:checked');
+        if (selected.length > 0) {
+            bulkDeleteProductTypesBtn.classList.remove('hidden');
+            bulkDeleteProductTypesBtn.textContent = `Delete Selected (${selected.length})`;
+        } else {
+            bulkDeleteProductTypesBtn.classList.add('hidden');
+            bulkDeleteProductTypesBtn.textContent = "Delete Selected";
+        }
+    };
+
+    // Select all
+    if (selectAllProductTypes) {
+        selectAllProductTypes.addEventListener('change', function () {
+            const rowCheckboxes = document.querySelectorAll('.rowProductTypeCheckbox');
+            rowCheckboxes.forEach(cb => cb.checked = this.checked);
+            toggleBulkDeleteProductTypesBtn();
+        });
+    }
+
+    // Watch row checkboxes
+    document.addEventListener('change', (e) => {
+        if (e.target.classList.contains('rowProductTypeCheckbox')) {
+            toggleBulkDeleteProductTypesBtn();
+        }
+    });
+
+    // Open bulk delete modal
+    if (bulkDeleteProductTypesBtn) {
+        bulkDeleteProductTypesBtn.addEventListener('click', () => {
+            const selected = document.querySelectorAll('.rowProductTypeCheckbox:checked');
+            if (selected.length === 0) return;
+
+            bulkProductTypeCount.textContent = selected.length;
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
+            bulkProductTypeConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+        });
+    }
+
+    // Cancel bulk delete
+    if (bulkProductTypeCancelDeleteBtn) {
+        bulkProductTypeCancelDeleteBtn.addEventListener('click', () => {
+            bulkProductTypeConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+    }
+
+    // Submit bulk delete
+    const bulkProductTypeDeleteForm = document.getElementById('bulkProductTypeDeleteForm');
+    if (bulkProductTypeDeleteForm) {
+        bulkProductTypeDeleteForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const selectedIds = Array.from(document.querySelectorAll('.rowProductTypeCheckbox:checked')).map(cb => cb.value);
+
+            if (selectedIds.length === 0) {
+                showAlert("No product types selected.", true);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('bulkdeleteproducttypes', true);
+            selectedIds.forEach(id => formData.append('producttypeids[]', id));
+            formData.append('producttypepage', currentPage);
+
+            fetch('../Admin/add_producttype.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    bulkProductTypeConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                    darkOverlay2.classList.add('opacity-0', 'invisible');
+                    darkOverlay2.classList.remove('opacity-100');
+
+                    fetchAndRenderProductTypes();
+                    showAlert("Selected product types deleted successfully.");
+                    bulkDeleteProductTypesBtn.classList.add('hidden');
+                    selectAllProductTypes.checked = false;
+                } else {
+                    showAlert(data.message || "Failed to delete selected product types.", true);
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                showAlert("An error occurred. Please try again.", true);
+            });
+        });
     }
 
     // Initialize existing rows on page load
@@ -2188,6 +2280,106 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Bulk Delete
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+
+    // Modal elements
+    const bulkDeleteModal = document.getElementById('facilityTypeBulkDeleteModal');
+    const bulkDeleteCancelBtn = document.getElementById('bulkDeleteCancelBtn');
+    const bulkDeleteConfirmBtn = document.getElementById('bulkDeleteConfirmBtn');
+    const bulkDeleteCount = document.getElementById('bulkDeleteCount');
+
+    // Handle select all checkbox
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function () {
+            const rowCheckboxes = document.querySelectorAll('.rowCheckbox');
+            rowCheckboxes.forEach(cb => cb.checked = this.checked);
+            toggleBulkDeleteBtn();
+        });
+    }
+
+    // Toggle bulk delete button visibility
+    const toggleBulkDeleteBtn = () => {
+        const selected = document.querySelectorAll('.rowCheckbox:checked');
+        if (selected.length > 0) {
+            bulkDeleteBtn.classList.remove('hidden');
+            bulkDeleteBtn.textContent = `Delete Selected (${selected.length})`;
+        } else {
+            bulkDeleteBtn.classList.add('hidden');
+            bulkDeleteBtn.textContent = "Delete Selected";
+        }
+    };
+
+    // Watch row checkboxes
+    document.addEventListener('change', (e) => {
+        if (e.target.classList.contains('rowCheckbox')) {
+            toggleBulkDeleteBtn();
+        }
+    });
+
+    // Handle bulk delete button 
+    if (bulkDeleteBtn) {
+        bulkDeleteBtn.addEventListener('click', () => {
+            const selectedIds = Array.from(document.querySelectorAll('.rowCheckbox:checked'))
+                .map(cb => cb.value);
+
+            if (selectedIds.length === 0) {
+                showAlert("No facility types selected.", true);
+                return;
+            }
+
+            // Show confirm modal
+            bulkDeleteCount.textContent = selectedIds.length;
+            bulkDeleteModal.classList.remove("opacity-0", "invisible", "-translate-y-5");
+            bulkDeleteModal.classList.add("opacity-100", "translate-y-0");
+            darkOverlay2.classList.remove("opacity-0", "invisible");
+            darkOverlay2.classList.add("opacity-100");
+
+            // Cancel button closes modal
+            bulkDeleteCancelBtn.addEventListener('click', () => {
+                bulkDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+                bulkDeleteModal.classList.remove("opacity-100", "translate-y-0");
+                darkOverlay2.classList.add("opacity-0", "invisible");
+                darkOverlay2.classList.remove("opacity-100");
+            });
+
+            // Confirm delete
+            bulkDeleteConfirmBtn.onclick = () => {
+                const formData = new FormData();
+                formData.append('bulkdeletefacilitytypes', true);
+                selectedIds.forEach(id => formData.append('facilitytypeids[]', id));
+
+                fetch('../Admin/add_facilitytype.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        fetchAndRenderFacilityTypes();
+                        showAlert("Selected facility types deleted successfully.");
+                        bulkDeleteBtn.classList.add('hidden');
+                        selectAllCheckbox.checked = false;
+                    } else {
+                        showAlert(data.message || "Failed to delete selected facility types.", true);
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    showAlert("An error occurred. Please try again.", true);
+                })
+                .finally(() => {
+                    // Close modal after action
+                    bulkDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+                    bulkDeleteModal.classList.remove("opacity-100", "translate-y-0");
+                    darkOverlay2.classList.add("opacity-0", "invisible");
+                    darkOverlay2.classList.remove("opacity-100");
+                });
+            };
+        });
+    }
+
     // Initialize existing rows on page load
     initializeExistingRows();
 });
@@ -2650,8 +2842,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!validateRuleForm()) return;
 
-            loader.style.display = 'flex';
-
             const formData = new FormData(ruleForm);
             formData.append('addrule', true);
 
@@ -2666,7 +2856,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 return res.json();
             })
             .then(data => {
-                loader.style.display = 'none';
                 showAlert(data.message, !data.success);
 
                 if (data.success) {
@@ -2681,7 +2870,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             })
             .catch(err => {
-                loader.style.display = 'none';
                 showAlert("Something went wrong. Please try again.", true);
                 console.error(err);
             });
@@ -2802,6 +2990,103 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             });
         }
+    }
+
+    // Bulk Delete Rules
+    const bulkDeleteRulesBtn = document.getElementById('bulkDeleteRulesBtn');
+    const selectAllRules = document.getElementById('selectAllRules');
+    const ruleBulkDeleteModal = document.getElementById('ruleBulkDeleteModal');
+    const ruleBulkDeleteCancelBtn = document.getElementById('ruleBulkDeleteCancelBtn');
+    const ruleBulkDeleteConfirmBtn = document.getElementById('ruleBulkDeleteConfirmBtn');
+    const ruleBulkDeleteCount = document.getElementById('ruleBulkDeleteCount');
+
+    // Handle select all checkbox
+    if (selectAllRules) {
+        selectAllRules.addEventListener('change', function () {
+            const rowCheckboxes = document.querySelectorAll('.ruleCheckbox');
+            rowCheckboxes.forEach(cb => cb.checked = this.checked);
+            toggleBulkDeleteRulesBtn();
+        });
+    }
+
+    // Toggle bulk delete button
+    const toggleBulkDeleteRulesBtn = () => {
+        const selected = document.querySelectorAll('.ruleCheckbox:checked');
+        if (selected.length > 0) {
+            bulkDeleteRulesBtn.classList.remove('hidden');
+            bulkDeleteRulesBtn.textContent = `Delete Selected (${selected.length})`;
+        } else {
+            bulkDeleteRulesBtn.classList.add('hidden');
+            bulkDeleteRulesBtn.textContent = "Delete Selected";
+        }
+    };
+
+    // Watch row checkboxes
+    document.addEventListener('change', (e) => {
+        if (e.target.classList.contains('ruleCheckbox')) {
+            toggleBulkDeleteRulesBtn();
+        }
+    });
+
+    // Handle bulk delete button
+    if (bulkDeleteRulesBtn) {
+        bulkDeleteRulesBtn.addEventListener('click', () => {
+            const selectedIds = Array.from(document.querySelectorAll('.ruleCheckbox:checked'))
+                .map(cb => cb.value);
+
+            if (selectedIds.length === 0) {
+                showAlert("No rules selected.", true);
+                return;
+            }
+
+            // Show modal
+            ruleBulkDeleteCount.textContent = selectedIds.length;
+            ruleBulkDeleteModal.classList.remove("opacity-0", "invisible", "-translate-y-5");
+            ruleBulkDeleteModal.classList.add("opacity-100", "translate-y-0");
+            darkOverlay2.classList.remove("opacity-0", "invisible");
+            darkOverlay2.classList.add("opacity-100");
+
+            // Cancel
+            ruleBulkDeleteCancelBtn.addEventListener('click', () => {
+                ruleBulkDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+                ruleBulkDeleteModal.classList.remove("opacity-100", "translate-y-0");
+                darkOverlay2.classList.add("opacity-0", "invisible");
+                darkOverlay2.classList.remove("opacity-100");
+            });
+
+            // Confirm delete
+            ruleBulkDeleteConfirmBtn.onclick = () => {
+                const formData = new FormData();
+                formData.append('bulkdeleterules', true);
+                selectedIds.forEach(id => formData.append('ruleids[]', id));
+
+                fetch('../Admin/add_rule.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            fetchAndRenderRules();
+                            showAlert("Selected rules deleted successfully.");
+                            bulkDeleteRulesBtn.classList.add('hidden');
+                            selectAllRules.checked = false;
+                        } else {
+                            showAlert(data.message || "Failed to delete selected rules.", true);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error:', err);
+                        showAlert("An error occurred. Please try again.", true);
+                    })
+                    .finally(() => {
+                        ruleBulkDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+                        ruleBulkDeleteModal.classList.remove("opacity-100", "translate-y-0");
+                        darkOverlay2.classList.add("opacity-0", "invisible");
+                        darkOverlay2.classList.remove("opacity-100");
+                    });
+            };
+        });
     }
 
     // Initialize existing rows on page load
@@ -3197,8 +3482,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!validateProductSizeForm()) return;
 
-            loader.style.display = 'flex';
-
             const formData = new FormData(productSizeForm);
             formData.append('addproductsize', true);
 
@@ -3213,7 +3496,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 return res.json();
             })
             .then(data => {
-                loader.style.display = 'none';
                 showAlert(data.message, !data.success);
 
                 if (data.success) {
@@ -3227,7 +3509,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             })
             .catch(err => {
-                loader.style.display = 'none';
                 showAlert("Something went wrong. Please try again.", true);
                 console.error(err);
             });
@@ -3257,9 +3538,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (!validateProductSizeUpdateForm()) return;
 
-                const loader = document.getElementById('loader');
-                loader.style.display = 'flex';
-
                 const formData = new FormData(updateProductSizeForm);
                 formData.append('editproductsize', true);
 
@@ -3274,7 +3552,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     return res.json();
                 })
                 .then(data => {
-                    loader.style.display = 'none';
                     showAlert(data.message, !data.success);
 
                     if (data.success) {
@@ -3292,7 +3569,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 })
                 .catch(err => {
-                    loader.style.display = 'none';
                     showAlert("Something went wrong. Please try again.", true);
                     console.error(err);
                 });
@@ -3346,6 +3622,106 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             });
         }
+    }
+
+    // Bulk Delete
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    const bulkDeleteModal = document.getElementById('productSizeBulkDeleteModal');
+    const bulkDeleteCancelBtn = document.getElementById('productSizeBulkCancelDeleteBtn');
+    const bulkDeleteForm = document.getElementById('productSizeBulkDeleteForm');
+    const bulkDeleteCount = document.getElementById('bulkDeleteCount');
+
+    // Handle select all checkbox
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function () {
+            const rowCheckboxes = document.querySelectorAll('.rowCheckbox');
+            rowCheckboxes.forEach(cb => cb.checked = this.checked);
+            toggleBulkDeleteBtn();
+        });
+    }
+
+    // Toggle bulk delete button visibility
+    const toggleBulkDeleteBtn = () => {
+        const selected = document.querySelectorAll('.rowCheckbox:checked');
+        if (selected.length > 0) {
+            bulkDeleteBtn.classList.remove('hidden');
+            bulkDeleteBtn.textContent = `Delete Selected (${selected.length})`;
+        } else {
+            bulkDeleteBtn.classList.add('hidden');
+            bulkDeleteBtn.textContent = "Delete Selected";
+        }
+    };
+
+    // Watch row checkboxes
+    document.addEventListener('change', (e) => {
+        if (e.target.classList.contains('rowCheckbox')) {
+            toggleBulkDeleteBtn();
+        }
+    });
+
+    // Open bulk delete modal
+    if (bulkDeleteBtn) {
+        bulkDeleteBtn.addEventListener('click', () => {
+            const selectedIds = Array.from(document.querySelectorAll('.rowCheckbox:checked')).map(cb => cb.value);
+            if (selectedIds.length === 0) {
+                showAlert("No product sizes selected.", true);
+                return;
+            }
+
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
+            bulkDeleteCount.textContent = selectedIds.length;
+            bulkDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+
+            // Attach IDs to form for submission
+            bulkDeleteForm.dataset.ids = JSON.stringify(selectedIds);
+        });
+    }
+
+    // Cancel bulk delete
+    if (bulkDeleteCancelBtn) {
+        bulkDeleteCancelBtn.addEventListener('click', () => {
+            bulkDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+    }
+
+    // Confirm bulk delete
+    if (bulkDeleteForm) {
+        bulkDeleteForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const selectedIds = JSON.parse(bulkDeleteForm.dataset.ids || "[]");
+
+            const formData = new FormData();
+            formData.append('bulkdeleteproductsizes', true);
+            selectedIds.forEach(id => formData.append('productsizeids[]', id));
+
+            fetch('../Admin/add_size.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    bulkDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                    darkOverlay2.classList.add('opacity-0', 'invisible');
+                    darkOverlay2.classList.remove('opacity-100');
+
+                    fetchAndRenderProductSizes();
+                    showAlert("Selected product sizes deleted successfully.");
+                    bulkDeleteBtn.classList.add('hidden');
+                    selectAllCheckbox.checked = false;
+                } else {
+                    showAlert(data.message || "Failed to delete selected product sizes.", true);
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                showAlert("An error occurred. Please try again.", true);
+            });
+        });
     }
 
     // Initialize existing rows on page load and update product names

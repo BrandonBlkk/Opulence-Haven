@@ -26,6 +26,9 @@ if (mysqli_num_rows($productSizeSelectQuery) > 0) {
 <table class="min-w-full bg-white rounded-lg">
     <thead>
         <tr class="bg-gray-100 text-gray-600 text-sm">
+            <th class="p-3 text-start">
+                <input type="checkbox" id="selectAllCheckbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
+            </th>
             <th class="p-3 text-start">ID</th>
             <th class="p-3 text-start">Size</th>
             <th class="p-3 text-start">Price</th>
@@ -34,45 +37,21 @@ if (mysqli_num_rows($productSizeSelectQuery) > 0) {
         </tr>
     </thead>
     <tbody class="text-gray-600 text-sm">
-        <?php
-        $count = 1;
-        ?>
+        <?php $count = 1; ?>
         <?php if (!empty($productSizes)): ?>
             <?php foreach ($productSizes as $productSize): ?>
                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                     <td class="p-3 text-start whitespace-nowrap">
-                        <div class="flex items-center gap-2 font-medium text-gray-500">
-                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                            <span><?= $count ?></span>
-                        </div>
+                        <input type="checkbox" class="rowCheckbox form-checkbox h-3 w-3 border-2 text-amber-500" value="<?= htmlspecialchars($productSize['SizeID']) ?>">
                     </td>
-                    <td class="p-3 text-start">
-                        <?= htmlspecialchars($productSize['Size']) ?>
-                    </td>
-                    <td class="p-3 text-start">
-                        <?= htmlspecialchars($productSize['PriceModifier']) ?>
-                    </td>
-                    <td class="p-3 text-start hidden sm:table-cell">
-                        <?php
-                        // Fetch the specific product type for the supplier
-                        $productID = $productSize['ProductID'];
-                        $productQuery = "SELECT ProductID, Title FROM producttb WHERE ProductID = '$productID'";
-                        $productResult = mysqli_query($connect, $productQuery);
-
-                        if ($productResult && $productResult->num_rows > 0) {
-                            $productRow = $productResult->fetch_assoc();
-                            echo htmlspecialchars($productRow['ProductID'] . " (" . $productRow['Title'] . ")");
-                        } else {
-                            echo "Product not found"; // Fallback message
-                        }
-                        ?>
-                    </td>
+                    <td class="p-3 text-start"><?= $count ?></td>
+                    <td class="p-3 text-start"><?= htmlspecialchars($productSize['Size']) ?></td>
+                    <td class="p-3 text-start"><?= htmlspecialchars($productSize['PriceModifier']) ?></td>
+                    <td class="p-3 text-start hidden sm:table-cell" data-product-id="<?= $productSize['ProductID'] ?>"></td>
                     <td class="p-3 text-start space-x-1 select-none">
-                        <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                            data-productsize-id="<?= htmlspecialchars($productSize['SizeID']) ?>"></i>
+                        <i class="details-btn ri-eye-line text-lg cursor-pointer" data-productsize-id="<?= htmlspecialchars($productSize['SizeID']) ?>"></i>
                         <button class="text-red-500">
-                            <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                data-productsize-id="<?= htmlspecialchars($productSize['SizeID']) ?>"></i>
+                            <i class="delete-btn ri-delete-bin-7-line text-xl" data-productsize-id="<?= htmlspecialchars($productSize['SizeID']) ?>"></i>
                         </button>
                     </td>
                 </tr>

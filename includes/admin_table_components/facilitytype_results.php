@@ -22,6 +22,10 @@ if (mysqli_num_rows($facilityTypeSelectQuery) > 0) {
 <table class="min-w-full bg-white rounded-lg">
     <thead>
         <tr class="bg-gray-100 text-gray-600 text-sm">
+            <th class="p-3 text-start">
+                <input type="checkbox" id="selectAllCheckbox"
+                    class="form-checkbox h-3 w-3 border-2 text-amber-500">
+            </th>
             <th class="p-3 text-start">ID</th>
             <th class="p-3 text-start">Type</th>
             <th class="p-3 text-start hidden sm:table-cell">Icon</th>
@@ -33,18 +37,15 @@ if (mysqli_num_rows($facilityTypeSelectQuery) > 0) {
             <?php foreach ($facilityTypes as $facilityType): ?>
                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                     <td class="p-3 text-start whitespace-nowrap">
-                        <div class="flex items-center gap-2 font-medium text-gray-500">
-                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                            <span><?= htmlspecialchars($facilityType['FacilityTypeID']) ?></span>
-                        </div>
+                        <input type="checkbox"
+                            class="rowCheckbox form-checkbox h-3 w-3 border-2 text-amber-500"
+                            value="<?= htmlspecialchars($facilityType['FacilityTypeID']) ?>">
                     </td>
-                    <td class="p-3 text-start">
-                        <?= htmlspecialchars($facilityType['FacilityType']) ?>
-                    </td>
+                    <td class="p-3 text-start"><?= htmlspecialchars($facilityType['FacilityTypeID']) ?></td>
+                    <td class="p-3 text-start"><?= htmlspecialchars($facilityType['FacilityType']) ?></td>
                     <td class="p-3 text-start hidden sm:table-cell">
                         <i class="<?= htmlspecialchars($facilityType['FacilityTypeIcon'], ENT_QUOTES, 'UTF-8') ?> <?= htmlspecialchars($facilityType['IconSize'], ENT_QUOTES, 'UTF-8') ?>"></i>
                     </td>
-
                     <td class="p-3 text-start space-x-1 select-none">
                         <i class="details-btn ri-eye-line text-lg cursor-pointer"
                             data-facilitytype-id="<?= htmlspecialchars($facilityType['FacilityTypeID']) ?>"></i>
@@ -57,7 +58,7 @@ if (mysqli_num_rows($facilityTypeSelectQuery) > 0) {
             <?php endforeach; ?>
         <?php else: ?>
             <tr>
-                <td colspan="4" class="p-3 text-center text-gray-500 py-52">
+                <td colspan="5" class="p-3 text-center text-gray-500 py-52">
                     No facility types available.
                 </td>
             </tr>

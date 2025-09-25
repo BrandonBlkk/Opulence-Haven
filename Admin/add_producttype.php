@@ -114,6 +114,34 @@ if (isset($_POST['deleteproducttype'])) {
     echo json_encode($response);
     exit();
 }
+
+// Bulk Delete Product Types
+if (isset($_POST['bulkdeleteproducttypes'])) {
+    $ids = $_POST['producttypeids'] ?? [];
+    $response = [];
+
+    if (!empty($ids)) {
+        $escapedIds = array_map(fn($id) => "'" . mysqli_real_escape_string($connect, $id) . "'", $ids);
+        $idList = implode(',', $escapedIds);
+
+        $deleteQuery = "DELETE FROM producttypetb WHERE ProductTypeID IN ($idList)";
+
+        if ($connect->query($deleteQuery)) {
+            $response['success'] = true;
+            $response['deletedIds'] = $ids;
+        } else {
+            $response['success'] = false;
+            $response['message'] = 'Failed to delete selected product types. Please try again.';
+        }
+    } else {
+        $response['success'] = false;
+        $response['message'] = 'No product types selected for deletion.';
+    }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -140,9 +168,14 @@ if (isset($_POST['deleteproducttype'])) {
                     <h2 class="text-xl text-gray-700 font-bold mb-4">Add Product Type Overview</h2>
                     <p>Add information about product types to categorize items, track stock levels, and manage product details for efficient organization.</p>
                 </div>
-                <button id="addProductTypeBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
-                    <i class="ri-add-line text-xl"></i>
-                </button>
+                <div class="flex gap-2">
+                    <button id="addProductTypeBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
+                        <i class="ri-add-line text-xl"></i>
+                    </button>
+                    <button id="bulkDeleteProductTypesBtn" class="hidden px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">
+                        Delete Selected
+                    </button>
+                </div>
             </div>
 
             <!-- Prooduct Type Table -->
@@ -228,6 +261,30 @@ if (isset($_POST['deleteproducttype'])) {
                     <button
                         type="submit"
                         name="deleteproducttype"
+                        class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-sm">
+                        Delete
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Bulk Product Types Delete Modal -->
+        <div id="bulkProductTypeConfirmDeleteModal"
+            class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+            <form class="bg-white max-w-2xl p-6 rounded-md shadow-md text-center" id="bulkProductTypeDeleteForm">
+                <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Deletion</h2>
+                <p class="text-slate-600 mb-2">
+                    You are about to delete <span id="bulkProductTypeCount" class="font-bold"></span> product types.
+                </p>
+                <p class="text-sm text-gray-500 mb-4">
+                    Deleting will permanently remove these product types and related data.
+                </p>
+                <div class="flex justify-end gap-4 select-none">
+                    <div id="bulkProductTypeCancelDeleteBtn"
+                        class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm cursor-pointer">
+                        Cancel
+                    </div>
+                    <button type="submit"
                         class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-sm">
                         Delete
                     </button>
