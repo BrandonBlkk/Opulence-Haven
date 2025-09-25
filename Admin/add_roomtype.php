@@ -536,9 +536,6 @@ if (isset($_POST['deleteroomtype'])) {
             <div class="bg-white w-full max-w-4xl p-6 rounded-md shadow-md max-h-[90vh] overflow-y-auto">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-xl text-gray-700 font-bold">Add New Room Type</h2>
-                    <button id="addRoomTypeCancelBtn" class="text-gray-400 hover:text-gray-500">
-                        <i class="ri-close-line text-xl"></i>
-                    </button>
                 </div>
                 <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" enctype="multipart/form-data" id="roomTypeForm">
 
@@ -669,7 +666,7 @@ if (isset($_POST['deleteroomtype'])) {
                     </div>
 
                     <div class="flex justify-end gap-4 select-none">
-                        <div id="addRoomTypeCancelBtn2" class="px-4 py-2 text-amber-500 font-semibold hover:text-amber-600">
+                        <div id="addRoomTypeCancelBtn" class="px-4 py-2 text-amber-500 font-semibold hover:text-amber-600">
                             Cancel
                         </div>
                         <!-- Submit Button -->

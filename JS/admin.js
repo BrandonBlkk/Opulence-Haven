@@ -349,15 +349,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         addSupplierCancelBtn.addEventListener('click', () => {
             closeModal();
-            document.getElementById('supplierNameInput').value = '';
-            document.getElementById('companyNameInput').value = '';
-            document.getElementById('emailInput').value = '';
-            document.getElementById('contactNumberInput').value = '';
-            document.getElementById('addressInput').value = '';
-            document.getElementById('cityInput').value = '';
-            document.getElementById('stateInput').value = '';
-            document.getElementById('postalCodeInput').value = '';
-            document.getElementById('countryInput').value = '';
+            supplierForm.reset();
         });
     }
 
@@ -723,8 +715,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         addProductTypeCancelBtn.addEventListener('click', () => {
             closeModal();
-            document.getElementById('productTypeInput').value = '';
-            document.getElementById('descriptionInput').value = '';
+            productTypeForm.reset();
         });
     }
 
@@ -1051,7 +1042,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         addProductCancelBtn.addEventListener('click', () => {
             closeModal();
-            document.getElementById('productTitleInput').value = '';
+            productForm.reset();
         });
     }
 
@@ -1424,11 +1415,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         addRoomTypeCancelBtn.addEventListener('click', () => {
             closeModal();
-            document.getElementById('roomTypeInput').value = '';
-            document.getElementById('roomTypeDescriptionInput').value = '';
-            document.getElementById('roomCapacityInput').value = '';
-            document.getElementById('roomPriceInput').value = '';
-            document.getElementById('roomQuantityInput').value = '';
+            roomTypeForm.reset();
         });
     }
 
@@ -1762,7 +1749,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         addRoomCancelBtn.addEventListener('click', () => {
             closeModal();
-            document.getElementById('roomNameInput').value = '';
+            roomForm.reset();
         });
     }
 
@@ -2044,8 +2031,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         addFacilityTypeCancelBtn.addEventListener('click', () => {
             closeModal();
-            document.getElementById('facilityTypeInput').value = '';
-            document.getElementById('facilityTypeIconInput').value = '';
+            facilityTypeForm.reset();
         });
     }
 
@@ -2349,7 +2335,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         addFacilityCancelBtn.addEventListener('click', () => {
             closeModal();
-            document.getElementById('facilityInput').value = '';
+            facilityForm.reset();
         });
     }
 
@@ -2648,9 +2634,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         addRuleCancelBtn.addEventListener('click', () => {
             closeModal();
-            document.getElementById('ruleTitleInput').value = '';
-            document.getElementById('ruleInput').value = '';
-            document.getElementById('ruleIconInput').value = '';
+            ruleForm.reset();
         });
     }
 
@@ -2853,7 +2837,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 hideError(document.getElementById(error));
             });
 
-            document.getElementById('product').value = '';
+            productImageForm.reset();
         });
     }
 
@@ -3198,8 +3182,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         addProductSizeCancelBtn.addEventListener('click', () => {
             closeModal();
-            document.getElementById('sizeInput').value = '';
-            document.getElementById('priceModifierInput').value = '';
+            productSizeForm.reset();
         });
     }
 
@@ -3415,6 +3398,7 @@ document.addEventListener("DOMContentLoaded", () => {
         darkOverlay2.classList.add('opacity-0', 'invisible');
         darkOverlay2.classList.remove('opacity-100');
         
+        menuForm.reset();
         clearErrors();
     };
 

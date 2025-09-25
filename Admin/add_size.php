@@ -316,7 +316,7 @@ if (isset($_POST['deleteproductsize'])) {
         <div id="addProductSizeModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <div class="bg-white w-full md:w-1/3 p-6 rounded-md shadow-md ">
                 <h2 class="text-xl text-gray-700 font-bold mb-4">Add New Product Size</h2>
-                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" enctype="multipart/form-data" method="post" id="productSizeForm">
+                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="productSizeForm">
                     <!-- Size Input -->
                     <div class="relative w-full">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Product Size Information</label>

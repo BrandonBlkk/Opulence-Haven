@@ -324,7 +324,7 @@ if (isset($_POST['deletemenu'])) {
             </div>
         </div>
 
-        <!-- Product Type Delete Modal -->
+        <!-- Menu Delete Modal -->
         <div id="menuConfirmDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <form class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="menuDeleteForm">
                 <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Menu Deletion</h2>
