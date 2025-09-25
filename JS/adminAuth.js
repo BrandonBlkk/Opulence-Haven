@@ -76,6 +76,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (loader) loader.style.display = 'none';
                         console.error('Error:', error);
                     })
+                    .finally(() => {
+                        signupForm.reset();
+                    });
                 } else {
                     // Show error message
                     showAlert(data.message || 'Sign-up failed. Please try again.', true);
