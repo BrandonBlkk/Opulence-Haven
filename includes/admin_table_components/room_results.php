@@ -26,7 +26,10 @@ if (mysqli_num_rows($roomSelectQuery) > 0) {
 <table class="min-w-full bg-white rounded-lg">
     <thead>
         <tr class="bg-gray-100 text-gray-600 text-sm">
-            <th class="p-3 text-start">ID</th>
+            <th class="p-3 text-start">
+                <input type="checkbox" id="selectAllRooms" class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                ID
+            </th>
             <th class="p-3 text-start hidden sm:table-cell">Room</th>
             <th class="p-3 text-start hidden sm:table-cell">Status</th>
             <th class="p-3 text-start hidden sm:table-cell">Room Type</th>
@@ -39,23 +42,17 @@ if (mysqli_num_rows($roomSelectQuery) > 0) {
                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                     <td class="p-3 text-start whitespace-nowrap">
                         <div class="flex items-center gap-2 font-medium text-gray-500">
-                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                            <span><?= htmlspecialchars($room['RoomID']) ?></span>
+                            <input type="checkbox" class="roomCheckbox form-checkbox h-3 w-3 border-2 text-amber-500" value="<?= htmlspecialchars($room['RoomID']) ?>">
+                            <?= htmlspecialchars($room['RoomID']) ?>
                         </div>
                     </td>
-                    <td class="p-3 text-start">
-                        <?= htmlspecialchars($room['RoomName']) ?>
-                    </td>
-                    <td class="p-3 text-start hidden sm:table-cell">
-                        <?= htmlspecialchars($room['RoomStatus']) ?>
-                    </td>
+                    <td class="p-3 text-start"><?= htmlspecialchars($room['RoomName']) ?></td>
+                    <td class="p-3 text-start hidden sm:table-cell"><?= htmlspecialchars($room['RoomStatus']) ?></td>
                     <td class="p-3 text-start hidden md:table-cell">
                         <?php
-                        // Fetch the specific product type for the supplier
                         $roomTypeID = $room['RoomTypeID'];
                         $roomTypeQuery = "SELECT RoomType FROM roomtypetb WHERE RoomTypeID = '$roomTypeID'";
                         $roomTypeResult = mysqli_query($connect, $roomTypeQuery);
-
                         if ($roomTypeResult && $roomTypeResult->num_rows > 0) {
                             $roomTypeRow = $roomTypeResult->fetch_assoc();
                             echo htmlspecialchars($roomTypeRow['RoomType']);
@@ -63,20 +60,16 @@ if (mysqli_num_rows($roomSelectQuery) > 0) {
                         ?>
                     </td>
                     <td class="p-3 text-start space-x-1 select-none">
-                        <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                            data-room-id="<?= htmlspecialchars($room['RoomID']) ?>"></i>
+                        <i class="details-btn ri-eye-line text-lg cursor-pointer" data-room-id="<?= htmlspecialchars($room['RoomID']) ?>"></i>
                         <button class="text-red-500">
-                            <i class="delete-btn ri-delete-bin-7-line text-xl"
-                                data-room-id="<?= htmlspecialchars($room['RoomID']) ?>"></i>
+                            <i class="delete-btn ri-delete-bin-7-line text-xl" data-room-id="<?= htmlspecialchars($room['RoomID']) ?>"></i>
                         </button>
                     </td>
                 </tr>
             <?php endforeach; ?>
         <?php else: ?>
             <tr>
-                <td colspan="7" class="p-3 text-center text-gray-500 py-52">
-                    No rooms available.
-                </td>
+                <td colspan="7" class="p-3 text-center text-gray-500 py-52">No rooms available.</td>
             </tr>
         <?php endif; ?>
     </tbody>

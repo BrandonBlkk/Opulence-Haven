@@ -28,8 +28,8 @@ if (mysqli_num_rows($productSizeSelectQuery) > 0) {
         <tr class="bg-gray-100 text-gray-600 text-sm">
             <th class="p-3 text-start">
                 <input type="checkbox" id="selectAllCheckbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                ID
             </th>
-            <th class="p-3 text-start">ID</th>
             <th class="p-3 text-start">Size</th>
             <th class="p-3 text-start">Price</th>
             <th class="p-3 text-start hidden sm:table-cell">Product</th>
@@ -42,9 +42,11 @@ if (mysqli_num_rows($productSizeSelectQuery) > 0) {
             <?php foreach ($productSizes as $productSize): ?>
                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                     <td class="p-3 text-start whitespace-nowrap">
-                        <input type="checkbox" class="rowCheckbox form-checkbox h-3 w-3 border-2 text-amber-500" value="<?= htmlspecialchars($productSize['SizeID']) ?>">
+                        <div class="flex items-center gap-2 font-medium text-gray-500">
+                            <input type="checkbox" class="rowCheckbox form-checkbox h-3 w-3 border-2 text-amber-500" value="<?= htmlspecialchars($productSize['SizeID']) ?>">
+                            <?= $count ?>
+                        </div>
                     </td>
-                    <td class="p-3 text-start"><?= $count ?></td>
                     <td class="p-3 text-start"><?= htmlspecialchars($productSize['Size']) ?></td>
                     <td class="p-3 text-start"><?= htmlspecialchars($productSize['PriceModifier']) ?></td>
                     <td class="p-3 text-start hidden sm:table-cell" data-product-id="<?= $productSize['ProductID'] ?>"></td>

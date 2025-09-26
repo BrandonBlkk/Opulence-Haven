@@ -26,7 +26,12 @@ if (mysqli_num_rows($menuSelectQuery) > 0) {
 <table class="min-w-full bg-white rounded-lg">
     <thead>
         <tr class="bg-gray-100 text-gray-600 text-sm">
-            <th class="p-3 text-start">ID</th>
+            <th class="p-3 text-start">
+                <input type="checkbox" id="selectAllMenuCheckbox"
+                    class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                ID
+            </th>
+
             <th class="p-3 text-start">Menu</th>
             <th class="p-3 text-start hidden lg:table-cell">Description</th>
             <th class="p-3 text-start hidden md:table-cell">Start Time</th>
@@ -41,7 +46,9 @@ if (mysqli_num_rows($menuSelectQuery) > 0) {
                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                     <td class="p-3 text-start whitespace-nowrap">
                         <div class="flex items-center gap-2 font-medium text-gray-500">
-                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                            <input type="checkbox"
+                                class="rowCheckbox form-checkbox h-3 w-3 border-2 text-amber-500"
+                                value="<?= htmlspecialchars($menu['MenuID']) ?>">
                             <span><?= htmlspecialchars($menu['MenuID']) ?></span>
                         </div>
                     </td>
