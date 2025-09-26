@@ -158,7 +158,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['editmenu'])) {
     exit();
 }
 
-// Delete Menu (keeping original parameter name deleteproducttype)
+// Delete Menu
 if (isset($_POST['deletemenu'])) {
     $menuId = mysqli_real_escape_string($connect, $_POST['menuid']);
 
@@ -183,6 +183,35 @@ if (isset($_POST['deletemenu'])) {
         } else {
             $response['message'] = 'Failed to delete menu. It may not exist.';
         }
+    }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
+}
+
+// Bulk Delete Menus
+if (isset($_POST['bulkdeletemenus'])) {
+    $ids = $_POST['menuids'] ?? [];
+
+    $response = ['success' => false];
+
+    if (!empty($ids)) {
+        $ids = array_map(function ($id) use ($connect) {
+            return "'" . mysqli_real_escape_string($connect, $id) . "'";
+        }, $ids);
+
+        $idsList = implode(',', $ids);
+        $deleteQuery = "DELETE FROM menutb WHERE MenuID IN ($idsList)";
+
+        if ($connect->query($deleteQuery)) {
+            $response['success'] = true;
+            $response['deletedIds'] = $ids;
+        } else {
+            $response['message'] = 'Failed to delete selected menus. Please try again.';
+        }
+    } else {
+        $response['message'] = 'No menus selected for deletion.';
     }
 
     header('Content-Type: application/json');
@@ -215,9 +244,15 @@ if (isset($_POST['deletemenu'])) {
                     <h2 class="text-xl text-gray-700 font-bold mb-4">Add Dining Menu Overview</h2>
                     <p>Add information about menu to categorize items, track stock levels, and manage product details for efficient organization.</p>
                 </div>
-                <button id="addMenuBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
-                    <i class="ri-add-line text-xl"></i>
-                </button>
+                <div class="flex gap-2">
+                    <button id="addMenuBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
+                        <i class="ri-add-line text-xl"></i>
+                    </button>
+                    <button id="bulkDeleteMenuBtn"
+                        class="hidden px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">
+                        Delete Selected
+                    </button>
+                </div>
             </div>
 
             <!-- Menu Table -->
@@ -345,6 +380,30 @@ if (isset($_POST['deletemenu'])) {
                     </button>
                 </div>
             </form>
+        </div>
+
+        <!-- Menu Bulk Delete Modal -->
+        <div id="menuBulkDeleteModal"
+            class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+            <div class="bg-white max-w-lg p-6 rounded-md shadow-md text-center">
+                <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Bulk Deletion</h2>
+                <p class="text-slate-600 mb-2">
+                    You are about to delete <span id="menuBulkDeleteCount" class="font-semibold">0</span> Menus.
+                </p>
+                <p class="text-sm text-gray-500 mb-4">
+                    This action cannot be undone. All selected menus will be permanently removed from the system.
+                </p>
+                <div class="flex justify-end gap-4 select-none">
+                    <div id="bulkDeleteMenuCancelBtn"
+                        class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm cursor-pointer">
+                        Cancel
+                    </div>
+                    <button type="button" id="bulkDeleteMenuConfirmBtn"
+                        class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-sm">
+                        Delete
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Add Menu Form -->

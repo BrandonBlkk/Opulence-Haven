@@ -25,8 +25,8 @@ if (mysqli_num_rows($ruleSelectQuery) > 0) {
             <th class="p-3 text-start">
                 <input type="checkbox" id="selectAllRules"
                     class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                ID
             </th>
-            <th class="p-3 text-start">ID</th>
             <th class="p-3 text-start">Title</th>
             <th class="p-3 text-start hidden sm:table-cell">Rule</th>
             <th class="p-3 text-start hidden sm:table-cell">Icon</th>
@@ -38,11 +38,13 @@ if (mysqli_num_rows($ruleSelectQuery) > 0) {
             <?php foreach ($rules as $rule): ?>
                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                     <td class="p-3 text-start whitespace-nowrap">
-                        <input type="checkbox"
-                            class="ruleCheckbox form-checkbox h-3 w-3 border-2 text-amber-500"
-                            value="<?= htmlspecialchars($rule['RuleID']) ?>">
+                        <div class="flex items-center gap-2 font-medium text-gray-500">
+                            <input type="checkbox"
+                                class="ruleCheckbox form-checkbox h-3 w-3 border-2 text-amber-500"
+                                value="<?= htmlspecialchars($rule['RuleID']) ?>">
+                            <?= htmlspecialchars($rule['RuleID']) ?>
+                        </div>
                     </td>
-                    <td class="p-3 text-start"><?= htmlspecialchars($rule['RuleID']) ?></td>
                     <td class="p-3 text-start"><?= htmlspecialchars($rule['RuleTitle']) ?></td>
                     <td class="p-3 text-start hidden sm:table-cell">
                         <?= htmlspecialchars(mb_strimwidth($rule['Rule'], 0, 50, '...')) ?>

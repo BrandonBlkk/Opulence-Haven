@@ -124,6 +124,34 @@ if (isset($_POST['deletefacility'])) {
     echo json_encode($response);
     exit();
 }
+
+// Bulk Delete Facilities
+if (isset($_POST['bulkdeletefacilities'])) {
+    $ids = $_POST['facilityids'] ?? [];
+    $response = ['success' => false];
+
+    if (!empty($ids)) {
+        $ids = array_map(function ($id) use ($connect) {
+            return "'" . mysqli_real_escape_string($connect, $id) . "'";
+        }, $ids);
+
+        $idsList = implode(',', $ids);
+        $deleteQuery = "DELETE FROM facilitytb WHERE FacilityID IN ($idsList)";
+
+        if ($connect->query($deleteQuery)) {
+            $response['success'] = true;
+            $response['deletedIds'] = $ids;
+        } else {
+            $response['message'] = 'Failed to delete selected facilities. Please try again.';
+        }
+    } else {
+        $response['message'] = 'No facilities selected for deletion.';
+    }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -150,9 +178,15 @@ if (isset($_POST['deletefacility'])) {
                     <h2 class="text-xl text-gray-700 font-bold mb-4">Add Facility Overview</h2>
                     <p>Add information about room facilities to categorize room types, track usage, and manage facility details for efficient organization.</p>
                 </div>
-                <button id="addFacilityBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
-                    <i class="ri-add-line text-xl"></i>
-                </button>
+                <div class="flex gap-2">
+                    <button id="addFacilityBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
+                        <i class="ri-add-line text-xl"></i>
+                    </button>
+                    <button id="bulkDeleteFacilitiesBtn"
+                        class="hidden px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">
+                        Delete Selected
+                    </button>
+                </div>
             </div>
 
             <!-- Facility Type Table -->
@@ -327,6 +361,30 @@ if (isset($_POST['deletefacility'])) {
                     </button>
                 </div>
             </form>
+        </div>
+
+        <!-- Facilities Bulk Delete Confirm Modal -->
+        <div id="facilityBulkDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+            <div class="bg-white max-w-lg p-6 rounded-md shadow-md text-center">
+                <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Bulk Deletion</h2>
+                <p class="text-slate-600 mb-2">
+                    You are about to delete <span id="bulkFacilityDeleteCount" class="font-semibold">0</span> Facilities.
+                </p>
+                <p class="text-sm text-gray-500 mb-4">
+                    This action cannot be undone. All selected Facilities will be permanently removed from the system.
+                </p>
+                <div class="flex justify-end gap-4 select-none">
+                    <div id="bulkFacilityDeleteCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm cursor-pointer">
+                        Cancel
+                    </div>
+                    <button
+                        type="button"
+                        id="bulkFacilityDeleteConfirmBtn"
+                        class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-sm">
+                        Delete
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Add Facility Form -->

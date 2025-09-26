@@ -26,7 +26,11 @@ if (mysqli_num_rows($facilitySelectQuery) > 0) {
 <table class="min-w-full bg-white rounded-lg">
     <thead>
         <tr class="bg-gray-100 text-gray-600 text-sm">
-            <th class="p-3 text-start">ID</th>
+
+            <th class="p-3 text-start">
+                <input type="checkbox" id="selectAllCheckbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                ID
+            </th>
             <th class="p-3 text-start">Type</th>
             <th class="p-3 text-start">Icon</th>
             <th class="p-3 text-start hidden md:table-cell">Additional Charge</th>
@@ -41,7 +45,8 @@ if (mysqli_num_rows($facilitySelectQuery) > 0) {
                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                     <td class="p-3 text-start whitespace-nowrap">
                         <div class="flex items-center gap-2 font-medium text-gray-500">
-                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500"
+                                data-facility-id="<?= htmlspecialchars($facility['FacilityID']) ?>">
                             <span><?= htmlspecialchars($facility['FacilityID']) ?></span>
                         </div>
                     </td>

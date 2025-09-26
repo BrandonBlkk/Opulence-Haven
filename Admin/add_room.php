@@ -97,11 +97,9 @@ if (isset($_POST['editroom'])) {
     exit();
 }
 
-// Delete Product Type
+// Delete Room
 if (isset($_POST['deleteroom'])) {
     $roomId = mysqli_real_escape_string($connect, $_POST['roomid']);
-
-    // Build query based on action
     $deleteQuery = "DELETE FROM roomtb WHERE RoomID = '$roomId'";
 
     if ($connect->query($deleteQuery)) {
@@ -110,6 +108,35 @@ if (isset($_POST['deleteroom'])) {
     } else {
         $response['success'] = false;
         $response['message'] = 'Failed to delete room. Please try again.';
+    }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
+}
+
+// Bulk Delete Rooms
+if (isset($_POST['bulkdeleterooms'])) {
+    $roomIds = $_POST['roomids'] ?? [];
+    $response = ['success' => false];
+
+    if (!empty($roomIds)) {
+        // Escape each ID to prevent SQL injection
+        $escapedIds = array_map(function ($id) use ($connect) {
+            return "'" . mysqli_real_escape_string($connect, $id) . "'";
+        }, $roomIds);
+
+        $idsList = implode(',', $escapedIds);
+        $deleteQuery = "DELETE FROM roomtb WHERE RoomID IN ($idsList)";
+
+        if ($connect->query($deleteQuery)) {
+            $response['success'] = true;
+            $response['deletedIds'] = $roomIds;
+        } else {
+            $response['message'] = 'Failed to delete selected rooms. Please try again.';
+        }
+    } else {
+        $response['message'] = 'No rooms selected for deletion.';
     }
 
     header('Content-Type: application/json');
@@ -142,9 +169,14 @@ if (isset($_POST['deleteroom'])) {
                     <h2 class="text-xl text-gray-700 font-bold mb-4">Add Room</h2>
                     <p>Add room details to create new entries, manage availability, and organize rooms for better tracking and efficient management.</p>
                 </div>
-                <button id="addRoomBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
-                    <i class="ri-add-line text-xl"></i>
-                </button>
+                <div class="flex gap-2">
+                    <button id="addRoomBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
+                        <i class="ri-add-line text-xl"></i>
+                    </button>
+                    <button id="bulkDeleteRoomsBtn" class="hidden px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">
+                        Delete Selected
+                    </button>
+                </div>
             </div>
 
             <!-- Room Table -->
@@ -298,6 +330,30 @@ if (isset($_POST['deleteroom'])) {
                     </button>
                 </div>
             </form>
+        </div>
+
+        <!-- Room Bulk Delete Confirm Modal -->
+        <div id="roomBulkDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+            <div class="bg-white max-w-lg p-6 rounded-md shadow-md text-center">
+                <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Bulk Deletion</h2>
+                <p class="text-slate-600 mb-2">
+                    You are about to delete <span id="roomBulkDeleteCount" class="font-semibold">0</span> Rooms.
+                </p>
+                <p class="text-sm text-gray-500 mb-4">
+                    This action cannot be undone. All selected Rooms will be permanently removed from the system.
+                </p>
+                <div class="flex justify-end gap-4 select-none">
+                    <div id="roomBulkDeleteCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm cursor-pointer">
+                        Cancel
+                    </div>
+                    <button
+                        type="button"
+                        id="roomBulkDeleteConfirmBtn"
+                        class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-sm">
+                        Delete
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Add Room Form -->

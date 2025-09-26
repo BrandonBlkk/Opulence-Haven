@@ -42,7 +42,11 @@ if (mysqli_num_rows($supplierSelectQuery) > 0) {
 <table class="min-w-full bg-white rounded-lg">
     <thead>
         <tr class="bg-gray-100 text-gray-600 text-sm">
-            <th class="p-3 text-start">ID</th>
+            <th class="p-3 text-start">
+                <input type="checkbox" id="selectAllSuppliers"
+                    class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                ID
+            </th>
             <th class="p-3 text-start">Name</th>
             <th class="p-3 text-start hidden md:table-cell">Product Supplied</th>
             <th class="p-3 text-start hidden sm:table-cell">Contact</th>
@@ -57,8 +61,10 @@ if (mysqli_num_rows($supplierSelectQuery) > 0) {
                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                     <td class="p-3 text-start whitespace-nowrap">
                         <div class="flex items-center gap-2 font-medium text-gray-500">
-                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
-                            <span><?= htmlspecialchars($supplier['SupplierID']) ?></span>
+                            <input type="checkbox"
+                                class="supplierCheckbox form-checkbox h-3 w-3 border-2 text-amber-500"
+                                value="<?= htmlspecialchars($supplier['SupplierID']) ?>">
+                            <?= htmlspecialchars($supplier['SupplierID']) ?>
                         </div>
                     </td>
                     <td class="p-3">

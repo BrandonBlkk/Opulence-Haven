@@ -9,10 +9,12 @@ if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-$alertMessage = '';
 $addProductImageSuccess = false;
 $updateProductImageSuccess = false;
 $deleteProductImageSuccess = false;
+
+$alertMessage = '';
+$response = ['success' => false, 'message' => '', 'generatedId' => ''];
 
 // Add Product Image
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproductimage'])) {
@@ -21,110 +23,126 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addproductimage'])) {
     $primary = mysqli_real_escape_string($connect, $_POST['primary']);
     $secondary = mysqli_real_escape_string($connect, $_POST['secondary']);
 
-    // Product image upload 
-    $productImage = $_FILES["image"]["name"];
-    $copyFile = "AdminImages/";
-    $fileName = $copyFile . uniqid() . "_" . $productImage;
-    $copy = copy($_FILES["image"]["tmp_name"], $fileName);
+    // Handle file upload
+    if (isset($_FILES["image"]["name"]) && $_FILES["image"]["error"] === 0) {
+        $uploadDir = "AdminImages/";
+        $fileName = uniqid() . "_" . basename($_FILES["image"]["name"]);
+        $filePath = $uploadDir . $fileName;
 
-    if (!$copy) {
-        echo "<p>Cannot upload Product Image.</p>";
-        exit();
-    }
-    $userProductImage = $_FILES["image"]["name"];
-    $copyFile = "../UserImages/";
-    $userFileName = $copyFile . uniqid() . "_" . $userProductImage;
-    $copy = copy($_FILES["image"]["tmp_name"], $userFileName);
+        if (move_uploaded_file($_FILES["image"]["tmp_name"], $filePath)) {
+            $addImageQuery = "INSERT INTO productimagetb (ImageAdminPath, ImageAlt, ProductID, PrimaryImage, SecondaryImage)
+                              VALUES ('$filePath', '$imagealt', '$product', '$primary', '$secondary')";
 
-    if (!$copy) {
-        echo "<p>Cannot upload Product Image.</p>";
-        exit();
-    }
-
-    $addProductImageQuery = "INSERT INTO productimagetb (ImageAdminPath, ImageUserPath, ImageAlt, PrimaryImage, SecondaryImage, ProductID)
-    VALUES ('$fileName', '$userFileName', '$imagealt', '$primary', '$secondary', '$product')";
-
-    if ($connect->query($addProductImageQuery)) {
-        $addProductImageSuccess = true;
+            if ($connect->query($addImageQuery)) {
+                $imageID = $connect->insert_id;
+                $response['success'] = true;
+                $response['message'] = 'A new product image has been successfully added.';
+                $response['generatedId'] = $imageID;
+            } else {
+                $response['message'] = "Failed to add product image. Please try again.";
+            }
+        } else {
+            $response['message'] = "File upload failed.";
+        }
     } else {
-        $alertMessage = "Failed to add product image. Please try again.";
+        $response['message'] = "No image file selected or upload error.";
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Get Product Image Details
-if (isset($_GET['action']) && isset($_GET['id'])) {
+if (isset($_GET['action']) && $_GET['action'] === 'getProductImageDetails' && isset($_GET['id'])) {
     $id = mysqli_real_escape_string($connect, $_GET['id']);
-    $action = $_GET['action'];
+    $query = "SELECT * FROM productimagetb WHERE ImageID = '$id'";
+    $result = $connect->query($query);
 
-    // Build query based on action
-    $query = match ($action) {
-        'getProductImageDetails' => "SELECT * FROM productimagetb WHERE ImageID = '$id'",
-        default => null
-    };
-    if ($query) {
-        $result = $connect->query($query);
+    if ($result && $result->num_rows > 0) {
         $productimage = $result->fetch_assoc();
-
-        if ($productimage) {
-            echo json_encode(['success' => true, 'productimage' => $productimage]);
-        } else {
-            echo json_encode(['success' => false]);
-        }
+        $response['success'] = true;
+        $response['productimage'] = $productimage;
+    } else {
+        $response['success'] = false;
+        $response['message'] = "Product image not found.";
     }
-    exit;
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Update Product Image
 if (isset($_POST['editproductimage'])) {
-    $productImageID = mysqli_real_escape_string($connect, $_POST['productimageid']);
-    $updateImageAlt = mysqli_real_escape_string($connect, $_POST['updateimagealt']);
+    $imageid = mysqli_real_escape_string($connect, $_POST['productimageid']);
+    $updateAlt = mysqli_real_escape_string($connect, $_POST['updateimagealt']);
+    $updateProduct = mysqli_real_escape_string($connect, $_POST['updateproduct']);
     $updatePrimary = mysqli_real_escape_string($connect, $_POST['updateprimary']);
     $updateSecondary = mysqli_real_escape_string($connect, $_POST['updatesecondary']);
-    $updateProduct = mysqli_real_escape_string($connect, $_POST['updateproduct']);
 
-    // Fetch current product image
-    $productImageQuery = "SELECT ImageAdminPath FROM productimagetb WHERE ImageID = '$productImageID'";
-    $productImageRow = $connect->query($productImageQuery)->fetch_assoc();
-    $currentProductImage = $productImageRow['ImageAdminPath'];
+    $updateQuery = "UPDATE productimagetb 
+                    SET ImageAlt = '$updateAlt', ProductID = '$updateProduct', PrimaryImage = '$updatePrimary', SecondaryImage = '$updateSecondary' 
+                    WHERE ImageID = '$imageid'";
 
-    // Simulate $_FILES array for images
-    $imageFile = $_FILES['updateimage'];
-
-    // Change Product Image
-    $result = uploadProductImage($imageFile, $currentProductImage);
-
-    if (isset($result['image'])) {
-        echo $result['image'] . "<br>";
+    if ($connect->query($updateQuery)) {
+        $response['success'] = true;
+        $response['message'] = 'The product image has been successfully updated.';
+        $response['generatedId'] = $imageid;
     } else {
-        $adminImagePath = $result['adminPath'];
-        $userImagePath = $result['userPath'];
-
-        // Update database with both image paths
-        $updateQuery = "UPDATE productimagetb 
-                        SET ImageAdminPath = '$adminImagePath', ImageUserPath = '$userImagePath', ImageAlt = '$updateImageAlt',
-                            PrimaryImage = '$updatePrimary', SecondaryImage = '$updateSecondary', ProductID = '$updateProduct'
-                        WHERE ImageID = '$productImageID'";
-
-        if ($connect->query($updateQuery)) {
-            $updateProductImageSuccess = true;
-        } else {
-            $alertMessage = "Failed to update product image. Please try again.";
-        }
+        $response['message'] = "Failed to update product image. Please try again.";
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 
 // Delete Product Image
 if (isset($_POST['deleteproductimage'])) {
-    $productImageId = mysqli_real_escape_string($connect, $_POST['productimageid']);
-
-    // Build query based on action
-    $deleteQuery = "DELETE FROM productimagetb WHERE ImageID = '$productImageId'";
+    $imageid = mysqli_real_escape_string($connect, $_POST['productimageid']);
+    $deleteQuery = "DELETE FROM productimagetb WHERE ImageID = '$imageid'";
 
     if ($connect->query($deleteQuery)) {
-        $deleteProductImageSuccess = true;
+        $response['success'] = true;
+        $response['generatedId'] = $imageid;
     } else {
-        $alertMessage = "Failed to delete product image. Please try again.";
+        $response['success'] = false;
+        $response['message'] = 'Failed to delete product image. Please try again.';
     }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
+}
+
+// Bulk Delete Product Images
+if (isset($_POST['bulkdeleteproductimages'])) {
+    $ids = $_POST['productimageids'] ?? [];
+
+    $response = ['success' => false];
+
+    if (!empty($ids)) {
+        $ids = array_map(function ($id) use ($connect) {
+            return "'" . mysqli_real_escape_string($connect, $id) . "'";
+        }, $ids);
+
+        $idsList = implode(',', $ids);
+        $deleteQuery = "DELETE FROM productimagetb WHERE ImageID IN ($idsList)";
+
+        if ($connect->query($deleteQuery)) {
+            $response['success'] = true;
+            $response['deletedIds'] = $ids;
+        } else {
+            $response['message'] = 'Failed to delete selected product images. Please try again.';
+        }
+    } else {
+        $response['message'] = 'No product images selected for deletion.';
+    }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+    exit();
 }
 ?>
 
@@ -152,9 +170,15 @@ if (isset($_POST['deleteproductimage'])) {
                     <h2 class="text-xl text-gray-700 font-bold mb-4">Add Product Image Overview</h2>
                     <p>Add information about product images to showcase items, enhance visual appeal, and provide a better shopping experience for customers.</p>
                 </div>
-                <button id="addProductImageBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
-                    <i class="ri-add-line text-xl"></i>
-                </button>
+                <div class="flex gap-2">
+                    <button id="addProductImageBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
+                        <i class="ri-add-line text-xl"></i>
+                    </button>
+                    <button id="bulkDeleteProductImageBtn"
+                        class="hidden px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">
+                        Delete Selected
+                    </button>
+                </div>
             </div>
 
             <!-- Product Image Table -->
@@ -196,7 +220,11 @@ if (isset($_POST['deleteproductimage'])) {
                     <table class="min-w-full bg-white rounded-lg">
                         <thead>
                             <tr class="bg-gray-100 text-gray-600 text-sm">
-                                <th class="p-3 text-start">No</th>
+                                <th class="p-3 text-start">
+                                    <input type="checkbox" id="selectAllProductImages"
+                                        class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                                    No
+                                </th>
                                 <th class="p-3 text-start hidden sm:table-cell">Product</th>
                                 <th class="p-3 text-start">Image Path</th>
                                 <th class="p-3 text-start hidden sm:table-cell">Image Alt</th>
@@ -211,7 +239,9 @@ if (isset($_POST['deleteproductimage'])) {
                                 <tr class="border-b border-gray-200 hover:bg-gray-50">
                                     <td class="p-3 text-start whitespace-nowrap">
                                         <div class="flex items-center gap-2 font-medium text-gray-500">
-                                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                                            <input type="checkbox"
+                                                class="productImageCheckbox form-checkbox h-3 w-3 border-2 text-amber-500"
+                                                value="<?= htmlspecialchars($productImage['ImageID']) ?>">
                                             <span><?= $count ?></span>
                                         </div>
                                     </td>
@@ -382,7 +412,7 @@ if (isset($_POST['deleteproductimage'])) {
             </div>
         </div>
 
-        <!-- Product Type Delete Modal -->
+        <!-- Product Image Delete Modal -->
         <div id="productImageConfirmDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
             <form class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="productImageDeleteForm">
                 <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Product Image Deletion</h2>
@@ -409,6 +439,30 @@ if (isset($_POST['deleteproductimage'])) {
                     </button>
                 </div>
             </form>
+        </div>
+
+        <!-- Product Images Bulk Delete Confirm Modal -->
+        <div id="productImageBulkDeleteModal"
+            class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
+            <div class="bg-white max-w-lg p-6 rounded-md shadow-md text-center">
+                <h2 class="text-xl font-semibold text-red-600 mb-4">Confirm Bulk Deletion</h2>
+                <p class="text-slate-600 mb-2">
+                    You are about to delete <span id="bulkDeleteProductImageCount" class="font-semibold">0</span> Product Images.
+                </p>
+                <p class="text-sm text-gray-500 mb-4">
+                    This action cannot be undone. All selected Product Images will be permanently removed from the system.
+                </p>
+                <div class="flex justify-end gap-4 select-none">
+                    <div id="bulkDeleteProductImageCancelBtn"
+                        class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm cursor-pointer">
+                        Cancel
+                    </div>
+                    <button type="button" id="bulkDeleteProductImageConfirmBtn"
+                        class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-sm">
+                        Delete
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Add Product Image Form -->

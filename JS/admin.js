@@ -371,8 +371,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!validateSupplierForm()) return;
 
-            loader.style.display = 'flex';
-
             const formData = new FormData(supplierForm);
             formData.append('addsupplier', true);
 
@@ -387,21 +385,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 return res.json();
             })
             .then(data => {
-                loader.style.display = 'none';
                 showAlert(data.message, !data.success);
 
-                if (data.success) {
-                    // Clear form fields
-                    document.getElementById('supplierNameInput').value = '';
-                    document.getElementById('companyNameInput').value = '';
-                    document.getElementById('emailInput').value = '';
-                    document.getElementById('contactNumberInput').value = '';
-                    document.getElementById('addressInput').value = '';
-                    document.getElementById('cityInput').value = '';
-                    document.getElementById('stateInput').value = '';
-                    document.getElementById('postalCodeInput').value = '';
-                    document.getElementById('countryInput').value = '';
-                    
+                if (data.success) {                 
                     supplierForm.reset();
                     closeModal();
                     
@@ -410,7 +396,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             })
             .catch(err => {
-                loader.style.display = 'none';
                 showAlert("Something went wrong. Please try again.", true);
                 console.error(err);
             });
@@ -447,9 +432,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (!validateUpdateSupplier()) return;
 
-                const loader = document.getElementById('loader');
-                loader.style.display = 'flex';
-
                 const formData = new FormData(updateSupplierForm);
                 formData.append('editsupplier', true);
 
@@ -464,20 +446,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     return res.json();
                 })
                 .then(data => {
-                    loader.style.display = 'none';
                     showAlert(data.message, !data.success);
 
                     if (data.success) {
-                        // Clear form and close modal
-                        document.getElementById('updateSupplierNameInput').value = '';
-                        document.getElementById('updateCompanyNameInput').value = '';
-                        document.getElementById('updateEmailInput').value = '';
-                        document.getElementById('updateContactNumberInput').value = '';
-                        document.getElementById('updateAddressInput').value = '';
-                        document.getElementById('updateCityInput').value = '';
-                        document.getElementById('updateStateInput').value = '';
-                        document.getElementById('updatePostalCodeInput').value = '';
-                        document.getElementById('updateCountryInput').value = '';
                         updateSupplierForm.reset();
                         
                         updateSupplierModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
@@ -489,7 +460,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 })
                 .catch(err => {
-                    loader.style.display = 'none';
                     showAlert("Something went wrong. Please try again.", true);
                     console.error(err);
                 });
@@ -543,6 +513,96 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             });
         }
+    }
+
+    // Bulk Delete Suppliers
+    const supplierBulkDeleteBtn = document.getElementById('supplierBulkDeleteBtn');
+    const selectAllSuppliers = document.getElementById('selectAllSuppliers');
+
+    // Modal
+    const supplierBulkDeleteModal = document.getElementById('supplierBulkDeleteModal');
+    const supplierBulkDeleteCancelBtn = document.getElementById('supplierBulkDeleteCancelBtn');
+    const supplierBulkDeleteConfirmBtn = document.getElementById('supplierBulkDeleteConfirmBtn');
+    const supplierBulkDeleteCount = document.getElementById('supplierBulkDeleteCount');
+
+    // Select all suppliers
+    if (selectAllSuppliers) {
+        selectAllSuppliers.addEventListener('change', function () {
+            const checkboxes = document.querySelectorAll('.supplierCheckbox');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+            toggleSupplierBulkDeleteBtn();
+        });
+    }
+
+    // Toggle bulk delete button
+    const toggleSupplierBulkDeleteBtn = () => {
+        const selected = document.querySelectorAll('.supplierCheckbox:checked');
+        if (selected.length > 0) {
+            supplierBulkDeleteBtn.classList.remove('hidden');
+            supplierBulkDeleteBtn.textContent = `Delete Selected (${selected.length})`;
+        } else {
+            supplierBulkDeleteBtn.classList.add('hidden');
+        }
+    };
+
+    // Watch supplier checkboxes
+    document.addEventListener('change', (e) => {
+        if (e.target.classList.contains('supplierCheckbox')) {
+            toggleSupplierBulkDeleteBtn();
+        }
+    });
+
+    // Bulk delete button click
+    if (supplierBulkDeleteBtn) {
+        supplierBulkDeleteBtn.addEventListener('click', () => {
+            const selectedIds = Array.from(document.querySelectorAll('.supplierCheckbox:checked'))
+                .map(cb => cb.value);
+
+            if (selectedIds.length === 0) return;
+
+            supplierBulkDeleteCount.textContent = selectedIds.length;
+            supplierBulkDeleteModal.classList.remove("opacity-0", "invisible", "-translate-y-5");
+            supplierBulkDeleteModal.classList.add("opacity-100", "translate-y-0");
+            darkOverlay2.classList.remove("opacity-0", "invisible");
+            darkOverlay2.classList.add("opacity-100");
+
+            // Cancel
+            supplierBulkDeleteCancelBtn.addEventListener('click', () => {
+                supplierBulkDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+                darkOverlay2.classList.add("opacity-0", "invisible");
+                darkOverlay2.classList.remove("opacity-100");
+            });
+
+            // Confirm
+            supplierBulkDeleteConfirmBtn.onclick = () => {
+                const formData = new FormData();
+                formData.append('bulkdeletesuppliers', true);
+                selectedIds.forEach(id => formData.append('supplierids[]', id));
+
+                fetch('../Admin/add_supplier.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert("Selected suppliers deleted successfully.");
+                        fetchAndRenderSuppliers();
+                    } else {
+                        showAlert(data.message || "Failed to delete suppliers.", true);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showAlert("An error occurred.", true);
+                })
+                .finally(() => {
+                    supplierBulkDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+                    darkOverlay2.classList.add("opacity-0", "invisible");
+                    darkOverlay2.classList.remove("opacity-100");
+                });
+            };
+        });
     }
 
     // Initialize existing rows on page load and update product type names
@@ -1155,8 +1215,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!validateProductForm()) return;
 
-            loader.style.display = 'flex';
-
             const formData = new FormData(productForm);
             formData.append('addproduct', true);
 
@@ -1171,7 +1229,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 return res.json();
             })
             .then(data => {
-                loader.style.display = 'none';
                 showAlert(data.message, !data.success);
 
                 if (data.success) {
@@ -1184,7 +1241,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             })
             .catch(err => {
-                loader.style.display = 'none';
                 showAlert("Something went wrong. Please try again.", true);
                 console.error(err);
             });
@@ -1222,9 +1278,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (!validateProductUpdateForm()) return;
 
-                const loader = document.getElementById('loader');
-                loader.style.display = 'flex';
-
                 const formData = new FormData(updateProductForm);
                 formData.append('editproduct', true);
 
@@ -1239,7 +1292,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     return res.json();
                 })
                 .then(data => {
-                    loader.style.display = 'none';
                     showAlert(data.message, !data.success);
 
                     if (data.success) {
@@ -1256,7 +1308,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 })
                 .catch(err => {
-                    loader.style.display = 'none';
                     showAlert("Something went wrong. Please try again.", true);
                     console.error(err);
                 });
@@ -1310,6 +1361,99 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             });
         }
+    }
+
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+
+    const bulkDeleteModal = document.getElementById('productBulkDeleteModal');
+    const bulkDeleteCancelBtn = document.getElementById('bulkDeleteCancelBtn');
+    const bulkDeleteConfirmBtn = document.getElementById('bulkDeleteConfirmBtn');
+    const bulkDeleteCount = document.getElementById('bulkDeleteCount');
+
+    // Select all checkbox
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function () {
+            document.querySelectorAll('.rowCheckbox')
+                .forEach(cb => cb.checked = this.checked);
+            toggleBulkDeleteBtn();
+        });
+    }
+
+    // Toggle bulk delete button
+    const toggleBulkDeleteBtn = () => {
+        const selected = document.querySelectorAll('.rowCheckbox:checked');
+        if (selected.length > 0) {
+            bulkDeleteBtn.classList.remove('hidden');
+            bulkDeleteBtn.textContent = `Delete Selected (${selected.length})`;
+        } else {
+            bulkDeleteBtn.classList.add('hidden');
+            bulkDeleteBtn.textContent = "Delete Selected";
+        }
+    };
+
+    document.addEventListener('change', (e) => {
+        if (e.target.classList.contains('rowCheckbox')) {
+            toggleBulkDeleteBtn();
+        }
+    });
+
+    // Bulk delete button click
+    if (bulkDeleteBtn) {
+        bulkDeleteBtn.addEventListener('click', () => {
+            const selectedIds = Array.from(document.querySelectorAll('.rowCheckbox:checked'))
+                .map(cb => cb.value);
+
+            if (selectedIds.length === 0) {
+                showAlert("No products selected.", true);
+                return;
+            }
+
+            bulkDeleteCount.textContent = selectedIds.length;
+            bulkDeleteModal.classList.remove("opacity-0", "invisible", "-translate-y-5");
+            bulkDeleteModal.classList.add("opacity-100", "translate-y-0");
+            darkOverlay2.classList.remove("opacity-0", "invisible");
+            darkOverlay2.classList.add("opacity-100");
+
+            bulkDeleteCancelBtn.addEventListener('click', () => {
+                bulkDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+                bulkDeleteModal.classList.remove("opacity-100", "translate-y-0");
+                darkOverlay2.classList.add("opacity-0", "invisible");
+                darkOverlay2.classList.remove("opacity-100");
+            });
+
+            bulkDeleteConfirmBtn.onclick = () => {
+                const formData = new FormData();
+                formData.append('bulkdeleteproducts', true);
+                selectedIds.forEach(id => formData.append('productids[]', id));
+
+                fetch('add_product.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        fetchAndRenderProducts();
+                        showAlert("Selected products deleted successfully.");
+                        bulkDeleteBtn.classList.add('hidden');
+                        selectAllCheckbox.checked = false;
+                    } else {
+                        showAlert(data.message || "Failed to delete selected products.", true);
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    showAlert("An error occurred. Please try again.", true);
+                })
+                .finally(() => {
+                    bulkDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+                    bulkDeleteModal.classList.remove("opacity-100", "translate-y-0");
+                    darkOverlay2.classList.add("opacity-0", "invisible");
+                    darkOverlay2.classList.remove("opacity-100");
+                });
+            };
+        });
     }
 
     // Initialize existing rows on page load
@@ -1545,11 +1689,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 showAlert(data.message, !data.success);
 
                 if (data.success) {
-                    document.getElementById('roomTypeInput').value = '';
-                    document.getElementById('roomTypeDescriptionInput').value = '';
-                    document.getElementById('roomCapacityInput').value = '';
-                    document.getElementById('roomPriceInput').value = '';
-                    document.getElementById('roomQuantityInput').value = '';
                     roomTypeForm.reset();
                     closeModal();
                     fetchAndRenderRoomTypes();
@@ -1619,6 +1758,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         updateRoomTypeModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
                         darkOverlay2.classList.add('opacity-0', 'invisible');
                         darkOverlay2.classList.remove('opacity-100');
+                        updateRoomTypeForm.reset();
                         fetchAndRenderRoomTypes();
                     }
                 })
@@ -1674,6 +1814,106 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             });
         }
+    }
+
+    // Bulk Delete Room Types
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+
+    // Modal elements
+    const bulkDeleteModal = document.getElementById('roomTypeBulkDeleteModal');
+    const bulkDeleteCancelBtn = document.getElementById('bulkDeleteCancelBtn');
+    const bulkDeleteConfirmBtn = document.getElementById('bulkDeleteConfirmBtn');
+    const bulkDeleteCount = document.getElementById('bulkDeleteCount');
+
+    // Handle select all checkbox
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function () {
+            const rowCheckboxes = document.querySelectorAll('.rowCheckbox');
+            rowCheckboxes.forEach(cb => cb.checked = this.checked);
+            toggleBulkDeleteBtn();
+        });
+    }
+
+    // Toggle bulk delete button visibility
+    const toggleBulkDeleteBtn = () => {
+        const selected = document.querySelectorAll('.rowCheckbox:checked');
+        if (selected.length > 0) {
+            bulkDeleteBtn.classList.remove('hidden');
+            bulkDeleteBtn.textContent = `Delete Selected (${selected.length})`;
+        } else {
+            bulkDeleteBtn.classList.add('hidden');
+            bulkDeleteBtn.textContent = "Delete Selected";
+        }
+    };
+
+    // Watch row checkboxes
+    document.addEventListener('change', (e) => {
+        if (e.target.classList.contains('rowCheckbox')) {
+            toggleBulkDeleteBtn();
+        }
+    });
+
+    // Handle bulk delete button
+    if (bulkDeleteBtn) {
+        bulkDeleteBtn.addEventListener('click', () => {
+            const selectedIds = Array.from(document.querySelectorAll('.rowCheckbox:checked'))
+                .map(cb => cb.value);
+
+            if (selectedIds.length === 0) {
+                showAlert("No room types selected.", true);
+                return;
+            }
+
+            // Show confirm modal
+            bulkDeleteCount.textContent = selectedIds.length;
+            bulkDeleteModal.classList.remove("opacity-0", "invisible", "-translate-y-5");
+            bulkDeleteModal.classList.add("opacity-100", "translate-y-0");
+            darkOverlay2.classList.remove("opacity-0", "invisible");
+            darkOverlay2.classList.add("opacity-100");
+
+            // Cancel button closes modal
+            bulkDeleteCancelBtn.addEventListener('click', () => {
+                bulkDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+                bulkDeleteModal.classList.remove("opacity-100", "translate-y-0");
+                darkOverlay2.classList.add("opacity-0", "invisible");
+                darkOverlay2.classList.remove("opacity-100");
+            });
+
+            // Confirm delete
+            bulkDeleteConfirmBtn.onclick = () => {
+                const formData = new FormData();
+                formData.append('bulkdeleteroomtypes', true);
+                selectedIds.forEach(id => formData.append('roomtypeids[]', id));
+
+                fetch('../Admin/add_roomtype.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        fetchAndRenderRoomTypes();
+                        showAlert("Selected room types deleted successfully.");
+                        bulkDeleteBtn.classList.add('hidden');
+                        selectAllCheckbox.checked = false;
+                    } else {
+                        showAlert(data.message || "Failed to delete selected room types.", true);
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    showAlert("An error occurred. Please try again.", true);
+                })
+                .finally(() => {
+                    // Close modal after action
+                    bulkDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+                    bulkDeleteModal.classList.remove("opacity-100", "translate-y-0");
+                    darkOverlay2.classList.add("opacity-0", "invisible");
+                    darkOverlay2.classList.remove("opacity-100");
+                });
+            };
+        });
     }
 
     // Initialize existing rows on page load
@@ -1855,8 +2095,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!validateRoomForm()) return;
 
-            loader.style.display = 'flex';
-
             const formData = new FormData(roomForm);
             formData.append('addroom', true);
 
@@ -1866,7 +2104,6 @@ document.addEventListener("DOMContentLoaded", () => {
             })
             .then(res => res.json())
             .then(data => {
-                loader.style.display = 'none';
                 showAlert(data.message, !data.success);
 
                 if (data.success) {
@@ -1877,7 +2114,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             })
             .catch(err => {
-                loader.style.display = 'none';
                 showAlert("Something went wrong. Please try again.", true);
                 console.error(err);
             });
@@ -1906,9 +2142,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (!validateRoomUpdateForm()) return;
 
-                const loader = document.getElementById('loader');
-                loader.style.display = 'flex';
-
                 const formData = new FormData(updateRoomForm);
                 formData.append('editroom', true);
                 formData.append('roompage', currentPage);
@@ -1919,7 +2152,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 })
                 .then(res => res.json())
                 .then(data => {
-                    loader.style.display = 'none';
                     showAlert(data.message, !data.success);
 
                     if (data.success) {
@@ -1930,7 +2162,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 })
                 .catch(err => {
-                    loader.style.display = 'none';
                     showAlert("Something went wrong. Please try again.", true);
                     console.error(err);
                 });
@@ -1977,6 +2208,103 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             });
         }
+    }
+
+    // Bulk Delete Rooms
+    const bulkDeleteRoomsBtn = document.getElementById('bulkDeleteRoomsBtn');
+    const selectAllRooms = document.getElementById('selectAllRooms');
+    const roomBulkDeleteModal = document.getElementById('roomBulkDeleteModal');
+    const roomBulkDeleteCancelBtn = document.getElementById('roomBulkDeleteCancelBtn');
+    const roomBulkDeleteConfirmBtn = document.getElementById('roomBulkDeleteConfirmBtn');
+    const roomBulkDeleteCount = document.getElementById('roomBulkDeleteCount');
+
+    // Handle select all checkbox
+    if (selectAllRooms) {
+        selectAllRooms.addEventListener('change', function () {
+            const rowCheckboxes = document.querySelectorAll('.roomCheckbox');
+            rowCheckboxes.forEach(cb => cb.checked = this.checked);
+            toggleBulkDeleteRoomsBtn();
+        });
+    }
+
+    // Toggle bulk delete button
+    const toggleBulkDeleteRoomsBtn = () => {
+        const selected = document.querySelectorAll('.roomCheckbox:checked');
+        if (selected.length > 0) {
+            bulkDeleteRoomsBtn.classList.remove('hidden');
+            bulkDeleteRoomsBtn.textContent = `Delete Selected (${selected.length})`;
+        } else {
+            bulkDeleteRoomsBtn.classList.add('hidden');
+            bulkDeleteRoomsBtn.textContent = "Delete Selected";
+        }
+    };
+
+    // Watch row checkboxes
+    document.addEventListener('change', (e) => {
+        if (e.target.classList.contains('roomCheckbox')) {
+            toggleBulkDeleteRoomsBtn();
+        }
+    });
+
+    // Handle bulk delete button
+    if (bulkDeleteRoomsBtn) {
+        bulkDeleteRoomsBtn.addEventListener('click', () => {
+            const selectedIds = Array.from(document.querySelectorAll('.roomCheckbox:checked'))
+                .map(cb => cb.value);
+
+            if (selectedIds.length === 0) {
+                showAlert("No rooms selected.", true);
+                return;
+            }
+
+            // Show modal
+            roomBulkDeleteCount.textContent = selectedIds.length;
+            roomBulkDeleteModal.classList.remove("opacity-0", "invisible", "-translate-y-5");
+            roomBulkDeleteModal.classList.add("opacity-100", "translate-y-0");
+            darkOverlay2.classList.remove("opacity-0", "invisible");
+            darkOverlay2.classList.add("opacity-100");
+
+            // Cancel
+            roomBulkDeleteCancelBtn.addEventListener('click', () => {
+                roomBulkDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+                roomBulkDeleteModal.classList.remove("opacity-100", "translate-y-0");
+                darkOverlay2.classList.add("opacity-0", "invisible");
+                darkOverlay2.classList.remove("opacity-100");
+            });
+
+            // Confirm delete
+            roomBulkDeleteConfirmBtn.onclick = () => {
+                const formData = new FormData();
+                formData.append('bulkdeleterooms', true);
+                selectedIds.forEach(id => formData.append('roomids[]', id));
+
+                fetch('../Admin/add_room.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            fetchAndRenderRooms();
+                            showAlert("Selected rooms deleted successfully.");
+                            bulkDeleteRoomsBtn.classList.add('hidden');
+                            selectAllRooms.checked = false;
+                        } else {
+                            showAlert(data.message || "Failed to delete selected rooms.", true);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error:', err);
+                        showAlert("An error occurred. Please try again.", true);
+                    })
+                    .finally(() => {
+                        roomBulkDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+                        roomBulkDeleteModal.classList.remove("opacity-100", "translate-y-0");
+                        darkOverlay2.classList.add("opacity-0", "invisible");
+                        darkOverlay2.classList.remove("opacity-100");
+                    });
+            };
+        });
     }
 
     // Initialize existing rows on page load
@@ -2384,6 +2712,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initializeExistingRows();
 });
 
+// Facility Modal
 document.addEventListener("DOMContentLoaded", () => {
     // Modal Elements
     const addFacilityModal = document.getElementById('addFacilityModal');
@@ -2681,6 +3010,105 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             });
         }
+    }
+
+    // Bulk Delete Facilities
+    const bulkFacilityDeleteBtn = document.getElementById('bulkDeleteFacilitiesBtn');
+    const selectAllFacilityCheckbox = document.getElementById('selectAllCheckbox');
+
+    const facilityBulkDeleteModal = document.getElementById('facilityBulkDeleteModal');
+    const bulkFacilityDeleteCancelBtn = document.getElementById('bulkFacilityDeleteCancelBtn');
+    const bulkFacilityDeleteConfirmBtn = document.getElementById('bulkFacilityDeleteConfirmBtn');
+    const bulkFacilityDeleteCount = document.getElementById('bulkFacilityDeleteCount');
+
+    // Handle select all checkbox
+    if (selectAllFacilityCheckbox) {
+        selectAllFacilityCheckbox.addEventListener('change', function () {
+            const rowCheckboxes = document.querySelectorAll('tbody tr input[type="checkbox"]');
+            rowCheckboxes.forEach(cb => cb.checked = this.checked);
+            toggleBulkFacilityDeleteBtn();
+        });
+    }
+
+    // Toggle bulk delete button visibility
+    const toggleBulkFacilityDeleteBtn = () => {
+        const selected = document.querySelectorAll('tbody tr input[type="checkbox"]:checked');
+        if (selected.length > 0) {
+            bulkFacilityDeleteBtn.classList.remove('hidden');
+            bulkFacilityDeleteBtn.textContent = `Delete Selected (${selected.length})`;
+        } else {
+            bulkFacilityDeleteBtn.classList.add('hidden');
+            bulkFacilityDeleteBtn.textContent = "Delete Selected";
+        }
+    };
+
+    // Watch row checkboxes
+    document.addEventListener('change', (e) => {
+        if (e.target.closest('tbody tr') && e.target.type === 'checkbox') {
+            toggleBulkFacilityDeleteBtn();
+        }
+    });
+
+    // Bulk delete button click
+    if (bulkFacilityDeleteBtn) {
+        bulkFacilityDeleteBtn.addEventListener('click', () => {
+            const selectedIds = Array.from(document.querySelectorAll('tbody tr input[type="checkbox"]:checked'))
+                .map(cb => cb.getAttribute('data-facility-id'))  // get directly from checkbox
+
+            if (selectedIds.length === 0) {
+                showAlert("No facilities selected.", true);
+                return;
+            }
+
+            // Show confirm modal
+            bulkFacilityDeleteCount.textContent = selectedIds.length;
+            facilityBulkDeleteModal.classList.remove("opacity-0", "invisible", "-translate-y-5");
+            facilityBulkDeleteModal.classList.add("opacity-100", "translate-y-0");
+            darkOverlay2.classList.remove("opacity-0", "invisible");
+            darkOverlay2.classList.add("opacity-100");
+
+            // Cancel button closes modal
+            bulkFacilityDeleteCancelBtn.addEventListener('click', () => {
+                facilityBulkDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+                facilityBulkDeleteModal.classList.remove("opacity-100", "translate-y-0");
+                darkOverlay2.classList.add("opacity-0", "invisible");
+                darkOverlay2.classList.remove("opacity-100");
+            });
+
+            // Confirm delete
+            bulkFacilityDeleteConfirmBtn.onclick = () => {
+                const formData = new FormData();
+                formData.append('bulkdeletefacilities', true);
+                selectedIds.forEach(id => formData.append('facilityids[]', id));
+
+                fetch('../Admin/add_facility.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        fetchAndRenderFacilities();
+                        showAlert("Selected facilities deleted successfully.");
+                        bulkFacilityDeleteBtn.classList.add('hidden');
+                        if (selectAllFacilityCheckbox) selectAllFacilityCheckbox.checked = false;
+                    } else {
+                        showAlert(data.message || "Failed to delete selected facilities.", true);
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    showAlert("An error occurred. Please try again.", true);
+                })
+                .finally(() => {
+                    // Close modal after action
+                    facilityBulkDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+                    facilityBulkDeleteModal.classList.remove("opacity-100", "translate-y-0");
+                    darkOverlay2.classList.add("opacity-0", "invisible");
+                    darkOverlay2.classList.remove("opacity-100");
+                });
+            };
+        });
     }
 });
 
@@ -3098,194 +3526,269 @@ document.addEventListener("DOMContentLoaded", () => {
     const addProductImageModal = document.getElementById('addProductImageModal');
     const addProductImageBtn = document.getElementById('addProductImageBtn');
     const addProductImageCancelBtn = document.getElementById('addProductImageCancelBtn');
-    const loader = document.getElementById('loader');
-    const alertMessage = document.getElementById('alertMessage').value;
-    const addProductImageSuccess = document.getElementById('addProductImageSuccess').value === 'true';
+    const updateProductImageModal = document.getElementById('updateProductImageModal');
+    const updateProductImageModalCancelBtn = document.getElementById('updateProductImageModalCancelBtn');
+    const productImageConfirmDeleteModal = document.getElementById('productImageConfirmDeleteModal');
+    const productImageCancelDeleteBtn = document.getElementById('productImageCancelDeleteBtn');
 
-    if (addProductImageModal && addProductImageBtn && addProductImageCancelBtn) {
-        // Show modal
-        addProductImageBtn.addEventListener('click', () => {
+    // Add Product Image Modal
+    if (addProductImageBtn && addProductImageModal) {
+        addProductImageBtn.addEventListener("click", () => {
             darkOverlay2.classList.remove('opacity-0', 'invisible');
             darkOverlay2.classList.add('opacity-100');
             addProductImageModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
         });
 
-        // Cancel button functionality
-        addProductImageCancelBtn.addEventListener('click', () => {
+        addProductImageCancelBtn.addEventListener("click", () => {
             addProductImageModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
             darkOverlay2.classList.add('opacity-0', 'invisible');
             darkOverlay2.classList.remove('opacity-100');
-
-            // Clear error messages
-            const errors = ['productImageAltError'];
-            errors.forEach(error => {
-                hideError(document.getElementById(error));
-            });
-
-            productImageForm.reset();
+            document.getElementById("productImageForm").reset();
         });
-    }
 
-    if (addProductImageSuccess) {
-        loader.style.display = 'flex';
-
-        // Show Alert
-        setTimeout(() => {
-            loader.style.display = 'none';
-            showAlert('A new product image has been successfully added.');
-            setTimeout(() => {
-                window.location.href = 'product_image.php';
-            }, 5000);
-        }, 1000);
-    } else if (alertMessage) {
-        // Show Alert
-        showAlert(alertMessage);
-    }
-
-    // Add keyup event listeners for real-time validation
-    document.getElementById("productImageAltInput").addEventListener("keyup", validateProductImageAlt);
-    const productImageForm = document.getElementById("productImageForm");
-    if (productImageForm) {
+        const productImageForm = document.getElementById("productImageForm");
         productImageForm.addEventListener("submit", (e) => {
-            if (!validateProductImageForm()) {
-                e.preventDefault();
-            }
+            e.preventDefault();
+            const formData = new FormData(productImageForm);
+            formData.append('addproductimage', true);
+
+            fetch('../Admin/product_image.php', { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    showAlert(data.message, !data.success);
+                    if (data.success) {
+                        productImageForm.reset();
+                        addProductImageModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                        darkOverlay2.classList.add('opacity-0', 'invisible');
+                        darkOverlay2.classList.remove('opacity-100');
+                        fetchAndRenderProductImages();
+                    }
+                });
         });
     }
-});
 
-// Product Image Details Modal
-document.addEventListener('DOMContentLoaded', () => {
-    const updateProductImageModal = document.getElementById('updateProductImageModal');
-    const updateProductImageModalCancelBtn = document.getElementById('updateProductImageModalCancelBtn');
-    const alertMessage = document.getElementById('alertMessage').value;
-    const updateProductImageSuccess = document.getElementById('updateProductImageSuccess').value === 'true';
+    // Update Product Image Modal
+    if (updateProductImageModal && updateProductImageModalCancelBtn) {
+        updateProductImageModalCancelBtn.addEventListener("click", () => {
+            updateProductImageModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
 
-    // Get all details buttons
-    const detailsBtns = document.querySelectorAll('.details-btn');
+        const updateProductImageForm = document.getElementById("updateProductImageForm");
+        updateProductImageForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const formData = new FormData(updateProductImageForm);
+            formData.append('editproductimage', true);
 
-    if (updateProductImageModal && updateProductImageModalCancelBtn && detailsBtns) {
-        // Add click event to each button
-        detailsBtns.forEach(btn => {
-            btn.addEventListener('click', function () {
-                const ImageId = this.getAttribute('data-productimage-id');
-                darkOverlay2.classList.remove('opacity-0', 'invisible');
-                darkOverlay2.classList.add('opacity-100');
+            fetch('../Admin/product_image.php', { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    showAlert(data.message, !data.success);
+                    if (data.success) {
+                        updateProductImageModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                        darkOverlay2.classList.add('opacity-0', 'invisible');
+                        darkOverlay2.classList.remove('opacity-100');
+                        fetchAndRenderProductImages();
+                    }
+                });
+        });
+    }
 
-                // Fetch product  details
+    // Delete Product Image Modal
+    if (productImageConfirmDeleteModal && productImageCancelDeleteBtn) {
+        productImageCancelDeleteBtn.addEventListener("click", () => {
+            productImageConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+            darkOverlay2.classList.add('opacity-0', 'invisible');
+            darkOverlay2.classList.remove('opacity-100');
+        });
+
+        const productImageDeleteForm = document.getElementById("productImageDeleteForm");
+        productImageDeleteForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const formData = new FormData(productImageDeleteForm);
+            formData.append('deleteproductimage', true);
+
+            fetch('../Admin/product_image.php', { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        productImageConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                        darkOverlay2.classList.add('opacity-0', 'invisible');
+                        darkOverlay2.classList.remove('opacity-100');
+                        fetchAndRenderProductImages();
+                        showAlert('The product image has been successfully deleted.');
+                    } else {
+                        showAlert(data.message, true);
+                    }
+                });
+        });
+    }
+
+    // Bind Action Buttons
+    function bindActionButtons() {
+        document.addEventListener('click', function (e) {
+            // Update button click
+            const detailsBtn = e.target.closest('.details-btn');
+            if (detailsBtn && updateProductImageModal) {
+                const ImageId = detailsBtn.getAttribute('data-productimage-id');
                 fetch(`../Admin/product_image.php?action=getProductImageDetails&id=${ImageId}`)
-                    .then(response => response.json())
+                    .then(res => res.json())
                     .then(data => {
                         if (data.success) {
-                            // Fill the modal form with product  data
                             document.getElementById('updateProductImageID').value = ImageId;
                             document.getElementById('updateimagepath').src = data.productimage.ImageAdminPath;
                             document.querySelector('[name="updateimagealt"]').value = data.productimage.ImageAlt;
                             document.querySelector('[name="updateproduct"]').value = data.productimage.ProductID;
                             document.querySelector('[name="updateprimary"]').value = data.productimage.PrimaryImage;
                             document.querySelector('[name="updatesecondary"]').value = data.productimage.SecondaryImage;
-                            // Show the modal
+
+                            darkOverlay2.classList.remove('opacity-0', 'invisible');
+                            darkOverlay2.classList.add('opacity-100');
                             updateProductImageModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
                         } else {
-                            console.error('Failed to load product image details');
+                            showAlert('Failed to load product image details.', true);
                         }
-                    })
-                    .catch(error => console.error('Fetch error:', error));
-            });
-        });
+                    });
+            }
 
-        updateProductImageModalCancelBtn.addEventListener('click', () => {
-            updateProductImageModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-            darkOverlay2.classList.add('opacity-0', 'invisible');
-            darkOverlay2.classList.remove('opacity-100');
-
-            // Clear error messages
-            const errors = ['updateProductImageAltError'];
-            errors.forEach(error => {
-                hideError(document.getElementById(error));
-            });
-        });
-
-        if (updateProductImageSuccess) {
-            // Show Alert
-            setTimeout(() => {
-                showAlert('The product image has been successfully updated.');
-                setTimeout(() => {
-                    window.location.href = 'product_image.php';
-                }, 5000);
-            }, 500);
-        } else if (alertMessage) {
-            // Show Alert
-            showAlert(alertMessage);
-        }
-        // Add keyup event listeners for real-time validation
-        document.getElementById("updateProductImageAltInput").addEventListener("keyup", validateUpdateProductImageAlt);
-
-        const updateProductImageForm = document.getElementById("updateProductImageForm");
-        if (updateProductImageForm) {
-            updateProductImageForm.addEventListener("submit", (e) => {
-                if (!validateProductImageUpdateForm()) {
-                    e.preventDefault();
-                }
-            });
-        }
-    }
-});
-
-// Product Image Delete Modal
-document.addEventListener('DOMContentLoaded', () => {
-    const productImageConfirmDeleteModal = document.getElementById('productImageConfirmDeleteModal');
-    const productImageCancelDeleteBtn = document.getElementById('productImageCancelDeleteBtn');
-    const alertMessage = document.getElementById('alertMessage').value;
-    const deleteProductImageSuccess = document.getElementById('deleteProductImageSuccess').value === 'true';
-
-    // Get all delete buttons
-    const deleteBtns = document.querySelectorAll('.delete-btn');
-
-    if (productImageConfirmDeleteModal && productImageCancelDeleteBtn && deleteBtns) {
-        // Add click event to each delete button
-        deleteBtns.forEach(btn => {
-            btn.addEventListener('click', function () {
-                const ImageId = this.getAttribute('data-productimage-id');
-
-                // Fetch fafcility details
+            // Delete button click
+            const deleteBtn = e.target.closest('.delete-btn');
+            if (deleteBtn && productImageConfirmDeleteModal) {
+                const ImageId = deleteBtn.getAttribute('data-productimage-id');
                 fetch(`../Admin/product_image.php?action=getProductImageDetails&id=${ImageId}`)
-                    .then(response => response.json())
+                    .then(res => res.json())
                     .then(data => {
                         if (data.success) {
                             document.getElementById('deleteProductImageID').value = ImageId;
                             document.getElementById('deleteImagePath').src = data.productimage.ImageAdminPath;
+
+                            darkOverlay2.classList.remove('opacity-0', 'invisible');
+                            darkOverlay2.classList.add('opacity-100');
+                            productImageConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
                         } else {
-                            console.error('Failed to load productimage details');
+                            showAlert('Failed to load product image details.', true);
                         }
-                    })
-                    .catch(error => console.error('Fetch error:', error));
-
-                // Show modal
-                darkOverlay2.classList.remove('opacity-0', 'invisible');
-                darkOverlay2.classList.add('opacity-100');
-                productImageConfirmDeleteModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-            });
+                    });
+            }
         });
-
-        // Cancel button functionality
-        productImageCancelDeleteBtn.addEventListener('click', () => {
-            productImageConfirmDeleteModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-            darkOverlay2.classList.add('opacity-0', 'invisible');
-            darkOverlay2.classList.remove('opacity-100');
-        });
-
-        if (deleteProductImageSuccess) {
-            // Show Alert
-            showAlert('The product image has been successfully deleted.');
-            setTimeout(() => {
-                window.location.href = 'product_image.php';
-            }, 5000);
-        } else if (alertMessage) {
-            // Show Alert
-            showAlert(alertMessage);
-        }
     }
+
+    // Render updated product images
+    function fetchAndRenderProductImages() {
+        fetch('../Admin/product_image.php?productimagepage=1')
+            .then(res => res.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTableBody = doc.querySelector('tbody');
+                if (newTableBody) {
+                    document.querySelector('tbody').innerHTML = newTableBody.innerHTML;
+                    bindActionButtons();
+                }
+            });
+    }
+
+    // Bulk Delete Product Images
+    const bulkDeleteProductImageBtn = document.getElementById('bulkDeleteProductImageBtn');
+    const selectAllProductImages = document.getElementById('selectAllProductImages');
+
+    const bulkDeleteProductImageModal = document.getElementById('productImageBulkDeleteModal');
+    const bulkDeleteProductImageCancelBtn = document.getElementById('bulkDeleteProductImageCancelBtn');
+    const bulkDeleteProductImageConfirmBtn = document.getElementById('bulkDeleteProductImageConfirmBtn');
+    const bulkDeleteProductImageCount = document.getElementById('bulkDeleteProductImageCount');
+
+    // Select All
+    if (selectAllProductImages) {
+        selectAllProductImages.addEventListener('change', function () {
+            document.querySelectorAll('.productImageCheckbox').forEach(cb => cb.checked = this.checked);
+            toggleBulkDeleteProductImageBtn();
+        });
+    }
+
+    // Toggle bulk delete button
+    const toggleBulkDeleteProductImageBtn = () => {
+        const selected = document.querySelectorAll('.productImageCheckbox:checked');
+        if (selected.length > 0) {
+            bulkDeleteProductImageBtn.classList.remove('hidden');
+            bulkDeleteProductImageBtn.textContent = `Delete Selected (${selected.length})`;
+        } else {
+            bulkDeleteProductImageBtn.classList.add('hidden');
+            bulkDeleteProductImageBtn.textContent = "Delete Selected";
+        }
+    };
+
+    // Watch row checkboxes
+    document.addEventListener('change', (e) => {
+        if (e.target.classList.contains('productImageCheckbox')) {
+            toggleBulkDeleteProductImageBtn();
+        }
+    });
+
+    // Handle bulk delete button
+    if (bulkDeleteProductImageBtn) {
+        bulkDeleteProductImageBtn.addEventListener('click', () => {
+            const selectedIds = Array.from(document.querySelectorAll('.productImageCheckbox:checked'))
+                .map(cb => cb.value);
+
+            if (selectedIds.length === 0) {
+                showAlert("No product images selected.", true);
+                return;
+            }
+
+            // Show modal
+            bulkDeleteProductImageCount.textContent = selectedIds.length;
+            bulkDeleteProductImageModal.classList.remove("opacity-0", "invisible", "-translate-y-5");
+            bulkDeleteProductImageModal.classList.add("opacity-100", "translate-y-0");
+            darkOverlay2.classList.remove("opacity-0", "invisible");
+            darkOverlay2.classList.add("opacity-100");
+
+            // Cancel button
+            bulkDeleteProductImageCancelBtn.onclick = () => {
+                bulkDeleteProductImageModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+                bulkDeleteProductImageModal.classList.remove("opacity-100", "translate-y-0");
+                darkOverlay2.classList.add("opacity-0", "invisible");
+                darkOverlay2.classList.remove("opacity-100");
+            };
+
+            // Confirm delete
+            bulkDeleteProductImageConfirmBtn.onclick = () => {
+                const formData = new FormData();
+                formData.append('bulkdeleteproductimages', true);
+                selectedIds.forEach(id => formData.append('productimageids[]', id));
+
+                fetch('../Admin/product_image.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert("Selected product images deleted successfully.");
+                        bulkDeleteProductImageBtn.classList.add('hidden');
+                        selectAllProductImages.checked = false;
+                        // Reload table or re-fetch data
+                        location.reload();
+                    } else {
+                        showAlert(data.message || "Failed to delete selected product images.", true);
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    showAlert("An error occurred. Please try again.", true);
+                })
+                .finally(() => {
+                    bulkDeleteProductImageModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+                    bulkDeleteProductImageModal.classList.remove("opacity-100", "translate-y-0");
+                    darkOverlay2.classList.add("opacity-0", "invisible");
+                    darkOverlay2.classList.remove("opacity-100");
+                });
+            };
+        });
+    }
+
+    // Initial binding
+    bindActionButtons();
 });
 
 // Product Size Form and Modals
@@ -4022,6 +4525,104 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             });
         }
+    }
+
+    // Bulk Delete for Menus
+    const bulkDeleteMenuBtn = document.getElementById('bulkDeleteMenuBtn');
+    const selectAllMenuCheckbox = document.getElementById('selectAllMenuCheckbox');
+
+    const menuBulkDeleteModal = document.getElementById('menuBulkDeleteModal');
+    const bulkDeleteMenuCancelBtn = document.getElementById('bulkDeleteMenuCancelBtn');
+    const bulkDeleteMenuConfirmBtn = document.getElementById('bulkDeleteMenuConfirmBtn');
+    const menuBulkDeleteCount = document.getElementById('menuBulkDeleteCount');
+
+    // Handle select all
+    if (selectAllMenuCheckbox) {
+        selectAllMenuCheckbox.addEventListener('change', function () {
+            const rowCheckboxes = document.querySelectorAll('.rowCheckbox');
+            rowCheckboxes.forEach(cb => cb.checked = this.checked);
+            toggleMenuBulkDeleteBtn();
+        });
+    }
+
+    // Toggle button
+    const toggleMenuBulkDeleteBtn = () => {
+        const selected = document.querySelectorAll('.rowCheckbox:checked');
+        if (selected.length > 0) {
+            bulkDeleteMenuBtn.classList.remove('hidden');
+            bulkDeleteMenuBtn.textContent = `Delete Selected (${selected.length})`;
+        } else {
+            bulkDeleteMenuBtn.classList.add('hidden');
+            bulkDeleteMenuBtn.textContent = "Delete Selected";
+        }
+    };
+
+    // Watch row checkboxes
+    document.addEventListener('change', (e) => {
+        if (e.target.classList.contains('rowCheckbox')) {
+            toggleMenuBulkDeleteBtn();
+        }
+    });
+
+    // Handle bulk delete button
+    if (bulkDeleteMenuBtn) {
+        bulkDeleteMenuBtn.addEventListener('click', () => {
+            const selectedIds = Array.from(document.querySelectorAll('.rowCheckbox:checked'))
+                .map(cb => cb.value);
+
+            if (selectedIds.length === 0) {
+                showAlert("No menus selected.", true);
+                return;
+            }
+
+            // Show confirm modal
+            menuBulkDeleteCount.textContent = selectedIds.length;
+            menuBulkDeleteModal.classList.remove("opacity-0", "invisible", "-translate-y-5");
+            menuBulkDeleteModal.classList.add("opacity-100", "translate-y-0");
+            darkOverlay2.classList.remove("opacity-0", "invisible");
+            darkOverlay2.classList.add("opacity-100");
+
+            // Cancel
+            bulkDeleteMenuCancelBtn.addEventListener('click', () => {
+                menuBulkDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+                menuBulkDeleteModal.classList.remove("opacity-100", "translate-y-0");
+                darkOverlay2.classList.add("opacity-0", "invisible");
+                darkOverlay2.classList.remove("opacity-100");
+            });
+
+            // Confirm
+            bulkDeleteMenuConfirmBtn.onclick = () => {
+                const formData = new FormData();
+                formData.append('bulkdeletemenus', true);
+                selectedIds.forEach(id => formData.append('menuids[]', id));
+
+                fetch('../Admin/add_menu.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        fetchAndRenderMenu(); 
+                        showAlert("Selected menus deleted successfully.");
+                        bulkDeleteMenuBtn.classList.add('hidden');
+                        selectAllMenuCheckbox.checked = false;
+                    } else {
+                        showAlert(data.message || "Failed to delete selected menus.", true);
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    showAlert("An error occurred. Please try again.", true);
+                })
+                .finally(() => {
+                    menuBulkDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+                    menuBulkDeleteModal.classList.remove("opacity-100", "translate-y-0");
+                    darkOverlay2.classList.add("opacity-0", "invisible");
+                    darkOverlay2.classList.remove("opacity-100");
+                });
+            };
+        });
     }
 
     // Initialize existing rows on page load

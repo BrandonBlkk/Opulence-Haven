@@ -26,7 +26,11 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
 <table class="min-w-full bg-white rounded-lg">
     <thead>
         <tr class="bg-gray-100 text-gray-600 text-sm">
-            <th class="p-3 text-start">ID</th>
+            <th class="p-3 text-start">
+                <input type="checkbox" id="selectAllCheckbox"
+                    class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                ID
+            </th>
             <th class="p-3 text-start">Title</th>
             <th class="p-3 text-start hidden sm:table-cell">Price</th>
             <th class="p-3 text-start">Stock</th>
@@ -43,11 +47,14 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
                 $isOutOfStock = $product['Stock'] == 0;
                 ?>
                 <tr class="hover:bg-gray-50 transition-colors 
-                                   <?= $isCriticalStock ? 'bg-red-50' : ($isLowStock ? 'bg-yellow-50' : '') ?>">
+                                   <?= $isCriticalStock ? 'bg-red-50 hover:bg-red-100' : ($isLowStock ? 'bg-yellow-50 hover:bg-yellow-100' : '') ?>">
                     <td class="p-3 text-start whitespace-nowrap">
                         <div class="flex items-center gap-2 font-medium text-gray-500">
-                            <input type="checkbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                            <input type="checkbox"
+                                class="rowCheckbox form-checkbox h-3 w-3 border-2 text-amber-500"
+                                value="<?= htmlspecialchars($product['ProductID']) ?>">
                             <span><?= htmlspecialchars($product['ProductID']) ?></span>
+
                         </div>
                     </td>
                     <td class="p-3 text-start">
