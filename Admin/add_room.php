@@ -173,7 +173,7 @@ if (isset($_POST['bulkdeleterooms'])) {
                     <button id="addRoomBtn" class="bg-amber-500 text-white font-semibold px-3 py-1 rounded select-none hover:bg-amber-600 transition-colors">
                         <i class="ri-add-line text-xl"></i>
                     </button>
-                    <button id="bulkDeleteRoomsBtn" class="hidden px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">
+                    <button id="bulkDeleteRoomsBtn" class="hidden px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
                         Delete Selected
                     </button>
                 </div>
