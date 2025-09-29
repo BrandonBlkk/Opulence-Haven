@@ -75,7 +75,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['updateRole'], $_POST[
 <table class="min-w-full bg-white rounded-lg">
     <thead>
         <tr class="bg-gray-100 text-gray-600 text-sm">
-            <th class="p-3 text-start">ID</th>
+            <th class="p-3 text-start">
+                <input type="checkbox" id="selectAllAdminCheckbox" class="form-checkbox h-3 w-3 border-2 text-amber-500">
+                ID
+            </th>
             <th class="p-3 text-start">Admin</th>
             <th class="p-3 text-start hidden md:table-cell">Role</th>
             <th class="p-3 text-start hidden lg:table-cell">Status</th>

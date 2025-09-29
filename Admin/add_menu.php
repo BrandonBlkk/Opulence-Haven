@@ -249,7 +249,7 @@ if (isset($_POST['bulkdeletemenus'])) {
                         <i class="ri-add-line text-xl"></i>
                     </button>
                     <button id="bulkDeleteMenuBtn"
-                        class="hidden px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">
+                        class="hidden px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
                         Delete Selected
                     </button>
                 </div>

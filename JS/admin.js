@@ -4715,6 +4715,118 @@ document.addEventListener('DOMContentLoaded', () => {
             showAlert(alertMessage);
         }
     }
+
+    // Bulk Delete Admin
+    const bulkDeleteAdminBtn = document.getElementById('bulkDeleteAdminBtn');
+    const adminBulkDeleteModal = document.getElementById('adminBulkDeleteModal');
+    const adminBulkDeleteCancelBtn = document.getElementById('adminBulkDeleteCancelBtn');
+    const adminBulkDeleteConfirmBtn = document.getElementById('adminBulkDeleteConfirmBtn');
+    const adminBulkDeleteCount = document.getElementById('adminBulkDeleteCount');
+
+    // Add checkboxes to table rows dynamically if not present
+    const adminRowCheckboxes = document.querySelectorAll('tbody tr td input[type="checkbox"]');
+
+    // Toggle bulk delete button visibility
+    const toggleBulkDeleteAdminBtn = () => {
+        const selected = document.querySelectorAll('tbody tr td input[type="checkbox"]:checked');
+        if (selected.length > 0) {
+            bulkDeleteAdminBtn.classList.remove('hidden');
+            bulkDeleteAdminBtn.textContent = `Delete Selected (${selected.length})`;
+        } else {
+            bulkDeleteAdminBtn.classList.add('hidden');
+            bulkDeleteAdminBtn.textContent = "Delete Selected";
+        }
+    };
+
+    // Watch row checkboxes
+    document.addEventListener('change', (e) => {
+        if (e.target.matches('tbody tr td input[type="checkbox"]')) {
+            toggleBulkDeleteAdminBtn();
+        }
+    });
+
+    const selectAllAdminCheckbox = document.getElementById('selectAllAdminCheckbox');
+
+    // Handle select all checkbox
+    if (selectAllAdminCheckbox) {
+        selectAllAdminCheckbox.addEventListener('change', function () {
+            const rowCheckboxes = document.querySelectorAll('tbody tr td input[type="checkbox"]');
+            rowCheckboxes.forEach(cb => cb.checked = this.checked);
+            toggleBulkDeleteAdminBtn();
+        });
+    }
+
+    // Update Select All checkbox when individual checkboxes are clicked
+    document.addEventListener('change', (e) => {
+        if (e.target.matches('tbody tr td input[type="checkbox"]')) {
+            toggleBulkDeleteAdminBtn();
+
+            const rowCheckboxes = document.querySelectorAll('tbody tr td input[type="checkbox"]');
+            const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked);
+            selectAllAdminCheckbox.checked = allChecked;
+        }
+    });
+
+    // Handle bulk delete button click
+    if (bulkDeleteAdminBtn) {
+        bulkDeleteAdminBtn.addEventListener('click', () => {
+            const selectedIds = Array.from(document.querySelectorAll('tbody tr td input[type="checkbox"]:checked'))
+                .map(cb => cb.closest('tr').querySelector('.delete-btn').getAttribute('data-admin-id'));
+
+            if (selectedIds.length === 0) {
+                showAlert("No admins selected.", true);
+                return;
+            }
+
+            // Show modal
+            adminBulkDeleteCount.textContent = selectedIds.length;
+            adminBulkDeleteModal.classList.remove("opacity-0", "invisible", "-translate-y-5");
+            adminBulkDeleteModal.classList.add("opacity-100", "translate-y-0");
+            darkOverlay2.classList.remove("opacity-0", "invisible");
+            darkOverlay2.classList.add("opacity-100");
+
+            // Cancel button closes modal
+            adminBulkDeleteCancelBtn.onclick = () => {
+                adminBulkDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+                adminBulkDeleteModal.classList.remove("opacity-100", "translate-y-0");
+                darkOverlay2.classList.add("opacity-0", "invisible");
+                darkOverlay2.classList.remove("opacity-100");
+            };
+
+            // Confirm delete
+            adminBulkDeleteConfirmBtn.onclick = () => {
+                const formData = new FormData();
+                formData.append('bulkdeleteadmins', true);
+                selectedIds.forEach(id => formData.append('adminids[]', id));
+
+                fetch('../Admin/role_management.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert("Selected admins deleted successfully.");
+                        bulkDeleteAdminBtn.classList.add('hidden');
+                        adminRowCheckboxes.forEach(cb => cb.checked = false);
+                    } else {
+                        showAlert(data.message || "Failed to delete selected admins.", true);
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    showAlert("An error occurred. Please try again.", true);
+                })
+                .finally(() => {
+                    // Close modal after action
+                    adminBulkDeleteModal.classList.add("opacity-0", "invisible", "-translate-y-5");
+                    adminBulkDeleteModal.classList.remove("opacity-100", "translate-y-0");
+                    darkOverlay2.classList.add("opacity-0", "invisible");
+                    darkOverlay2.classList.remove("opacity-100");
+                });
+            };
+        });
+    }
 });
 
 // Contact Date Filter Modal

@@ -66,6 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                             if (emailData.success) {
                                 showAlert('Account created successfully. Please check your email for confirmation.');
+                                signupForm.reset();
                             } else {
                                 showAlert('Account created but failed to send confirmation email. Please contact support.', true);
                             }
@@ -80,7 +81,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     console.error('Error:', error);
                 } finally {
                     if (loader) loader.style.display = 'none';
-                    signupForm.reset();
                 }
             }
 
