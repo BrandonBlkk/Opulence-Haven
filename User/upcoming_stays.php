@@ -477,6 +477,7 @@ if ($userID) {
         }
     </style>
 
+    <!-- Reservation Detail Modal -->
     <div id="reservationDetailModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible -translate-y-5 p-2 transition-all duration-300">
         <div class="bg-white rounded-xl max-w-4xl w-full p-6 animate-fade-in max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">

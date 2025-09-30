@@ -1817,9 +1817,12 @@ detailsBtns.forEach((btn) => {
                     </div>`;
 
                     // Cancellation Alert
-                    const freeCancelDate = new Date(earliestCheckin);
-                    freeCancelDate.setDate(freeCancelDate.getDate() - 1);
-                    const freeCancelDateString = freeCancelDate.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+                    const deadline = earliestCheckin.toLocaleDateString("en-US", {
+                        weekday: "short",  // Wed
+                        day: "numeric",    // 1
+                        month: "short",    // Oct
+                        year: "numeric"    // 2025
+                    });
 
                     html += `
                         <div class="bg-red-50 border-l-4 border-red-400 p-4 mt-4">
@@ -1831,7 +1834,7 @@ detailsBtns.forEach((btn) => {
                                     <h4 class="text-sm font-medium text-red-800">Cancellation Policy</h4>
                                     <p class="text-sm text-red-700 mt-1">
                                         Cancellations made within 24 hours of check-in will incur a fee of $50.
-                                        Free cancellation is available until ${freeCancelDateString}.
+                                        Free cancellation is available until ${deadline}.
                                     </p>
                                 </div>
                             </div>
@@ -1878,14 +1881,18 @@ cancelButtons.forEach(button => {
         const checkinDate = new Date(dates.split(' - ')[0]);
         const today = new Date();
 
-        // Deadline is 3 days before check-in
-        const deadline = new Date(checkinDate);
-        deadline.setDate(deadline.getDate() - 3);
-        const deadlineString = deadline.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+        // Format to YYYY-MM-DD
+        const deadline = checkinDate.toLocaleDateString("en-US", {
+            weekday: "short",  // Wed
+            day: "numeric",    // 1
+            month: "short",    // Oct
+            year: "numeric"    // 2025
+        });
+
 
         // Determine cancellation fee
         let cancellationFee = 0;
-        if (today > deadline) {
+        if (today > checkinDate) {
             cancellationFee = 50; // $50 fee if overdue
         }
 
@@ -1896,7 +1903,7 @@ cancelButtons.forEach(button => {
         document.getElementById('cancellationFee').textContent = `$${cancellationFee.toFixed(2)}`;
         document.getElementById('totalRefund').textContent = `$${(totalPrice - cancellationFee).toFixed(2)}`;
         document.getElementById('cancelDeadlineText').textContent = 
-            `Cancelling before ${deadlineString} will result in a full refund. After this date, a $50 cancellation fee applies.`;
+            `Cancelling before ${deadline} will result in a full refund. After this date, a $50 cancellation fee applies.`;
 
         // Show modal and overlay
         const cancelModal = document.getElementById('cancelModal');
