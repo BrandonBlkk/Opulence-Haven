@@ -380,12 +380,12 @@ if ($userID) {
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 text-sm">
                                     <div class="bg-gray-50 p-2.5 rounded-md">
                                         <h3 class="text-[11px] font-medium text-gray-500 uppercase tracking-wide">Check-in</h3>
-                                        <p class="font-medium text-gray-900 mt-0.5"><?php echo $earliestCheckin->format('D, j M Y'); ?></p>
+                                        <p class="font-medium text-gray-700 mt-0.5"><?php echo $earliestCheckin->format('D, j M Y'); ?></p>
                                         <p class="text-xs text-gray-500">After 2:00 PM</p>
                                     </div>
                                     <div class="bg-gray-50 p-2.5 rounded-md">
                                         <h3 class="text-[11px] font-medium text-gray-500 uppercase tracking-wide">Check-out</h3>
-                                        <p class="font-medium text-gray-900 mt-0.5"><?php echo $latestCheckout->format('D, j M Y'); ?></p>
+                                        <p class="font-medium text-gray-700 mt-0.5"><?php echo $latestCheckout->format('D, j M Y'); ?></p>
                                         <p class="text-xs text-gray-500">Before 12:00 PM</p>
                                     </div>
                                     <div class="bg-gray-50 p-2.5 rounded-md">
@@ -433,122 +433,125 @@ if ($userID) {
                                         class="details-btn flex-1 flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white font-medium px-4 py-2 rounded-sm transition-all shadow-sm">
                                         <i class="ri-file-list-line"></i> View Details
                                     </button>
-                                    <button class="flex-1 flex items-center justify-center gap-1.5 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 font-medium px-4 py-2 rounded-sm transition-all shadow-sm">
+                                    <button
+                                        <?php if ($reservationStatus !== 'Upcoming') echo 'disabled'; ?>
+                                        class="flex-1 flex items-center justify-center gap-1.5 border border-gray-200 <?= $reservationStatus !== 'Upcoming' ? 'text-gray-400 cursor-not-allowed' : 'bg-white hover:border-gray-300 text-gray-700' ?> font-medium px-4 py-2 rounded-sm transition-all shadow-sm">
                                         <i class="ri-pencil-line"></i> Modify
                                     </button>
-                                    <button class="openCancelModalBtn flex-1 flex items-center justify-center gap-1.5 bg-white border border-red-200 hover:border-red-300 text-red-600 font-medium px-4 py-2 rounded-sm transition-all shadow-sm"
-                                        data-reservation-id="<?= htmlspecialchars($data['ReservationID']) ?>"
-                                        data-dates="<?= $earliestCheckin->format('Y-m-d') ?> - <?= $latestCheckout->format('Y-m-d') ?>"
-                                        data-total-price="<?= $totalPrice ?>">
+                                    <button
+                                        <?php if ($reservationStatus !== 'Upcoming') echo 'disabled'; ?>
+                                        class="openCancelModalBtn flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-sm transition-all shadow-sm font-medium
+        <?= $reservationStatus !== 'Upcoming'
+                        ? 'border border-gray-200 text-gray-400 cursor-not-allowed'
+                        : 'bg-white border border-red-200 hover:border-red-300 text-red-600' ?>">
                                         <i class="ri-close-line"></i> Cancel
                                     </button>
                                 </div>
                             </div>
                         </div>
+                    <?php endforeach; ?>
                     </div>
-                <?php endforeach; ?>
-            </div>
-        <?php
-        } else {
-        ?>
-            <p class="text-center text-gray-400 my-36">You have no upcoming stays yet.</p>
-        <?php } ?>
-    </div>
-
-    <style>
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translate(-50%, 5px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translate(-50%, 0);
-            }
-        }
-
-        .animate-fadeIn {
-            animation: fadeIn 0.15s ease-out forwards;
-        }
-
-        .shadow-xs {
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-        }
-    </style>
-
-    <!-- Reservation Detail Modal -->
-    <div id="reservationDetailModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible -translate-y-5 p-2 transition-all duration-300">
-        <div class="bg-white rounded-xl max-w-4xl w-full p-6 animate-fade-in max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-gray-800">Reservation Details</h3>
-                <button id="closeReservationDetailModal" class="text-gray-400 hover:text-gray-500">
-                    <i class="ri-close-line text-xl"></i>
-                </button>
+                <?php
+            } else {
+                ?>
+                    <p class="text-center text-gray-400 my-36">You have no upcoming stays yet.</p>
+                <?php } ?>
             </div>
 
-            <div class="space-y-3">
-                <!-- Reservation Details -->
-            </div>
-        </div>
-    </div>
+            <style>
+                @keyframes fadeIn {
+                    from {
+                        opacity: 0;
+                        transform: translate(-50%, 5px);
+                    }
 
-    <!-- Cancellation Modal -->
-    <div id="cancelModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible -translate-y-5 p-4 transition-all duration-300">
-        <div class="bg-white rounded-xl max-w-lg w-full p-6 animate-fade-in">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-gray-800">Cancel Reservation</h3>
-                <button id="closeCancelModal" class="text-gray-400 hover:text-gray-500">
-                    <i class="ri-close-line text-xl"></i>
-                </button>
-            </div>
+                    to {
+                        opacity: 1;
+                        transform: translate(-50%, 0);
+                    }
+                }
 
-            <p class="text-gray-600 mb-4">Are you sure you want to cancel your reservation <span id="cancelReservationId" class="font-medium"></span> for dates <span id="cancelReservationDates" class="font-medium"></span>?</p>
+                .animate-fadeIn {
+                    animation: fadeIn 0.15s ease-out forwards;
+                }
 
-            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <i class="ri-alert-line text-yellow-500"></i>
+                .shadow-xs {
+                    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+                }
+            </style>
+
+            <!-- Reservation Detail Modal -->
+            <div id="reservationDetailModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible -translate-y-5 p-2 transition-all duration-300">
+                <div class="bg-white rounded-xl max-w-4xl w-full p-6 animate-fade-in max-h-[90vh] overflow-y-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-gray-800">Reservation Details</h3>
+                        <button id="closeReservationDetailModal" class="text-gray-400 hover:text-gray-500">
+                            <i class="ri-close-line text-xl"></i>
+                        </button>
                     </div>
-                    <div class="ml-3">
-                        <p class="text-sm text-yellow-700" id="cancelDeadlineText">
-                            <!-- Deadline text will be set here -->
-                        </p>
+
+                    <div class="space-y-3">
+                        <!-- Reservation Details -->
                     </div>
                 </div>
             </div>
 
-            <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                <div class="flex justify-between mb-2">
-                    <span class="text-sm text-gray-600">Refund amount:</span>
-                    <span class="text-sm font-medium text-gray-800" id="refundAmount"></span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-sm text-gray-600">Cancellation fee:</span>
-                    <span class="text-sm font-medium text-gray-800" id="cancellationFee">$0.00</span>
-                </div>
-                <div class="border-t border-gray-200 mt-2 pt-2 flex justify-between">
-                    <span class="text-sm font-medium text-gray-800">Total refund:</span>
-                    <span class="text-sm font-bold text-green-600" id="totalRefund"></span>
+            <!-- Cancellation Modal -->
+            <div id="cancelModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible -translate-y-5 p-4 transition-all duration-300">
+                <div class="bg-white rounded-xl max-w-lg w-full p-6 animate-fade-in">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-gray-800">Cancel Reservation</h3>
+                        <button id="closeCancelModal" class="text-gray-400 hover:text-gray-500">
+                            <i class="ri-close-line text-xl"></i>
+                        </button>
+                    </div>
+
+                    <p class="text-gray-600 mb-4">Are you sure you want to cancel your reservation <span id="cancelReservationId" class="font-medium"></span> for dates <span id="cancelReservationDates" class="font-medium"></span>?</p>
+
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="ri-alert-line text-yellow-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-yellow-700" id="cancelDeadlineText">
+                                    <!-- Deadline text will be set here -->
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-sm text-gray-600">Refund amount:</span>
+                            <span class="text-sm font-medium text-gray-800" id="refundAmount"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Cancellation fee:</span>
+                            <span class="text-sm font-medium text-gray-800" id="cancellationFee">$0.00</span>
+                        </div>
+                        <div class="border-t border-gray-200 mt-2 pt-2 flex justify-between">
+                            <span class="text-sm font-medium text-gray-800">Total refund:</span>
+                            <span class="text-sm font-bold text-green-600" id="totalRefund"></span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end mt-6">
+                        <button id="confirmCancelBtn" class="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-sm transition-colors select-none">
+                            <i class="ri-check-line"></i> Confirm cancellation
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div class="flex justify-end mt-6">
-                <button id="confirmCancelBtn" class="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-sm transition-colors select-none">
-                    <i class="ri-check-line"></i> Confirm cancellation
-                </button>
-            </div>
-        </div>
-    </div>
+            <!-- MoveUp Btn -->
+            <?php
+            include('../includes/moveup_btn.php');
+            include('../includes/footer.php');
+            ?>
 
-    <!-- MoveUp Btn -->
-    <?php
-    include('../includes/moveup_btn.php');
-    include('../includes/footer.php');
-    ?>
-
-    <script src="//unpkg.com/alpinejs" defer></script>
-    <script type="module" src="../JS/index.js"></script>
+            <script src="//unpkg.com/alpinejs" defer></script>
+            <script type="module" src="../JS/index.js"></script>
 </body>
 
 </html>

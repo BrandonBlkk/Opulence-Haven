@@ -1803,15 +1803,15 @@ detailsBtns.forEach((btn) => {
                         <div class="space-y-3">
                             <div class="flex justify-between">
                                 <span class="text-sm text-gray-600">Room Rate (${totalNights} night${totalNights>1?'s':''}):</span>
-                                <span class="text-sm font-medium">$${totalPrice.toFixed(2)}</span>
+                                <span class="text-sm font-medium text-gray-600">$${totalPrice.toFixed(2)}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-sm text-gray-600">Taxes & Fees:</span>
-                                <span class="text-sm font-medium">$${(totalPrice*0.1).toFixed(2)}</span>
+                                <span class="text-sm font-medium text-gray-600">$${(totalPrice*0.1).toFixed(2)}</span>
                             </div>
                             <div class="border-t border-gray-200 pt-2 flex justify-between">
                                 <span class="font-medium text-gray-800">Total:</span>
-                                <span class="font-bold">$${(totalPrice*1.1).toFixed(2)}</span>
+                                <span class="font-bold text-gray-600">$${(totalPrice*1.1).toFixed(2)}</span>
                             </div>
                         </div>
                     </div>`;
