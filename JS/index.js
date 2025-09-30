@@ -1677,21 +1677,254 @@ document.addEventListener("DOMContentLoaded", () => {
 // Upcoming Reservation Detail Modal
 const reservationDetailModal = document.getElementById('reservationDetailModal');
 const closeReservationDetailModal = document.getElementById('closeReservationDetailModal');
+const detailsBtns = document.querySelectorAll('.details-btn');
 
-const detailsBtn = document.querySelector('.details-btn');
-if (detailsBtn && reservationDetailModal && closeReservationDetailModal) {
-    detailsBtn.addEventListener('click', function() {
-        reservationDetailModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+detailsBtns.forEach((btn) => {
+    btn.addEventListener('click', function () {
+        const reservationId = btn.dataset.reservationId;
+
+        fetch(`upcoming_stays.php?id=${reservationId}&action=getReservationDetails`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const reservations = data.reservations;
+
+                    // Find earliest check-in and latest checkout
+                    let earliestCheckin = new Date(reservations[0].CheckInDate);
+                    let latestCheckout = new Date(reservations[0].CheckOutDate);
+                    let totalNights = 0;
+                    let totalPrice = 0;
+
+                    reservations.forEach(room => {
+                        const checkin = new Date(room.CheckInDate);
+                        const checkout = new Date(room.CheckOutDate);
+                        const nights = (checkout - checkin) / (1000 * 60 * 60 * 24);
+                        totalNights += nights;
+                        totalPrice += parseFloat(room.Price) * nights;
+
+                        if (checkin < earliestCheckin) earliestCheckin = checkin;
+                        if (checkout > latestCheckout) latestCheckout = checkout;
+                    });
+
+                    // Group rooms by RoomTypeID
+                    const groupedRooms = {};
+                    reservations.forEach(room => {
+                        if (!groupedRooms[room.RoomType]) groupedRooms[room.RoomType] = [];
+                        groupedRooms[room.RoomType].push(room);
+                    });
+
+                    // Build modal HTML
+                    let html = '';
+
+                    // --- Reservation Status Notification ---
+                    const today = new Date();
+                    let statusMessage = '';
+                    let statusClass = '';
+
+                    if (today < earliestCheckin) {
+                        statusMessage = `Upcoming Stay: Your reservation starts on ${earliestCheckin.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'})}`;
+                        statusClass = 'bg-blue-50 border-blue-400 text-blue-800';
+                    } else if (today >= earliestCheckin && today <= latestCheckout) {
+                        statusMessage = 'Ongoing Stay: Enjoy your current reservation!';
+                        statusClass = 'bg-green-50 border-green-400 text-green-800';
+                    } else if (today > latestCheckout) {
+                        statusMessage = 'Past Stay: This reservation has been completed.';
+                        statusClass = 'bg-gray-50 border-gray-400 text-gray-800';
+                    }
+
+                    // Room Information
+                    html += `<div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-center gap-5 mb-3">
+                            <h4 class="font-medium text-gray-800">
+                                Room Information  
+                            </h4>
+                            <h4 class="flex items-center gap-2 ${statusClass} border rounded-lg p-2">
+                                <span class="text-sm font-medium">${statusMessage}</span>
+                            </h4>
+                        </div>
+                        <div class="swiper roomTypeSwiper"><div class="swiper-wrapper">`;
+
+                    for (let type in groupedRooms) {
+                        const rooms = groupedRooms[type];
+                        const firstRoom = rooms[0];
+                        html += `<div class="swiper-slide">
+                            <div class="flex flex-col md:flex-row gap-4 py-2">
+                                <div class="md:w-1/3 select-none">
+                                    <div class="relative" style="height: 200px;">
+                                        <img src="../Admin/${firstRoom.RoomCoverImage}" alt="Room Image" class="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-105">
+                                    </div>
+                                </div>
+                                <div class="md:w-2/3">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h5 class="font-bold text-lg text-gray-800">${firstRoom.RoomType}</h5>
+                                            <p class="text-sm text-gray-600 mt-1 line-clamp-2">${firstRoom.RoomDescription}</p>
+                                            <div class="mt-2 text-xs text-gray-500">
+                                                ${rooms.length} room${rooms.length > 1 ? 's' : ''} of this type
+                                                <div class="flex flex-wrap gap-2 mt-1">`;
+
+                        rooms.forEach(room => {
+                            html += `<div class="group relative">
+                                <span class="bg-gray-100 px-2 py-1 rounded text-gray-600 font-semibold text-xs cursor-default">
+                                    Room #${room.RoomName}
+                                </span>
+                                <div class="absolute z-20 left-0 mt-1 w-64 bg-white p-3 rounded-lg shadow-sm border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                                    <div class="flex items-center gap-2 text-sm mb-1">
+                                        <i class="ri-calendar-check-line text-orange-500"></i>
+                                        ${new Date(room.CheckInDate).toLocaleDateString('en-US', {month:'short', day:'numeric'})}
+                                        <span class="text-gray-400">→</span>
+                                        ${new Date(room.CheckOutDate).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})}
+                                    </div>
+                                    <div class="flex items-center gap-2 text-sm mb-2">
+                                        <i class="ri-user-line text-orange-500"></i>
+                                        ${room.Adult} Adult${room.Adult > 1 ? 's' : ''}
+                                        ${room.Children > 0 ? `+ ${room.Children} Child${room.Children > 1 ? 'ren' : ''}` : ''}
+                                    </div>
+                                    <div class="text-sm text-gray-600">
+                                        <span class="font-medium">$${parseFloat(room.Price).toFixed(2)}</span>
+                                        <span class="text-gray-500">/night</span>
+                                    </div>
+                                </div>
+                            </div>`;
+                        });
+
+                        html += `</div></div></div></div>
+                                <a href="../User/room_details.php?roomTypeID=${firstRoom.RoomTypeID}&checkin_date=${firstRoom.CheckInDate}&checkout_date=${firstRoom.CheckOutDate}&adults=${firstRoom.Adult}&children=${firstRoom.Children}" class="mt-2 text-orange-600 hover:text-orange-700 font-medium inline-flex items-center text-xs bg-orange-50 px-3 py-1 rounded-full">
+                                    <i class="ri-information-line mr-1"></i> Room Details
+                                </a>
+                                </div></div></div>`;
+                    }
+
+                    html += `</div><div class="swiper-pagination"></div></div></div>`;
+
+                    // Pricing Breakdown
+                    html += `<div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-800 mb-3">Pricing Breakdown</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-600">Room Rate (${totalNights} night${totalNights>1?'s':''}):</span>
+                                <span class="text-sm font-medium">$${totalPrice.toFixed(2)}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-600">Taxes & Fees:</span>
+                                <span class="text-sm font-medium">$${(totalPrice*0.1).toFixed(2)}</span>
+                            </div>
+                            <div class="border-t border-gray-200 pt-2 flex justify-between">
+                                <span class="font-medium text-gray-800">Total:</span>
+                                <span class="font-bold">$${(totalPrice*1.1).toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>`;
+
+                    // Cancellation Alert
+                    const freeCancelDate = new Date(earliestCheckin);
+                    freeCancelDate.setDate(freeCancelDate.getDate() - 1);
+                    const freeCancelDateString = freeCancelDate.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+
+                    html += `
+                        <div class="bg-red-50 border-l-4 border-red-400 p-4 mt-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <i class="ri-alert-line text-red-500 mt-1"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <h4 class="text-sm font-medium text-red-800">Cancellation Policy</h4>
+                                    <p class="text-sm text-red-700 mt-1">
+                                        Cancellations made within 24 hours of check-in will incur a fee of $50.
+                                        Free cancellation is available until ${freeCancelDateString}.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Insert HTML
+                    document.querySelector('#reservationDetailModal .space-y-3').innerHTML = html;
+
+                    // Show modal
+                    reservationDetailModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                    darkOverlay2.classList.remove('opacity-0', 'invisible');
+                    darkOverlay2.classList.add('opacity-100');
+
+                    // Initialize Swiper
+                    new Swiper('.roomTypeSwiper', {
+                        slidesPerView: 1,
+                        spaceBetween: 20,
+                        centeredSlides: true,
+                        pagination: { el: '.swiper-pagination', clickable: true },
+                        breakpoints: { 768: { slidesPerView: 1, spaceBetween: 30 } }
+                    });
+                }
+            });
+    });
+});
+
+
+closeReservationDetailModal.addEventListener('click', function () {
+    reservationDetailModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+    darkOverlay2.classList.add('opacity-0', 'invisible');
+    darkOverlay2.classList.remove('opacity-100');
+});
+
+// Cancel Reservation Modal
+const cancelButtons = document.querySelectorAll('.openCancelModalBtn');
+
+cancelButtons.forEach(button => {
+    button.addEventListener('click', function() {
+        const reservationId = this.dataset.reservationId;
+        const dates = this.dataset.dates;
+        const totalPrice = parseFloat(this.dataset.totalPrice);
+
+        const checkinDate = new Date(dates.split(' - ')[0]);
+        const today = new Date();
+
+        // Deadline is 3 days before check-in
+        const deadline = new Date(checkinDate);
+        deadline.setDate(deadline.getDate() - 3);
+        const deadlineString = deadline.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+
+        // Determine cancellation fee
+        let cancellationFee = 0;
+        if (today > deadline) {
+            cancellationFee = 50; // $50 fee if overdue
+        }
+
+        // Update modal content
+        document.getElementById('cancelReservationId').textContent = reservationId;
+        document.getElementById('cancelReservationDates').textContent = dates;
+        document.getElementById('refundAmount').textContent = '$' + totalPrice.toFixed(2);
+        document.getElementById('cancellationFee').textContent = `$${cancellationFee.toFixed(2)}`;
+        document.getElementById('totalRefund').textContent = `$${(totalPrice - cancellationFee).toFixed(2)}`;
+        document.getElementById('cancelDeadlineText').textContent = 
+            `Cancelling before ${deadlineString} will result in a full refund. After this date, a $50 cancellation fee applies.`;
+
+        // Show modal and overlay
+        const cancelModal = document.getElementById('cancelModal');
+        cancelModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
         darkOverlay2.classList.remove('opacity-0', 'invisible');
         darkOverlay2.classList.add('opacity-100');
-    });
 
-    closeReservationDetailModal.addEventListener('click', function() {
-        reservationDetailModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-        darkOverlay2.classList.add('opacity-0', 'invisible');
-        darkOverlay2.classList.remove('opacity-100');
+        // Confirm cancellation
+        document.getElementById('confirmCancelBtn').onclick = function() {
+            cancelReservation(reservationId);
+        };
     });
-}
+});
+
+// Close cancel modal
+document.getElementById('closeCancelModal').addEventListener('click', function() {
+    const cancelModal = document.getElementById('cancelModal');
+    cancelModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+    darkOverlay2.classList.add('opacity-0', 'invisible');
+    darkOverlay2.classList.remove('opacity-100');
+});
+
+document.getElementById('cancelGoBackBtn').addEventListener('click', function() {
+    const cancelModal = document.getElementById('cancelModal');
+    cancelModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+    darkOverlay2.classList.add('opacity-0', 'invisible');
+    darkOverlay2.classList.remove('opacity-100');
+});
 
 // Full form validation function
 const validateProfileUpdateForm = () => {
