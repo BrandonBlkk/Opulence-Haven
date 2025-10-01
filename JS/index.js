@@ -993,13 +993,62 @@ if (diningBtn) {
 // Dining Reservation Form
 document.addEventListener("DOMContentLoaded", () => {
     const loader = document.getElementById('loader');
-
-    // Add keyup event listeners for real-time validation
-    document.getElementById("diningNameInput").addEventListener("keyup", validateDiningName);
-    document.getElementById("diningEmailInput").addEventListener("keyup", validateDiningEmail);
-    document.getElementById("diningPhoneInput").addEventListener("keyup", validateDiningPhone);
-
     const diningForm = document.getElementById("diningForm");
+
+    const nameInput = document.getElementById("diningNameInput");
+    const phoneInput = document.getElementById("diningPhoneInput");
+
+    // Validation functions
+    const validateDiningName = () => {
+        return validateField(
+            "diningNameInput",
+            "diningNameError",
+            (input) => {
+                if (!input) {
+                    return "Name is required.";
+                }
+                if (input.length < 3) {
+                    return "Name must be at least 3 characters.";
+                }
+                if (input.length > 50) {
+                    return "Name is too long.";
+                }
+                return null;
+            }
+        );
+    };
+
+    // Dining Phone Validation
+    const validateDiningPhone = () => {
+        return validateField(
+            "diningPhoneInput",
+            "diningPhoneError",
+            (input) => {
+                if (!input) {
+                    return "Phone is required.";
+                }
+                if (!input.match(/^\d+$/)) {
+                    return "Phone number is invalid. Only digits are allowed.";
+                }
+                if (input.length < 9 || input.length > 11) {
+                    return "Phone number must be between 9 and 11 digits.";
+                }
+                return null;
+            }
+        );
+    };
+
+    function validateDiningForm() {
+        const isDiningNameValid = validateDiningName();
+        const isvalidDiningPhone = validateDiningPhone();
+        return isDiningNameValid && isvalidDiningPhone;
+
+    }
+
+    // Real-time validation
+    nameInput.addEventListener("keyup", validateDiningName);
+    phoneInput.addEventListener("keyup", validateDiningPhone);
+
     if (diningForm) {
         diningForm.addEventListener("submit", (e) => {
             e.preventDefault();
@@ -1957,15 +2006,6 @@ const validateResetForm = () => {
     return isResetPasswordValid && isNewPasswordValid && isConfirmPasswordValid;
 };
 
-const validateDiningForm = () => {
-    const isDiningNameValid = validateDiningName();
-    const isDiningEmailValid = validateDiningEmail();
-    const isDiningPhoneValid = validateDiningPhone();
-
-
-    return isDiningNameValid && isDiningEmailValid && isDiningPhoneValid;
-};
-
 const validateContactForm = () => {
     const isContactFullNameValid = validateFuillName();
     const isContactPhoneValid = validateContactPhone();
@@ -1984,48 +2024,6 @@ const validateRoomTypeReviewForm = () => {
 
 // Individual validation functions
 
-const validateDiningName = () => {
-    return validateField(
-        "diningNameInput",
-        "diningNameError",
-        (input) => {
-            if (!input) {
-                return "Name is required.";
-            }
-            if (input.length > 50) {
-                return "Name is too long.";
-            }
-            return null;
-        }
-    );
-}
-
-const validateDiningEmail = () => {
-    return validateField(
-        "diningEmailInput",
-        "diningEmailError",
-        (input) => (!input ? "Email is required." : null)
-    );
-}
-
-const validateDiningPhone = () => {
-    return validateField(
-        "diningPhoneInput",
-        "diningPhoneError",
-        (input) => {
-            if (!input) {
-                return "Phone is required.";
-            }
-            if (!input.match(/^\d+$/)) {
-                return "Phone number is invalid. Only digits are allowed.";
-            }
-            if (input.length < 9 || input.length > 11) {
-                return "Phone number must be between 9 and 11 digits.";
-            }
-            return null;
-        }
-    );
-}
 const validateUsername = () => {
     const usernameInput = document.getElementById("usernameInput").value.trim();
     const usernameError = document.getElementById("usernameError");

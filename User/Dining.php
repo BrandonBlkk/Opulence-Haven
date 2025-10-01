@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once('../config/db_connection.php');
+include_once('../includes/auto_id_func.php');
 
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
@@ -38,8 +39,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve'])) {
     $email = mysqli_real_escape_string($connect, $_POST['email']);
     $phone = mysqli_real_escape_string($connect, $_POST['phone']);
 
-    $reservationQuery = "INSERT INTO diningreservationtb (Date, Time, NumberOfGuests, SpecialRequest, Name, Email, PhoneNumber, UserID, MenuID)
-    VALUES ('$date', '$time', '$guests', '$specialrequests', '$name', '$email', '$phone', " . ($session_userID ? "'$session_userID'" : "NULL") . ", '$menu')";
+    $diningReservationID = uniqid('DRSV_');
+
+    $reservationQuery = "INSERT INTO diningreservationtb (ReservationID, Date, Time, NumberOfGuests, SpecialRequest, Name, Email, PhoneNumber, UserID, MenuID)
+    VALUES ( '$diningReservationID', '$date', '$time', '$guests', '$specialrequests', '$name', '$email', '$phone', " . ($session_userID ? "'$session_userID'" : "NULL") . ", '$menu')";
 
     if ($connect->query($reservationQuery)) {
         $responose['success'] = true;
