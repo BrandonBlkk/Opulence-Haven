@@ -13,8 +13,12 @@ if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
+// Initialize variables
 $userID = (!empty($_SESSION["UserID"]) ? $_SESSION["UserID"] : null);
 $alertMessage = '';
+$reservedRooms = [];
+$totalNights = 0;
+$totalGuest = 0;
 
 $user = "SELECT * FROM usertb WHERE UserID = '$userID'";
 $userData = $connect->query($user)->fetch_assoc();
@@ -23,6 +27,60 @@ $nameParts = explode(' ', trim($userData['UserName'] ?? 'Guest'));
 $initials = substr($nameParts[0], 0, 1);
 if (count($nameParts) > 1) {
     $initials .= substr(end($nameParts), 0, 1);
+}
+
+// Check if ReservationID is provided form Modify
+if (isset($_GET['modify_reservation_id'])) {
+    $reservationID = htmlspecialchars($_GET['modify_reservation_id']);
+
+    // Get reservation details
+    $reservationQuery = "SELECT * FROM reservationtb WHERE ReservationID = '$reservationID'";
+    $reservationResult = $connect->query($reservationQuery);
+
+    if ($reservationResult->num_rows > 0) {
+        $reservation = $reservationResult->fetch_assoc();
+        $totalPrice = $reservation['TotalPrice'];
+
+        // Get all rooms in this reservation
+        $roomsQuery = "SELECT rd.*, r.*, rt.* 
+                       FROM reservationdetailtb rd
+                       JOIN roomtb r ON rd.RoomID = r.RoomID
+                       JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
+                       WHERE rd.ReservationID = '$reservationID'";
+        $roomsResult = $connect->query($roomsQuery);
+
+        if ($roomsResult->num_rows > 0) {
+            while ($room = $roomsResult->fetch_assoc()) {
+                try {
+                    // Calculate nights
+                    $checkin_date = $room['CheckInDate'];
+                    $checkout_date = $room['CheckOutDate'];
+                    $adults = $room['Adult'];
+                    $children = $room['Children'];
+                    $nights = (strtotime($checkout_date) - strtotime($checkin_date)) / (60 * 60 * 24);
+
+                    // Add calculated fields
+                    $room['nights'] = $nights;
+                    $room['subtotal'] = $room['Price'] * $nights;
+                    $room['total'] = $room['Price'] * $nights * 1.1; // Tax
+                    $reservedRooms[] = $room;
+
+                    // Set total nights (same for all rooms in reservation)
+                    $totalNights = $nights;
+
+                    // Sum total guests
+                    $totalGuest += $adults + $children;
+                } catch (Exception $e) {
+                    $alertMessage = "Invalid dates: " . $e->getMessage();
+                    header("Location: reservation.php");
+                    exit();
+                }
+            }
+        }
+    } else {
+        header("Location: reservation.php");
+        exit();
+    }
 }
 
 // Get search parameters from URL with strict validation
@@ -441,7 +499,7 @@ if (isset($_GET['payment'])) {
         }
     }
 
-    // ✅ NEW: Handle payment cancellation
+    // Handle payment cancellation
     if ($_GET['payment'] === 'cancel') {
         $userID = $_SESSION['UserID'] ?? null;
         if ($userID) {
@@ -922,7 +980,8 @@ if (isset($_GET['payment'])) {
                             $expiryDisplay = "EXPIRED";
                         }
                         ?>
-                        <div class="expiry-notice mb-3 <?= $reservation ? '' : 'hidden' ?>">
+                        <div class="expiry-notice mb-3 
+    <?= (isset($_GET['modify_reservation_id']) || !$reservation) ? 'hidden' : '' ?>">
                             <div class="flex items-center" id="countdown-container">
                                 <svg id="countdown-icon" class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
