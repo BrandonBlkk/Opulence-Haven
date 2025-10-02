@@ -4258,7 +4258,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Function to clear errors
     const clearErrors = () => {
-        const errors = ['menuNameError', 'menuDescriptionError', 'updateMenuNameError', 'updateMenuDescriptionError'];
+        const errors = ['menuNameError', 'menuDescriptionError', 'menuLocationError', 'updateMenuNameError', 'updateMenuDescriptionError'];
         errors.forEach(error => {
             hideError(document.getElementById(error));
         });
@@ -4325,31 +4325,52 @@ document.addEventListener("DOMContentLoaded", () => {
         const detailsBtn = row.querySelector('.details-btn');
         if (detailsBtn) {
             detailsBtn.addEventListener('click', function() {
-                const menuId = this.getAttribute('data-menu-id');
-                darkOverlay2.classList.remove('opacity-0', 'invisible');
-                darkOverlay2.classList.add('opacity-100');
+            const menuId = this.getAttribute('data-menu-id');
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/add_menu.php?action=getMenuDetails&id=${menuId}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
+            // Reset PDF preview before fetching new menu
+            const previewContainer = document.getElementById('updateMenuPreviewContainer');
+            const previewText = document.getElementById('updateMenuPreview');
+            const viewLink = document.getElementById('updateMenuViewLink');
+            const uploadArea = document.getElementById('updateUploadArea');
+            const updateRemovePdf = document.getElementById('updateRemovePdf');
+
+            previewContainer.classList.add('hidden');
+            uploadArea.classList.remove('hidden');
+            previewText.textContent = '';
+            viewLink.href = '#';
+            viewLink.textContent = '';
+            updateRemovePdf.value = "0";
+
+            fetch(`../Admin/add_menu.php?action=getMenuDetails&id=${menuId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.menu) {
+                        document.getElementById('updateMenuID').value = menuId;
+                        document.getElementById('updateMenuNameInput').value = data.menu.MenuName;
+                        document.getElementById('updateMenuDescriptionInput').value = data.menu.Description;
+                        document.getElementById('updateMenuLocationInput').value = data.menu.Location;
+                        document.getElementById('updateStartTime').value = formatTimeForInput(data.menu.StartTime);
+                        document.getElementById('updateEndTime').value = formatTimeForInput(data.menu.EndTime);
+                        document.getElementById('updateStatus').value = data.menu.Status;
+
+                        // Handle PDF preview for existed menu
+                        if (data.menu.MenuPDF) {
+                            previewText.textContent = data.menu.MenuPDF;
+                            viewLink.href = data.menu.MenuPDF;
+                            viewLink.textContent = "View PDF";
+                            previewContainer.classList.remove('hidden');
+                            uploadArea.classList.add('hidden');
+                            updateRemovePdf.value = "0"; // PDF exists
                         }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.success) {
-                            document.getElementById('updateMenuID').value = menuId;
-                            document.getElementById('updateMenuNameInput').value = data.menu.MenuName;
-                            document.getElementById('updateMenuDescriptionInput').value = data.menu.Description;
-                            document.getElementById('updateStartTime').value = formatTimeForInput(data.menu.StartTime);
-                            document.getElementById('updateEndTime').value = formatTimeForInput(data.menu.EndTime);
-                            document.getElementById('updateStatus').value = data.menu.Status;
-                            updateMenuModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-                        } else {
-                            console.error('Failed to load menu details');
-                        }
-                    })
-                    .catch(error => console.error('Fetch error:', error));
+
+                        updateMenuModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                    } else {
+                        console.error('Failed to load menu details');
+                    }
+                })
+                .catch(error => console.error('Fetch error:', error));
             });
         }
 
@@ -4392,6 +4413,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Menu Form Submission
     document.getElementById("menuNameInput")?.addEventListener("keyup", validateMenuName);
     document.getElementById("menuDescriptionInput")?.addEventListener("keyup", validateMenuDescription);
+    document.getElementById("menuLocationInput")?.addEventListener("keyup", validateMenuLocation);
 
     // Menu Form Submission
     if (menuForm) {
@@ -6575,8 +6597,9 @@ const validateChangePasswordForm = () => {
 const validateMenuForm = () => {
     const isMenuNameValid = validateMenuName();
     const isMenuDescriptionValid = validateMenuDescription();
+    const isMenuLocationValid = validateMenuLocation();
 
-    return isMenuNameValid && isMenuDescriptionValid;
+    return isMenuNameValid && isMenuDescriptionValid && isMenuLocationValid;
 }
 
 const validateUpdateMenuForm = () => {
@@ -7470,6 +7493,14 @@ const validateMenuDescription = () => {
         "menuDescriptionInput",
         "menuDescriptionError",
         (input) => (!input ? "Description is required." : null)
+    );
+}
+
+const validateMenuLocation = () => {
+    return validateField(
+        "menuLocationInput",
+        "menuLocationError",
+        (input) => (!input ? "Location is required." : null)
     );
 }
 
