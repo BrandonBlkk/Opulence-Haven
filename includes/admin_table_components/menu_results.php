@@ -160,6 +160,32 @@ if (mysqli_num_rows($menuSelectQuery) > 0) {
         initializeMenuActionButtons();
     });
 
+    const formatTimeForInput = (timeStr) => {
+        if (!timeStr) return '';
+
+        // If time is already in 24-hour format (HH:MM)
+        if (/^\d{2}:\d{2}$/.test(timeStr)) {
+            return timeStr;
+        }
+
+        // If time is in 12-hour format with AM/PM
+        if (/^\d{1,2}:\d{2} [AP]M$/i.test(timeStr)) {
+            const [time, period] = timeStr.split(' ');
+            let [hours, minutes] = time.split(':');
+
+            hours = parseInt(hours, 10);
+            if (period.toUpperCase() === 'PM' && hours < 12) {
+                hours += 12;
+            } else if (period.toUpperCase() === 'AM' && hours === 12) {
+                hours = 0;
+            }
+
+            return `${hours.toString().padStart(2, '0')}:${minutes}`;
+        }
+
+        return timeStr;
+    }
+
     // Function to initialize action buttons for menu
     function initializeMenuActionButtons() {
         // Details buttons
@@ -169,6 +195,20 @@ if (mysqli_num_rows($menuSelectQuery) > 0) {
                 darkOverlay2.classList.remove('opacity-0', 'invisible');
                 darkOverlay2.classList.add('opacity-100');
 
+                // Reset PDF preview before fetching new menu
+                const previewContainer = document.getElementById('updateMenuPreviewContainer');
+                const previewText = document.getElementById('updateMenuPreview');
+                const viewLink = document.getElementById('updateMenuViewLink');
+                const uploadArea = document.getElementById('updateUploadArea');
+                const updateRemovePdf = document.getElementById('updateRemovePdf');
+
+                previewContainer.classList.add('hidden');
+                uploadArea.classList.remove('hidden');
+                previewText.textContent = '';
+                viewLink.href = '#';
+                viewLink.textContent = '';
+                updateRemovePdf.value = "0";
+
                 fetch(`../Admin/add_menu.php?action=getMenuDetails&id=${menuId}`)
                     .then(response => {
                         if (!response.ok) {
@@ -177,13 +217,25 @@ if (mysqli_num_rows($menuSelectQuery) > 0) {
                         return response.json();
                     })
                     .then(data => {
-                        if (data.success) {
+                        if (data.success && data.menu) {
                             document.getElementById('updateMenuID').value = menuId;
                             document.getElementById('updateMenuNameInput').value = data.menu.MenuName;
                             document.getElementById('updateMenuDescriptionInput').value = data.menu.Description;
-                            document.getElementById('updateStartTimeInput').value = data.menu.StartTime;
-                            document.getElementById('updateEndTimeInput').value = data.menu.EndTime;
-                            document.getElementById('updateStatusSelect').value = data.menu.Status;
+                            document.getElementById('updateMenuLocationInput').value = data.menu.Location;
+                            document.getElementById('updateStartTime').value = formatTimeForInput(data.menu.StartTime);
+                            document.getElementById('updateEndTime').value = formatTimeForInput(data.menu.EndTime);
+                            document.getElementById('updateStatus').value = data.menu.Status;
+
+                            // Handle PDF preview for existing menu
+                            if (data.menu.MenuPDF) {
+                                previewText.textContent = data.menu.MenuPDF;
+                                viewLink.href = data.menu.MenuPDF;
+                                viewLink.textContent = "View PDF";
+                                previewContainer.classList.remove('hidden');
+                                uploadArea.classList.add('hidden');
+                                updateRemovePdf.value = "0"; // PDF exists
+                            }
+
                             updateMenuModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
                         } else {
                             console.error('Failed to load menu details');

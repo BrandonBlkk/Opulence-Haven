@@ -2,7 +2,15 @@
 require_once(__DIR__ . '/../../config/db_connection.php');
 include(__DIR__ . '/../admin_pagination.php');
 
+// Get current page from GET, default to 1
+$reservationCurrentPage = isset($_GET['reservationpage']) ? (int)$_GET['reservationpage'] : 1;
+$rowsPerPage = $rowsPerPage ?? 10; // fallback if not set
+$reservationOffset = ($reservationCurrentPage - 1) * $rowsPerPage;
+
 // Construct the reservation query based on search and status filter
+$searchBookingQuery = isset($_GET['reservation_search']) ? $_GET['reservation_search'] : '';
+$filterStatus = $filterStatus ?? 'random';
+
 if ($filterStatus !== 'random' && !empty($searchBookingQuery)) {
     $bookingSelect = "SELECT r.*, u.UserName, u.UserPhone, u.UserEmail, u.ProfileBgColor 
                      FROM reservationtb r 
@@ -47,7 +55,6 @@ if ($filterStatus !== 'random' && !empty($searchBookingQuery)) {
 
 $bookingSelectQuery = $connect->query($bookingSelect);
 $bookings = [];
-
 if (mysqli_num_rows($bookingSelectQuery) > 0) {
     while ($row = $bookingSelectQuery->fetch_assoc()) {
         $bookings[] = $row;
@@ -77,8 +84,8 @@ if (mysqli_num_rows($bookingSelectQuery) > 0) {
                         </div>
                     </td>
                     <td class="p-3 text-start flex items-center gap-2">
-                        <div id="profilePreview" class="w-10 h-10 object-cover rounded-full bg-[<?php echo $booking['ProfileBgColor'] ?>] text-white select-none">
-                            <p class="w-full h-full flex items-center justify-center font-semibold"><?php echo strtoupper(substr($booking['UserName'], 0, 1)); ?></p>
+                        <div id="profilePreview" class="w-10 h-10 object-cover rounded-full bg-[<?= $booking['ProfileBgColor'] ?>] text-white select-none">
+                            <p class="w-full h-full flex items-center justify-center font-semibold"><?= strtoupper(substr($booking['UserName'], 0, 1)) ?></p>
                         </div>
                         <div>
                             <p class="font-bold"><?= htmlspecialchars($booking['Title'] . ' ' . $booking['FirstName'] . ' ' . $booking['LastName']) ?> <span class="text-gray-400 text-xs font-normal">(<?= htmlspecialchars($booking['UserName']) ?>)</span></p>
@@ -130,8 +137,7 @@ if (mysqli_num_rows($bookingSelectQuery) > 0) {
                         </span>
                     </td>
                     <td class="p-3 text-start whitespace-nowrap">
-                        <i class="details-btn ri-eye-line text-lg cursor-pointer"
-                            data-reservation-id="<?= htmlspecialchars($booking['ReservationID']) ?>"></i>
+                        <i class="details-btn ri-eye-line text-lg cursor-pointer" data-reservation-id="<?= htmlspecialchars($booking['ReservationID']) ?>"></i>
                     </td>
                 </tr>
             <?php endforeach; ?>
@@ -150,10 +156,12 @@ if (mysqli_num_rows($bookingSelectQuery) > 0) {
     function loadReservationPage(page) {
         const urlParams = new URLSearchParams(window.location.search);
         const searchQuery = urlParams.get('reservation_search') || '';
+        const filterStatus = urlParams.get('sort') || 'random';
 
         // Update URL parameters
         urlParams.set('reservationpage', page);
-        if (searchQuery) urlParams.set('reservation_search', searchQuery);
+        urlParams.set('reservation_search', searchQuery);
+        urlParams.set('sort', filterStatus);
 
         const xhr = new XMLHttpRequest();
         xhr.open('GET', `../includes/admin_table_components/reservation_results.php?${urlParams.toString()}`, true);
@@ -162,7 +170,7 @@ if (mysqli_num_rows($bookingSelectQuery) > 0) {
             if (this.status === 200) {
                 document.getElementById('reservationResults').innerHTML = this.responseText;
 
-                // Also update the pagination controls
+                // Update the pagination controls
                 const xhrPagination = new XMLHttpRequest();
                 xhrPagination.open('GET', `../includes/admin_table_components/reservation_pagination.php?${urlParams.toString()}`, true);
                 xhrPagination.onload = function() {
@@ -187,44 +195,34 @@ if (mysqli_num_rows($bookingSelectQuery) > 0) {
         loadReservationPage(1);
     }
 
-    // Function to attach pagination event listeners
+    // Function to attach pagination event listeners dynamically
     function attachPaginationEventListeners() {
-        // Page number buttons
-        document.querySelectorAll('.page-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const page = this.getAttribute('data-page');
-                loadReservationPage(parseInt(page));
-            });
-        });
-
-        // Previous button
-        const prevBtn = document.querySelector('.prev-page-btn');
-        if (prevBtn) {
-            prevBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const currentPage = <?= $reservationCurrentPage ?>;
-                if (currentPage > 1) {
-                    loadReservationPage(currentPage - 1);
-                }
-            });
+        function clickHandler(e) {
+            e.preventDefault();
+            const page = parseInt(this.dataset.page);
+            if (!isNaN(page)) {
+                loadReservationPage(page);
+            }
         }
 
-        // Next button
+        document.querySelectorAll('.page-btn').forEach(btn => {
+            btn.removeEventListener('click', clickHandler);
+            btn.addEventListener('click', clickHandler);
+        });
+
+        const prevBtn = document.querySelector('.prev-page-btn');
+        if (prevBtn) {
+            prevBtn.removeEventListener('click', clickHandler);
+            prevBtn.addEventListener('click', clickHandler);
+        }
+
         const nextBtn = document.querySelector('.next-page-btn');
         if (nextBtn) {
-            nextBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const currentPage = <?= $reservationCurrentPage ?>;
-                const totalPages = <?= $totalReservationPages ?>;
-                if (currentPage < totalPages) {
-                    loadReservationPage(currentPage + 1);
-                }
-            });
+            nextBtn.removeEventListener('click', clickHandler);
+            nextBtn.addEventListener('click', clickHandler);
         }
     }
 
-    // Initialize event listeners
     document.addEventListener('DOMContentLoaded', function() {
         // Search input listener
         const searchInput = document.querySelector('input[name="reservation_search"]');
@@ -237,6 +235,17 @@ if (mysqli_num_rows($bookingSelectQuery) > 0) {
             });
         }
 
+        // Filter select listener
+        const filterSelect = document.querySelector('select[name="sort"]');
+        if (filterSelect) {
+            filterSelect.addEventListener('change', function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                urlParams.set('sort', this.value);
+                window.history.pushState({}, '', `?${urlParams.toString()}`);
+                loadReservationPage(1); // reset to page 1 on filter change
+            });
+        }
+
         // Initial attachment of pagination listeners
         attachPaginationEventListeners();
     });
@@ -245,9 +254,11 @@ if (mysqli_num_rows($bookingSelectQuery) > 0) {
     window.addEventListener('popstate', function() {
         const urlParams = new URLSearchParams(window.location.search);
         const searchInput = document.querySelector('input[name="reservation_search"]');
-        if (searchInput) {
-            searchInput.value = urlParams.get('reservation_search') || '';
-        }
+        const filterSelect = document.querySelector('select[name="sort"]');
+
+        if (searchInput) searchInput.value = urlParams.get('reservation_search') || '';
+        if (filterSelect) filterSelect.value = urlParams.get('sort') || 'random';
+
         loadReservationPage(urlParams.get('reservationpage') || 1);
     });
 </script>
