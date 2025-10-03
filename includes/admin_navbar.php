@@ -241,9 +241,7 @@ if (mysqli_num_rows($query) > 0) {
                     </a>
                 </div>
                 <a href="role_management.php" class="flex items-center gap-4 p-2 rounded-sm text-slate-600 hover:bg-slate-100 transition-colors duration-300 select-none <?= ($role === '1') ? 'flex' : 'hidden'; ?> <?= $current_page === 'role_management.php' ? 'bg-slate-100' : '' ?>">
-                    <i class="ri-settings-3-line text-xl relative">
-                        <p class="bg-red-500 rounded-full text-sm text-white w-5 h-5 text-center absolute -top-1 -right-2 select-none <?php echo ($orderCount != 0) ? 'block' : 'hidden'; ?>"><?php echo $orderCount ?></p>
-                    </i>
+                    <i class="ri-settings-3-line text-xl"></i>
                     <span class="font-semibold text-sm">Role Management</span>
                 </a>
 

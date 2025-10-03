@@ -130,37 +130,33 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
                 <p>Monitor active orders, process cancellations, and analyze order trends to optimize resource allocation.</p>
             </div>
 
-            <!-- Product Table -->
+            <!-- Order Table -->
             <div class="overflow-x-auto">
-                <!-- Product Search and Filter -->
+                <!-- Order Search and Filter -->
                 <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
                     <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Orders <span class="text-gray-400 text-sm ml-2"><?php echo $bookingCount ?></span></h1>
                     <div class="flex flex-col sm:flex-row items-start sm:items-center w-full gap-2 sm:gap-0">
-                        <input type="text" name="order_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full outline-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" placeholder="Search for order..." value="<?php echo isset($_GET['order_search']) ? htmlspecialchars($_GET['order_search']) : ''; ?>">
+                        <input type="text" name="order_search" id="orderSearchInput" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full outline-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" placeholder="Search for order..." value="<?php echo isset($_GET['order_search']) ? htmlspecialchars($_GET['order_search']) : ''; ?>">
                         <div class="flex items-center">
                             <label for="sort" class="ml-0 sm:ml-4 mr-2 flex items-center cursor-pointer select-none">
                                 <i class="ri-filter-2-line text-xl"></i>
                                 <p>Filters</p>
                             </label>
-                            <!-- Search and filter form -->
-                            <form method="GET" class="flex flex-col md:flex-row items-center gap-4 mb-4">
-
-                                <select name="sort" id="sort" class="border p-2 rounded text-sm outline-none">
-                                    <option value="random">All Statuses</option>
-                                    <option value="Order Placed" <?= ($filterStatus == 'Order Placed') ? 'selected' : '' ?>>Order Placed</option>
-                                    <option value="Processing" <?= ($filterStatus == 'Processing') ? 'selected' : '' ?>>Processing</option>
-                                    <option value="Shipped" <?= ($filterStatus == 'Shipped') ? 'selected' : '' ?>>Shipped</option>
-                                    <option value="Delivered" <?= ($filterStatus == 'Delivered') ? 'selected' : '' ?>>Delivered</option>
-                                    <option value="Cancelled" <?= ($filterStatus == 'Cancelled') ? 'selected' : '' ?>>Cancelled</option>
-                                </select>
-                            </form>
+                            <select name="sort" id="sortSelect" class="border p-2 rounded text-sm outline-none">
+                                <option value="random">All Statuses</option>
+                                <option value="Order Placed" <?= ($filterStatus == 'Order Placed') ? 'selected' : '' ?>>Order Placed</option>
+                                <option value="Processing" <?= ($filterStatus == 'Processing') ? 'selected' : '' ?>>Processing</option>
+                                <option value="Shipped" <?= ($filterStatus == 'Shipped') ? 'selected' : '' ?>>Shipped</option>
+                                <option value="Delivered" <?= ($filterStatus == 'Delivered') ? 'selected' : '' ?>>Delivered</option>
+                                <option value="Cancelled" <?= ($filterStatus == 'Cancelled') ? 'selected' : '' ?>>Cancelled</option>
+                            </select>
                         </div>
                     </div>
                 </form>
 
                 <!-- Reservation Table -->
                 <div class="tableScrollBar overflow-y-auto max-h-[510px]">
-                    <div id="reservationResults">
+                    <div id="orderResults">
                         <?php include '../includes/admin_table_components/order_results.php'; ?>
                     </div>
                 </div>

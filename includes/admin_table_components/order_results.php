@@ -3,40 +3,44 @@ require_once(__DIR__ . '/../../config/db_connection.php');
 include(__DIR__ . '/../admin_pagination.php');
 
 // Construct the order query based on search and status filter
-if ($filterStatus !== 'random' && !empty($searchBookingQuery)) {
+if ($filterStatus !== 'random' && !empty($searchOrderQuery)) {
     $orderSelect = "SELECT o.*, u.UserName, u.UserPhone, u.ProfileBgColor, u.UserEmail 
-                     FROM ordertb o
-                     JOIN usertb u ON o.UserID = u.UserID  
-                     WHERE o.Status = '$filterStatus' 
-                     AND (o.FullName LIKE '%$searchBookingQuery%' 
-                          OR o.PhoneNumber LIKE '%$searchBookingQuery%'
-                          OR o.OrderID LIKE '%$searchBookingQuery%'
-                          OR u.UserName LIKE '%$searchBookingQuery%')
-                     ORDER BY o.OrderDate DESC
-                     LIMIT $rowsPerPage OFFSET $reservationOffset";
+                    FROM ordertb o
+                    JOIN usertb u ON o.UserID = u.UserID  
+                    WHERE o.Status = '$filterStatus' 
+                    AND o.Status != 'Pending' 
+                    AND (o.FullName LIKE '%$searchOrderQuery%' 
+                         OR o.PhoneNumber LIKE '%$searchOrderQuery%'
+                         OR o.OrderID LIKE '%$searchOrderQuery%'
+                         OR u.UserName LIKE '%$searchOrderQuery%')
+                    ORDER BY o.OrderDate DESC
+                    LIMIT $rowsPerPage OFFSET $orderOffset";
 } elseif ($filterStatus !== 'random') {
     $orderSelect = "SELECT o.*, u.UserName, u.UserPhone, u.ProfileBgColor, u.UserEmail  
-                     FROM ordertb o
-                     JOIN usertb u ON o.UserID = u.UserID 
-                     WHERE o.Status = '$filterStatus'
-                     ORDER BY o.OrderDate DESC
-                     LIMIT $rowsPerPage OFFSET $reservationOffset";
-} elseif (!empty($searchBookingQuery)) {
+                    FROM ordertb o
+                    JOIN usertb u ON o.UserID = u.UserID 
+                    WHERE o.Status = '$filterStatus'
+                    AND o.Status != 'Pending' 
+                    ORDER BY o.OrderDate DESC
+                    LIMIT $rowsPerPage OFFSET $orderOffset";
+} elseif (!empty($searchOrderQuery)) {
     $orderSelect = "SELECT o.*, u.UserName, u.UserPhone, u.ProfileBgColor, u.UserEmail 
-                     FROM ordertb o
-                     JOIN usertb u ON o.UserID = u.UserID 
-                     WHERE (o.FullName LIKE '%$searchBookingQuery%'
-                           OR o.PhoneNumber LIKE '%$searchBookingQuery%'
-                           OR o.OrderID LIKE '%$searchBookingQuery%'
-                           OR u.UserName LIKE '%$searchBookingQuery%') 
-                     ORDER BY o.OrderDate DESC
-                     LIMIT $rowsPerPage OFFSET $reservationOffset";
+                    FROM ordertb o
+                    JOIN usertb u ON o.UserID = u.UserID 
+                    WHERE (o.FullName LIKE '%$searchOrderQuery%'
+                           OR o.PhoneNumber LIKE '%$searchOrderQuery%'
+                           OR o.OrderID LIKE '%$searchOrderQuery%'
+                           OR u.UserName LIKE '%$searchOrderQuery%') 
+                    AND o.Status != 'Pending' 
+                    ORDER BY o.OrderDate DESC
+                    LIMIT $rowsPerPage OFFSET $orderOffset";
 } else {
     $orderSelect = "SELECT o.*, u.UserName, u.UserPhone, u.ProfileBgColor, u.UserEmail 
-                     FROM ordertb o
-                     JOIN usertb u ON o.UserID = u.UserID 
-                     ORDER BY o.OrderDate DESC
-                     LIMIT $rowsPerPage OFFSET $reservationOffset";
+                    FROM ordertb o
+                    JOIN usertb u ON o.UserID = u.UserID 
+                    WHERE o.Status != 'Pending'
+                    ORDER BY o.OrderDate DESC
+                    LIMIT $rowsPerPage OFFSET $orderOffset";
 }
 
 $orderSelectQuery = $connect->query($orderSelect);
@@ -148,51 +152,50 @@ if ($orderSelectQuery && mysqli_num_rows($orderSelectQuery) > 0) {
 </table>
 
 <script>
-    // Function to load a specific page for orders
-    function loadOrderPage(page) {
+    // Function to load a specific page of orders
+    function loadOrderPage(page = 1) {
         const urlParams = new URLSearchParams(window.location.search);
-        const searchQuery = urlParams.get('order_search') || '';
+        const searchQuery = document.querySelector('input[name="order_search"]')?.value || '';
+        const sortType = document.querySelector('select[name="sort"]')?.value || 'random';
 
         // Update URL parameters
         urlParams.set('orderpage', page);
-        if (searchQuery) urlParams.set('order_search', searchQuery);
+        urlParams.set('order_search', searchQuery);
+        urlParams.set('sort', sortType);
 
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', `../includes/admin_table_components/order_results.php?${urlParams.toString()}`, true);
+        // Fetch order results
+        fetch(`../includes/admin_table_components/order_results.php?${urlParams.toString()}`)
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('orderResults').innerHTML = data;
 
-        xhr.onload = function() {
-            if (this.status === 200) {
-                document.getElementById('orderResults').innerHTML = this.responseText;
+                // Fetch pagination controls
+                return fetch(`../includes/admin_table_components/order_pagination.php?${urlParams.toString()}`);
+            })
+            .then(response => response.text())
+            .then(pagination => {
+                document.getElementById('paginationContainer').innerHTML = pagination;
+                attachPaginationEventListeners(); // Reattach events after update
+                initializeOrderActionButtons(); // Reattach action buttons
+            })
+            .catch(error => console.error('Fetch error:', error));
 
-                // Also update the pagination controls
-                const xhrPagination = new XMLHttpRequest();
-                xhrPagination.open('GET', `../includes/admin_table_components/order_pagination.php?${urlParams.toString()}`, true);
-                xhrPagination.onload = function() {
-                    if (this.status === 200) {
-                        document.getElementById('paginationContainer').innerHTML = this.responseText;
-                        attachPaginationEventListeners();
-                    }
-                };
-                xhrPagination.send();
-
-                window.history.pushState({}, '', `?${urlParams.toString()}`);
-                window.scrollTo(0, 0);
-            }
-        };
-
-        xhr.send();
+        window.history.pushState({}, '', `?${urlParams.toString()}`);
+        window.scrollTo(0, 0);
     }
 
-    function handleOrderSearch() {
+    // Function to handle realtime search and filter
+    function handleSearchFilter() {
         loadOrderPage(1);
     }
 
+    // Attach pagination events dynamically
     function attachPaginationEventListeners() {
         document.querySelectorAll('.page-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
-                const page = this.getAttribute('data-page');
-                loadOrderPage(parseInt(page));
+                const page = parseInt(this.dataset.page);
+                if (!isNaN(page)) loadOrderPage(page);
             });
         });
 
@@ -200,10 +203,8 @@ if ($orderSelectQuery && mysqli_num_rows($orderSelectQuery) > 0) {
         if (prevBtn) {
             prevBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                const currentPage = <?= $reservationCurrentPage ?>;
-                if (currentPage > 1) {
-                    loadOrderPage(currentPage - 1);
-                }
+                const currentPage = parseInt(new URLSearchParams(window.location.search).get('orderpage') || 1);
+                if (currentPage > 1) loadOrderPage(currentPage - 1);
             });
         }
 
@@ -211,34 +212,83 @@ if ($orderSelectQuery && mysqli_num_rows($orderSelectQuery) > 0) {
         if (nextBtn) {
             nextBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                const currentPage = <?= $reservationCurrentPage ?>;
-                const totalPages = <?= $totalReservationPages ?>;
-                if (currentPage < totalPages) {
-                    loadOrderPage(currentPage + 1);
-                }
+                const currentPage = parseInt(new URLSearchParams(window.location.search).get('orderpage') || 1);
+                const totalPages = parseInt(document.querySelector('.page-btn:last-child')?.dataset.page || 1);
+                if (currentPage < totalPages) loadOrderPage(currentPage + 1);
             });
         }
     }
 
+    // Initialize order action buttons
+    function initializeOrderActionButtons() {
+        document.querySelectorAll('tbody tr').forEach(row => {
+            // Edit button
+            const detailsBtn = row.querySelector('.details-btn');
+            if (detailsBtn) {
+                detailsBtn.addEventListener('click', function() {
+                    const orderId = this.getAttribute('data-order-id');
+                    currentOrderId = orderId;
+
+                    if (darkOverlay2) {
+                        darkOverlay2.classList.remove('opacity-0', 'invisible');
+                        darkOverlay2.classList.add('opacity-100');
+                    }
+                    orderModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+
+                    fetch(`../Admin/order.php?action=getOrderDetails&id=${orderId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success && data.order) {
+                                const order = data.order;
+
+                                document.getElementById('userFullName').textContent = order.FullName ?? "N/A";
+                                document.getElementById('userName').textContent = order.UserName ? order.UserName.charAt(0).toUpperCase() : "N/A";
+                                document.getElementById('profilePreview').style.backgroundColor = order.ProfileBgColor ?? "#999";
+                                document.getElementById('userEmail').textContent = order.UserEmail ?? "N/A";
+                                document.getElementById('userPhone').textContent = order.UserPhone ?? "N/A";
+                                document.getElementById('userAddress').textContent = order.ShippingAddress ?? "N/A";
+                                document.getElementById('userCity').textContent = order.City ?? "N/A";
+                                document.getElementById('userState').textContent = order.State ?? "N/A";
+                                document.getElementById('userZip').textContent = order.ZipCode ?? "N/A";
+                                document.getElementById('orderDate').textContent = formatDate(order.OrderDate);
+
+                                document.getElementById('orderSubtotal').textContent = `$ ${parseFloat(order.Subtotal ?? 0).toFixed(2)}`;
+                                document.getElementById('orderTaxesFees').textContent = `$ ${((parseFloat(order.OrderTax) || 0) + 5).toFixed(2)}`;
+                                document.getElementById('orderTotal').textContent = `$ ${parseFloat(order.TotalPrice ?? 0).toFixed(2)}`;
+
+                                const products = Array.isArray(order.Products) ? order.Products : [];
+                                initializeOrderProductSwiper(products);
+                            } else {
+                                console.error('Failed to load order details');
+                            }
+                        })
+                        .catch(error => console.error('Fetch error:', error));
+                });
+            }
+        });
+    }
+
+    // Initialize everything on page load
     document.addEventListener('DOMContentLoaded', function() {
         const searchInput = document.querySelector('input[name="order_search"]');
-        if (searchInput) {
-            searchInput.addEventListener('input', function() {
-                const urlParams = new URLSearchParams(window.location.search);
-                urlParams.set('order_search', this.value);
-                window.history.pushState({}, '', `?${urlParams.toString()}`);
-                handleOrderSearch();
-            });
-        }
+        const filterSelect = document.querySelector('select[name="sort"]');
+
+        if (searchInput) searchInput.addEventListener('input', handleSearchFilter);
+        if (filterSelect) filterSelect.addEventListener('change', handleSearchFilter);
+
         attachPaginationEventListeners();
+        initializeOrderActionButtons();
     });
 
+    // Handle back/forward browser buttons
     window.addEventListener('popstate', function() {
         const urlParams = new URLSearchParams(window.location.search);
         const searchInput = document.querySelector('input[name="order_search"]');
-        if (searchInput) {
-            searchInput.value = urlParams.get('order_search') || '';
-        }
-        loadOrderPage(urlParams.get('orderpage') || 1);
+        const filterSelect = document.querySelector('select[name="sort"]');
+
+        if (searchInput) searchInput.value = urlParams.get('order_search') || '';
+        if (filterSelect) filterSelect.value = urlParams.get('sort') || 'random';
+
+        loadOrderPage(parseInt(urlParams.get('orderpage') || 1));
     });
 </script>

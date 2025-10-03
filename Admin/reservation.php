@@ -103,9 +103,9 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
                 <p>Monitor active reservations, process cancellations, and analyze booking trends to optimize resource allocation.</p>
             </div>
 
-            <!-- Product Table -->
+            <!-- Rservation Table -->
             <div class="overflow-x-auto">
-                <!-- Product Search and Filter -->
+                <!-- Rservation Search and Filter -->
                 <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
                     <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Reservations <span class="text-gray-400 text-sm ml-2"><?php echo $bookingCount ?></span></h1>
                     <div class="flex flex-col sm:flex-row items-start sm:items-center w-full gap-2 sm:gap-0">
@@ -119,7 +119,6 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
                             <form method="GET" class="flex flex-col md:flex-row items-center gap-4 mb-4">
                                 <select name="sort" id="sort" class="border p-2 rounded text-sm outline-none">
                                     <option value="random">All Statuses</option>
-                                    <option value="Pending" <?= ($filterStatus == 'Pending') ? 'selected' : '' ?>>Pending</option>
                                     <option value="Confirmed" <?= ($filterStatus == 'Confirmed') ? 'selected' : '' ?>>Confirmed</option>
                                     <option value="Cancelled" <?= ($filterStatus == 'Cancelled') ? 'selected' : '' ?>>Cancelled</option>
                                 </select>

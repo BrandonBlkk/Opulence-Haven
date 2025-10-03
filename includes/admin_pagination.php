@@ -390,3 +390,41 @@ $purchaseCount = $purchaseResult->fetch_assoc()['count'];
 
 // Calculate the total number of pages
 $totalPurchasePages = ceil($purchaseCount / $rowsPerPage);
+
+// Count query
+if ($filterStatus !== 'random' && !empty($searchOrderQuery)) {
+    $orderQuery = "SELECT COUNT(*) as count 
+                   FROM ordertb o
+                   WHERE o.Status = '$filterStatus'
+                   AND (o.OrderID LIKE '%$searchOrderQuery%'
+                        OR o.FullName LIKE '%$searchOrderQuery%'
+                        OR o.PhoneNumber LIKE '%$searchOrderQuery%'
+                        OR o.City LIKE '%$searchOrderQuery%'
+                        OR o.State LIKE '%$searchOrderQuery%'
+                        OR o.ZipCode LIKE '%$searchOrderQuery%')";
+} elseif ($filterStatus !== 'random') {
+    $orderQuery = "SELECT COUNT(*) as count 
+                   FROM ordertb o
+                   WHERE o.Status = '$filterStatus'";
+} elseif (!empty($searchOrderQuery)) {
+    $orderQuery = "SELECT COUNT(*) as count 
+                   FROM ordertb o
+                   WHERE (o.OrderID LIKE '%$searchOrderQuery%'
+                          OR o.FullName LIKE '%$searchOrderQuery%'
+                          OR o.PhoneNumber LIKE '%$searchOrderQuery%'
+                          OR o.City LIKE '%$searchOrderQuery%'
+                          OR o.State LIKE '%$searchOrderQuery%'
+                          OR o.ZipCode LIKE '%$searchOrderQuery%')
+                          AND o.Status != 'Pending'";
+} else {
+    $orderQuery = "SELECT COUNT(*) as count 
+                   FROM ordertb o
+                   WHERE o.Status != 'Pending'";
+}
+
+// Execute the count query
+$orderResult = $connect->query($orderQuery);
+$orderCount = $orderResult->fetch_assoc()['count'];
+
+// Calculate the total number of pages
+$totalOrderPages = ceil($orderCount / $rowsPerPage);
