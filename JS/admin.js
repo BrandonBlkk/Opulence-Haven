@@ -1,6 +1,46 @@
 import { showError, hideError, showAlert, validateField } from './alertFunc.js';
 import { formatTimeForInput } from './timeUtils.js';
 
+// Notification Modal
+document.addEventListener("DOMContentLoaded", () => {
+    const notificationBtn = document.getElementById("notificationBtn");
+    const notificationModal = document.getElementById("notificationModal");
+    const notificationContent = document.getElementById("notificationContent");
+    const closeNotificationModal = document.getElementById("closeNotificationModal");
+
+    if (notificationBtn && notificationModal && notificationContent && closeNotificationModal) {
+        // Open modal with transition
+        notificationBtn.addEventListener("click", () => {
+            notificationModal.classList.remove("hidden");
+            setTimeout(() => {
+                notificationModal.classList.add("bg-opacity-40");
+                notificationContent.classList.remove("scale-95", "opacity-0");
+                notificationContent.classList.add("scale-100", "opacity-100");
+            }, 10);
+        });
+
+        // Close modal with transition
+        function closeModal() {
+            notificationModal.classList.remove("bg-opacity-40");
+            notificationContent.classList.remove("scale-100", "opacity-100");
+            notificationContent.classList.add("scale-95", "opacity-0");
+
+            setTimeout(() => {
+                notificationModal.classList.add("hidden");
+            }, 300); // Match transition duration
+        }
+
+        closeNotificationModal.addEventListener("click", closeModal);
+
+        // Close when clicking outside modal content
+        notificationModal.addEventListener("click", (e) => {
+            if (e.target === notificationModal) {
+                closeModal();
+            }
+        });
+    }
+});
+
 const menu_toggle = document.getElementById('menu-toggle');
 if (menu_toggle) {
     menu_toggle.addEventListener('click', () => {

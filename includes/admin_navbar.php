@@ -171,6 +171,10 @@ if (mysqli_num_rows($query) > 0) {
     <i class="ri-menu-line text-2xl"></i>
 </button>
 
+<?php
+include('../includes/admin_notification.php');
+?>
+
 <!-- Sidebar -->
 <nav id="sidebar" class="adminNav overflow-y-auto fixed top-0 left-0 h-full w-full sm:w-64 md:w-[250px] p-4 flex flex-col justify-between bg-white shadow-md transform -translate-x-full md:translate-x-0 transition-all duration-300 z-40">
     <div>
@@ -182,12 +186,24 @@ if (mysqli_num_rows($query) > 0) {
                 </a>
                 <p class="text-amber-500 text-sm font-semibold">ADMIN</p>
             </div>
-            <div class="relative select-none cursor-pointer">
+
+            <!-- Notification Button -->
+            <div id="notificationBtn" class="relative select-none cursor-pointer">
                 <i class="ri-notification-3-line text-xl"></i>
                 <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">3</span>
             </div>
-
         </div>
+
+        <?php
+        $reservation = "SELECT rt.ReservationID, rt.UserID, rt.ReservationDate, rt.Status, rt.TotalPrice, u.ProfileBgColor, u.UserName
+                FROM reservationtb rt
+                JOIN usertb u ON rt.UserID = u.UserID 
+                ORDER BY rt.ReservationDate DESC LIMIT 4";
+        $stmt = $connect->prepare($reservation);
+        $stmt->execute();
+        $resResult = $stmt->get_result();
+        $count = $resResult->num_rows;
+        ?>
 
         <!-- Profile Menu -->
         <div class="divide-y-2 divide-slate-100">

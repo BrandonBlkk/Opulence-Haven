@@ -375,7 +375,7 @@ if (isset($_POST['bulkdeleteadmins'])) {
                     <div id="adminResetPasswordCancelBtn" class="px-4 py-2 bg-gray-200 text-black hover:bg-gray-300 rounded-sm cursor-pointer">
                         Cancel
                     </div>
-                    <button type="submit" name="resetpassword" class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-sm">
+                    <button type="submit" name="resetpassword" class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-sm">
                         Reset Password
                     </button>
                 </div>
