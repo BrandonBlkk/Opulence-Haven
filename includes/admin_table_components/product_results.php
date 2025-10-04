@@ -201,7 +201,7 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
                     darkOverlay2.classList.remove('opacity-0', 'invisible');
                     darkOverlay2.classList.add('opacity-100');
 
-                    fetch(`../Admin/AddProduct.php?action=getProductDetails&id=${productId}`)
+                    fetch(`../Admin/add_product.php?action=getProductDetails&id=${productId}`)
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
@@ -233,7 +233,7 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
                     darkOverlay2.classList.remove('opacity-0', 'invisible');
                     darkOverlay2.classList.add('opacity-100');
 
-                    fetch(`../Admin/AddProduct.php?action=getProductDetails&id=${productId}`)
+                    fetch(`../Admin/add_product.php?action=getProductDetails&id=${productId}`)
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {

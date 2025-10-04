@@ -1,6 +1,6 @@
 <?php
 // Set the number of rows per page
-$rowsPerPage = 10;
+$rowsPerPage = 1;
 
 // Get the current page number from the URL or default to 1
 $currentPage = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -51,7 +51,7 @@ $searchRuleQuery = isset($_GET['rule_search']) ? mysqli_real_escape_string($conn
 $searchFacilityTypeQuery = isset($_GET['facilitytype_search']) ? mysqli_real_escape_string($connect, $_GET['facilitytype_search']) : '';
 $searchFacilityQuery = isset($_GET['facility_search']) ? mysqli_real_escape_string($connect, $_GET['facility_search']) : '';
 $searchMenuQuery = isset($_GET['menu_search']) ? mysqli_real_escape_string($connect, $_GET['menu_search']) : '';
-$searchBookingQuery = isset($_GET['booking_search']) ? mysqli_real_escape_string($connect, $_GET['booking_search']) : '';
+$searchBookingQuery = isset($_GET['reservation_search']) ? mysqli_real_escape_string($connect, $_GET['reservation_search']) : '';
 $searchOrderQuery = isset($_GET['order_search']) ? mysqli_real_escape_string($connect, $_GET['order_search']) : '';
 $searchUserQuery = isset($_GET['user_search']) ? mysqli_real_escape_string($connect, $_GET['user_search']) : '';
 $searchPurchaseQuery = isset($_GET['purchase_search']) ? mysqli_real_escape_string($connect, $_GET['purchase_search']) : '';
@@ -349,16 +349,82 @@ $menuCount = $menuResult->fetch_assoc()['count'];
 // Calculate the total number of pages
 $totalMenuPages = ceil($menuCount / $rowsPerPage);
 
-// Construct the purchase count query based on search
 if (!empty($searchPurchaseQuery)) {
-    $purchaseQuery = "SELECT COUNT(*) as count FROM purchasetb WHERE ProductType LIKE '%$searchPurchaseQuery%' OR Description LIKE '%$searchProductTypeQuery%'";
+    $purchaseQuery = "
+        SELECT COUNT(DISTINCT p.PurchaseID) AS count
+        FROM purchasetb p
+        INNER JOIN purchasedetailtb pd ON p.PurchaseID = pd.PurchaseID
+        INNER JOIN producttb pr ON pd.ProductID = pr.ProductID
+        INNER JOIN producttypetb pt ON pr.ProductTypeID = pt.ProductTypeID
+        INNER JOIN admintb a ON p.AdminID = a.AdminID
+        INNER JOIN suppliertb s ON p.SupplierID = s.SupplierID
+        WHERE p.PurchaseID LIKE '%$searchPurchaseQuery%' OR 
+            pt.ProductType LIKE '%$searchPurchaseQuery%' OR 
+            pt.Description LIKE '%$searchPurchaseQuery%' OR
+            pr.Title LIKE '%$searchPurchaseQuery%' OR
+            pr.Description LIKE '%$searchPurchaseQuery%' OR
+            pr.Brand LIKE '%$searchPurchaseQuery%' OR
+            pr.Information LIKE '%$searchPurchaseQuery%' OR
+            a.FirstName LIKE '%$searchPurchaseQuery%' OR
+            a.LastName LIKE '%$searchPurchaseQuery%' OR
+            a.UserName LIKE '%$searchPurchaseQuery%' OR
+            a.AdminEmail LIKE '%$searchPurchaseQuery%' OR
+            s.SupplierName LIKE '%$searchPurchaseQuery%' OR
+            s.SupplierEmail LIKE '%$searchPurchaseQuery%'OR
+            s.SupplierCompany LIKE '%$searchPurchaseQuery%'
+    ";
 } else {
-    $purchaseQuery = "SELECT COUNT(*) as count FROM purchasetb";
+    $purchaseQuery = "
+        SELECT COUNT(DISTINCT p.PurchaseID) AS count
+        FROM purchasetb p
+        INNER JOIN purchasedetailtb pd ON p.PurchaseID = pd.PurchaseID
+        INNER JOIN producttb pr ON pd.ProductID = pr.ProductID
+        INNER JOIN producttypetb pt ON pr.ProductTypeID = pt.ProductTypeID
+    ";
 }
 
 // Execute the count query
 $purchaseResult = $connect->query($purchaseQuery);
 $purchaseCount = $purchaseResult->fetch_assoc()['count'];
 
+
 // Calculate the total number of pages
 $totalPurchasePages = ceil($purchaseCount / $rowsPerPage);
+
+// Count query
+if ($filterStatus !== 'random' && !empty($searchOrderQuery)) {
+    $orderQuery = "SELECT COUNT(*) as count 
+                   FROM ordertb o
+                   WHERE o.Status = '$filterStatus'
+                   AND (o.OrderID LIKE '%$searchOrderQuery%'
+                        OR o.FullName LIKE '%$searchOrderQuery%'
+                        OR o.PhoneNumber LIKE '%$searchOrderQuery%'
+                        OR o.City LIKE '%$searchOrderQuery%'
+                        OR o.State LIKE '%$searchOrderQuery%'
+                        OR o.ZipCode LIKE '%$searchOrderQuery%')";
+} elseif ($filterStatus !== 'random') {
+    $orderQuery = "SELECT COUNT(*) as count 
+                   FROM ordertb o
+                   WHERE o.Status = '$filterStatus'";
+} elseif (!empty($searchOrderQuery)) {
+    $orderQuery = "SELECT COUNT(*) as count 
+                   FROM ordertb o
+                   WHERE (o.OrderID LIKE '%$searchOrderQuery%'
+                          OR o.FullName LIKE '%$searchOrderQuery%'
+                          OR o.PhoneNumber LIKE '%$searchOrderQuery%'
+                          OR o.City LIKE '%$searchOrderQuery%'
+                          OR o.State LIKE '%$searchOrderQuery%'
+                          OR o.ZipCode LIKE '%$searchOrderQuery%')
+                          AND o.Status != 'Pending'";
+} else {
+    $orderQuery = "SELECT COUNT(*) as count 
+                   FROM ordertb o
+                   WHERE o.Status != 'Pending'";
+}
+
+// Execute the count query
+$orderResult = $connect->query($orderQuery);
+$orderCount = $orderResult->fetch_assoc()['count'];
+
+// Calculate the total number of pages
+$totalOrderPages = ceil($orderCount / $rowsPerPage);

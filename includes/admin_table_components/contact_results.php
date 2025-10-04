@@ -61,7 +61,7 @@ if (mysqli_num_rows($contactSelectQuery) > 0) {
             <th class="p-3 text-start hidden xl:table-cell">Phone</th>
             <th class="p-3 text-start hidden xl:table-cell">Country</th>
             <th class="p-3 text-start hidden lg:table-cell">Message</th>
-            <th class="p-3 text-start hidden">Status</th>
+            <th class="p-3 text-start hidden lg:table-cell">Status</th>
             <th class="p-3 text-start hidden xl:table-cell">Date</th>
             <th class="p-3 text-start">Action</th>
         </tr>
@@ -97,7 +97,7 @@ if (mysqli_num_rows($contactSelectQuery) > 0) {
                     <td class="p-3 text-start space-x-1 hidden lg:table-cell">
                         <p><?= htmlspecialchars(mb_strimwidth($contact['ContactMessage'], 0, 50, '...')) ?></p>
                     </td>
-                    <td class="p-3 text-start space-x-1 select-none">
+                    <td class="p-3 text-start space-x-1 hidden lg:table-cell select-none">
                         <span class="px-2 py-1 text-xs font-semibold rounded-full border <?= $contact['Status'] === 'responded' ? 'bg-green-100 border-green-200 text-green-800' : 'bg-red-100 border-red-200 text-red-800' ?>">
                             <?= htmlspecialchars($contact['Status']) === 'responded' ? 'Responded' : 'Pending' ?>
                         </span>
@@ -221,8 +221,13 @@ if (mysqli_num_rows($contactSelectQuery) > 0) {
                                 document.getElementById('confirmContactID').value = contactId;
                                 document.getElementById('contactDate').textContent = data.contact.ContactDate;
                                 document.getElementById('contactMessage').textContent = data.contact.ContactMessage;
-                                document.getElementById('username').textContent = data.contact.FullName;
-                                document.getElementById('useremail').textContent = data.contact.UserEmail;
+                                document.getElementById('username').value = data.contact.FullName;
+                                document.getElementById('useremail').value = data.contact.UserEmail;
+                                document.getElementById('contactMessageInput').value = data.contact.ContactMessage;
+
+                                // Display the values in the div elements
+                                document.getElementById('displayUsername').textContent = data.contact.FullName;
+                                document.getElementById('displayUseremail').textContent = data.contact.UserEmail;
                                 document.getElementById('userphone').textContent = data.contact.UserPhone;
                                 document.getElementById('usercountry').textContent = data.contact.Country;
 

@@ -1,6 +1,46 @@
 import { showError, hideError, showAlert, validateField } from './alertFunc.js';
 import { formatTimeForInput } from './timeUtils.js';
 
+// Notification Modal
+document.addEventListener("DOMContentLoaded", () => {
+    const notificationBtn = document.getElementById("notificationBtn");
+    const notificationModal = document.getElementById("notificationModal");
+    const notificationContent = document.getElementById("notificationContent");
+    const closeNotificationModal = document.getElementById("closeNotificationModal");
+
+    if (notificationBtn && notificationModal && notificationContent && closeNotificationModal) {
+        // Open modal with transition
+        notificationBtn.addEventListener("click", () => {
+            notificationModal.classList.remove("hidden");
+            setTimeout(() => {
+                notificationModal.classList.add("bg-opacity-40");
+                notificationContent.classList.remove("scale-95", "opacity-0");
+                notificationContent.classList.add("scale-100", "opacity-100");
+            }, 10);
+        });
+
+        // Close modal with transition
+        function closeModal() {
+            notificationModal.classList.remove("bg-opacity-40");
+            notificationContent.classList.remove("scale-100", "opacity-100");
+            notificationContent.classList.add("scale-95", "opacity-0");
+
+            setTimeout(() => {
+                notificationModal.classList.add("hidden");
+            }, 300); // Match transition duration
+        }
+
+        closeNotificationModal.addEventListener("click", closeModal);
+
+        // Close when clicking outside modal content
+        notificationModal.addEventListener("click", (e) => {
+            if (e.target === notificationModal) {
+                closeModal();
+            }
+        });
+    }
+});
+
 const menu_toggle = document.getElementById('menu-toggle');
 if (menu_toggle) {
     menu_toggle.addEventListener('click', () => {
@@ -1078,45 +1118,45 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // Function to fetch and render products with current pagination
-    const fetchAndRenderProducts = () => {
-        let fetchUrl = `../Admin/add_product.php?productpage=${currentPage}`;
+    // const fetchAndRenderProducts = () => {
+    //     let fetchUrl = `../Admin/add_product.php?productpage=${currentPage}`;
         
-        if (currentSearch) {
-            fetchUrl += `&product_search=${encodeURIComponent(currentSearch)}`;
-        }
-        if (currentSort !== 'random') {
-            fetchUrl += `&sort=${currentSort}`;
-        }
+    //     if (currentSearch) {
+    //         fetchUrl += `&product_search=${encodeURIComponent(currentSearch)}`;
+    //     }
+    //     if (currentSort !== 'random') {
+    //         fetchUrl += `&sort=${currentSort}`;
+    //     }
 
-        fetch(fetchUrl)
-            .then(response => response.text())
-            .then(html => {
-                // Parse the HTML to extract the table body content
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const newTableBody = doc.querySelector('tbody');
-                const newPagination = doc.querySelector('.flex.justify-center.items-center.mt-1');
+    //     fetch(fetchUrl)
+    //         .then(response => response.text())
+    //         .then(html => {
+    //             // Parse the HTML to extract the table body content
+    //             const parser = new DOMParser();
+    //             const doc = parser.parseFromString(html, 'text/html');
+    //             const newTableBody = doc.querySelector('tbody');
+    //             const newPagination = doc.querySelector('.flex.justify-center.items-center.mt-1');
                 
-                if (newTableBody) {
-                    const currentTableBody = document.querySelector('tbody');
-                    currentTableBody.innerHTML = newTableBody.innerHTML;
+    //             if (newTableBody) {
+    //                 const currentTableBody = document.querySelector('tbody');
+    //                 currentTableBody.innerHTML = newTableBody.innerHTML;
                     
-                    // Reattach event listeners to the new rows
-                    initializeExistingRows();
-                }
+    //                 // Reattach event listeners to the new rows
+    //                 initializeExistingRows();
+    //             }
 
-                if (newPagination) {
-                    const currentPagination = document.querySelector('.flex.justify-center.items-center.mt-1');
-                    if (currentPagination) {
-                        currentPagination.innerHTML = newPagination.innerHTML;
-                    } else {
-                        const tableContainer = document.querySelector('table').parentNode;
-                        tableContainer.appendChild(newPagination);
-                    }
-                }
-            })
-            .catch(error => console.error('Error fetching products:', error));
-    };
+    //             if (newPagination) {
+    //                 const currentPagination = document.querySelector('.flex.justify-center.items-center.mt-1');
+    //                 if (currentPagination) {
+    //                     currentPagination.innerHTML = newPagination.innerHTML;
+    //                 } else {
+    //                     const tableContainer = document.querySelector('table').parentNode;
+    //                     tableContainer.appendChild(newPagination);
+    //                 }
+    //             }
+    //         })
+    //         .catch(error => console.error('Error fetching products:', error));
+    // };
 
     // Function to attach event listeners to a row
     const attachEventListenersToRow = (row) => {
@@ -1237,7 +1277,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     closeModal();
                     
                     // Fetch and render the updated products with current pagination
-                    fetchAndRenderProducts();
+                    // fetchAndRenderProducts();
                 }
             })
             .catch(err => {
@@ -1304,7 +1344,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         darkOverlay2.classList.remove('opacity-100');
 
                         // Fetch and render the updated products with current pagination
-                        fetchAndRenderProducts();
+                        // fetchAndRenderProducts();
                     }
                 })
                 .catch(err => {
@@ -1348,7 +1388,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         darkOverlay2.classList.remove('opacity-100');
                         
                         // Fetch and render the updated products with current pagination
-                        fetchAndRenderProducts();
+                        // fetchAndRenderProducts();
                         
                         showAlert('The product has been successfully deleted.');
                     } else {
@@ -1434,7 +1474,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        fetchAndRenderProducts();
+                        // fetchAndRenderProducts();
                         showAlert("Selected products deleted successfully.");
                         bulkDeleteBtn.classList.add('hidden');
                         selectAllCheckbox.checked = false;
@@ -4258,7 +4298,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Function to clear errors
     const clearErrors = () => {
-        const errors = ['menuNameError', 'menuDescriptionError', 'updateMenuNameError', 'updateMenuDescriptionError'];
+        const errors = ['menuNameError', 'menuDescriptionError', 'menuLocationError', 'updateMenuNameError', 'updateMenuDescriptionError'];
         errors.forEach(error => {
             hideError(document.getElementById(error));
         });
@@ -4325,31 +4365,52 @@ document.addEventListener("DOMContentLoaded", () => {
         const detailsBtn = row.querySelector('.details-btn');
         if (detailsBtn) {
             detailsBtn.addEventListener('click', function() {
-                const menuId = this.getAttribute('data-menu-id');
-                darkOverlay2.classList.remove('opacity-0', 'invisible');
-                darkOverlay2.classList.add('opacity-100');
+            const menuId = this.getAttribute('data-menu-id');
+            darkOverlay2.classList.remove('opacity-0', 'invisible');
+            darkOverlay2.classList.add('opacity-100');
 
-                fetch(`../Admin/add_menu.php?action=getMenuDetails&id=${menuId}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
+            // Reset PDF preview before fetching new menu
+            const previewContainer = document.getElementById('updateMenuPreviewContainer');
+            const previewText = document.getElementById('updateMenuPreview');
+            const viewLink = document.getElementById('updateMenuViewLink');
+            const uploadArea = document.getElementById('updateUploadArea');
+            const updateRemovePdf = document.getElementById('updateRemovePdf');
+
+            previewContainer.classList.add('hidden');
+            uploadArea.classList.remove('hidden');
+            previewText.textContent = '';
+            viewLink.href = '#';
+            viewLink.textContent = '';
+            updateRemovePdf.value = "0";
+
+            fetch(`../Admin/add_menu.php?action=getMenuDetails&id=${menuId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.menu) {
+                        document.getElementById('updateMenuID').value = menuId;
+                        document.getElementById('updateMenuNameInput').value = data.menu.MenuName;
+                        document.getElementById('updateMenuDescriptionInput').value = data.menu.Description;
+                        document.getElementById('updateMenuLocationInput').value = data.menu.Location;
+                        document.getElementById('updateStartTime').value = formatTimeForInput(data.menu.StartTime);
+                        document.getElementById('updateEndTime').value = formatTimeForInput(data.menu.EndTime);
+                        document.getElementById('updateStatus').value = data.menu.Status;
+
+                        // Handle PDF preview for existed menu
+                        if (data.menu.MenuPDF) {
+                            previewText.textContent = data.menu.MenuPDF;
+                            viewLink.href = data.menu.MenuPDF;
+                            viewLink.textContent = "View PDF";
+                            previewContainer.classList.remove('hidden');
+                            uploadArea.classList.add('hidden');
+                            updateRemovePdf.value = "0"; // PDF exists
                         }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.success) {
-                            document.getElementById('updateMenuID').value = menuId;
-                            document.getElementById('updateMenuNameInput').value = data.menu.MenuName;
-                            document.getElementById('updateMenuDescriptionInput').value = data.menu.Description;
-                            document.getElementById('updateStartTime').value = formatTimeForInput(data.menu.StartTime);
-                            document.getElementById('updateEndTime').value = formatTimeForInput(data.menu.EndTime);
-                            document.getElementById('updateStatus').value = data.menu.Status;
-                            updateMenuModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-                        } else {
-                            console.error('Failed to load menu details');
-                        }
-                    })
-                    .catch(error => console.error('Fetch error:', error));
+
+                        updateMenuModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+                    } else {
+                        console.error('Failed to load menu details');
+                    }
+                })
+                .catch(error => console.error('Fetch error:', error));
             });
         }
 
@@ -4392,6 +4453,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Menu Form Submission
     document.getElementById("menuNameInput")?.addEventListener("keyup", validateMenuName);
     document.getElementById("menuDescriptionInput")?.addEventListener("keyup", validateMenuDescription);
+    document.getElementById("menuLocationInput")?.addEventListener("keyup", validateMenuLocation);
 
     // Menu Form Submission
     if (menuForm) {
@@ -5982,54 +6044,40 @@ document.addEventListener('DOMContentLoaded', function() {
     const purchaseDetailsModal = document.getElementById('purchaseDetailsModal');
     const closePurchaseDetailsBtn = document.getElementById('closePurchaseDetailsBtn');
 
-    // helper to format date/time
+    // Helper to format date/time
     function formatDate(dateString) {
         if (!dateString) return 'N/A';
         const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-        try {
-            return new Date(dateString).toLocaleDateString('en-US', options);
-        } catch (e) {
-            return dateString;
-        }
+        try { return new Date(dateString).toLocaleDateString('en-US', options); }
+        catch (e) { return dateString; }
     }
 
     function showModal() {
-        if (darkOverlay2) {
-            darkOverlay2.classList.remove('opacity-0', 'invisible');
-            darkOverlay2.classList.add('opacity-100');
-        }
-        if (purchaseDetailsModal) {
-            purchaseDetailsModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
-            purchaseDetailsModal.classList.add('opacity-100', 'visible', 'translate-y-0');
-        }
+        darkOverlay2?.classList.remove('opacity-0', 'invisible');
+        darkOverlay2?.classList.add('opacity-100');
+        purchaseDetailsModal?.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+        purchaseDetailsModal?.classList.add('opacity-100', 'visible', 'translate-y-0');
     }
 
     function hideModal() {
-        if (darkOverlay2) {
-            darkOverlay2.classList.remove('opacity-100');
-            darkOverlay2.classList.add('opacity-0', 'invisible');
-        }
-        if (purchaseDetailsModal) {
-            purchaseDetailsModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
-            purchaseDetailsModal.classList.remove('opacity-100', 'visible', 'translate-y-0');
-        }
+        darkOverlay2?.classList.remove('opacity-100');
+        darkOverlay2?.classList.add('opacity-0', 'invisible');
+        purchaseDetailsModal?.classList.add('opacity-0', 'invisible', '-translate-y-5');
+        purchaseDetailsModal?.classList.remove('opacity-100', 'visible', 'translate-y-0');
     }
 
-    closePurchaseDetailsBtn && closePurchaseDetailsBtn.addEventListener('click', hideModal);
-    // Close modal if overlay clicked
-    if (darkOverlay2) {
-        darkOverlay2.addEventListener('click', hideModal);
-    }
+    closePurchaseDetailsBtn?.addEventListener('click', hideModal);
+    darkOverlay2?.addEventListener('click', hideModal);
 
-    // fetch items and render into table body #purchaseItems
+    // Fetch and render items
     function fetchPurchaseItems(purchaseId) {
         fetch(`../Admin/purchase_history.php?action=getPurchaseItems&id=${encodeURIComponent(purchaseId)}`)
-            .then(response => response.json())
+            .then(res => res.json())
             .then(data => {
                 const itemsContainer = document.getElementById('purchaseItems');
                 if (!itemsContainer) return;
-                itemsContainer.innerHTML = '';
 
+                itemsContainer.innerHTML = '';
                 if (data.success && Array.isArray(data.items) && data.items.length) {
                     data.items.forEach(item => {
                         const tr = document.createElement('tr');
@@ -6037,7 +6085,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         const qty = parseFloat(item.Quantity || 0);
                         const unit = parseFloat(item.UnitPrice || 0);
                         const total = qty * unit;
-
                         tr.innerHTML = `
                             <td class="p-3">${item.ProductName || item.ProductID || 'Product'}</td>
                             <td class="p-3">${qty}</td>
@@ -6053,15 +6100,12 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(err => {
                 console.error('Error fetching purchase items:', err);
                 const itemsContainer = document.getElementById('purchaseItems');
-                if (itemsContainer) {
-                    itemsContainer.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-red-500">Error loading items</td></tr>';
-                }
+                if (itemsContainer) itemsContainer.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-red-500">Error loading items</td></tr>';
             });
     }
 
-    // Attach click behavior for each row's details button
+    // Attach click events to table rows
     function attachEventListenersToRow(row) {
-        if (!row) return;
         const detailsBtn = row.querySelector('.details-btn');
         if (!detailsBtn) return;
 
@@ -6069,29 +6113,22 @@ document.addEventListener('DOMContentLoaded', function() {
             const purchaseId = this.getAttribute('data-purchase-id');
             if (!purchaseId) return;
 
-            // show overlay immediately
-            if (darkOverlay2) {
-                darkOverlay2.classList.remove('opacity-0', 'invisible');
-                darkOverlay2.classList.add('opacity-100');
-            }
+            // Show overlay immediately
+            darkOverlay2?.classList.remove('opacity-0', 'invisible');
+            darkOverlay2?.classList.add('opacity-100');
 
-            // fetch header info
+            // Fetch purchase details
             fetch(`../Admin/purchase_history.php?action=getPurchaseDetails&id=${encodeURIComponent(purchaseId)}`)
-                .then(response => response.json())
+                .then(res => res.json())
                 .then(data => {
                     if (!data.success || !data.purchase) {
                         console.error('Failed to load purchase details', data);
-                        // Hide overlay in case of error
-                        if (darkOverlay2) {
-                            darkOverlay2.classList.remove('opacity-100');
-                            darkOverlay2.classList.add('opacity-0', 'invisible');
-                        }
+                        darkOverlay2?.classList.remove('opacity-100');
+                        darkOverlay2?.classList.add('opacity-0', 'invisible');
                         return;
                     }
 
                     const p = data.purchase;
-
-                    // Map data into UI (IDs must exist in DOM)
                     document.getElementById('detailPurchaseID').textContent = p.PurchaseID || '';
                     document.getElementById('detailPurchaseDate').textContent = formatDate(p.PurchaseDate || p.AddedDate || '');
                     document.getElementById('detailAdmin').textContent = ((p.FirstName || '') + ' ' + (p.LastName || '')).trim();
@@ -6102,32 +6139,74 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('detailTax').textContent = p.PurchaseTax !== null ? ('$' + parseFloat(p.PurchaseTax).toFixed(2)) : 'N/A';
                     document.getElementById('detailStatus').textContent = p.Status || '';
 
-                    // fetch and render items
                     fetchPurchaseItems(purchaseId);
-
-                    // show modal
                     showModal();
                 })
                 .catch(err => {
                     console.error('Fetch error:', err);
-                    if (darkOverlay2) {
-                        darkOverlay2.classList.remove('opacity-100');
-                        darkOverlay2.classList.add('opacity-0', 'invisible');
-                    }
+                    darkOverlay2?.classList.remove('opacity-100');
+                    darkOverlay2?.classList.add('opacity-0', 'invisible');
                 });
         });
     }
 
-    // Initialize existing rows on page load
-    function initializeExistingRows() {
-        // If the purchases table is a specific table, narrow selector
-        const rows = document.querySelectorAll('tbody tr');
-        rows.forEach(row => {
-            attachEventListenersToRow(row);
+    // Initialize all rows
+    function initializeRows() {
+        document.querySelectorAll('#purchaseResults tbody tr').forEach(row => attachEventListenersToRow(row));
+    }
+
+    // Initial table row setup
+    initializeRows();
+
+    // --- AJAX Pagination & Search ---
+    function loadPurchasePage(page = 1) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchQuery = urlParams.get('purchase_search') || '';
+        urlParams.set('purchasepage', page);
+        if (searchQuery) urlParams.set('purchase_search', searchQuery);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `../includes/admin_table_components/purchase_results.php?${urlParams.toString()}`, true);
+        xhr.onload = function() {
+            if (this.status === 200) {
+                document.getElementById('purchaseResults').innerHTML = this.responseText;
+
+                // Update pagination
+                const xhrPagination = new XMLHttpRequest();
+                xhrPagination.open('GET', `../includes/admin_table_components/purchase_pagination.php?${urlParams.toString()}`, true);
+                xhrPagination.onload = function() {
+                    if (this.status === 200) {
+                        document.getElementById('paginationContainer').innerHTML = this.responseText;
+                        initializeRows(); // Reattach listeners after pagination update
+                    }
+                };
+                xhrPagination.send();
+
+                window.history.pushState({}, '', `?${urlParams.toString()}`);
+                window.scrollTo(0, 0);
+            }
+        };
+        xhr.send();
+    }
+
+    // Search input handling
+    const searchInput = document.querySelector('input[name="purchase_search"]');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('purchase_search', this.value);
+            window.history.pushState({}, '', `?${urlParams.toString()}`);
+            loadPurchasePage(1);
         });
     }
 
-    initializeExistingRows();
+    // Handle back/forward navigation
+    window.addEventListener('popstate', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchInput = document.querySelector('input[name="purchase_search"]');
+        if (searchInput) searchInput.value = urlParams.get('purchase_search') || '';
+        loadPurchasePage(urlParams.get('purchasepage') || 1);
+    });
 });
 
 // User Details Modal
@@ -6232,27 +6311,33 @@ document.addEventListener("DOMContentLoaded", () => {
         darkOverlay2.classList.add("opacity-100");
     }
 
-    // Attach event listeners to all details buttons
-    document.querySelectorAll(".details-btn").forEach(btn => {
-        btn.addEventListener("click", async () => {
-            const userId = btn.getAttribute("data-user-id");
-            if (!userId) return;
+    // Initialize Action Buttons
+    function initializeUserActionButtons() {
+        // Attach event listeners to all details buttons
+        document.querySelectorAll(".details-btn").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                const userId = btn.getAttribute("data-user-id");
+                if (!userId) return;
 
-            try {
-                const response = await fetch(`?action=getUserDetails&id=${encodeURIComponent(userId)}`);
-                const data = await response.json();
+                try {
+                    const response = await fetch(`?action=getUserDetails&id=${encodeURIComponent(userId)}`);
+                    const data = await response.json();
 
-                if (data.success && data.user) {
-                    populateUserDetails(data.user);
-                    openUserModal();
-                } else {
-                    showAlert("User details not found.", true);
+                    if (data.success && data.user) {
+                        populateUserDetails(data.user);
+                        openUserModal();
+                    } else {
+                        showAlert("User details not found.", true);
+                    }
+                } catch (err) {
+                    console.error("Error fetching user details:", err);
                 }
-            } catch (err) {
-                console.error("Error fetching user details:", err);
-            }
+            });
         });
-    });
+    }
+
+    // Run once on load
+    initializeUserActionButtons();
 
     const confirmInput = document.getElementById("deleteUserConfirmInput");
     const deleteBtn = document.getElementById("confirmUserDeleteBtn");
@@ -6368,14 +6453,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (closeUserDetailButton) closeUserDetailButton.addEventListener("click", closeUserModal);
     if (closeUserDetailFooterBtn) closeUserDetailFooterBtn.addEventListener("click", closeUserModal);
 
-    // Delete button (inside user details modal) -> open confirm modal
+    // Delete button
     if (profileDeleteBtn) profileDeleteBtn.addEventListener("click", () => {
-        closeUserModal(); // close user details first
-        openDeleteModal(); // open delete confirmation
+        closeUserModal(); 
+        openDeleteModal();
     });
 
     // Cancel delete
     if (userCancelDeleteBtn) userCancelDeleteBtn.addEventListener("click", closeDeleteModal);
+
+    // Initialize user action buttons
+    window.initializeUserActionButtons = initializeUserActionButtons;
 });
 
 // Full form validation function
@@ -6575,8 +6663,9 @@ const validateChangePasswordForm = () => {
 const validateMenuForm = () => {
     const isMenuNameValid = validateMenuName();
     const isMenuDescriptionValid = validateMenuDescription();
+    const isMenuLocationValid = validateMenuLocation();
 
-    return isMenuNameValid && isMenuDescriptionValid;
+    return isMenuNameValid && isMenuDescriptionValid && isMenuLocationValid;
 }
 
 const validateUpdateMenuForm = () => {
@@ -7470,6 +7559,14 @@ const validateMenuDescription = () => {
         "menuDescriptionInput",
         "menuDescriptionError",
         (input) => (!input ? "Description is required." : null)
+    );
+}
+
+const validateMenuLocation = () => {
+    return validateField(
+        "menuLocationInput",
+        "menuLocationError",
+        (input) => (!input ? "Location is required." : null)
     );
 }
 

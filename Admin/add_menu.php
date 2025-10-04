@@ -23,37 +23,52 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addmenu'])) {
     $endTime = mysqli_real_escape_string($connect, $_POST['endtime']);
     $endTime = date("h:i A", strtotime($endTime));
     $status = mysqli_real_escape_string($connect, $_POST['status']);
+    $location = mysqli_real_escape_string($connect, $_POST['location']);
 
-    // Check if the menu already exists using prepared statement
-    $checkQuery = "SELECT MenuName FROM menutb WHERE MenuName = ?";
-    $checkStmt = $connect->prepare($checkQuery);
-    $checkStmt->bind_param("s", $menuName);
-    $checkStmt->execute();
-    $checkStmt->store_result();
-    $count = $checkStmt->num_rows;
-    $checkStmt->close();
+    // Menu PDF upload
+    $menuPDF = $_FILES["menupdf"]["name"];
+    $copyFile = "AdminPDFs/";
+    $fileName = $copyFile . uniqid() . "_" . basename($menuPDF);
 
-    if ($count > 0) {
-        $response['message'] = 'Menu you added is already existed.';
+    if ($_FILES["menupdf"]["type"] !== "application/pdf") {
+        $response['message'] = "Only PDF files are allowed.";
+    } elseif ($_FILES["menupdf"]["size"] > 5 * 1024 * 1024) {
+        $response['message'] = "PDF file exceeds 5MB limit.";
     } else {
-        $addMenuQuery = "INSERT INTO menutb (MenuID, MenuName, Description, StartTime, EndTime, Status) 
-                 VALUES (?, ?, ?, ?, ?, ?)";
+        $copy = copy($_FILES["menupdf"]["tmp_name"], $fileName);
 
-        $stmt = $connect->prepare($addMenuQuery);
-        if ($stmt === false) {
-            $response['message'] = "Prepare failed: " . htmlspecialchars($connect->error);
+        if (!$copy) {
+            $response['message'] = "Cannot upload PDF.";
         } else {
-            // Corrected bind_param - removed extra parameter (was 7?, now 6)
-            $stmt->bind_param("ssssss", $menuID, $menuName, $description, $startTime, $endTime, $status);
+            // Check duplicate menu
+            $checkQuery = "SELECT MenuName FROM menutb WHERE MenuName = ?";
+            $checkStmt = $connect->prepare($checkQuery);
+            $checkStmt->bind_param("s", $menuName);
+            $checkStmt->execute();
+            $checkStmt->store_result();
+            $count = $checkStmt->num_rows;
+            $checkStmt->close();
 
-            if ($stmt->execute()) {
-                $response['success'] = true;
-                $response['message'] = 'A new menu has been successfully added.';
-                $response['generatedId'] = $menuID;
+            if ($count > 0) {
+                $response['message'] = 'Menu you added already exists.';
             } else {
-                $response['message'] = "Failed to add menu. Please try again. Error: " . htmlspecialchars($stmt->error);
+                $addMenuQuery = "INSERT INTO menutb (MenuID, MenuPDF, MenuName, Description, StartTime, EndTime, Location, Status) 
+                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                $stmt = $connect->prepare($addMenuQuery);
+                if ($stmt === false) {
+                    $response['message'] = "Prepare failed: " . htmlspecialchars($connect->error);
+                } else {
+                    $stmt->bind_param("ssssssss", $menuID, $fileName, $menuName, $description, $startTime, $endTime, $location, $status);
+                    if ($stmt->execute()) {
+                        $response['success'] = true;
+                        $response['message'] = 'A new menu has been successfully added.';
+                        $response['generatedId'] = $menuID;
+                    } else {
+                        $response['message'] = "Failed to add menu. Error: " . htmlspecialchars($stmt->error);
+                    }
+                    $stmt->close();
+                }
             }
-            $stmt->close();
         }
     }
 
@@ -62,7 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['addmenu'])) {
     exit();
 }
 
-// Get Product Type Details
+// Get Menu Details
 if (isset($_GET['action']) && isset($_GET['id'])) {
     $id = mysqli_real_escape_string($connect, $_GET['id']);
     $action = $_GET['action'];
@@ -101,42 +116,54 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['editmenu'])) {
     $response = ['success' => false, 'message' => '', 'generatedId' => ''];
 
-    // Get and sanitize input data
     $menuId = mysqli_real_escape_string($connect, $_POST['menuid']);
     $menuName = mysqli_real_escape_string($connect, $_POST['updatemenuname']);
     $description = mysqli_real_escape_string($connect, $_POST['updatedescription']);
-    $startTime = mysqli_real_escape_string($connect, $_POST['updatestarttime']);
-    $startTime = date("h:i A", strtotime($startTime));
-    $endTime = mysqli_real_escape_string($connect, $_POST['updateendtime']);
-    $endTime = date("h:i A", strtotime($endTime));
+    $startTime = date("h:i A", strtotime(mysqli_real_escape_string($connect, $_POST['updatestarttime'])));
+    $endTime = date("h:i A", strtotime(mysqli_real_escape_string($connect, $_POST['updateendtime'])));
     $status = mysqli_real_escape_string($connect, $_POST['status']);
+    $location = mysqli_real_escape_string($connect, $_POST['updatelocation']);
+    $removePdf = isset($_POST['updateRemovePdf']) ? $_POST['updateRemovePdf'] : "0";
 
     try {
-        // Prepare update statement
-        $updateQuery = "UPDATE menutb SET 
-                        MenuName = ?,
-                        Description = ?,
-                        StartTime = ?,
-                        EndTime = ?,
-                        Status = ?
-                        WHERE MenuID = ?";
-
-        $stmt = $connect->prepare($updateQuery);
-
-        if ($stmt === false) {
-            throw new Exception('Prepare failed: ' . htmlspecialchars($connect->error));
+        // Get existing PDF
+        $existingPdf = '';
+        $result = $connect->query("SELECT MenuPDF FROM menutb WHERE MenuID = '$menuId'");
+        if ($result && $row = $result->fetch_assoc()) {
+            $existingPdf = $row['MenuPDF'];
         }
 
-        // Bind parameters and execute
-        $stmt->bind_param(
-            "ssssss",
-            $menuName,
-            $description,
-            $startTime,
-            $endTime,
-            $status,
-            $menuId
-        );
+        // Handle new PDF upload
+        if (!empty($_FILES["updatemenupdf"]["name"])) {
+            $menuPdf = $_FILES["updatemenupdf"]["name"];
+            $copyFile = "AdminPDFs/";
+            $fileName = $copyFile . uniqid() . "_" . $menuPdf;
+            if (!copy($_FILES["updatemenupdf"]["tmp_name"], $fileName)) {
+                throw new Exception("Failed to upload Menu PDF.");
+            }
+
+            // Remove old PDF if exists
+            if ($existingPdf && file_exists($existingPdf)) {
+                unlink($existingPdf);
+            }
+
+            $updateQuery = "UPDATE menutb SET MenuName = ?, Description = ?, StartTime = ?, EndTime = ?, Location = ?, Status = ?, MenuPDF = ? WHERE MenuID = ?";
+            $stmt = $connect->prepare($updateQuery);
+            $stmt->bind_param("ssssssss", $menuName, $description, $startTime, $endTime, $location, $status, $fileName, $menuId);
+        } else if ($removePdf === "1") {
+            // Remove PDF
+            if ($existingPdf && file_exists($existingPdf)) {
+                unlink($existingPdf);
+            }
+            $updateQuery = "UPDATE menutb SET MenuName = ?, Description = ?, StartTime = ?, EndTime = ?, Location = ?, Status = ?, MenuPDF = NULL WHERE MenuID = ?";
+            $stmt = $connect->prepare($updateQuery);
+            $stmt->bind_param("sssssss", $menuName, $description, $startTime, $endTime, $location, $status, $menuId);
+        } else {
+            // No PDF change
+            $updateQuery = "UPDATE menutb SET MenuName = ?, Description = ?, StartTime = ?, EndTime = ?, Location = ?, Status = ? WHERE MenuID = ?";
+            $stmt = $connect->prepare($updateQuery);
+            $stmt->bind_param("sssssss", $menuName, $description, $startTime, $endTime, $location, $status, $menuId);
+        }
 
         if ($stmt->execute()) {
             $response['success'] = true;
@@ -145,7 +172,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['editmenu'])) {
             $response['updatedMenuName'] = $menuName;
             $response['updatedDescription'] = $description;
         } else {
-            $response['message'] = "Failed to update menu. Please try again.";
+            $response['message'] = "Failed to update menu.";
         }
 
         $stmt->close();
@@ -296,10 +323,41 @@ if (isset($_POST['bulkdeletemenus'])) {
 
         <!-- Menu Details Modal -->
         <div id="updateMenuModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
-            <div class="bg-white max-w-5xl p-6 rounded-md shadow-md text-center w-full sm:max-w-[500px]">
+            <div class="reservationScrollBar bg-white w-full md:w-2/5 p-6 rounded-md shadow-md overflow-y-auto max-h-[98vh]">
                 <h2 class="text-xl text-start text-gray-700 font-bold">Edit Menu</h2>
-                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="updateMenuForm">
+                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="updateMenuForm" enctype="multipart/form-data">
                     <input type="hidden" name="menuid" id="updateMenuID">
+
+                    <!-- Menu PDF Upload -->
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Menu PDF (Max 5MB)</label>
+                        <div id="updateMenuPreviewContainer" class="hidden mb-4">
+                            <div class="relative group border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                <p id="updateMenuPreview" class="text-sm text-gray-700 truncate"></p>
+                                <!-- View link -->
+                                <a id="updateMenuViewLink" href="#" target="_blank" class="block text-blue-600 text-xs underline mt-1"></a>
+                                <button type="button" onclick="removeUpdateFile()"
+                                    class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 shadow-md">
+                                    ×
+                                </button>
+                            </div>
+                        </div>
+                        <div class="relative">
+                            <div id="updateUploadArea" class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                                <div class="flex flex-col items-center justify-center space-y-2 py-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    <p class="text-sm text-gray-600">Click to upload or drag and drop</p>
+                                    <p class="text-xs text-gray-500">PDF only (Max. 5MB)</p>
+                                </div>
+                                <input type="file" name="updatemenupdf" id="updateCoverInput"
+                                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="application/pdf">
+                            </div>
+                        </div>
+                        <input type="hidden" id="updateRemovePdf" name="updateRemovePdf" value="0">
+                    </div>
+
                     <!-- Menu Input -->
                     <div class="relative w-full">
                         <label class="block text-start text-sm font-medium text-gray-700 mb-1">Menu Information</label>
@@ -321,6 +379,17 @@ if (isset($_POST['bulkdeletemenus'])) {
                             name="updatedescription"
                             placeholder="Enter menu description"></textarea>
                         <small id="updateMenuDescriptionError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                    </div>
+
+                    <!-- Location Input -->
+                    <div class="relative">
+                        <input
+                            id="updateMenuLocationInput"
+                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            type="text"
+                            name="updatelocation"
+                            placeholder="Enter menu location">
+                        <small id="updateMenuLocationError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
@@ -408,9 +477,34 @@ if (isset($_POST['bulkdeletemenus'])) {
 
         <!-- Add Menu Form -->
         <div id="addMenuModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 invisible p-2 -translate-y-5 transition-all duration-300">
-            <div class="bg-white w-full md:w-1/3 p-6 rounded-md shadow-md ">
+            <div class="reservationScrollBar bg-white w-full md:w-2/5 p-6 rounded-md shadow-md overflow-y-auto max-h-[98vh]">
                 <h2 class="text-xl text-gray-700 font-bold mb-4">Add New Menu</h2>
-                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" method="post" id="menuForm">
+                <form class="flex flex-col space-y-4" action="<?php echo $_SERVER["PHP_SELF"]; ?>" enctype="multipart/form-data" method="post" id="menuForm">
+                    <!-- Menu PDF Upload -->
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Menu PDF (Max 5MB)</label>
+                        <div id="menuPreviewContainer" class="hidden mb-4">
+                            <div class="relative group border border-gray-200 rounded-lg p-3 bg-gray-50">
+                                <p id="menuPreview" class="text-sm text-gray-700 truncate"></p>
+                                <button type="button" onclick="removeCoverFile()"
+                                    class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 shadow-md">
+                                    ×
+                                </button>
+                            </div>
+                        </div>
+                        <div class="relative">
+                            <div id="uploadArea" class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                                <div class="flex flex-col items-center justify-center space-y-2 py-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    <p class="text-sm text-gray-600">Click to upload or drag and drop</p>
+                                    <p class="text-xs text-gray-500">PDF only (Max. 5MB)</p>
+                                </div>
+                                <input type="file" name="menupdf" id="cover-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="application/pdf">
+                            </div>
+                        </div>
+                    </div>
                     <!-- Menu Input -->
                     <div class="relative w-full">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Menu Information</label>
@@ -432,6 +526,17 @@ if (isset($_POST['bulkdeletemenus'])) {
                             name="description"
                             placeholder="Enter menu description"></textarea>
                         <small id="menuDescriptionError" class="absolute left-2 -bottom-1 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
+                    </div>
+
+                    <!-- Location Input -->
+                    <div class="relative">
+                        <input
+                            id="menuLocationInput"
+                            class="p-2 w-full border rounded focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                            type="text"
+                            name="location"
+                            placeholder="Enter menu location">
+                        <small id="menuLocationError" class="absolute left-2 -bottom-2 bg-white text-red-500 text-xs opacity-0 transition-all duration-200 select-none"></small>
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-4 sm:gap-2">
@@ -472,6 +577,107 @@ if (isset($_POST['bulkdeletemenus'])) {
             </div>
         </div>
     </div>
+
+    <script>
+        // Elements for menu PDF
+        const coverInput = document.getElementById('cover-input');
+        const menuPreview = document.getElementById('menuPreview');
+        const menuPreviewContainer = document.getElementById('menuPreviewContainer');
+        const uploadArea = document.getElementById('uploadArea');
+
+        coverInput.addEventListener('change', function(event) {
+            handleFilePreview(event.target, menuPreview, menuPreviewContainer, uploadArea);
+        });
+
+        function removeCoverFile() {
+            coverInput.value = '';
+            menuPreviewContainer.classList.add('hidden');
+            uploadArea.classList.remove('hidden');
+        }
+
+        // Drag & Drop for Add
+        setupDragDrop(uploadArea, coverInput, menuPreview, menuPreviewContainer);
+
+        // Elements for Update
+        const updateCoverInput = document.getElementById('updateCoverInput');
+        const updateMenuPreview = document.getElementById('updateMenuPreview');
+        const updateMenuPreviewContainer = document.getElementById('updateMenuPreviewContainer');
+        const updateUploadArea = document.getElementById('updateUploadArea');
+        const updateRemovePdf = document.getElementById('updateRemovePdf');
+
+        updateCoverInput.addEventListener('change', function(event) {
+            handleFilePreview(event.target, updateMenuPreview, updateMenuPreviewContainer, updateUploadArea);
+            updateRemovePdf.value = "0"; // If user selects a new file, don't remove
+        });
+
+        function removeUpdateFile() {
+            updateCoverInput.value = '';
+            updateMenuPreviewContainer.classList.add('hidden');
+            updateUploadArea.classList.remove('hidden');
+            updateRemovePdf.value = "1"; // Mark PDF for removal
+        }
+
+        // Drag & Drop for Update
+        setupDragDrop(updateUploadArea, updateCoverInput, updateMenuPreview, updateMenuPreviewContainer);
+
+        // Handle File Preview
+        function handleFilePreview(input, previewElement, container, area) {
+            const file = input.files[0];
+            if (file) {
+                if (file.type !== "application/pdf") {
+                    alert("Only PDF files are allowed.");
+                    input.value = '';
+                    return;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size exceeds 5MB limit');
+                    input.value = '';
+                    return;
+                }
+                previewElement.textContent = file.name;
+                container.classList.remove('hidden');
+                area.classList.add('hidden');
+            }
+        }
+
+        function setupDragDrop(area, input, preview, container) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                area.addEventListener(eventName, preventDefaults, false);
+            });
+            ['dragenter', 'dragover'].forEach(eventName => {
+                area.addEventListener(eventName, () => highlight(area), false);
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+                area.addEventListener(eventName, () => unhighlight(area), false);
+            });
+
+            area.addEventListener('drop', function(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files.length > 0) {
+                    if (files[0].type !== "application/pdf") {
+                        alert("Only PDF files are allowed.");
+                        return;
+                    }
+                    input.files = files;
+                    input.dispatchEvent(new Event('change'));
+                }
+            });
+        }
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight(element) {
+            element.classList.add('border-blue-400', 'bg-blue-50');
+        }
+
+        function unhighlight(element) {
+            element.classList.remove('border-blue-400', 'bg-blue-50');
+        }
+    </script>
 
     <!-- Loader -->
     <?php

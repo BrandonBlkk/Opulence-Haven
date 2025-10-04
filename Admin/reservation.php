@@ -109,7 +109,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
                 <form method="GET" class="my-4 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-2 sm:gap-0">
                     <h1 class="text-lg text-gray-700 font-semibold text-nowrap">All Reservations <span class="text-gray-400 text-sm ml-2"><?php echo $bookingCount ?></span></h1>
                     <div class="flex flex-col sm:flex-row items-start sm:items-center w-full gap-2 sm:gap-0">
-                        <input type="text" name="booking_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full outline-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" placeholder="Search for reservation..." value="<?php echo isset($_GET['booking_search']) ? htmlspecialchars($_GET['booking_search']) : ''; ?>">
+                        <input type="text" name="reservation_search" class="p-2 ml-0 sm:ml-5 border border-gray-300 rounded-md w-full outline-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" placeholder="Search for reservation..." value="<?php echo isset($_GET['reservation_search']) ? htmlspecialchars($_GET['reservation_search']) : ''; ?>">
                         <div class="flex items-center">
                             <label for="sort" class="ml-0 sm:ml-4 mr-2 flex items-center cursor-pointer select-none">
                                 <i class="ri-filter-2-line text-xl"></i>
@@ -119,7 +119,6 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
                             <form method="GET" class="flex flex-col md:flex-row items-center gap-4 mb-4">
                                 <select name="sort" id="sort" class="border p-2 rounded text-sm outline-none">
                                     <option value="random">All Statuses</option>
-                                    <option value="Pending" <?= ($filterStatus == 'Pending') ? 'selected' : '' ?>>Pending</option>
                                     <option value="Confirmed" <?= ($filterStatus == 'Confirmed') ? 'selected' : '' ?>>Confirmed</option>
                                     <option value="Cancelled" <?= ($filterStatus == 'Cancelled') ? 'selected' : '' ?>>Cancelled</option>
                                 </select>

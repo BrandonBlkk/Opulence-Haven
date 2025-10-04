@@ -1189,16 +1189,6 @@ $availablePercentage = ($allAvailableRooms / $totalRooms) * 100;
                 <?php endforeach; ?>
             </div>
 
-            <?php
-            $reservation = "SELECT rt.ReservationID, rt.UserID, rt.ReservationDate, rt.Status, rt.TotalPrice, u.ProfileBgColor, u.UserName FROM reservationtb rt
-                JOIN usertb u ON rt.UserID = u.UserID 
-                ORDER BY rt.ReservationDate DESC LIMIT 4";
-            $stmt = $connect->prepare($reservation);
-            $stmt->execute();
-            $resResult = $stmt->get_result();
-            $count = $resResult->num_rows;
-            ?>
-
             <div class="flex-1 divide-y-2 divide-slate-100 bg-white p-3">
                 <h1 class="text-lg font-bold text-gray-700 mb-2">Recent Reservations</h1>
                 <?php
