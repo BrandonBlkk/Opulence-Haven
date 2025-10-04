@@ -170,13 +170,18 @@ if (mysqli_num_rows($bookingSelectQuery) > 0) {
             if (this.status === 200) {
                 document.getElementById('reservationResults').innerHTML = this.responseText;
 
+                // Re-attach reservation detail button listeners after table update
+                document.querySelectorAll('tbody tr').forEach(row => {
+                    attachReservationListenersToRow(row);
+                });
+
                 // Update the pagination controls
                 const xhrPagination = new XMLHttpRequest();
                 xhrPagination.open('GET', `../includes/admin_table_components/reservation_pagination.php?${urlParams.toString()}`, true);
                 xhrPagination.onload = function() {
                     if (this.status === 200) {
                         document.getElementById('paginationContainer').innerHTML = this.responseText;
-                        // Re-attach event listeners after pagination update
+                        // Re-attach pagination listeners
                         attachPaginationEventListeners();
                     }
                 };
@@ -194,6 +199,138 @@ if (mysqli_num_rows($bookingSelectQuery) > 0) {
     function handleReservationSearch() {
         loadReservationPage(1);
     }
+
+    const attachReservationListenersToRow = (row) => {
+        const detailsBtn = row.querySelector('.details-btn');
+        if (detailsBtn) {
+            detailsBtn.addEventListener('click', function() {
+                const reservationId = this.getAttribute('data-reservation-id');
+
+                // Show modal
+                if (darkOverlay2) {
+                    darkOverlay2.classList.remove('opacity-0', 'invisible');
+                    darkOverlay2.classList.add('opacity-100');
+                }
+                reservationModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+
+                // Fetch reservation details
+                fetch(`../Admin/reservation.php?action=getReservationDetails&id=${reservationId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success || !data.reservation) {
+                            console.error('Failed to load reservation details');
+                            return;
+                        }
+
+                        const reservation = data.reservation;
+
+                        // User Info
+                        document.getElementById('userName').textContent = `${reservation.Title ?? ''} ${reservation.FirstName ?? ''} ${reservation.LastName ?? ''}`.trim();
+                        document.getElementById('userPhone').textContent = reservation.UserPhone ?? "N/A";
+
+                        // Email with mailto link
+                        const userEmailEl = document.getElementById('userEmail');
+                        if (reservation.UserEmail) {
+                            userEmailEl.textContent = reservation.UserEmail;
+                            userEmailEl.href = `mailto:${reservation.UserEmail}`;
+                        } else {
+                            userEmailEl.textContent = "N/A";
+                            userEmailEl.removeAttribute('href');
+                        }
+
+                        // Reservation date & expiry
+                        document.getElementById('reservationDate').textContent = formatDate(reservation.ReservationDate);
+                        if (reservation.ExpiryDate) {
+                            const expiryText = `Expires on ${formatDate(reservation.CheckInDate, { year: 'numeric', month: 'short', day: 'numeric' })} ${relativeTimeFromNow(reservation.CheckInDate)}`;
+                            const expiryEl = document.getElementById('reservationExpiry');
+                            expiryEl.textContent = expiryText;
+
+                            // highlight if < 2 days
+                            const expiryDate = new Date(reservation.CheckInDate);
+                            const diffDays = Math.ceil((expiryDate - new Date()) / (1000 * 60 * 60 * 24));
+                            expiryEl.classList.remove('text-red-500', 'text-gray-500', 'text-yellow-600');
+                            if (diffDays <= 2) expiryEl.classList.add('text-red-500');
+                            else if (diffDays <= 7) expiryEl.classList.add('text-yellow-600');
+                            else expiryEl.classList.add('text-gray-500');
+                        } else {
+                            document.getElementById('reservationExpiry').textContent = '';
+                        }
+
+                        // Rooms array
+                        const rooms = Array.isArray(reservation.Rooms) ? reservation.Rooms : (reservation.Rooms ? [reservation.Rooms] : []);
+
+                        // Determine nights — if different per room is needed, server must return per-room dates.
+                        const checkIn = reservation.CheckInDate ? new Date(reservation.CheckInDate) : null;
+                        const checkOut = reservation.CheckOutDate ? new Date(reservation.CheckOutDate) : null;
+                        const nights = (checkIn && checkOut) ? Math.max(1, Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24))) : 1;
+
+                        // Itemize each room and compute subtotal
+                        const subtotal = rooms.reduce((sum, r) => sum + (parseFloat(r.Price) || 0), 0);
+                        const taxesFees = subtotal * 0.10;
+                        const pointsDiscount = parseFloat(reservation.PointsDiscount || 0) || 0;
+                        const total = subtotal + taxesFees - pointsDiscount;
+
+                        // Update UI: room breakdown (per room), subtotal, taxes, total
+                        const roomRateLabel = document.getElementById('roomRateLabel');
+                        const roomRateEl = document.getElementById('roomRate');
+                        const taxesFeesEl = document.getElementById('taxesFees');
+                        const totalPriceEl = document.getElementById('totalPrice');
+
+                        roomRateLabel.textContent = `Rooms Subtotal (${rooms.length} room${rooms.length>1?'s':''}, ${nights} night${nights>1?'s':''}):`;
+                        roomRateEl.textContent = `$ ${subtotal.toFixed(2)}`;
+                        taxesFeesEl.textContent = `$ ${taxesFees.toFixed(2)}`;
+                        totalPriceEl.textContent = `$ ${total.toFixed(2)}`;
+
+                        // Points discount (show/hide)
+                        if ((parseFloat(reservation.PointsRedeemed) || 0) > 0 || pointsDiscount > 0) {
+                            document.getElementById('pointsDiscountContainer').classList.remove('hidden');
+                            document.getElementById('pointsDiscount').textContent = `- $ ${pointsDiscount.toFixed(2)}`;
+                        } else {
+                            document.getElementById('pointsDiscountContainer').classList.add('hidden');
+                        }
+
+                        // Points earned (show/hide)
+                        if ((parseFloat(reservation.PointsEarned) || 0) > 0) {
+                            document.getElementById('pointsEarnedContainer').classList.remove('hidden');
+                            document.getElementById('pointsEarned').textContent = `+ ${parseFloat(reservation.PointsEarned).toFixed(0)} points`;
+                        } else {
+                            document.getElementById('pointsEarnedContainer').classList.add('hidden');
+                        }
+
+                        // Create or update itemized room list under pricing
+                        (function renderRoomBreakdown() {
+                            // find the pricing container
+                            const roomRateEl = document.getElementById('roomRate');
+                            const pricingBlock = roomRateEl ? roomRateEl.closest('.space-y-3') : null;
+                            if (!pricingBlock) return;
+
+                            let breakdown = document.getElementById('roomBreakdown');
+                            if (!breakdown) {
+                                breakdown = document.createElement('div');
+                                breakdown.id = 'roomBreakdown';
+                                breakdown.className = 'space-y-1 text-sm text-gray-700';
+                                // insert before taxes row (taxesFees's parent)
+                                const taxesRow = document.getElementById('taxesFees')?.parentElement;
+                                if (taxesRow) pricingBlock.insertBefore(breakdown, taxesRow);
+                                else pricingBlock.appendChild(breakdown);
+                            }
+                            // fill breakdown
+                            breakdown.innerHTML = rooms.map(r => {
+                                const rPrice = parseFloat(r.Price || 0);
+                                const perNight = nights > 0 ? (rPrice / nights) : rPrice;
+                                return `<div class="flex justify-between"><span>${r.RoomName || 'Room'} <span class="text-xs text-gray-500">(${nights} night${nights>1?'s':''})</span></span><span class="font-medium">$${rPrice.toFixed(2)} <span class="text-xs text-gray-400">($${perNight.toFixed(2)}/night)</span></span></div>`;
+                            }).join('');
+                        })();
+
+                        // Initialize swiper with rooms and nights so slide shows correct per-room totals
+                        initializeRoomSwiper(rooms, nights);
+                    })
+                    .catch(error => {
+                        console.error('Fetch error:', error);
+                    });
+            });
+        }
+    };
 
     // Function to attach pagination event listeners dynamically
     function attachPaginationEventListeners() {
@@ -223,6 +360,54 @@ if (mysqli_num_rows($bookingSelectQuery) > 0) {
         }
     }
 
+    // Initialize order action buttons
+    function initializeOrderActionButtons() {
+        document.querySelectorAll('tbody tr').forEach(row => {
+            const detailsBtn = row.querySelector('.details-btn');
+            if (detailsBtn) {
+                detailsBtn.addEventListener('click', function() {
+                    const orderId = this.getAttribute('data-order-id');
+                    currentOrderId = orderId;
+
+                    if (darkOverlay2) {
+                        darkOverlay2.classList.remove('opacity-0', 'invisible');
+                        darkOverlay2.classList.add('opacity-100');
+                    }
+                    orderModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+
+                    fetch(`../Admin/order.php?action=getOrderDetails&id=${orderId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success && data.order) {
+                                const order = data.order;
+
+                                document.getElementById('userFullName').textContent = order.FullName ?? "N/A";
+                                document.getElementById('userName').textContent = order.UserName ? order.UserName.charAt(0).toUpperCase() : "N/A";
+                                document.getElementById('profilePreview').style.backgroundColor = order.ProfileBgColor ?? "#999";
+                                document.getElementById('userEmail').textContent = order.UserEmail ?? "N/A";
+                                document.getElementById('userPhone').textContent = order.UserPhone ?? "N/A";
+                                document.getElementById('userAddress').textContent = order.ShippingAddress ?? "N/A";
+                                document.getElementById('userCity').textContent = order.City ?? "N/A";
+                                document.getElementById('userState').textContent = order.State ?? "N/A";
+                                document.getElementById('userZip').textContent = order.ZipCode ?? "N/A";
+                                document.getElementById('orderDate').textContent = formatDate(order.OrderDate);
+
+                                document.getElementById('orderSubtotal').textContent = `$ ${parseFloat(order.Subtotal ?? 0).toFixed(2)}`;
+                                document.getElementById('orderTaxesFees').textContent = `$ ${((parseFloat(order.OrderTax) || 0) + 5).toFixed(2)}`;
+                                document.getElementById('orderTotal').textContent = `$ ${parseFloat(order.TotalPrice ?? 0).toFixed(2)}`;
+
+                                const products = Array.isArray(order.Products) ? order.Products : [];
+                                initializeOrderProductSwiper(products);
+                            } else {
+                                console.error('Failed to load order details');
+                            }
+                        })
+                        .catch(error => console.error('Fetch error:', error));
+                });
+            }
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         // Search input listener
         const searchInput = document.querySelector('input[name="reservation_search"]');
@@ -248,6 +433,11 @@ if (mysqli_num_rows($bookingSelectQuery) > 0) {
 
         // Initial attachment of pagination listeners
         attachPaginationEventListeners();
+
+        // Initial attachment of reservation detail buttons
+        document.querySelectorAll('tbody tr').forEach(row => {
+            attachReservationListenersToRow(row);
+        });
     });
 
     // Handle browser back/forward buttons
