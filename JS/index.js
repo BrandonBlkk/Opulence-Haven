@@ -1940,6 +1940,7 @@ cancelButtons.forEach(button => {
         const reservationId = this.dataset.reservationId;
         const dates = this.dataset.dates;
         const totalPrice = parseFloat(this.dataset.totalPrice);
+        const loader = document.getElementById('loader');
 
         const checkinDate = new Date(dates.split(' - ')[0]);
         const today = new Date();
@@ -1950,10 +1951,10 @@ cancelButtons.forEach(button => {
 
         // Format deadline to Wed, Sep 30, 2025
         const deadline = freeCancellationDate.toLocaleDateString("en-US", {
-            weekday: "short",  // Wed
-            day: "numeric",    // 30
-            month: "short",    // Sep
-            year: "numeric"    // 2025
+            weekday: "short",
+            day: "numeric",
+            month: "short",
+            year: "numeric"
         });
 
         // Determine cancellation fee
@@ -1978,8 +1979,61 @@ cancelButtons.forEach(button => {
         darkOverlay2.classList.add('opacity-100');
 
         // Confirm cancellation
-        document.getElementById('confirmCancelBtn').onclick = function() {
-            cancelReservation(reservationId);
+        document.getElementById('confirmCancelBtn').onclick = async function() {
+            const confirmBtn = document.getElementById('confirmCancelBtn');
+            const btnText = document.getElementById('cancelButtonText');
+            const btnSpinner = document.getElementById('cancelButtonSpinner');
+
+            try {
+                // Show loading state
+                if (btnText && btnSpinner) {
+                    btnText.textContent = 'Processing...';
+                    btnSpinner.classList.remove('hidden');
+                    confirmBtn.disabled = true;
+                }
+
+                // Cancel the reservation
+                const response = await fetch('../User/cancel_reservation.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reservationId })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    // Send cancellation confirmation email
+                    try {
+                        const emailResponse = await fetch(`../Mail/room_reservation_cancel_email.php?id=${reservationId}`);
+                        const emailResult = await emailResponse.json();
+
+                        if (emailResult.success) {
+                            showAlert(`Reservation ${reservationId} has been cancelled.`);
+                        } else {
+                            console.error('Failed to send cancellation email:', emailResult.error);
+                            showAlert(`Reservation ${reservationId} cancelled, but email failed to send.`);
+                        }
+                    } catch (emailError) {
+                        console.error('Error sending cancellation email:', emailError);
+                        showAlert(`Reservation ${reservationId} cancelled, but email failed to send.`);
+                    }
+
+                    // Close modal
+                    cancelModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                    darkOverlay2.classList.add('opacity-0', 'invisible');
+                    darkOverlay2.classList.remove('opacity-100');
+                } else {
+                    showAlert('Failed to cancel reservation. Try again.');
+                }
+            } catch (error) {
+                console.error('Error cancelling reservation:', error);
+                showAlert('Error cancelling reservation.');
+            } finally {
+                if (btnText && btnSpinner) {
+                    btnText.textContent = 'Confirm cancellation';
+                    btnSpinner.classList.add('hidden');
+                    confirmBtn.disabled = false;
+                }
+            }
         };
     });
 });
