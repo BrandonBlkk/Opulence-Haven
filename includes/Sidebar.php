@@ -95,7 +95,15 @@
                             ?>
                         </a>
                         <?php
-                        $stay = "SELECT COUNT(*) as count FROM reservationtb WHERE UserID = ? AND Status = 'Confirmed'";
+                        $stay = "
+                            SELECT COUNT(DISTINCT r.ReservationID) AS count
+                            FROM reservationtb r
+                            JOIN reservationdetailtb rd ON r.ReservationID = rd.ReservationID
+                            WHERE 
+                                r.UserID = ? 
+                                AND r.Status = 'Confirmed'
+                                AND rd.CheckInDate > CURDATE()
+                        ";
                         $stmt = $connect->prepare($stay);
                         $stmt->bind_param("s", $_SESSION['UserID']);
                         $stmt->execute();
@@ -129,7 +137,13 @@
                                 <i class="ri-file-list-3-line text-xl"></i>
                                 <p class="font-semibold text-sm">Purchase List</p>
                             </div>
-                            <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= $order_count ?></p>
+                            <?php
+                            if ($order_count) {
+                            ?>
+                                <p class="px-2 text-white bg-blue-950 rounded-sm ml-5"><?= $order_count ?></p>
+                            <?php
+                            }
+                            ?>
                         </a>
                     </div>
                 </div>
