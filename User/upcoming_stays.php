@@ -318,7 +318,7 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'filter') {
 
 
         <?php
-        if ($userID !== null) {
+        if ($userID !== null && count($reservations ?? []) > 0) {
         ?>
             <div id="reservationList" class="space-y-3">
                 <?php

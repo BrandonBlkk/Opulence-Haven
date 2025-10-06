@@ -31,10 +31,10 @@ if (count($nameParts) > 1) {
 
 // Check if ReservationID is provided form Modify
 if (isset($_GET['modify_reservation_id'])) {
-    $reservationID = htmlspecialchars($_GET['modify_reservation_id']);
+    $modifyReservationID = htmlspecialchars($_GET['modify_reservation_id']);
 
     // Get reservation details
-    $reservationQuery = "SELECT * FROM reservationtb WHERE ReservationID = '$reservationID'";
+    $reservationQuery = "SELECT * FROM reservationtb WHERE ReservationID = '$modifyReservationID'";
     $reservationResult = $connect->query($reservationQuery);
 
     if ($reservationResult->num_rows > 0) {
@@ -46,7 +46,7 @@ if (isset($_GET['modify_reservation_id'])) {
                        FROM reservationdetailtb rd
                        JOIN roomtb r ON rd.RoomID = r.RoomID
                        JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
-                       WHERE rd.ReservationID = '$reservationID'";
+                       WHERE rd.ReservationID = '$modifyReservationID'";
         $roomsResult = $connect->query($roomsQuery);
 
         if ($roomsResult->num_rows > 0) {
@@ -182,14 +182,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $adults = $_POST['adults'];
         $children = $_POST['children'];
 
+        // Get modify_reservation_id if exists
+        $modify_reservation_id = isset($_POST['modify_reservation_id']) ? $_POST['modify_reservation_id'] : '';
+
         // Execute your database update here
         $updateQuery = "UPDATE roomtb SET RoomStatus = 'Edit' WHERE RoomID = ?";
         $stmt = $connect->prepare($updateQuery);
         $stmt->bind_param("s", $roomId);
         $stmt->execute();
 
-        // Then redirect to the room_booking.php page with parameters
-        header("Location: room_details.php?reservation_id=$reservationId&roomTypeID=$roomtype_id&room_id=$roomId&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children&edit=1");
+        // Then redirect to the room_details.php page with parameters
+        // Replace reservation_id with modify_reservation_id (no reservation_id in URL)
+        if (!empty($modify_reservation_id)) {
+            $redirectUrl = "room_details.php?modify_reservation_id=$modify_reservation_id&roomTypeID=$roomtype_id&room_id=$roomId&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children&edit=1";
+        } else {
+            $redirectUrl = "room_details.php?roomTypeID=$roomtype_id&room_id=$roomId&checkin_date=$checkin_date&checkout_date=$checkout_date&adults=$adults&children=$children&edit=1";
+        }
+
+        header("Location: $redirectUrl");
         exit();
     }
 }
@@ -1125,6 +1135,10 @@ if (isset($_GET['payment'])) {
                                                     <input type="hidden" name="adults" value="<?= $room['Adult'] ?>">
                                                     <input type="hidden" name="children" value="<?= $room['Children'] ?>">
 
+                                                    <?php if (isset($_GET['modify_reservation_id'])): ?>
+                                                        <input type="hidden" name="modify_reservation_id" value="<?= htmlspecialchars($_GET['modify_reservation_id']) ?>">
+                                                    <?php endif; ?>
+
                                                     <button type="submit" name="edit_room"
                                                         class="text-blue-600 hover:text-blue-800 text-sm font-medium">
                                                         Edit Room
@@ -1254,7 +1268,21 @@ if (isset($_GET['payment'])) {
                             </div>
 
                             <div class="flex justify-between items-center">
-                                <a href="../User/room_booking.php?checkin_date=<?= $checkin_date ?>&checkout_date=<?= $checkout_date ?>&adults=<?= $adults ?>&children=<?= $children ?>" class="text-blue-900 hover:text-blue-950 font-medium">Back</a>
+                                <!-- Back Button -->
+                                <?php if (isset($_GET['modify_reservation_id'])): ?>
+                                    <!-- User came from modification page -->
+                                    <a href="../User/reservation.php?modify_reservation_id=<?= htmlspecialchars($_GET['modify_reservation_id']) ?>&checkin_date=<?= urlencode($checkin_date) ?>&checkout_date=<?= urlencode($checkout_date) ?>&adults=<?= urlencode($adults) ?>&children=<?= urlencode($children) ?>"
+                                        class="text-blue-900 hover:text-blue-950 font-medium">
+                                        Back
+                                    </a>
+                                <?php else: ?>
+                                    <!-- Normal back link -->
+                                    <a href="../User/room_booking.php?checkin_date=<?= urlencode($checkin_date) ?>&checkout_date=<?= urlencode($checkout_date) ?>&adults=<?= urlencode($adults) ?>&children=<?= urlencode($children) ?>"
+                                        class="text-blue-900 hover:text-blue-950 font-medium">
+                                        Back
+                                    </a>
+                                <?php endif; ?>
+
                                 <button type="submit" id="submitButton" name="submit_reservation" class="bg-blue-900 hover:bg-blue-950 text-white font-medium py-2 px-6 rounded-sm flex items-center justify-center select-none">
                                     <span id="buttonText">Continue to payment</span>
                                     <svg id="buttonSpinner" class="hidden w-5 h-5 ml-2 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
