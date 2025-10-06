@@ -1728,13 +1728,21 @@ const reservationDetailModal = document.getElementById('reservationDetailModal')
 const closeReservationDetailModal = document.getElementById('closeReservationDetailModal');
 const detailsBtns = document.querySelectorAll('.details-btn');
 
-detailsBtns.forEach((btn) => {
-    btn.addEventListener('click', function () {
-        const reservationId = btn.dataset.reservationId;
+// Bind buttons after filtering
+window.bindReservationButtons = function() {
+    const detailsBtns = document.querySelectorAll('.details-btn');
+    const reservationDetailModal = document.getElementById('reservationDetailModal');
+    const darkOverlay2 = document.getElementById('darkOverlay2');
+    const closeReservationDetailModal = document.getElementById('closeReservationDetailModal');
 
-        fetch(`upcoming_stays.php?id=${reservationId}&action=getReservationDetails`)
-            .then(res => res.json())
-            .then(data => {
+    detailsBtns.forEach((btn) => {
+        btn.addEventListener('click', async function() {
+            const reservationId = btn.dataset.reservationId;
+
+            try {
+                const res = await fetch(`upcoming_stays.php?id=${reservationId}&action=getReservationDetails`);
+                const data = await res.json();
+
                 if (data.success) {
                     const reservations = data.reservations;
 
@@ -1781,117 +1789,108 @@ detailsBtns.forEach((btn) => {
                         statusClass = 'bg-gray-50 border-gray-400 text-gray-800';
                     }
 
-                    // Room Information
+                    // Room Information HTML
                     html += `<div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="flex items-center gap-5 mb-3">
-                            <h4 class="font-medium text-gray-800">
-                                Room Information  
-                            </h4>
-                            <h4 class="flex items-center gap-2 ${statusClass} border rounded-lg p-2">
-                                <span class="text-sm font-medium">${statusMessage}</span>
-                            </h4>
-                        </div>
-                        <div class="swiper roomTypeSwiper"><div class="swiper-wrapper">`;
+        <div class="flex items-center gap-5 mb-3">
+            <h4 class="font-medium text-gray-800">Room Information</h4>
+            <h4 class="flex items-center gap-2 ${statusClass} border rounded-lg p-2">
+                <span class="text-sm font-medium">${statusMessage}</span>
+            </h4>
+        </div>
+        <div class="swiper roomTypeSwiper"><div class="swiper-wrapper">`;
 
                     for (let type in groupedRooms) {
                         const rooms = groupedRooms[type];
                         const firstRoom = rooms[0];
                         html += `<div class="swiper-slide">
-                            <div class="flex flex-col md:flex-row gap-4 py-2">
-                                <div class="md:w-1/3 select-none">
-                                    <div class="relative" style="height: 200px;">
-                                        <img src="../Admin/${firstRoom.RoomCoverImage}" alt="Room Image" class="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-105">
-                                    </div>
-                                </div>
-                                <div class="md:w-2/3">
-                                    <div class="flex justify-between items-start">
-                                        <div>
-                                            <h5 class="font-bold text-lg text-gray-800">${firstRoom.RoomType}</h5>
-                                            <p class="text-sm text-gray-600 mt-1 line-clamp-2">${firstRoom.RoomDescription}</p>
-                                            <div class="mt-2 text-xs text-gray-500">
-                                                ${rooms.length} room${rooms.length > 1 ? 's' : ''} of this type
-                                                <div class="flex flex-wrap gap-2 mt-1">`;
+            <div class="flex flex-col md:flex-row gap-4 py-2">
+                <div class="md:w-1/3 select-none">
+                    <div class="relative" style="height: 200px;">
+                        <img src="../Admin/${firstRoom.RoomCoverImage}" alt="Room Image" class="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-105">
+                    </div>
+                </div>
+                <div class="md:w-2/3">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h5 class="font-bold text-lg text-gray-800">${firstRoom.RoomType}</h5>
+                            <p class="text-sm text-gray-600 mt-1 line-clamp-2">${firstRoom.RoomDescription}</p>
+                            <div class="mt-2 text-xs text-gray-500">
+                                ${rooms.length} room${rooms.length > 1 ? 's' : ''} of this type
+                                <div class="flex flex-wrap gap-2 mt-1">`;
 
                         rooms.forEach(room => {
                             html += `<div class="group relative">
-                                <span class="bg-gray-100 px-2 py-1 rounded text-gray-600 font-semibold text-xs cursor-default">
-                                    Room #${room.RoomName}
-                                </span>
-                                <div class="absolute z-20 left-0 mt-1 w-64 bg-white p-3 rounded-lg shadow-sm border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                                    <div class="flex items-center gap-2 text-sm mb-1">
-                                        <i class="ri-calendar-check-line text-orange-500"></i>
-                                        ${new Date(room.CheckInDate).toLocaleDateString('en-US', {month:'short', day:'numeric'})}
-                                        <span class="text-gray-400">→</span>
-                                        ${new Date(room.CheckOutDate).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})}
-                                    </div>
-                                    <div class="flex items-center gap-2 text-sm mb-2">
-                                        <i class="ri-user-line text-orange-500"></i>
-                                        ${room.Adult} Adult${room.Adult > 1 ? 's' : ''}
-                                        ${room.Children > 0 ? `+ ${room.Children} Child${room.Children > 1 ? 'ren' : ''}` : ''}
-                                    </div>
-                                    <div class="text-sm text-gray-600">
-                                        <span class="font-medium">$${parseFloat(room.Price).toFixed(2)}</span>
-                                        <span class="text-gray-500">/night</span>
-                                    </div>
-                                </div>
-                            </div>`;
+                <span class="bg-gray-100 px-2 py-1 rounded text-gray-600 font-semibold text-xs cursor-default">Room #${room.RoomName}</span>
+                <div class="absolute z-20 left-0 mt-1 w-64 bg-white p-3 rounded-lg shadow-sm border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                    <div class="flex items-center gap-2 text-sm mb-1">
+                        <i class="ri-calendar-check-line text-orange-500"></i>
+                        ${new Date(room.CheckInDate).toLocaleDateString('en-US', {month:'short', day:'numeric'})}
+                        <span class="text-gray-400">→</span>
+                        ${new Date(room.CheckOutDate).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})}
+                    </div>
+                    <div class="flex items-center gap-2 text-sm mb-2">
+                        <i class="ri-user-line text-orange-500"></i>
+                        ${room.Adult} Adult${room.Adult > 1 ? 's' : ''}
+                        ${room.Children > 0 ? `+ ${room.Children} Child${room.Children > 1 ? 'ren' : ''}` : ''}
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        <span class="font-medium">$${parseFloat(room.Price).toFixed(2)}</span>
+                        <span class="text-gray-500">/night</span>
+                    </div>
+                </div>
+            </div>`;
                         });
 
                         html += `</div></div></div></div>
-                                <a href="../User/room_details.php?roomTypeID=${firstRoom.RoomTypeID}&checkin_date=${firstRoom.CheckInDate}&checkout_date=${firstRoom.CheckOutDate}&adults=${firstRoom.Adult}&children=${firstRoom.Children}" class="mt-2 text-orange-600 hover:text-orange-700 font-medium inline-flex items-center text-xs bg-orange-50 px-3 py-1 rounded-full">
-                                    <i class="ri-information-line mr-1"></i> Room Details
-                                </a>
-                                </div></div></div>`;
+                <a href="../User/room_details.php?roomTypeID=${firstRoom.RoomTypeID}&checkin_date=${firstRoom.CheckInDate}&checkout_date=${firstRoom.CheckOutDate}&adults=${firstRoom.Adult}&children=${firstRoom.Children}" class="mt-2 text-orange-600 hover:text-orange-700 font-medium inline-flex items-center text-xs bg-orange-50 px-3 py-1 rounded-full">
+                    <i class="ri-information-line mr-1"></i> Room Details
+                </a>
+                </div></div></div>`;
                     }
 
                     html += `</div><div class="swiper-pagination"></div></div></div>`;
 
                     // Pricing Breakdown
                     html += `<div class="bg-gray-50 p-4 rounded-lg">
-                        <h4 class="font-medium text-gray-800 mb-3">Pricing Breakdown</h4>
-                        <div class="space-y-3">
-                            <div class="flex justify-between">
-                                <span class="text-sm text-gray-600">Room Rate (${totalNights} night${totalNights>1?'s':''}):</span>
-                                <span class="text-sm font-medium text-gray-600">$${totalPrice.toFixed(2)}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-sm text-gray-600">Taxes & Fees:</span>
-                                <span class="text-sm font-medium text-gray-600">$${(totalPrice*0.1).toFixed(2)}</span>
-                            </div>
-                            <div class="border-t border-gray-200 pt-2 flex justify-between">
-                                <span class="font-medium text-gray-800">Total:</span>
-                                <span class="font-bold text-gray-600">$${(totalPrice*1.1).toFixed(2)}</span>
+        <h4 class="font-medium text-gray-800 mb-3">Pricing Breakdown</h4>
+        <div class="space-y-3">
+            <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Room Rate (${totalNights} night${totalNights>1?'s':''}):</span>
+                <span class="text-sm font-medium text-gray-600">$${totalPrice.toFixed(2)}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Taxes & Fees:</span>
+                <span class="text-sm font-medium text-gray-600">$${(totalPrice*0.1).toFixed(2)}</span>
+            </div>
+            <div class="border-t border-gray-200 pt-2 flex justify-between">
+                <span class="font-medium text-gray-800">Total:</span>
+                <span class="font-bold text-gray-600">$${(totalPrice*1.1).toFixed(2)}</span>
+            </div>
+        </div>
+    </div>`;
+
+                    // Cancellation Deadline
+                    const cancellationDeadline = new Date(earliestCheckin);
+                    cancellationDeadline.setDate(cancellationDeadline.getDate() - 1);
+                    const deadlineFormatted = cancellationDeadline.toLocaleDateString("en-US", {
+                        weekday: "short",
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric"
+                    });
+
+                    html += `<div class="bg-red-50 border-l-4 border-red-400 p-4 mt-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0"><i class="ri-alert-line text-red-500 mt-1"></i></div>
+                            <div class="ml-3">
+                                <h4 class="text-sm font-medium text-red-800">Cancellation Policy</h4>
+                                <p class="text-sm text-red-700 mt-1">
+                                    Free cancellation is available until ${deadlineFormatted}.
+                                    Cancellations made on or after check-in will incur a $50 fee.
+                                </p>
                             </div>
                         </div>
                     </div>`;
-
-                   // Cancellation Deadline = 1 day before earliest check-in
-                    const cancellationDeadline = new Date(earliestCheckin);
-                    cancellationDeadline.setDate(cancellationDeadline.getDate() - 1);
-
-                    const deadlineFormatted = cancellationDeadline.toLocaleDateString("en-US", {
-                        weekday: "short",  // e.g. Tue
-                        day: "numeric",    // 30
-                        month: "short",    // Sep
-                        year: "numeric"    // 2025
-                    });
-
-                    html += `
-                        <div class="bg-red-50 border-l-4 border-red-400 p-4 mt-4">
-                            <div class="flex">
-                                <div class="flex-shrink-0">
-                                    <i class="ri-alert-line text-red-500 mt-1"></i>
-                                </div>
-                                <div class="ml-3">
-                                    <h4 class="text-sm font-medium text-red-800">Cancellation Policy</h4>
-                                    <p class="text-sm text-red-700 mt-1">
-                                        Free cancellation is available until ${deadlineFormatted}. 
-                                        Cancellations made on or after check-in will incur a $50 fee.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    `;
 
                     // Insert HTML
                     document.querySelector('#reservationDetailModal .space-y-3').innerHTML = html;
@@ -1910,10 +1909,22 @@ detailsBtns.forEach((btn) => {
                         breakpoints: { 768: { slidesPerView: 1, spaceBetween: 30 } }
                     });
                 }
-            });
+            } catch (error) {
+                console.error('Error fetching reservation details:', error);
+            }
+        });
     });
-});
 
+    // Close modal
+    closeReservationDetailModal.addEventListener('click', function() {
+        reservationDetailModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+        darkOverlay2.classList.add('opacity-0', 'invisible');
+        darkOverlay2.classList.remove('opacity-100');
+    });
+};
+
+// Initial call
+window.bindReservationButtons();
 
 closeReservationDetailModal.addEventListener('click', function () {
     reservationDetailModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
@@ -1929,6 +1940,7 @@ cancelButtons.forEach(button => {
         const reservationId = this.dataset.reservationId;
         const dates = this.dataset.dates;
         const totalPrice = parseFloat(this.dataset.totalPrice);
+        const loader = document.getElementById('loader');
 
         const checkinDate = new Date(dates.split(' - ')[0]);
         const today = new Date();
@@ -1939,10 +1951,10 @@ cancelButtons.forEach(button => {
 
         // Format deadline to Wed, Sep 30, 2025
         const deadline = freeCancellationDate.toLocaleDateString("en-US", {
-            weekday: "short",  // Wed
-            day: "numeric",    // 30
-            month: "short",    // Sep
-            year: "numeric"    // 2025
+            weekday: "short",
+            day: "numeric",
+            month: "short",
+            year: "numeric"
         });
 
         // Determine cancellation fee
@@ -1967,8 +1979,61 @@ cancelButtons.forEach(button => {
         darkOverlay2.classList.add('opacity-100');
 
         // Confirm cancellation
-        document.getElementById('confirmCancelBtn').onclick = function() {
-            cancelReservation(reservationId);
+        document.getElementById('confirmCancelBtn').onclick = async function() {
+            const confirmBtn = document.getElementById('confirmCancelBtn');
+            const btnText = document.getElementById('cancelButtonText');
+            const btnSpinner = document.getElementById('cancelButtonSpinner');
+
+            try {
+                // Show loading state
+                if (btnText && btnSpinner) {
+                    btnText.textContent = 'Processing...';
+                    btnSpinner.classList.remove('hidden');
+                    confirmBtn.disabled = true;
+                }
+
+                // Cancel the reservation
+                const response = await fetch('../User/cancel_reservation.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reservationId })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    // Send cancellation confirmation email
+                    try {
+                        const emailResponse = await fetch(`../Mail/room_reservation_cancel_email.php?id=${reservationId}`);
+                        const emailResult = await emailResponse.json();
+
+                        if (emailResult.success) {
+                            showAlert(`Reservation ${reservationId} has been cancelled.`);
+                        } else {
+                            console.error('Failed to send cancellation email:', emailResult.error);
+                            showAlert(`Reservation ${reservationId} cancelled, but email failed to send.`);
+                        }
+                    } catch (emailError) {
+                        console.error('Error sending cancellation email:', emailError);
+                        showAlert(`Reservation ${reservationId} cancelled, but email failed to send.`);
+                    }
+
+                    // Close modal
+                    cancelModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+                    darkOverlay2.classList.add('opacity-0', 'invisible');
+                    darkOverlay2.classList.remove('opacity-100');
+                } else {
+                    showAlert('Failed to cancel reservation. Try again.');
+                }
+            } catch (error) {
+                console.error('Error cancelling reservation:', error);
+                showAlert('Error cancelling reservation.');
+            } finally {
+                if (btnText && btnSpinner) {
+                    btnText.textContent = 'Confirm cancellation';
+                    btnSpinner.classList.add('hidden');
+                    confirmBtn.disabled = false;
+                }
+            }
         };
     });
 });
