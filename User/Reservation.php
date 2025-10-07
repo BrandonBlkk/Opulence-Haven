@@ -1203,7 +1203,7 @@ if (isset($_GET['payment'])) {
                                 <?php endif; ?>
                                 <div id="no-rooms-message" class="text-center py-32" style="display: none;">
                                     <p class="text-gray-500 text-sm sm:text-base">You don't have any rooms reserved yet.</p>
-                                    <a href="room_booking.php" class="text-blue-600 hover:underline mt-2 inline-block">
+                                    <a href="room_booking.php?checkin_date" class="text-blue-600 hover:underline mt-2 inline-block">
                                         Browse available rooms
                                     </a>
                                 </div>
@@ -1309,11 +1309,18 @@ if (isset($_GET['payment'])) {
                                         Back
                                     </a>
                                 <?php else: ?>
-                                    <!-- Normal back link -->
-                                    <a href="../User/room_booking.php?checkin_date=<?= urlencode($checkin_date) ?>&checkout_date=<?= urlencode($checkout_date) ?>&adults=<?= urlencode($adults) ?>&children=<?= urlencode($children) ?>"
-                                        class="text-blue-900 hover:text-blue-950 font-medium">
-                                        Back
-                                    </a>
+                                    <?php if (!empty($reservedRooms)): ?>
+                                        <!-- Normal back link -->
+                                        <a href="../User/room_booking.php?checkin_date=<?= urlencode($checkin_date) ?>&checkout_date=<?= urlencode($checkout_date) ?>&adults=<?= urlencode($adults) ?>&children=<?= urlencode($children) ?>"
+                                            class="text-blue-900 hover:text-blue-950 font-medium">
+                                            Back
+                                        </a>
+                                    <?php else: ?>
+                                        <!-- Back to previous page -->
+                                        <a href="../User/room_booking.php" class="text-blue-900 hover:text-blue-950 font-medium">
+                                            Back
+                                        </a>
+                                    <?php endif; ?>
                                 <?php endif; ?>
 
                                 <button type="submit" id="submitButton" name="submit_reservation" class="bg-blue-900 hover:bg-blue-950 text-white font-medium py-2 px-6 rounded-sm flex items-center justify-center select-none">

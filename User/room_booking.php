@@ -654,6 +654,22 @@ $foundProperties = count($available_rooms);
                     });
                 });
 
+                // CLEAR ALERTS ON INPUT
+                const forms = document.querySelectorAll('.availability-form');
+                forms.forEach(form => {
+                    form.querySelectorAll('input, select').forEach(input => {
+                        input.addEventListener('input', function() {
+                            const alert = document.querySelector('.text-sm.text-red-500');
+                            if (alert) alert.remove();
+                        });
+                    });
+
+                    form.addEventListener('submit', function() {
+                        const alert = document.querySelector('.text-sm.text-red-500');
+                        if (alert) alert.remove();
+                    });
+                });
+
                 // INITIALIZE FAVORITE BUTTONS ON PAGE LOAD
                 initFavoriteButtons();
             });

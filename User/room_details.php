@@ -685,7 +685,7 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                     <input type="hidden" name="roomTypeID" value="<?= $roomtype['RoomTypeID'] ?>">
 
                     <!-- Keep only ONE: modify_reservation_id OR reservation_id.
-         If user came from modification page, also include room_id and edit=1 -->
+    If user came from modification page, also include room_id and edit=1 -->
                     <?php if (!empty($modify_reservation_id)): ?>
                         <input type="hidden" name="modify_reservation_id" value="<?= htmlspecialchars($modify_reservation_id) ?>">
                         <?php if (!empty($edit_room_id)): ?>
@@ -777,8 +777,6 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                     <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="get" class="availability-form flex flex-col space-y-3">
                         <input type="hidden" name="roomTypeID" value="<?= $roomtype['RoomTypeID'] ?>">
 
-                        <!-- Keep only ONE: modify_reservation_id OR reservation_id.
-             If user came from modification page, also include room_id and edit=1 -->
                         <?php if (!empty($modify_reservation_id)): ?>
                             <input type="hidden" name="modify_reservation_id" value="<?= htmlspecialchars($modify_reservation_id) ?>">
                             <?php if (!empty($edit_room_id)): ?>
@@ -831,29 +829,28 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
 
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
-                        // Handle all availability forms (desktop and mobile)
                         const availabilityForms = document.querySelectorAll('.availability-form');
 
                         availabilityForms.forEach(function(form) {
                             form.addEventListener('submit', function(e) {
                                 e.preventDefault();
+
+                                // 🚩 Clear alert session visually when searching again
+                                const alertElements = document.querySelectorAll('.alert-message');
+                                alertElements.forEach(alert => {
+                                    alert.style.display = 'none';
+                                    alert.textContent = '';
+                                });
+
                                 checkAvailability(form);
                             });
                         });
 
-                        // AJAX function to handle form submission
                         function checkAvailability(form) {
                             const formData = new URLSearchParams(new FormData(form));
-                            const alertElements = document.querySelectorAll('.alert-message');
                             const submitButton = form.querySelector('button[type="submit"]');
+                            const originalButtonText = submitButton.textContent;
 
-                            // Clear all alert messages
-                            alertElements.forEach(alert => {
-                                alert.style.display = 'none';
-                                alert.textContent = '';
-                            });
-
-                            // For GET requests, append parameters to URL
                             fetch('<?php echo $_SERVER['PHP_SELF']; ?>?' + formData.toString(), {
                                     method: 'GET',
                                     headers: {
@@ -861,26 +858,16 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                                         'Accept': 'text/html'
                                     }
                                 })
-                                .then(response => {
-                                    if (!response.ok) {
-                                        throw new Error('Network response was not ok');
-                                    }
-                                    return response.text();
-                                })
+                                .then(response => response.text())
                                 .then(data => {
-                                    // Update the URL without reloading
                                     window.history.pushState({}, '', '<?php echo $_SERVER['PHP_SELF']; ?>?' + formData.toString());
-
-                                    // Create a temporary DOM element to parse the response
                                     const parser = new DOMParser();
                                     const doc = parser.parseFromString(data, 'text/html');
-
-                                    // Update the reserve and edit forms with new data from the response
                                     updateFormsFromResponse(doc);
 
-                                    // Update any alert messages
                                     const responseAlert = doc.querySelector('.alert-message');
                                     if (responseAlert && responseAlert.textContent.trim()) {
+                                        const alertElements = document.querySelectorAll('.alert-message');
                                         alertElements.forEach(alert => {
                                             alert.textContent = responseAlert.textContent;
                                             alert.style.display = 'block';
@@ -889,6 +876,7 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                                 })
                                 .catch(error => {
                                     console.error('Error:', error);
+                                    const alertElements = document.querySelectorAll('.alert-message');
                                     alertElements.forEach(alert => {
                                         alert.textContent = 'An error occurred. Please try again.';
                                         alert.style.display = 'block';
@@ -900,9 +888,7 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                                 });
                         }
 
-                        // Update reserve and edit forms with new data from the response
                         function updateFormsFromResponse(doc) {
-                            // Update reserve forms
                             const reserveForms = document.querySelectorAll('form[method="POST"]');
                             const responseReserveForms = doc.querySelectorAll('form[method="POST"]');
 
@@ -910,17 +896,13 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                                 reserveForms.forEach((form, index) => {
                                     const responseForm = responseReserveForms[index];
                                     const inputs = form.querySelectorAll('input[type="hidden"]');
-
                                     inputs.forEach(input => {
                                         const responseInput = responseForm.querySelector(`input[name="${input.name}"]`);
-                                        if (responseInput) {
-                                            input.value = responseInput.value;
-                                        }
+                                        if (responseInput) input.value = responseInput.value;
                                     });
                                 });
                             }
 
-                            // Update room status buttons
                             const roomStatusContainers = document.querySelectorAll('.room-status-container');
                             const responseRoomStatusContainers = doc.querySelectorAll('.room-status-container');
 
@@ -929,138 +911,6 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                                     container.innerHTML = responseRoomStatusContainers[index].innerHTML;
                                 });
                             }
-                        }
-
-                        // Date validation (optional)
-                        const validateDates = function() {
-                            const checkinDate = document.getElementById('checkin-date')?.value;
-                            const checkoutDate = document.getElementById('checkout-date')?.value;
-                            const mobileCheckinDate = document.getElementById('mobile-checkin-date')?.value;
-                            const mobileCheckoutDate = document.getElementById('mobile-checkout-date')?.value;
-
-                            if (checkinDate && checkoutDate && new Date(checkoutDate) <= new Date(checkinDate)) {
-                                const alertElements = document.querySelectorAll('.alert-message');
-                                alertElements.forEach(alert => {
-                                    alert.textContent = 'Check-out date must be after check-in date';
-                                    alert.style.display = 'block';
-                                });
-                                return false;
-                            }
-
-                            if (mobileCheckinDate && mobileCheckoutDate && new Date(mobileCheckoutDate) <= new Date(mobileCheckinDate)) {
-                                const alertElements = document.querySelectorAll('.alert-message');
-                                alertElements.forEach(alert => {
-                                    alert.textContent = 'Check-out date must be after check-in date';
-                                    alert.style.display = 'block';
-                                });
-                                return false;
-                            }
-
-                            return true;
-                        };
-
-                        // Add event listeners for date validation
-                        document.getElementById('checkin-date')?.addEventListener('change', validateDates);
-                        document.getElementById('checkout-date')?.addEventListener('change', validateDates);
-                        document.getElementById('mobile-checkin-date')?.addEventListener('change', validateDates);
-                        document.getElementById('mobile-checkout-date')?.addEventListener('change', validateDates);
-                    });
-
-                    document.addEventListener('DOMContentLoaded', function() {
-                        const forms = document.querySelectorAll('.availability-form');
-
-                        forms.forEach(form => {
-                            form.addEventListener('submit', function(e) {
-                                e.preventDefault();
-
-                                const formData = new URLSearchParams(new FormData(form));
-                                const submitButton = form.querySelector('button[type="submit"]');
-                                const originalText = submitButton.textContent;
-
-                                submitButton.textContent = 'Checking...';
-                                submitButton.disabled = true;
-
-                                fetch('<?php echo $_SERVER['PHP_SELF']; ?>?' + formData.toString(), {
-                                        method: 'GET',
-                                        headers: {
-                                            'X-Requested-With': 'XMLHttpRequest'
-                                        }
-                                    })
-                                    .then(response => response.text())
-                                    .then(html => {
-                                        const parser = new DOMParser();
-                                        const doc = parser.parseFromString(html, 'text/html');
-                                        const newTbody = doc.querySelector('#roomTableBody');
-
-                                        if (newTbody) {
-                                            document.querySelector('#roomTableBody').innerHTML = newTbody.innerHTML;
-                                        }
-
-                                        // Update URL
-                                        window.history.pushState({}, '', '<?php echo $_SERVER['PHP_SELF']; ?>?' + formData.toString());
-                                    })
-                                    .catch(err => {
-                                        console.error('Error fetching availability:', err);
-                                        alert('Error checking availability. Please try again.');
-                                    })
-                                    .finally(() => {
-                                        submitButton.textContent = originalText;
-                                        submitButton.disabled = false;
-                                    });
-                            });
-                        });
-                    });
-
-                    // Date validation for both desktop and mobile forms
-                    document.addEventListener('DOMContentLoaded', () => {
-                        // Get tomorrow's date in YYYY-MM-DD format
-                        const tomorrow = new Date();
-                        tomorrow.setDate(tomorrow.getDate() + 1);
-                        const tomorrowStr = tomorrow.toISOString().split('T')[0];
-
-                        // Desktop form elements
-                        const checkInDateInput = document.getElementById('checkin-date');
-                        const checkOutDateInput = document.getElementById('checkout-date');
-
-                        // Mobile form elements
-                        const mobileCheckInInput = document.getElementById('mobile-checkin-date');
-                        const mobileCheckOutInput = document.getElementById('mobile-checkout-date');
-
-                        // Set min dates for all date inputs
-                        [checkInDateInput, checkOutDateInput, mobileCheckInInput, mobileCheckOutInput].forEach(input => {
-                            if (input) input.setAttribute('min', tomorrowStr);
-                        });
-
-                        // Update checkout min date when checkin changes (desktop)
-                        if (checkInDateInput && checkOutDateInput) {
-                            checkInDateInput.addEventListener('change', function() {
-                                if (this.value) {
-                                    const nextDay = new Date(this.value);
-                                    nextDay.setDate(nextDay.getDate() + 1);
-                                    const nextDayStr = nextDay.toISOString().split('T')[0];
-                                    checkOutDateInput.min = nextDayStr;
-
-                                    if (checkOutDateInput.value && checkOutDateInput.value < nextDayStr) {
-                                        checkOutDateInput.value = '';
-                                    }
-                                }
-                            });
-                        }
-
-                        // Update checkout min date when checkin changes (mobile)
-                        if (mobileCheckInInput && mobileCheckOutInput) {
-                            mobileCheckInInput.addEventListener('change', function() {
-                                if (this.value) {
-                                    const nextDay = new Date(this.value);
-                                    nextDay.setDate(nextDay.getDate() + 1);
-                                    const nextDayStr = nextDay.toISOString().split('T')[0];
-                                    mobileCheckOutInput.min = nextDayStr;
-
-                                    if (mobileCheckOutInput.value && mobileCheckOutInput.value < nextDayStr) {
-                                        mobileCheckOutInput.value = '';
-                                    }
-                                }
-                            });
                         }
                     });
                 </script>
