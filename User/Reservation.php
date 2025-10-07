@@ -185,12 +185,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Get modify_reservation_id if exists
         $modify_reservation_id = isset($_POST['modify_reservation_id']) ? $_POST['modify_reservation_id'] : '';
 
-        // Execute your database update here
-        $updateQuery = "UPDATE roomtb SET RoomStatus = 'Edit' WHERE RoomID = ?";
-        $stmt = $connect->prepare($updateQuery);
-        $stmt->bind_param("s", $roomId);
-        $stmt->execute();
-
         // Then redirect to the room_details.php page with parameters
         // Replace reservation_id with modify_reservation_id (no reservation_id in URL)
         if (!empty($modify_reservation_id)) {
@@ -207,22 +201,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Remove room from reservation
 if (isset($_POST['remove_room'])) {
     $response = ['success' => false];
-    $reservation_id = $_POST["reservation_id"];
+
+    // Determine reservation ID
+    if (isset($_POST['modify_reservation_id']) && !empty($_POST['modify_reservation_id'])) {
+        $reservation_id = $_POST['modify_reservation_id'];
+    } else {
+        $reservation_id = $_POST["reservation_id"];
+    }
+
     $room_id = $_POST["room_id"];
 
-    // Remove room from reservation
+    // Remove room from reservationdetailtb
     $query = "DELETE FROM reservationdetailtb WHERE RoomID = ? AND ReservationID = ?";
     $stmt = $connect->prepare($query);
     $stmt->bind_param("ss", $room_id, $reservation_id);
     $stmt->execute();
 
-    // Update room status
+    // Update room status to Available
     $room = "UPDATE roomtb SET RoomStatus = 'Available' WHERE RoomID = ?";
     $stmt = $connect->prepare($room);
     $stmt->bind_param("s", $room_id);
     $stmt->execute();
 
-    // Check if reservation has any rooms left
+    // Check if any rooms are left for this reservation
     $query = "SELECT COUNT(*) as count FROM reservationdetailtb WHERE ReservationID = ?";
     $stmt = $connect->prepare($query);
     $stmt->bind_param("s", $reservation_id);
@@ -231,11 +232,50 @@ if (isset($_POST['remove_room'])) {
     $count = $result->fetch_assoc()['count'];
 
     if ($count == 0) {
-        // Delete empty reservation
-        $delete = "DELETE FROM reservationtb WHERE ReservationID = ?";
-        $stmt = $connect->prepare($delete);
+        // Delete reservation and all details if no rooms left
+        $deleteDetails = "DELETE FROM reservationdetailtb WHERE ReservationID = ?";
+        $stmt = $connect->prepare($deleteDetails);
         $stmt->bind_param("s", $reservation_id);
         $stmt->execute();
+
+        $deleteReservation = "DELETE FROM reservationtb WHERE ReservationID = ?";
+        $stmt = $connect->prepare($deleteReservation);
+        $stmt->bind_param("s", $reservation_id);
+        $stmt->execute();
+    } else {
+        // If rooms remain, update total price and points
+        $updateTotal = "UPDATE reservationtb 
+                        SET TotalPrice = (SELECT SUM(Price) FROM reservationdetailtb WHERE ReservationID = ?) * 1.1 
+                        WHERE ReservationID = ?";
+        $stmtUpdate = $connect->prepare($updateTotal);
+        $stmtUpdate->bind_param("ss", $reservation_id, $reservation_id);
+        $stmtUpdate->execute();
+
+        // Recalculate points
+        $getUserID = "SELECT UserID FROM reservationtb WHERE ReservationID = ?";
+        $stmtUser = $connect->prepare($getUserID);
+        $stmtUser->bind_param("s", $reservation_id);
+        $stmtUser->execute();
+        $userID = $stmtUser->get_result()->fetch_assoc()['UserID'];
+
+        $getMembership = "SELECT Membership FROM usertb WHERE UserID = ?";
+        $stmtMember = $connect->prepare($getMembership);
+        $stmtMember->bind_param("s", $userID);
+        $stmtMember->execute();
+        $membership = $stmtMember->get_result()->fetch_assoc()['Membership'];
+
+        $getTotalPrice = "SELECT TotalPrice FROM reservationtb WHERE ReservationID = ?";
+        $stmtTotal = $connect->prepare($getTotalPrice);
+        $stmtTotal->bind_param("s", $reservation_id);
+        $stmtTotal->execute();
+        $totalPrice = $stmtTotal->get_result()->fetch_assoc()['TotalPrice'];
+
+        $pointsEarned = ($membership == 1) ? $totalPrice * 3 : $totalPrice;
+
+        $updatePoints = "UPDATE reservationtb SET PointsEarned = ? WHERE ReservationID = ?";
+        $stmtPoints = $connect->prepare($updatePoints);
+        $stmtPoints->bind_param("ds", $pointsEarned, $reservation_id);
+        $stmtPoints->execute();
     }
 
     $response['success'] = true;

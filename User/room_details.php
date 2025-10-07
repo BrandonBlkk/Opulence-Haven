@@ -18,6 +18,7 @@ date_default_timezone_set('Asia/Yangon');
 // Get search parameters from URL with strict validation
 if (isset($_GET["roomTypeID"])) {
     $reservation_id = isset($_GET['reservation_id']) ? $_GET['reservation_id'] : '';
+    $modify_reservation_id = isset($_GET['modify_reservation_id']) ? $_GET['modify_reservation_id'] : '';
     $roomtype_id = $_GET["roomTypeID"];
     $room_id = isset($_GET['room_id']) ? $_GET['room_id'] : '';
     $checkin_date = isset($_GET['checkin_date']) ? htmlspecialchars($_GET['checkin_date']) : '';
@@ -45,12 +46,18 @@ if (isset($_GET["roomTypeID"])) {
 // Reserve room
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
     $roomID = $_POST['reserve_room_id'];
-    $reservation_id = $_POST['reservation_id'];
     $checkInDate = $_POST['checkin_date'];
     $checkOutDate = $_POST['checkout_date'];
     $adults = $_POST['adults'];
     $children = $_POST['children'];
     $guests = $adults + $children;
+
+    // Use modify_reservation_id if coming from modification page
+    if (isset($_POST['modify_reservation_id']) && !empty($_POST['modify_reservation_id'])) {
+        $reservationID = $_POST['modify_reservation_id'];
+    } else {
+        $reservationID = isset($_POST['reservation_id']) ? $_POST['reservation_id'] : '';
+    }
 
     if ($checkInDate == '' || $checkOutDate == '') {
         $_SESSION['alert'] = "Check-in and check-out dates are required.";
@@ -69,6 +76,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
         $today = new DateTime();
         $today->setTime(0, 0, 0);
         $checkIn = new DateTime($checkInDate);
+        $checkOut = new DateTime($checkOutDate);
 
         if ($checkIn <= $today) {
             $_SESSION['alert'] = "Check-in date must be at least tomorrow.";
@@ -76,18 +84,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
             exit();
         }
 
-        $checkOut = new DateTime($checkOutDate);
         if ($checkOut <= $checkIn) {
             $_SESSION['alert'] = "Check-out date must be after check-in date.";
             header("Location: room_details.php?roomTypeID=$roomtype_id&room_id=$room_id&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
             exit();
         }
 
-        // First get the room price from roomtypetb
+        // Get room price and capacity
         $priceQuery = "SELECT rt.RoomPrice, rt.RoomCapacity
-                      FROM roomtb r
-                      JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
-                      WHERE r.RoomID = ?";
+                       FROM roomtb r
+                       JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
+                       WHERE r.RoomID = ?";
         $stmtPrice = $connect->prepare($priceQuery);
         $stmtPrice->bind_param("s", $roomID);
         $stmtPrice->execute();
@@ -98,35 +105,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
         }
 
         $priceData = $priceResult->fetch_assoc();
-        $basePrice = $priceData['RoomPrice']; // base price per night
-
-        // calculate stay length
+        $basePrice = $priceData['RoomPrice'];
         $interval = $checkIn->diff($checkOut);
         $nights = $interval->days;
-        $totalRoomPrice = $basePrice * $nights; // total before tax
+        $totalRoomPrice = $basePrice * $nights;
 
-        if ($guests) {
-            if ($priceData['RoomCapacity'] < $guests) {
-                $_SESSION['alert'] = "Room capacity (" . $priceData['RoomCapacity'] . ") is less than the number of guests ($guests).";
-                header("Location: room_details.php?roomTypeID=$roomtype_id&room_id=$room_id&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
-                exit();
-            }
+        if ($priceData['RoomCapacity'] < $guests) {
+            $_SESSION['alert'] = "Room capacity (" . $priceData['RoomCapacity'] . ") is less than the number of guests ($guests).";
+            header("Location: room_details.php?roomTypeID=$roomtype_id&room_id=$room_id&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
+            exit();
         }
 
-        // Check if this specific room is already reserved
+        // Check if room is already reserved
         $check = "SELECT COUNT(*) as count FROM reservationdetailtb 
-                 WHERE RoomID = ? AND (
-                       (? BETWEEN CheckInDate AND CheckOutDate) OR 
-                       (? BETWEEN CheckInDate AND CheckOutDate) OR
-                       (CheckInDate BETWEEN ? AND ?) OR
-                       (CheckOutDate BETWEEN ? AND ?)
-                 )";
+                  WHERE RoomID = ? AND (
+                        (? BETWEEN CheckInDate AND CheckOutDate) OR 
+                        (? BETWEEN CheckInDate AND CheckOutDate) OR
+                        (CheckInDate BETWEEN ? AND ?) OR
+                        (CheckOutDate BETWEEN ? AND ?)
+                  )";
         $stmtCheck = $connect->prepare($check);
-        if (!$stmtCheck) {
-            throw new Exception("Prepare failed: " . $connect->error);
-        }
-
-        $bindResult = $stmtCheck->bind_param(
+        $stmtCheck->bind_param(
             "sssssss",
             $roomID,
             $checkInDate,
@@ -136,56 +135,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
             $checkInDate,
             $checkOutDate
         );
-        if (!$bindResult) {
-            throw new Exception("Bind failed: " . $stmtCheck->error);
-        }
-
-        $executeResult = $stmtCheck->execute();
-        if (!$executeResult) {
-            throw new Exception("Execute failed: " . $stmtCheck->error);
-        }
-
-        $result = $stmtCheck->get_result();
-        $count = $result->fetch_assoc()['count'];
+        $stmtCheck->execute();
+        $count = $stmtCheck->get_result()->fetch_assoc()['count'];
 
         if ($count == 0) {
-            // Check if user has an existing PENDING reservation
-            $checkReservation = "SELECT ReservationID FROM reservationtb WHERE UserID = ? AND Status = 'Pending' ORDER BY ReservationDate DESC LIMIT 1";
-            $stmtCheckRes = $connect->prepare($checkReservation);
-            $stmtCheckRes->bind_param("s", $userID);
-            $stmtCheckRes->execute();
-            $resResult = $stmtCheckRes->get_result();
+            // If coming from modification page, use existing reservationID
+            if (empty($reservationID)) {
+                // Otherwise check for user's pending reservation
+                $checkReservation = "SELECT ReservationID FROM reservationtb WHERE UserID = ? AND Status = 'Pending' ORDER BY ReservationDate DESC LIMIT 1";
+                $stmtCheckRes = $connect->prepare($checkReservation);
+                $stmtCheckRes->bind_param("s", $userID);
+                $stmtCheckRes->execute();
+                $resResult = $stmtCheckRes->get_result();
 
-            if ($resResult->num_rows > 0) {
-                // Use existing pending reservation
-                $reservationData = $resResult->fetch_assoc();
-                $reservationID = $reservationData['ReservationID'];
-
-                // Extend the expiry time
-                $newExpiry = date('Y-m-d H:i:s', strtotime('+30 minutes'));
-                $updateExpiry = "UPDATE reservationtb SET ExpiryDate = ? WHERE ReservationID = ?";
-                $stmtExpiry = $connect->prepare($updateExpiry);
-                $stmtExpiry->bind_param("ss", $newExpiry, $reservationID);
-                $stmtExpiry->execute();
-            } else {
-                // Create new reservation with temporary price = 0
-                $reservationID = uniqid('RSV_');
-                $expiryDate = date('Y-m-d H:i:s', strtotime('+30 minutes'));
-
-                // Insert into reservationtb
-                $reservationQuery = "INSERT INTO reservationtb (ReservationID, UserID, TotalPrice, ExpiryDate, Status) VALUES (?, ?, 0, ?, 'Pending')";
-                $stmt = $connect->prepare($reservationQuery);
-                $stmt->bind_param("sss", $reservationID, $userID, $expiryDate);
-                $stmt->execute();
+                if ($resResult->num_rows > 0) {
+                    $reservationID = $resResult->fetch_assoc()['ReservationID'];
+                    $newExpiry = date('Y-m-d H:i:s', strtotime('+30 minutes'));
+                    $updateExpiry = "UPDATE reservationtb SET ExpiryDate = ? WHERE ReservationID = ?";
+                    $stmtExpiry = $connect->prepare($updateExpiry);
+                    $stmtExpiry->bind_param("ss", $newExpiry, $reservationID);
+                    $stmtExpiry->execute();
+                } else {
+                    $reservationID = uniqid('RSV_');
+                    $expiryDate = date('Y-m-d H:i:s', strtotime('+30 minutes'));
+                    $reservationQuery = "INSERT INTO reservationtb (ReservationID, UserID, TotalPrice, ExpiryDate, Status) VALUES (?, ?, 0, ?, 'Pending')";
+                    $stmt = $connect->prepare($reservationQuery);
+                    $stmt->bind_param("sss", $reservationID, $userID, $expiryDate);
+                    $stmt->execute();
+                }
             }
 
-            // Insert into reservationdetailtb (price based on nights)
+            // Insert new room under the reservation
             $detailQuery = "INSERT INTO reservationdetailtb (ReservationID, RoomID, CheckInDate, CheckOutDate, Adult, Children, Price) VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt2 = $connect->prepare($detailQuery);
             $stmt2->bind_param("ssssssd", $reservationID, $roomID, $checkInDate, $checkOutDate, $adults, $children, $totalRoomPrice);
             $stmt2->execute();
 
-            // Update the total price in reservationtb with tax applied once
+            // Update total and points
             $updateTotal = "UPDATE reservationtb 
                             SET TotalPrice = (SELECT SUM(Price) FROM reservationdetailtb WHERE ReservationID = ?) * 1.1 
                             WHERE ReservationID = ?";
@@ -193,41 +179,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reserve_room_id'])) {
             $stmtUpdate->bind_param("ss", $reservationID, $reservationID);
             $stmtUpdate->execute();
 
-            // Calculate PointsEarned based on membership
             $getUserMembership = "SELECT Membership FROM usertb WHERE UserID = ?";
             $stmtMember = $connect->prepare($getUserMembership);
             $stmtMember->bind_param("s", $userID);
             $stmtMember->execute();
-            $memberResult = $stmtMember->get_result();
-            $membership = $memberResult->fetch_assoc()['Membership'];
+            $membership = $stmtMember->get_result()->fetch_assoc()['Membership'];
 
-            // Get the updated total price
             $getTotalPrice = "SELECT TotalPrice FROM reservationtb WHERE ReservationID = ?";
             $stmtTotal = $connect->prepare($getTotalPrice);
             $stmtTotal->bind_param("s", $reservationID);
             $stmtTotal->execute();
-            $totalResult = $stmtTotal->get_result();
-            $totalPrice = $totalResult->fetch_assoc()['TotalPrice'];
+            $totalPrice = $stmtTotal->get_result()->fetch_assoc()['TotalPrice'];
 
-            // Points calculation: member 3x, non-member 1x
-            $pointsEarned = ($membership == 1) ? $totalPrice * 3 : $totalPrice * 1;
-
-            // Update PointsEarned in reservationtb
+            $pointsEarned = ($membership == 1) ? $totalPrice * 3 : $totalPrice;
             $updatePoints = "UPDATE reservationtb SET PointsEarned = ? WHERE ReservationID = ?";
             $stmtPoints = $connect->prepare($updatePoints);
             $stmtPoints->bind_param("ds", $pointsEarned, $reservationID);
             $stmtPoints->execute();
 
-            // Update Room Status
-            $updateRoomStatus = "UPDATE roomtb SET RoomStatus = 'Reserved' WHERE RoomID = ?";
-            $stmtRoomStatus = $connect->prepare($updateRoomStatus);
-            $stmtRoomStatus->bind_param("s", $roomID);
-            $stmtRoomStatus->execute();
-
             header("Location: reservation.php?reservation_id=$reservationID&checkin_date=$checkInDate&checkout_date=$checkOutDate&adults=$adults&children=$children");
             exit();
         } else {
-            $alertMessage = "Room is already reserved for the selected dates.";
+            $_SESSION['alert'] = "Room is already reserved for the selected dates.";
         }
     } catch (Exception $e) {
         echo "Reservation failed: " . $e->getMessage();
@@ -425,12 +398,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room_id'])) {
         $stmtExpiry = $connect->prepare($updateExpiry);
         $stmtExpiry->bind_param("sds", $newExpiry, $newTotalPrice, $reservationID);
         $stmtExpiry->execute();
-
-        // Update room status
-        $updateRoomStatus = "UPDATE roomtb SET RoomStatus = 'Reserved' WHERE RoomID = ?";
-        $stmtRoomStatus = $connect->prepare($updateRoomStatus);
-        $stmtRoomStatus->bind_param("s", $roomID);
-        $stmtRoomStatus->execute();
 
         $connect->commit();
 
@@ -706,15 +673,27 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
     <main class="pb-4">
         <div class="relative swiper-container flex justify-center">
             <div class="max-w-[1150px] mx-auto px-4 pb-8">
+                <?php
+                // preserve these GET values for use in the forms
+                $modify_reservation_id = isset($_GET['modify_reservation_id']) ? $_GET['modify_reservation_id'] : '';
+                $edit_room_id = isset($_GET['room_id']) ? $_GET['room_id'] : '';
+                ?>
+
                 <!-- Desktop Form (shown on lg screens and up) -->
                 <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="get"
                     class="availability-form hidden lg:flex w-full z-10 p-4 bg-white border-b border-gray-100 justify-between items-end space-x-4 relative">
                     <input type="hidden" name="roomTypeID" value="<?= $roomtype['RoomTypeID'] ?>">
-                    <input type="hidden" name="reservation_id" value="<?= $reservation_id ?>">
 
-                    <!-- Keep modify_reservation_id if user came from modification page -->
-                    <?php if (isset($_GET['modify_reservation_id']) && !empty($_GET['modify_reservation_id'])): ?>
-                        <input type="hidden" name="modify_reservation_id" value="<?= htmlspecialchars($_GET['modify_reservation_id']) ?>">
+                    <!-- Keep only ONE: modify_reservation_id OR reservation_id.
+         If user came from modification page, also include room_id and edit=1 -->
+                    <?php if (!empty($modify_reservation_id)): ?>
+                        <input type="hidden" name="modify_reservation_id" value="<?= htmlspecialchars($modify_reservation_id) ?>">
+                        <?php if (!empty($edit_room_id)): ?>
+                            <input type="hidden" name="room_id" value="<?= htmlspecialchars($edit_room_id) ?>">
+                            <input type="hidden" name="edit" value="1">
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <input type="hidden" name="reservation_id" value="<?= $reservation_id ?>">
                     <?php endif; ?>
 
                     <div class="flex items-center space-x-4 w-full">
@@ -797,11 +776,17 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                     </div>
                     <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="get" class="availability-form flex flex-col space-y-3">
                         <input type="hidden" name="roomTypeID" value="<?= $roomtype['RoomTypeID'] ?>">
-                        <input type="hidden" name="reservation_id" value="<?= $reservation_id ?>">
 
-                        <!-- ✅ Keep modify_reservation_id if user came from modification page -->
-                        <?php if (isset($_GET['modify_reservation_id']) && !empty($_GET['modify_reservation_id'])): ?>
-                            <input type="hidden" name="modify_reservation_id" value="<?= htmlspecialchars($_GET['modify_reservation_id']) ?>">
+                        <!-- Keep only ONE: modify_reservation_id OR reservation_id.
+             If user came from modification page, also include room_id and edit=1 -->
+                        <?php if (!empty($modify_reservation_id)): ?>
+                            <input type="hidden" name="modify_reservation_id" value="<?= htmlspecialchars($modify_reservation_id) ?>">
+                            <?php if (!empty($edit_room_id)): ?>
+                                <input type="hidden" name="room_id" value="<?= htmlspecialchars($edit_room_id) ?>">
+                                <input type="hidden" name="edit" value="1">
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <input type="hidden" name="reservation_id" value="<?= $reservation_id ?>">
                         <?php endif; ?>
 
                         <!-- Check-in Date -->
@@ -814,7 +799,7 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                         </div>
                         <!-- Check-out Date -->
                         <div>
-                            <label class="font-semibold text-blue-900">Check-Out Da</label>
+                            <label class="font-semibold text-blue-900">Check-Out Date</label>
                             <input type="date" id="mobile-checkout-date" name="checkout_date"
                                 class="p-2 border border-gray-300 rounded-sm w-full"
                                 value="<?php echo isset($_GET['checkout_date']) ? $_GET['checkout_date'] : ''; ?>" required>
@@ -1025,9 +1010,7 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                             });
                         });
                     });
-                </script>
 
-                <script>
                     // Date validation for both desktop and mobile forms
                     document.addEventListener('DOMContentLoaded', () => {
                         // Get tomorrow's date in YYYY-MM-DD format
@@ -1081,6 +1064,7 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                         }
                     });
                 </script>
+
                 <!-- Breadcrumbs -->
                 <div class="flex text-sm text-slate-600 my-4">
                     <a href="../User/home_page.php" class="underline">Home</a>
@@ -1550,22 +1534,25 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                             <tbody id="roomTableBody" class="bg-white divide-y divide-gray-200">
                                 <?php
                                 $roomSelect = "SELECT r.*, rt.RoomType
-    FROM roomtb r 
-    JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID 
-    WHERE r.RoomTypeID = '" . $roomtype['RoomTypeID'] . "'
-    ORDER BY r.RoomStatus = 'Available' DESC";
+        FROM roomtb r 
+        JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID 
+        WHERE r.RoomTypeID = '" . $roomtype['RoomTypeID'] . "'
+        ORDER BY r.RoomStatus = 'Available' DESC";
                                 $roomSelectResult = $connect->query($roomSelect);
+
+                                // Detect the room that user clicked from modification page
+                                $editRoomID = isset($_GET['room_id']) ? $_GET['room_id'] : '';
 
                                 if ($roomSelectResult->num_rows > 0) {
                                     while ($room = $roomSelectResult->fetch_assoc()) {
                                         $roomID = $room['RoomID'];
 
-                                        // Check overlap with selected dates
+                                        // Check overlap with +1 day gap rule
                                         $checkQuery = "
                 SELECT * FROM reservationdetailtb 
                 WHERE RoomID = '$roomID'
                 AND NOT (
-                    CheckOutDate <= '$checkin_date' 
+                    DATE_ADD(CheckOutDate, INTERVAL 1 DAY) <= '$checkin_date'
                     OR CheckInDate >= '$checkout_date'
                 )
             ";
@@ -1577,6 +1564,14 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                                             $room['RoomStatus'] = 'Reserved';
                                         } else {
                                             $room['RoomStatus'] = 'Available';
+                                        }
+
+                                        // Show "Edit" when user came from edit action (even if Reserved)
+                                        if (
+                                            (isset($_GET['modify_reservation_id']) && !empty($_GET['modify_reservation_id']) && $editRoomID == $roomID)
+                                            || (isset($_GET['edit']) && $_GET['edit'] == '1' && $editRoomID == $roomID)
+                                        ) {
+                                            $room['RoomStatus'] = 'Edit';
                                         }
                                 ?>
                                         <tr class="<?= ($room['RoomStatus'] == 'Available' || $room['RoomStatus'] == 'Edit') ? '' : 'opacity-50'; ?> text-base sm:text-sm">
@@ -1596,11 +1591,13 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                                                             <input type="hidden" name="checkout_date" value="<?= $checkout_date ?>">
                                                             <input type="hidden" name="adults" value="<?= $adults ?>">
                                                             <input type="hidden" name="children" value="<?= $children ?>">
+                                                            <input type="hidden" name="modify_reservation_id" value="<?= $modify_reservation_id ?>">
                                                             <button
                                                                 class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded text-sm select-none">
                                                                 Reserve
                                                             </button>
                                                         </form>
+
                                                     <?php elseif ($room['RoomStatus'] == 'Edit') : ?>
                                                         <form method="POST" style="display:inline;">
                                                             <input type="hidden" name="edit_room_id" value="<?= htmlspecialchars($room['RoomID']) ?>">
@@ -1609,15 +1606,18 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                                                             <input type="hidden" name="adults" value="<?= $adults ?>">
                                                             <input type="hidden" name="children" value="<?= $children ?>">
                                                             <input type="hidden" name="roomTypeID" value="<?= $roomtype['RoomTypeID'] ?>">
+
                                                             <?php if (isset($_GET['modify_reservation_id']) && !empty($_GET['modify_reservation_id'])): ?>
                                                                 <input type="hidden" name="modify_reservation_id" value="<?= htmlspecialchars($_GET['modify_reservation_id']) ?>">
                                                             <?php else: ?>
                                                                 <input type="hidden" name="reservation_id" value="<?= $reservation_id ?>">
                                                             <?php endif; ?>
+
                                                             <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded text-sm select-none">
                                                                 Edit
                                                             </button>
                                                         </form>
+
                                                     <?php else : ?>
                                                         <button
                                                             class="bg-gray-300 text-white font-semibold py-1 px-3 rounded text-sm select-none cursor-not-allowed"
