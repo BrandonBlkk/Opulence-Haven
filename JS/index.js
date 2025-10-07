@@ -31,35 +31,54 @@ document.addEventListener('DOMContentLoaded', function() {
             this.textContent = 'Removing...';
 
             fetch('../User/reservation.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        // Remove the room card from the DOM
-                        roomCard.remove();
-                        showAlert('The room has been successfully removed from your reservation.');
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Remove the room card from the DOM
+                    roomCard.remove();
+                    showAlert('The room has been successfully removed from your reservation.');
 
-                        document.getElementById('no-rooms-message').style.display = 'block';
-                    } else {
-                        // Show error message
-                        alert('Failed to remove room. Please try again.');
-                        button.disabled = false;
-                        button.textContent = 'Remove Room';
+                    const remainingRooms = document.querySelectorAll('.flex.flex-col.md\\:flex-row.rounded-md.shadow-sm.border').length;
+
+                    if (remainingRooms === 0) {
+                        // Hide booking details container
+                        const bookingDetails = document.querySelector('.reservationScrollBar');
+                        if (bookingDetails) bookingDetails.remove();
+
+                        // Hide subtotal, points, total, taxes sections
+                        const summarySections = document.querySelectorAll('.pt-3.border-t, .flex.justify-between.items-center.mt-1, .flex.justify-between.items-center.mt-3.pt-3.border-t, .text-xs.text-green-600.mt-1');
+                        summarySections.forEach(sec => sec.remove());
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred. Please try again.');
+
+                    // Reset expiry timer if needed
+                    if (data.reset_timer) {
+                        const expiryNotice = document.querySelector('.expiry-notice');
+                        const countdownTimer = document.getElementById('countdown-timer');
+
+                        if (expiryNotice) expiryNotice.classList.add('hidden');
+                        if (countdownTimer) {
+                            countdownTimer.dataset.expiry = data.new_expiry;
+                            countdownTimer.textContent = '00:00';
+                        }
+                    }
+                } else {
+                    alert('Failed to remove room. Please try again.');
                     button.disabled = false;
                     button.textContent = 'Remove Room';
-                });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+                button.disabled = false;
+                    button.textContent = 'Remove Room';
+            });
         });
     });
 });
