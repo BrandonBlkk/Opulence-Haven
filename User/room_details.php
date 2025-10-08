@@ -684,8 +684,7 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                     class="availability-form hidden lg:flex w-full z-10 p-4 bg-white border-b border-gray-100 justify-between items-end space-x-4 relative">
                     <input type="hidden" name="roomTypeID" value="<?= $roomtype['RoomTypeID'] ?>">
 
-                    <!-- Keep only ONE: modify_reservation_id OR reservation_id.
-    If user came from modification page, also include room_id and edit=1 -->
+                    <!-- Keep only ONE: modify_reservation_id OR reservation_id -->
                     <?php if (!empty($modify_reservation_id)): ?>
                         <input type="hidden" name="modify_reservation_id" value="<?= htmlspecialchars($modify_reservation_id) ?>">
                         <?php if (!empty($edit_room_id)): ?>
@@ -746,8 +745,7 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                             viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor"
-                                d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z">
-                            </path>
+                                d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"></path>
                         </svg>
                     </button>
 
@@ -821,8 +819,14 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                             </select>
                         </div>
                         <!-- Submit Button -->
-                        <button type="submit" name="check_availability" class="p-3 bg-blue-900 text-white rounded-sm hover:bg-blue-950 uppercase font-semibold transition">
-                            Check Availability
+                        <button type="submit" name="check_availability" class="p-3 bg-blue-900 text-white rounded-sm hover:bg-blue-950 uppercase font-semibold transition flex items-center justify-center">
+                            <span class="btn-text">Check Availability</span>
+                            <svg class="spinner hidden w-5 h-5 ml-2 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z"></path>
+                            </svg>
                         </button>
                     </form>
                 </div>
@@ -835,7 +839,7 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                             form.addEventListener('submit', function(e) {
                                 e.preventDefault();
 
-                                // 🚩 Clear alert session visually when searching again
+                                // Clear alert session visually when searching again
                                 const alertElements = document.querySelectorAll('.alert-message');
                                 alertElements.forEach(alert => {
                                     alert.style.display = 'none';
@@ -849,7 +853,13 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                         function checkAvailability(form) {
                             const formData = new URLSearchParams(new FormData(form));
                             const submitButton = form.querySelector('button[type="submit"]');
-                            const originalButtonText = submitButton.textContent;
+                            const spinner = submitButton.querySelector('.spinner');
+                            const btnText = submitButton.querySelector('.btn-text');
+
+                            // Show loading state
+                            submitButton.disabled = true;
+                            spinner.classList.remove('hidden');
+                            btnText.textContent = "Checking...";
 
                             fetch('<?php echo $_SERVER['PHP_SELF']; ?>?' + formData.toString(), {
                                     method: 'GET',
@@ -883,8 +893,10 @@ if (isset($_POST['like']) || isset($_POST['dislike'])) {
                                     });
                                 })
                                 .finally(() => {
-                                    submitButton.textContent = originalButtonText;
+                                    // Restore button state
                                     submitButton.disabled = false;
+                                    spinner.classList.add('hidden');
+                                    btnText.textContent = "Check Availability";
                                 });
                         }
 
