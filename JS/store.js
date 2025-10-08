@@ -517,7 +517,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (selectedAction.value === "exchange") {
-            // NEW: Send exchange request
             fetch('../Store/process_return.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -533,6 +532,25 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(data => {
                 if (data.success) {
                     showAlert(`Exchange request submitted for Product ID: ${selectedProductID}, Quantity: ${selectedQuantity}`, false);
+
+                    // Send return shipping email
+                    fetch(`../Mail/send_return_email.php?id=${selectedProduct.OrderID}`)
+                        .then(r => r.json())
+                        .then(rData => {
+                            if (rData.success) {
+                                console.log("Return shipping email sent successfully.");
+                            } else {
+                                console.error("Failed to send return shipping email.");
+                            }
+                        });
+
+                    // Reset UI back to form after successful exchange
+                    actionSection.classList.add("hidden");
+                    returnFormSection.classList.remove("hidden");
+                    returnFormSection.classList.add("flex");
+                    returnItemForm.reset();
+                    localStorage.clear();
+
                 } else {
                     showAlert(`${data.message}`, true);
                 }
@@ -567,6 +585,25 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(data => {
                 if (data.success) {
                     showAlert(`Request submitted: ${selectedActionType} for Product ID: ${selectedProductID}, Quantity: ${selectedQuantity}`, false);
+
+                    // Send return shipping email
+                    fetch(`../Mail/send_return_email.php?id=${selectedProduct.OrderID}`)
+                        .then(r => r.json())
+                        .then(rData => {
+                            if (rData.success) {
+                                console.log("Return shipping email sent successfully.");
+                            } else {
+                                console.error("Failed to send return shipping email.");
+                            }
+                        });
+
+                    // Reset UI back to form after successful refund
+                    refundReasonSection.classList.add("hidden");
+                    returnFormSection.classList.remove("hidden");
+                    returnFormSection.classList.add("flex");
+                    returnItemForm.reset();
+                    localStorage.clear();
+
                 } else {
                     showAlert(`${data.message}`, true);
                 }
