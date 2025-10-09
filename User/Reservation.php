@@ -185,12 +185,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Get modify_reservation_id if exists
         $modify_reservation_id = isset($_POST['modify_reservation_id']) ? $_POST['modify_reservation_id'] : '';
 
-        // Execute your database update here
-        $updateQuery = "UPDATE roomtb SET RoomStatus = 'Edit' WHERE RoomID = ?";
-        $stmt = $connect->prepare($updateQuery);
-        $stmt->bind_param("s", $roomId);
-        $stmt->execute();
-
         // Then redirect to the room_details.php page with parameters
         // Replace reservation_id with modify_reservation_id (no reservation_id in URL)
         if (!empty($modify_reservation_id)) {
@@ -207,22 +201,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Remove room from reservation
 if (isset($_POST['remove_room'])) {
     $response = ['success' => false];
-    $reservation_id = $_POST["reservation_id"];
+
+    // Determine reservation ID
+    if (isset($_POST['modify_reservation_id']) && !empty($_POST['modify_reservation_id'])) {
+        $reservation_id = $_POST['modify_reservation_id'];
+    } else {
+        $reservation_id = $_POST["reservation_id"];
+    }
+
     $room_id = $_POST["room_id"];
 
-    // Remove room from reservation
+    // Remove room from reservationdetailtb
     $query = "DELETE FROM reservationdetailtb WHERE RoomID = ? AND ReservationID = ?";
     $stmt = $connect->prepare($query);
     $stmt->bind_param("ss", $room_id, $reservation_id);
     $stmt->execute();
 
-    // Update room status
+    // Update room status to Available
     $room = "UPDATE roomtb SET RoomStatus = 'Available' WHERE RoomID = ?";
     $stmt = $connect->prepare($room);
     $stmt->bind_param("s", $room_id);
     $stmt->execute();
 
-    // Check if reservation has any rooms left
+    // Check if any rooms are left for this reservation
     $query = "SELECT COUNT(*) as count FROM reservationdetailtb WHERE ReservationID = ?";
     $stmt = $connect->prepare($query);
     $stmt->bind_param("s", $reservation_id);
@@ -231,11 +232,59 @@ if (isset($_POST['remove_room'])) {
     $count = $result->fetch_assoc()['count'];
 
     if ($count == 0) {
-        // Delete empty reservation
-        $delete = "DELETE FROM reservationtb WHERE ReservationID = ?";
-        $stmt = $connect->prepare($delete);
+        // Delete reservation and all details if no rooms left
+        $deleteDetails = "DELETE FROM reservationdetailtb WHERE ReservationID = ?";
+        $stmt = $connect->prepare($deleteDetails);
         $stmt->bind_param("s", $reservation_id);
         $stmt->execute();
+
+        $deleteReservation = "DELETE FROM reservationtb WHERE ReservationID = ?";
+        $stmt = $connect->prepare($deleteReservation);
+        $stmt->bind_param("s", $reservation_id);
+        $stmt->execute();
+    } else {
+        // If rooms remain, update total price and points
+        $updateTotal = "UPDATE reservationtb 
+                        SET TotalPrice = (SELECT SUM(Price) FROM reservationdetailtb WHERE ReservationID = ?) * 1.1 
+                        WHERE ReservationID = ?";
+        $stmtUpdate = $connect->prepare($updateTotal);
+        $stmtUpdate->bind_param("ss", $reservation_id, $reservation_id);
+        $stmtUpdate->execute();
+
+        // Recalculate points
+        $getUserID = "SELECT UserID FROM reservationtb WHERE ReservationID = ?";
+        $stmtUser = $connect->prepare($getUserID);
+        $stmtUser->bind_param("s", $reservation_id);
+        $stmtUser->execute();
+        $userID = $stmtUser->get_result()->fetch_assoc()['UserID'];
+
+        $getMembership = "SELECT Membership FROM usertb WHERE UserID = ?";
+        $stmtMember = $connect->prepare($getMembership);
+        $stmtMember->bind_param("s", $userID);
+        $stmtMember->execute();
+        $membership = $stmtMember->get_result()->fetch_assoc()['Membership'];
+
+        $getTotalPrice = "SELECT TotalPrice FROM reservationtb WHERE ReservationID = ?";
+        $stmtTotal = $connect->prepare($getTotalPrice);
+        $stmtTotal->bind_param("s", $reservation_id);
+        $stmtTotal->execute();
+        $totalPrice = $stmtTotal->get_result()->fetch_assoc()['TotalPrice'];
+
+        $pointsEarned = ($membership == 1) ? $totalPrice * 3 : $totalPrice;
+
+        $updatePoints = "UPDATE reservationtb SET PointsEarned = ? WHERE ReservationID = ?";
+        $stmtPoints = $connect->prepare($updatePoints);
+        $stmtPoints->bind_param("ds", $pointsEarned, $reservation_id);
+        $stmtPoints->execute();
+    }
+
+    // Reset timer if all rooms removed
+    if ($count == 0) {
+        $defaultExpiry = time() + (15 * 60); // Reset to 15 minutes from now
+        $response['reset_timer'] = true;
+        $response['new_expiry'] = $defaultExpiry;
+    } else {
+        $response['reset_timer'] = false;
     }
 
     $response['success'] = true;
@@ -583,8 +632,8 @@ if (isset($_GET['payment'])) {
             </div>
             <div class="flex-1 border-t-2 border-gray-300"></div>
             <div class="flex-1 text-center">
-                <div class="w-8 h-8 mx-auto rounded-full bg-gray-300 text-gray-600 flex items-center justify-center mb-2">3</div>
-                <p class="text-sm font-medium text-gray-600">Confirm your reservation</p>
+                <div class="w-8 h-8 mx-auto rounded-full bg-gray-200 text-gray-500 flex items-center justify-center mb-2">3</div>
+                <p class="text-sm font-medium text-gray-500">Confirm your reservation</p>
             </div>
         </div>
 
@@ -602,9 +651,9 @@ if (isset($_GET['payment'])) {
 
             <!-- Booking Details -->
             <div class="p-3 sm:p-6 border-b border-gray-200">
-                <div class="flex flex-col md:flex-row gap-7">
+                <div class="flex flex-col lg:flex-row gap-7">
                     <!-- Left Column - Booking Information -->
-                    <div class="w-full md:w-1/3">
+                    <div class="w-full lg:w-1/3">
                         <div class="space-y-6">
                             <!-- Booking Summary -->
                             <div class="bg-white rounded-lg shadow-sm">
@@ -620,13 +669,7 @@ if (isset($_GET['payment'])) {
                                 </div>
                                 <div class="space-y-3">
                                     <?php
-                                    if (empty($reservationID)) {
-                                        // Show message when no reservation exists
-                                        echo '<div class="text-center py-6">';
-                                        echo '<i class="ri-hotel-bed-line text-4xl text-gray-300 mb-3"></i>';
-                                        echo '<p class="text-gray-500">You don\'t have any active reservations</p>';
-                                        echo '</div>';
-                                    } else {
+                                    if (isset($reservationID)) {
                                         // Get user's current points balance
                                         $pointsQuery = "SELECT PointsBalance, Membership FROM usertb WHERE UserID = '$userID'";
                                         $pointsResult = mysqli_query($connect, $pointsQuery);
@@ -636,10 +679,10 @@ if (isset($_GET['payment'])) {
 
                                         // Query to get all reservation details with room information
                                         $detailsQuery = "SELECT rd.*, rt.RoomType, r.RoomName, rt.RoomCoverImage, rt.RoomPrice 
-                    FROM reservationdetailtb rd
-                    JOIN roomtb r ON rd.RoomID = r.RoomID
-                    JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
-                    WHERE rd.ReservationID = '$reservationID'";
+                                        FROM reservationdetailtb rd
+                                        JOIN roomtb r ON rd.RoomID = r.RoomID
+                                        JOIN roomtypetb rt ON r.RoomTypeID = rt.RoomTypeID
+                                        WHERE rd.ReservationID = '$reservationID'";
                                         $detailsResult = mysqli_query($connect, $detailsQuery);
 
                                         if (!$detailsResult) {
@@ -680,9 +723,9 @@ if (isset($_GET['payment'])) {
 
                                                 // Update reservation with points info
                                                 $updateQuery = "UPDATE reservationtb 
-                          SET PointsDiscount = '$pointsDiscount', 
-                              PointsRedeemed = '$pointsRedeemed'
-                          WHERE ReservationID = '$reservationID'";
+                                                SET PointsDiscount = '$pointsDiscount', 
+                                                    PointsRedeemed = '$pointsRedeemed'
+                                                WHERE ReservationID = '$reservationID'";
                                                 mysqli_query($connect, $updateQuery);
 
                                                 // Update user's points balance
@@ -712,14 +755,14 @@ if (isset($_GET['payment'])) {
 
                                                 // Reset points in reservationtb
                                                 $removeQuery = "UPDATE reservationtb 
-                          SET PointsDiscount = 0, PointsRedeemed = 0 
-                          WHERE ReservationID = '$reservationID'";
+                                                SET PointsDiscount = 0, PointsRedeemed = 0 
+                                                WHERE ReservationID = '$reservationID'";
                                                 $connect->query($removeQuery);
 
                                                 // Return FULL original points to usertb (not just the redeemed amount)
                                                 $returnPointsQuery = "UPDATE usertb 
-                               SET PointsBalance = $originalPoints 
-                               WHERE UserID = '$userID'";
+                                                SET PointsBalance = $originalPoints 
+                                                WHERE UserID = '$userID'";
                                                 $connect->query($returnPointsQuery);
 
                                                 // Update local variable to reflect changes
@@ -739,7 +782,7 @@ if (isset($_GET['payment'])) {
                                                 $totalNights = $checkOut->diff($checkIn)->days;
                                                 $roomTotal = $roomItem['RoomPrice'] * $totalNights;
                                     ?>
-                                                <div class="space-y-2 p-3 border-b">
+                                                <div class="space-y-2 p-3 border-b" id="booking-details-container">
                                                     <!-- Room Title and Price -->
                                                     <div class="flex justify-between items-center">
                                                         <h4 class="text-base font-semibold text-gray-800">
@@ -946,15 +989,6 @@ if (isset($_GET['payment'])) {
                                                 </p>
                                             </div>
                                     <?php
-                                        } else {
-                                            // Show message when reservation exists but has no rooms
-                                            echo '<div class="text-center py-6">';
-                                            echo '<i class="ri-shopping-cart-line text-4xl text-gray-300 mb-3"></i>';
-                                            echo '<p class="text-gray-500">Your reservation is empty</p>';
-                                            echo '<a href="room_booking.php" class="mt-2 inline-block text-blue-600 hover:text-blue-800 text-sm font-medium">';
-                                            echo 'Add rooms to your reservation →';
-                                            echo '</a>';
-                                            echo '</div>';
                                         }
                                     }
                                     ?>
@@ -1167,16 +1201,15 @@ if (isset($_GET['payment'])) {
                                         </button>
                                     </div>
                                 <?php endif; ?>
-
                                 <div id="no-rooms-message" class="text-center py-32" style="display: none;">
-                                    <p class="text-gray-500">You don't have any rooms reserved yet.</p>
-                                    <a href="room_booking.php" class="text-blue-600 hover:underline mt-2 inline-block">
+                                    <p class="text-gray-500 text-sm sm:text-base">You don't have any rooms reserved yet.</p>
+                                    <a href="room_booking.php?checkin_date" class="text-blue-600 hover:underline mt-2 inline-block">
                                         Browse available rooms
                                     </a>
                                 </div>
                             <?php else: ?>
                                 <div class="text-center py-32">
-                                    <p class="text-gray-500">You don't have any rooms reserved yet.</p>
+                                    <p class="text-gray-500 text-sm sm:text-base">You don't have any rooms reserved yet.</p>
                                     <a href="room_booking.php" class="text-blue-600 hover:underline mt-2 inline-block">
                                         Browse available rooms
                                     </a>
@@ -1276,11 +1309,18 @@ if (isset($_GET['payment'])) {
                                         Back
                                     </a>
                                 <?php else: ?>
-                                    <!-- Normal back link -->
-                                    <a href="../User/room_booking.php?checkin_date=<?= urlencode($checkin_date) ?>&checkout_date=<?= urlencode($checkout_date) ?>&adults=<?= urlencode($adults) ?>&children=<?= urlencode($children) ?>"
-                                        class="text-blue-900 hover:text-blue-950 font-medium">
-                                        Back
-                                    </a>
+                                    <?php if (!empty($reservedRooms)): ?>
+                                        <!-- Normal back link -->
+                                        <a href="../User/room_booking.php?checkin_date=<?= urlencode($checkin_date) ?>&checkout_date=<?= urlencode($checkout_date) ?>&adults=<?= urlencode($adults) ?>&children=<?= urlencode($children) ?>"
+                                            class="text-blue-900 hover:text-blue-950 font-medium">
+                                            Back
+                                        </a>
+                                    <?php else: ?>
+                                        <!-- Back to previous page -->
+                                        <a href="../User/room_booking.php" class="text-blue-900 hover:text-blue-950 font-medium">
+                                            Back
+                                        </a>
+                                    <?php endif; ?>
                                 <?php endif; ?>
 
                                 <button type="submit" id="submitButton" name="submit_reservation" class="bg-blue-900 hover:bg-blue-950 text-white font-medium py-2 px-6 rounded-sm flex items-center justify-center select-none">
