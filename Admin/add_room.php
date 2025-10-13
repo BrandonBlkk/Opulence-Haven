@@ -265,7 +265,6 @@ if (isset($_POST['bulkdeleterooms'])) {
                             <select name="updateroomstatus" id="updateroomstatus" class="p-2 w-full border rounded outline-none" required>
                                 <option value="" disabled selected>Select status</option>
                                 <option value="Available">Available</option>
-                                <option value="Reserved">Reserved</option>
                                 <option value="Maintenance">Maintenance</option>
                             </select>
                         </div>

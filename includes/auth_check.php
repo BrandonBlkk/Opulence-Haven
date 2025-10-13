@@ -31,6 +31,7 @@ $rolePermissions = [
         'purchase_history.php',
         'reservation.php',
         'order.php',
+        'return.php',
         'role_management.php',
         'user_contact.php',
         'user_details.php'
@@ -79,7 +80,8 @@ $rolePermissions = [
         'user_details.php',
         'product_purchase.php',
         'purchase_history.php',
-        'order.php'
+        'order.php',
+        'return.php'
     ], // Product Manager
 ];
 

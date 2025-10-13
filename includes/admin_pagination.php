@@ -1,6 +1,6 @@
 <?php
 // Set the number of rows per page
-$rowsPerPage = 1;
+$rowsPerPage = 10;
 
 // Get the current page number from the URL or default to 1
 $currentPage = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -19,6 +19,7 @@ $menuCurrentPage = isset($_GET['menupage']) && is_numeric($_GET['menupage']) ? (
 $userCurrentPage = isset($_GET['userpage']) && is_numeric($_GET['userpage']) ? (int)$_GET['userpage'] : 1;
 $reservationCurrentPage  = isset($_GET['bookingpage']) && is_numeric($_GET['bookingpage']) ? (int)$_GET['bookingpage'] : 1;
 $orderCurrentPage = isset($_GET['orderpage']) && is_numeric($_GET['orderpage']) ? (int)$_GET['orderpage'] : 1;
+$returnCurrentPage = isset($_GET['returnpage']) && is_numeric($_GET['returnpage']) ? (int)$_GET['returnpage'] : 1;
 $purchaseCurrentPage = isset($_GET['purchasepage']) && is_numeric($_GET['purchasepage']) ? (int)$_GET['purchasepage'] : 1;
 
 // Calculate the offset for the query
@@ -38,6 +39,7 @@ $menuOffset = ($menuCurrentPage - 1) * $rowsPerPage;
 $userOffset = ($userCurrentPage - 1) * $rowsPerPage;
 $reservationOffset = ($reservationCurrentPage  - 1) * $rowsPerPage;
 $orderOffset = ($orderCurrentPage - 1) * $rowsPerPage;
+$returnOffset = ($returnCurrentPage - 1) * $rowsPerPage;
 $purchaseOffset = ($purchaseCurrentPage - 1) * $rowsPerPage;
 
 // Initialize search and filter variables
@@ -53,6 +55,7 @@ $searchFacilityQuery = isset($_GET['facility_search']) ? mysqli_real_escape_stri
 $searchMenuQuery = isset($_GET['menu_search']) ? mysqli_real_escape_string($connect, $_GET['menu_search']) : '';
 $searchBookingQuery = isset($_GET['reservation_search']) ? mysqli_real_escape_string($connect, $_GET['reservation_search']) : '';
 $searchOrderQuery = isset($_GET['order_search']) ? mysqli_real_escape_string($connect, $_GET['order_search']) : '';
+$searchReturnQuery = isset($_GET['return_search']) ? mysqli_real_escape_string($connect, $_GET['return_search']) : '';
 $searchUserQuery = isset($_GET['user_search']) ? mysqli_real_escape_string($connect, $_GET['user_search']) : '';
 $searchPurchaseQuery = isset($_GET['purchase_search']) ? mysqli_real_escape_string($connect, $_GET['purchase_search']) : '';
 
@@ -390,6 +393,63 @@ $purchaseCount = $purchaseResult->fetch_assoc()['count'];
 
 // Calculate the total number of pages
 $totalPurchasePages = ceil($purchaseCount / $rowsPerPage);
+
+// Count query
+if ($filterStatus !== 'random' && !empty($searchReturnQuery)) {
+    $returnQuery = "
+        SELECT COUNT(*) as count
+        FROM returntb r
+        JOIN usertb u ON r.UserID = u.UserID
+        JOIN producttb p ON r.ProductID = p.ProductID
+        WHERE r.Status = '$filterStatus'
+          AND (
+              u.UserName LIKE '%$searchReturnQuery%' OR
+              u.UserEmail LIKE '%$searchReturnQuery%' OR
+              u.UserPhone LIKE '%$searchReturnQuery%' OR
+              r.ReturnID LIKE '%$searchReturnQuery%' OR
+              p.Title LIKE '%$searchReturnQuery%'
+          )
+    ";
+} elseif ($filterStatus !== 'random') {
+    $returnQuery = "
+        SELECT COUNT(*) as count
+        FROM returntb r
+        JOIN usertb u ON r.UserID = u.UserID
+        JOIN producttb p ON r.ProductID = p.ProductID
+        WHERE r.Status = '$filterStatus'
+    ";
+} elseif (!empty($searchReturnQuery)) {
+    $returnQuery = "
+        SELECT COUNT(*) as count
+        FROM returntb r
+        JOIN usertb u ON r.UserID = u.UserID
+        JOIN producttb p ON r.ProductID = p.ProductID
+        WHERE (
+            u.UserName LIKE '%$searchReturnQuery%' OR
+            u.UserEmail LIKE '%$searchReturnQuery%' OR
+            u.UserPhone LIKE '%$searchReturnQuery%' OR
+            r.ReturnID LIKE '%$searchReturnQuery%' OR
+            p.Title LIKE '%$searchReturnQuery%'
+        )
+    ";
+} else {
+    $returnQuery = "
+        SELECT COUNT(*) as count
+        FROM returntb r
+        JOIN usertb u ON r.UserID = u.UserID
+        JOIN producttb p ON r.ProductID = p.ProductID
+    ";
+}
+
+// Execute the count query
+$returnResult = $connect->query($returnQuery);
+$returnCount = 0;
+if ($returnResult && $returnResult->num_rows > 0) {
+    $returnCount = $returnResult->fetch_assoc()['count'];
+}
+
+// Calculate the total number of pages
+$totalReturnPages = ceil($returnCount / $rowsPerPage);
 
 // Count query
 if ($filterStatus !== 'random' && !empty($searchOrderQuery)) {
