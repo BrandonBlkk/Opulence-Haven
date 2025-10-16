@@ -151,18 +151,13 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
     </tbody>
 </table>
 
-
 <script>
-    // Function to handle search and filter
+    // Handle Search and Filter
     function handleSearchFilter() {
-        const searchInput = document.querySelector('input[name="product_search"]');
-        const filterSelect = document.querySelector('select[name="sort"]');
-
-        // Reset to page 1 when searching or filtering
         loadProductPage(1);
     }
 
-    // Initialize product update forms
+    // Initialize Product Update Forms
     function initializeProductUpdateForms() {
         // Handle sale quantity input changes
         document.querySelectorAll('.sale-quantity-input').forEach(input => {
@@ -186,14 +181,11 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
         });
     }
 
-    // Update product via AJAX
+    // Update Product via AJAX
     function updateProduct(element) {
         const form = element.closest('.product-update-form');
         const productId = form.dataset.productId;
         const formData = new FormData(form);
-
-        // Show loading state
-        const row = document.getElementById(`product-row-${productId}`);
 
         fetch('../Admin/admin_update_product.php', {
                 method: 'POST',
@@ -202,9 +194,10 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Update the UI with the new values
+                    // Update UI with new values
                     document.getElementById(`selling-price-${productId}`).textContent = `$${data.finalPrice}`;
-                    document.getElementById(`profit-unit-${productId}`).innerHTML = `$${data.profit} (<span id="markup-percentage-${productId}">${data.markupPercentage}%</span>)`;
+                    document.getElementById(`profit-unit-${productId}`).innerHTML =
+                        `$${data.profit} (<span id="markup-percentage-${productId}">${data.markupPercentage}%</span>)`;
                     document.getElementById(`available-stock-${productId}`).textContent = data.availableStock;
 
                     if (document.getElementById(`sale-quantity-${productId}`)) {
@@ -214,46 +207,140 @@ if (mysqli_num_rows($productSelectQuery) > 0) {
                     // Update status badge
                     const statusBadge = document.getElementById(`status-badge-${productId}`);
                     if (data.isActive) {
-                        statusBadge.className = 'text-xs px-2 py-1 rounded-full select-none border bg-green-100 text-green-800 border-green-200';
+                        statusBadge.className =
+                            'text-xs px-2 py-1 rounded-full select-none border bg-green-100 text-green-800 border-green-200';
                         statusBadge.textContent = 'On Sale';
                     } else {
-                        statusBadge.className = 'text-xs px-2 py-1 rounded-full select-none border bg-red-100 text-red-800 border-red-200';
+                        statusBadge.className =
+                            'text-xs px-2 py-1 rounded-full select-none border bg-red-100 text-red-800 border-red-200';
                         statusBadge.textContent = 'Not On Sale';
                     }
 
-                    // Show success message
                     showNotification('Product updated successfully', 'success');
                 } else {
                     showNotification('Error updating product: ' + data.message, 'error');
-                    // Revert the form values if there was an error
                     form.reset();
                 }
             })
             .catch(error => {
                 showNotification('Network error: ' + error, 'error');
-                // Revert the form values if there was an error
                 form.reset();
-            })
+            });
     }
 
-    // Initialize event listeners for search and filter
-    document.addEventListener('DOMContentLoaded', function() {
-        initializeProductActionButtons();
-        initializeProductUpdateForms();
-    });
-
-    // Function to initialize action buttons for products
+    // Initialize Product Action Buttons
     function initializeProductActionButtons() {
-        // Function to attach event listeners to a row
         const attachEventListenersToRow = (row) => {};
-
-        // Initialize all existing rows
         document.querySelectorAll('tbody tr').forEach(row => {
             attachEventListenersToRow(row);
         });
     }
 
-    // Handle browser back/forward buttons
+    // Load Product Page
+    function loadProductPage(page) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchQuery = urlParams.get('product_search') || '';
+        const filterType = urlParams.get('sort') || 'random';
+
+        // Update URL parameters
+        urlParams.set('productpage', page);
+        urlParams.set('product_search', searchQuery);
+        urlParams.set('sort', filterType);
+
+        // Fetch pricing results dynamically
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `../includes/admin_table_components/pricing_results.php?${urlParams.toString()}`, true);
+
+        xhr.onload = function() {
+            if (this.status === 200) {
+                document.getElementById('pricingResults').innerHTML = this.responseText;
+
+                // Reinitialize functions after reload
+                if (typeof initializeProductActionButtons === 'function') initializeProductActionButtons();
+                if (typeof initializeProductUpdateForms === 'function') initializeProductUpdateForms();
+
+                // Fetch pagination separately
+                const xhrPagination = new XMLHttpRequest();
+                xhrPagination.open('GET', `../includes/admin_table_components/pricing_pagination.php?${urlParams.toString()}`, true);
+                xhrPagination.onload = function() {
+                    if (this.status === 200) {
+                        document.getElementById('paginationContainer').innerHTML = this.responseText;
+                        attachProductPaginationEventListeners();
+                    }
+                };
+                xhrPagination.send();
+
+                // Update URL and scroll to top
+                window.history.pushState({}, '', `?${urlParams.toString()}`);
+                window.scrollTo(0, 0);
+            }
+        };
+
+        xhr.send();
+    }
+
+    // Handle Product Search
+    function handleProductSearch() {
+        loadProductPage(1);
+    }
+
+    // Attach Pagination Event Listeners
+    function attachProductPaginationEventListeners() {
+        function clickHandler(e) {
+            e.preventDefault();
+            const page = parseInt(this.dataset.page);
+            if (!isNaN(page)) loadProductPage(page);
+        }
+
+        document.querySelectorAll('.page-btn').forEach(btn => {
+            btn.removeEventListener('click', clickHandler);
+            btn.addEventListener('click', clickHandler);
+        });
+
+        const prevBtn = document.querySelector('.prev-page-btn');
+        if (prevBtn) {
+            prevBtn.removeEventListener('click', clickHandler);
+            prevBtn.addEventListener('click', clickHandler);
+        }
+
+        const nextBtn = document.querySelector('.next-page-btn');
+        if (nextBtn) {
+            nextBtn.removeEventListener('click', clickHandler);
+            nextBtn.addEventListener('click', clickHandler);
+        }
+    }
+
+    // On Page Load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Search input listener
+        const searchInput = document.querySelector('input[name="product_search"]');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                urlParams.set('product_search', this.value);
+                window.history.pushState({}, '', `?${urlParams.toString()}`);
+                handleProductSearch();
+            });
+        }
+
+        // Filter select listener
+        const filterSelect = document.querySelector('select[name="sort"]');
+        if (filterSelect) {
+            filterSelect.addEventListener('change', function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                urlParams.set('sort', this.value);
+                window.history.pushState({}, '', `?${urlParams.toString()}`);
+                loadProductPage(1);
+            });
+        }
+
+        // Initialize features
+        attachProductPaginationEventListeners();
+        initializeProductActionButtons();
+        initializeProductUpdateForms();
+    });
+
+    // Handle Browser Back/Forward
     window.addEventListener('popstate', function() {
         const urlParams = new URLSearchParams(window.location.search);
         const searchInput = document.querySelector('input[name="product_search"]');
