@@ -6038,6 +6038,83 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll('tbody tr').forEach(row => attachOrderListenersToRow(row));
 });
 
+// Return Modal
+document.addEventListener("DOMContentLoaded", () => {
+    const returnModal = document.getElementById('returnModal');
+    const closeReturnDetailButton = document.getElementById('closeReturnDetailButton');
+
+    // Add overlay if missing
+    let darkOverlay2 = document.getElementById('darkOverlay2');
+    if (!darkOverlay2) {
+        darkOverlay2 = document.createElement('div');
+        darkOverlay2.id = 'darkOverlay2';
+        darkOverlay2.className = 'fixed inset-0 bg-black bg-opacity-50 opacity-0 invisible transition-all duration-300 z-40';
+        document.body.appendChild(darkOverlay2);
+    }
+
+    // Format date
+    function formatDate(dateString, options = {
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+    }) {
+        if (!dateString) return "N/A";
+        const date = new Date(dateString);
+        return isNaN(date.getTime()) ? "N/A" : date.toLocaleDateString('en-US', options);
+    }
+
+    // Attach click listener to rows
+    const attachReturnListenersToRow = (row) => {
+        const detailsBtn = row.querySelector('.details-btn');
+        if (detailsBtn) {
+            detailsBtn.addEventListener('click', function () {
+                const returnId = this.getAttribute('data-return-id');
+
+                // Show modal
+                darkOverlay2.classList.remove('opacity-0', 'invisible');
+                darkOverlay2.classList.add('opacity-100');
+                returnModal.classList.remove('opacity-0', 'invisible', '-translate-y-5');
+
+                // Fetch details
+                fetch(`return.php?action=getReturnDetails&id=${returnId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success || !data.return) {
+                            console.error('Failed to load return details', data.message || '');
+                            return;
+                        }
+
+                        const r = data.return;
+
+                        // Fill modal fields
+                        document.getElementById('returnUserName').textContent = r.UserName || "N/A";
+                        document.getElementById('returnUserPhone').textContent = r.UserPhone || "N/A";
+                        document.getElementById('returnUserEmail').textContent = r.UserEmail || "N/A";
+                        document.getElementById('returnUserEmail').href = r.UserEmail ? `mailto:${r.UserEmail}` : '#';
+                        document.getElementById('returnRequestDate').textContent = formatDate(r.RequestDate);
+                        document.getElementById('returnStatus').textContent = r.Status || "N/A";
+                        document.getElementById('returnProductName').textContent = r.Title || "N/A";
+                        document.getElementById('returnProductImage').src = (r.ProductImage && r.ProductImage.trim() !== "")
+                            ? `../Admin/${r.ProductImage}`
+                            : '../Admin/default.png';
+                    })
+                    .catch(error => {
+                        console.error('Fetch error:', error);
+                    });
+            });
+        }
+    };
+
+    // Close modal
+    closeReturnDetailButton.addEventListener('click', () => {
+        returnModal.classList.add('opacity-0', 'invisible', '-translate-y-5');
+        darkOverlay2.classList.remove('opacity-100');
+        darkOverlay2.classList.add('opacity-0', 'invisible');
+    });
+
+    // Attach to each table row
+    document.querySelectorAll('tbody tr').forEach(row => attachReturnListenersToRow(row));
+});
+
 // Purchase History
 document.addEventListener('DOMContentLoaded', function() {
     const darkOverlay2 = document.getElementById('darkOverlay2');

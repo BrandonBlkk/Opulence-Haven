@@ -66,7 +66,7 @@ if (mysqli_num_rows($bookingSelectQuery) > 0) {
     <thead>
         <tr class="bg-gray-100 text-gray-600 text-sm">
             <th class="p-3 text-start">Reservation ID</th>
-            <th class="p-3 text-start">Customer</th>
+            <th class="p-3 text-start">User</th>
             <th class="p-3 text-start hidden sm:table-cell">Contact</th>
             <th class="p-3 text-start">Total Price</th>
             <th class="p-3 text-start hidden lg:table-cell">Reservation Date</th>

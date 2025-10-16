@@ -25,15 +25,28 @@ $response = ['success' => false, 'message' => '', 'adminProfile' => null, 'remov
 $adminQuery = "SELECT * FROM admintb WHERE AdminID = '$adminID'";
 $adminRow = $connect->query($adminQuery)->fetch_assoc();
 
-
 // Handle form submission for profile update
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
 
     try {
+        // Ensure $adminID is set from session or POST (depending on your use case)
+        if (!isset($_SESSION['AdminID'])) {
+            throw new Exception('Admin ID is missing.');
+        }
+        $adminID = $_SESSION['AdminID'];
+
         // Get current admin data
-        $currentQuery = "SELECT FirstName, LastName, UserName, AdminPhone, RoleID, AdminProfile FROM admintb WHERE AdminID = '$adminID'";
-        $currentResult = $connect->query($currentQuery);
+        $currentQuery = "SELECT FirstName, LastName, UserName, AdminPhone, RoleID, AdminProfile FROM admintb WHERE AdminID = ?";
+        $stmt = $connect->prepare($currentQuery);
+        $stmt->bind_param("s", $adminID);
+        $stmt->execute();
+        $currentResult = $stmt->get_result();
         $currentData = $currentResult->fetch_assoc();
+        $stmt->close();
+
+        if (!$currentData) {
+            throw new Exception('Admin data not found.');
+        }
 
         // Get form data
         $firstname = mysqli_real_escape_string($connect, $_POST['firstname'] ?? '');
@@ -42,30 +55,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
         $phone = mysqli_real_escape_string($connect, $_POST['phone'] ?? '');
         $role = mysqli_real_escape_string($connect, $_POST['role'] ?? '');
 
-        // Check if any fields were actually changed
-        $changesDetected = false;
-        if (
+        // Validate RoleID exists in roletb
+        $roleCheckQuery = "SELECT RoleID FROM roletb WHERE RoleID = ?";
+        $stmt = $connect->prepare($roleCheckQuery);
+        $stmt->bind_param("s", $role);
+        $stmt->execute();
+        $roleResult = $stmt->get_result();
+        if ($roleResult->num_rows == 0) {
+            throw new Exception('Selected role does not exist.');
+        }
+        $stmt->close();
+
+        // Check if any fields changed
+        $changesDetected = (
             $firstname != $currentData['FirstName'] ||
             $lastname != $currentData['LastName'] ||
             $username != $currentData['UserName'] ||
             $phone != $currentData['AdminPhone'] ||
             $role != $currentData['RoleID']
-        ) {
-            $changesDetected = true;
-        }
+        );
 
-        // Initialize with current profile
-        $adminProfile = $adminprofile;
+        // Initialize profile variables
+        $adminProfile = $currentData['AdminProfile'];
         $profileChanged = false;
 
-        // Process image upload if file was provided
+        // Handle image upload
         if (isset($_FILES['AdminProfile']) && $_FILES['AdminProfile']['error'] == UPLOAD_ERR_OK) {
             $imageFile = $_FILES['AdminProfile'];
-            $result = uploadProductImage($imageFile, $adminprofile);
+            $result = uploadProductImage($imageFile, $adminProfile);
 
             if (isset($result['adminPath'])) {
                 $adminProfile = $result['adminPath'];
-                $response['adminProfile'] = $adminProfile;
                 $profileChanged = true;
             } elseif (isset($result['image'])) {
                 throw new Exception($result['image']);
@@ -76,41 +96,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
 
         // Handle profile removal
         $removeProfile = isset($_POST['removeProfile']) && $_POST['removeProfile'] == '1';
-        if ($removeProfile) {
-            // Only mark as changed if there was a profile to remove
-            if (!empty($adminprofile) && $adminprofile != 'NULL') {
-                $profileChanged = true;
-            }
-            // Delete the old profile image if it exists
-            if (!empty($adminprofile) && file_exists($adminprofile)) {
-                @unlink($adminprofile);
+        if ($removeProfile && !empty($adminProfile) && $adminProfile != 'NULL') {
+            if (file_exists($adminProfile)) {
+                @unlink($adminProfile);
             }
             $adminProfile = null;
-            $response['removeProfile'] = true;
+            $profileChanged = true;
         }
 
-        // Only update if changes were detected
+        // Only update if changes detected
         if ($changesDetected || $profileChanged) {
-            $response['changesMade'] = true;
 
-            // Build the query with proper NULL handling
-            $updateProfileQuery = "UPDATE admintb SET 
-            AdminProfile = ?, 
-            FirstName = ?, 
-            LastName = ?, 
-            UserName = ?, 
-            AdminPhone = ?,  
-            RoleID = ? 
-            WHERE AdminID = ?";
+            $updateQuery = "UPDATE admintb SET AdminProfile = ?, FirstName = ?, LastName = ?, UserName = ?, AdminPhone = ?, RoleID = ? WHERE AdminID = ?";
+            $stmt = $connect->prepare($updateQuery);
+            if ($stmt === false) throw new Exception('Prepare failed: ' . $connect->error);
 
-            // Prepare the statement
-            $stmt = $connect->prepare($updateProfileQuery);
-
-            if ($stmt === false) {
-                die('Prepare failed: ' . htmlspecialchars($connect->error));
-            }
-
-            // Bind parameters - handle NULL for AdminProfile
+            // Bind parameters
             $adminProfileParam = ($adminProfile === null) ? null : $adminProfile;
             $stmt->bind_param(
                 "sssssss",
@@ -123,31 +124,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['modify'])) {
                 $adminID
             );
 
-            // Execute the statement
-            $updateProfileQueryResult = $stmt->execute();
-
-            if ($updateProfileQueryResult === false) {
-                die('Execute failed: ' . htmlspecialchars($stmt->error));
-            }
+            $stmt->execute();
+            if ($stmt->affected_rows < 0) throw new Exception('Error updating profile.');
 
             $stmt->close();
 
-            if (!$updateProfileQueryResult) {
-                throw new Exception('Error updating profile: ' . $connect->error);
-            }
-
             $response['success'] = true;
+            $response['changesMade'] = true;
             $response['newUsername'] = $username;
+            $response['adminProfile'] = $adminProfile;
 
-            // Update session with new profile if needed
-            if ($adminID == $_SESSION['AdminID']) {
-                $_SESSION['admin_profile'] = ($adminProfile === null ? null : $adminProfile);
+            // Update session if current admin
+            if ($_SESSION['AdminID'] === $adminID) {
+                $_SESSION['admin_profile'] = $adminProfile;
             }
         } else {
             $response['success'] = true;
             $response['message'] = 'No changes were made to your profile.';
         }
     } catch (Exception $e) {
+        $response['success'] = false;
         $response['message'] = $e->getMessage();
     }
 
@@ -397,16 +393,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['changePassword'])) {
                                     <div class="flex-1">
                                         <div class="flex flex-col relative">
                                             <label for="roleSelect" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                                            <select name="role" class="border rounded p-2 bg-gray-50 outline-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out" <?= ($role !== '1') ? 'disabled' : ''; ?>>
+
+                                            <?php
+                                            // Determine if the select should be disabled
+                                            $isDisabled = ($role !== '1');
+                                            $adminRoleID = $adminRow['RoleID'];
+                                            ?>
+
+                                            <!-- Hidden input to ensure value is submitted even if select is disabled -->
+                                            <input type="hidden" name="role" value="<?php echo htmlspecialchars($adminRoleID); ?>">
+
+                                            <select
+                                                id="roleSelect"
+                                                class="border rounded p-2 bg-gray-50 outline-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+                                                <?php echo $isDisabled ? 'disabled' : ''; ?>>
                                                 <?php
                                                 // Fetch roles for the dropdown
                                                 $rolesQuery = "SELECT * FROM roletb";
                                                 $rolesResult = $connect->query($rolesQuery);
 
                                                 if ($rolesResult->num_rows > 0) {
-                                                    // Get the admin's role
-                                                    $adminRoleID = $adminRow['RoleID'];
-
                                                     while ($roleRow = $rolesResult->fetch_assoc()) {
                                                         $selected = $roleRow['RoleID'] == $adminRoleID ? 'selected' : '';
                                                         echo "<option value='{$roleRow['RoleID']}' $selected>{$roleRow['Role']}</option>";
